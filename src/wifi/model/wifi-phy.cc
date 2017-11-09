@@ -240,20 +240,6 @@ WifiPhy::GetTypeId (void)
                    TimeValue (MicroSeconds (250)),
                    MakeTimeAccessor (&WifiPhy::m_channelSwitchDelay),
                    MakeTimeChecker ())
-    .AddAttribute ("TxAntennas",
-                   "The number of supported Tx antennas.",
-                   UintegerValue (1),
-                   MakeUintegerAccessor (&WifiPhy::m_numberOfTransmitters),
-                   MakeUintegerChecker<uint8_t> (1, 8),
-                   TypeId::DEPRECATED,
-                   "Not used anymore.")
-    .AddAttribute ("RxAntennas",
-                   "The number of supported Rx antennas.",
-                   UintegerValue (1),
-                   MakeUintegerAccessor (&WifiPhy::m_numberOfReceivers),
-                   MakeUintegerChecker<uint8_t> (1, 8),
-                   TypeId::DEPRECATED,
-                   "Not used anymore.")
     .AddAttribute ("Antennas",
                    "The number of antennas on the device.",
                    UintegerValue (1),
