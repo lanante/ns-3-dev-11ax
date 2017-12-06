@@ -193,7 +193,11 @@ public:
     /**
      * The PHY layer is sleeping.
      */
-    SLEEP
+    SLEEP,
+    /**
+     * The PHY layer is switched off.
+     */
+    OFF
   };
 
   /**
@@ -1611,9 +1615,9 @@ public:
   /**
    * Sets the frame capture model.
    *
-   * \param rate the frame capture model
+   * \param frameCaptureModel the frame capture model
    */
-  void SetFrameCaptureModel (const Ptr<FrameCaptureModel> rate);
+  void SetFrameCaptureModel (const Ptr<FrameCaptureModel> frameCaptureModel);
   /**
    * Return the frame capture model this PHY is using.
    *
