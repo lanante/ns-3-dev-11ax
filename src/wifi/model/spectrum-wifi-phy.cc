@@ -29,7 +29,10 @@
 #include "ns3/boolean.h"
 #include "wifi-spectrum-signal-parameters.h"
 #include "wifi-utils.h"
-
+#include "wifi-phy-tag.h"
+#include "table-spectrum-propagation-loss.h"
+#include "ns3/EESM.h"
+#include "ns3/RBIR.h"
 namespace ns3 {
 
 NS_LOG_COMPONENT_DEFINE ("SpectrumWifiPhy");
@@ -51,6 +54,10 @@ SpectrumWifiPhy::GetTypeId (void)
                      "Signal arrival",
                      MakeTraceSourceAccessor (&SpectrumWifiPhy::m_signalCb),
                      "ns3::SpectrumWifiPhy::SignalArrivalCallback")
+    .AddAttribute ("FastFadingChannelType", "Fast Fading channel type:(TGN-D) default: no fast fading",
+                   StringValue (""),
+                   MakeStringAccessor (&SpectrumWifiPhy::m_fastfading),
+                   MakeStringChecker ())
   ;
   return tid;
 }
@@ -252,6 +259,46 @@ SpectrumWifiPhy::StartRx (Ptr<SpectrumSignalParameters> rxParams)
 
   NS_LOG_INFO ("Received Wi-Fi signal");
   Ptr<Packet> packet = wifiRxParams->packet->Copy ();
+  // information to feed fastfading
+  WifiPhyTag tag;
+  bool found = packet->PeekPacketTag (tag);
+  if (!found)
+    {
+      NS_FATAL_ERROR ("Received Wi-Fi Signal with no WifiPhyTag");
+      return;
+    }
+  
+ WifiTxVector txVector = tag.GetWifiTxVector ();
+ 
+  //std::cout << "spec phy "<< rxPowerW << std::endl;
+  
+  if (!m_fastfading.empty())
+    {
+      // LINK to system mapping for HT, VHT
+      if (txVector.GetMode ().GetModulationClass () == WIFI_MOD_CLASS_HT ||txVector.GetMode ().GetModulationClass () == WIFI_MOD_CLASS_VHT)
+        {
+           // Applying fast fading on the received signal, table based error model
+           TableSpectrumPropagationLossModel tb;
+           Ptr<SpectrumValue>received_spectrum = tb.CalRxSpectralDensity (&filteredSignal,txVector.GetMode ().GetModulationClass () ,m_fastfading, GetBandBandwidth () ,GetFrequency (),GetChannelWidth (), GetGuardBandwidth ());     
+           // Get effective power from spectrum, currently use EESM
+           Ptr <EESM> eesm = CreateObject<EESM> ();
+           rxPowerW = eesm->GetEffectivePower (received_spectrum, GetChannelWidth (), GetGuardBandwidth (), txVector.GetMode ().GetMcsValue(),m_fastfading,GetStandard ());
+           rxPowerW = rxPowerW* DbToRatio (GetRxGain ());
+        }
+      else if (txVector.GetMode ().GetModulationClass () == WIFI_MOD_CLASS_HE)
+        {
+           // LINK to system mapping for HE
+           TableSpectrumPropagationLossModel tb;
+           Ptr<SpectrumValue>received_spectrum = tb.CalRxSpectralDensity (&filteredSignal,txVector.GetMode ().GetModulationClass () ,m_fastfading, GetBandBandwidth () ,GetFrequency (),GetChannelWidth (), GetGuardBandwidth ());
+           Ptr <RBIR> rbir = CreateObject<RBIR> ();
+           rbir->LoadFile ();
+           int constellationsize = txVector.GetMode ().GetConstellationSize();
+           rxPowerW = rbir->RBIR::GetEffectivePower(received_spectrum,(double)GetChannelWidth (),txVector.GetMode ().GetMcsValue(), constellationsize, 1);
+           rxPowerW = rxPowerW* DbToRatio (GetRxGain ());
+        }
+
+    }
+
   StartReceivePreambleAndHeader (packet, rxPowerW, rxDuration);
 }
 

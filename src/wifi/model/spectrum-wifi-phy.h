@@ -197,7 +197,8 @@ private:
 
   Ptr<SpectrumChannel> m_channel;        //!< SpectrumChannel that this SpectrumWifiPhy is connected to
   std::vector<uint8_t> m_operationalChannelList; //!< List of possible channels
-
+  
+  std::string m_fastfading; // fading channel type
   Ptr<WifiSpectrumPhyInterface> m_wifiSpectrumPhyInterface; //!< Spectrum phy interface
   Ptr<AntennaModel> m_antenna; //!< antenna model
   mutable Ptr<const SpectrumModel> m_rxSpectrumModel; //!< receive spectrum model
