@@ -31,7 +31,7 @@
 #include "ampdu-tag.h"
 #include "wifi-utils.h"
 #include "frame-capture-model.h"
-#include "ns3/error-rate-model.h"
+
 namespace ns3 {
 
 NS_LOG_COMPONENT_DEFINE ("WifiPhy");
@@ -419,16 +419,9 @@ WifiPhy::DoInitialize (void)
   if (m_frequencyChannelNumberInitialized == true)
     {
       NS_LOG_DEBUG ("Frequency already initialized");
+      return;
     }
-    else
-    {
-      InitializeFrequencyChannelNumber ();
-    }
-  if (m_interference.GetErrorRateModel ())
-    {
-      NS_LOG_DEBUG ("Initializing error model");
-      m_interference.GetErrorRateModel ()->Initialize ();    
-    }
+  InitializeFrequencyChannelNumber ();
 }
 
 void

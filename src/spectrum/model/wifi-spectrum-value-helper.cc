@@ -229,45 +229,53 @@ WifiSpectrumValueHelper::CreateHtOfdmTxPowerSpectralDensity (uint32_t centerFreq
   uint32_t nGuardBands = static_cast<uint32_t>(((2 * guardBandwidth * 1e6) / bandBandwidth) + 0.5);
   uint32_t nAllocatedBands = static_cast<uint32_t>(((channelWidth * 1e6) / bandBandwidth) + 0.5);
   NS_ASSERT_MSG (c->GetSpectrumModel ()->GetNumBands () == (nAllocatedBands + nGuardBands + 1), "Unexpected number of bands " << c->GetSpectrumModel ()->GetNumBands ());
-  double txPowerPerBand; 
+  double txPowerPerBand;
   // skip the guard band and 4 subbands, then place power in 28 subbands, then
   // skip the center subband, then place power in 28 subbands, then skip
   // the final 4 subbands and the guard band.
   // Repeat for each 20 MHz band.
-  //20MHz 
   uint32_t start1 = (nGuardBands / 2) + 4;
   uint32_t stop1 = start1 + 28 - 1;
   uint32_t start2 = stop1 + 2;
   uint32_t stop2 = start2 + 28 - 1;
-  //40MHz
-  uint32_t start3 = (nGuardBands / 2) + 6;
-  uint32_t stop3 = start3 + 57 - 1;
-  uint32_t start4 = stop3 + 4;
-  uint32_t stop4 = start4 + 57 - 1;
-  
-  //80MHz
-  uint32_t start5 = (nGuardBands / 2) + 6;
-  uint32_t stop5 = start5 + 121 - 1;
-  uint32_t start6 = stop5 + 4;
-  uint32_t stop6 = start6 + 121 - 1;
-  
-  //160MHz 80+80
-  uint32_t start7 = stop6 + 2;
-  uint32_t stop7 = start7 + 121 - 1;
-  uint32_t start8 = stop7 + 4;
-  uint32_t stop8 = start8 + 121 - 1;
-
+  uint32_t start3 = stop2 + (2 * 4);
+  uint32_t stop3 = start3 + 28 - 1;
+  uint32_t start4 = stop3 + 2;
+  uint32_t stop4 = start4 + 28 - 1;
+  uint32_t start5 = stop4 + (2 * 4);
+  uint32_t stop5 = start5 + 28 - 1;
+  uint32_t start6 = stop5 + 2;
+  uint32_t stop6 = start6 + 28 - 1;
+  uint32_t start7 = stop6 + (2 * 4);
+  uint32_t stop7 = start7 + 28 - 1;
+  uint32_t start8 = stop7 + 2;
+  uint32_t stop8 = start8 + 28 - 1;
+  uint32_t start9 = stop8 + (2 * 4);
+  uint32_t stop9 = start9 + 28 - 1;
+  uint32_t start10 = stop9 + 2;
+  uint32_t stop10 = start10 + 28 - 1;
+  uint32_t start11 = stop10 + (2 * 4);
+  uint32_t stop11 = start11 + 28 - 1;
+  uint32_t start12 = stop11 + 2;
+  uint32_t stop12 = start12 + 28 - 1;
+  uint32_t start13 = stop12 + (2 * 4);
+  uint32_t stop13 = start13 + 28 - 1;
+  uint32_t start14 = stop13 + 2;
+  uint32_t stop14 = start14 + 28 - 1;
+  uint32_t start15 = stop14 + (2 * 4);
+  uint32_t stop15 = start15 + 28 - 1;
+  uint32_t start16 = stop15 + 2;
+  uint32_t stop16 = start16 + 28 - 1;
   switch (channelWidth)
     {
     case 20:
       // 56 subcarriers (52 data + 4 pilot)
       txPowerPerBand = txPowerW / 56;
       NS_LOG_DEBUG ("Power per band " << txPowerPerBand);
-      /*start1 = (nGuardBands / 2) + 4;
+      start1 = (nGuardBands / 2) + 4;
       stop1 = start1 + 28 - 1;
       start2 = stop1 + 2;
-      stop2 = start2 + 28 - 1;*/
-      //Centralfrequencyindex= stop1+1; //unused
+      stop2 = start2 + 28 - 1;
       for (size_t i = 0; i < c->GetSpectrumModel ()->GetNumBands (); i++, vit++, bit++)
         {
           if ((i >= start1 && i <= stop1) || (i >= start2 && i <= stop2))
@@ -282,14 +290,15 @@ WifiSpectrumValueHelper::CreateHtOfdmTxPowerSpectralDensity (uint32_t centerFreq
       NS_LOG_DEBUG ("Added signal power to subbands " << start1 << "-" << stop1 <<
                     " and " << start2 << "-" << stop2);
       break;
-    case 40: 
-      // 114 subcarriers (108 data + 6 pilot)
-      //Centralfrequencyindex= stop3+2; //unused
-      txPowerPerBand = txPowerW / 114;
+    case 40:
+      // 112 subcarriers (104 data + 8 pilot) 
+      // possible alternative:  114 subcarriers (108 data + 6 pilot)
+      txPowerPerBand = txPowerW / 112;
       NS_LOG_DEBUG ("Power per band " << txPowerPerBand);
       for (size_t i = 0; i < c->GetSpectrumModel ()->GetNumBands (); i++, vit++, bit++)
         {
-          if ((i >= start3 && i <= stop3) || (i >= start4 && i <= stop4))
+          if ((i >= start1 && i <= stop1) || (i >= start2 && i <= stop2) ||
+              (i >= start3 && i <= stop3) || (i >= start4 && i <= stop4))
             {
               *vit = txPowerPerBand / (bit->fh - bit->fl);
             }
@@ -298,36 +307,21 @@ WifiSpectrumValueHelper::CreateHtOfdmTxPowerSpectralDensity (uint32_t centerFreq
               *vit = 0;
             }
         }
-      NS_LOG_DEBUG ("Added signal power to subbands " << start3 << "-" << stop3 <<
+      NS_LOG_DEBUG ("Added signal power to subbands " << start1 << "-" << stop1 <<
+                    ", " << start2 << "-" << stop2 <<
+                    ", " << start3 << "-" << stop3 <<
                     ", " << start4 << "-" << stop4);
       break;
     case 80:
-      // 242 subcarriers (234 data + 8 pilot)
-      txPowerPerBand = txPowerW / 242;
-      //Centralfrequencyindex= stop5+2; //unused
+      // 224 subcarriers (208 data + 16 pilot) 
+      // possible alternative:  242 subcarriers (234 data + 8 pilot)
+      txPowerPerBand = txPowerW / 224;
       NS_LOG_DEBUG ("Power per band " << txPowerPerBand);
       for (size_t i = 0; i < c->GetSpectrumModel ()->GetNumBands (); i++, vit++, bit++)
         {
-          if ((i >= start5 && i <= stop5) || (i >= start6 && i <= stop6))
-            {
-              *vit = txPowerPerBand / (bit->fh - bit->fl);
-            }
-          else
-            {
-              *vit = 0;
-            }
-        }
-      NS_LOG_DEBUG ("Added signal power to subbands " << start5 << "-" << stop5 <<
-                    ", " << start6 << "-" << stop6);
-      break;
-    case 160:
-      // 484 subcarriers (468 data + 16 pilot)
-      txPowerPerBand = txPowerW / 484;
-      //Centralfrequencyindex= stop6+6; //unused
-      NS_LOG_DEBUG ("Power per band " << txPowerPerBand);
-      for (size_t i = 0; i < c->GetSpectrumModel ()->GetNumBands (); i++, vit++, bit++)
-        {
-          if ((i >= start5 && i <= stop5) || (i >= start6 && i <= stop6) ||
+          if ((i >= start1 && i <= stop1) || (i >= start2 && i <= stop2) ||
+              (i >= start3 && i <= stop3) || (i >= start4 && i <= stop4) ||
+              (i >= start5 && i <= stop5) || (i >= start6 && i <= stop6) ||
               (i >= start7 && i <= stop7) || (i >= start8 && i <= stop8))
             {
               *vit = txPowerPerBand / (bit->fh - bit->fl);
@@ -337,10 +331,54 @@ WifiSpectrumValueHelper::CreateHtOfdmTxPowerSpectralDensity (uint32_t centerFreq
               *vit = 0;
             }
         }
-      NS_LOG_DEBUG ("Added signal power to subbands " << start5 << "-" << stop5 <<
+      NS_LOG_DEBUG ("Added signal power to subbands " << start1 << "-" << stop1 <<
+                    ", " << start2 << "-" << stop2 <<
+                    ", " << start3 << "-" << stop3 <<
+                    ", " << start4 << "-" << stop4 <<
+                    ", " << start5 << "-" << stop5 <<
                     ", " << start6 << "-" << stop6 <<
                     ", " << start7 << "-" << stop7 <<
                     ", " << start8 << "-" << stop8);
+      break;
+    case 160:
+      // 448 subcarriers (416 data + 32 pilot)
+      // possible alternative:  484 subcarriers (468 data + 16 pilot)
+      txPowerPerBand = txPowerW / 448;
+      NS_LOG_DEBUG ("Power per band " << txPowerPerBand);
+      for (size_t i = 0; i < c->GetSpectrumModel ()->GetNumBands (); i++, vit++, bit++)
+        {
+          if ((i >= start1 && i <= stop1) || (i >= start2 && i <= stop2) ||
+              (i >= start3 && i <= stop3) || (i >= start4 && i <= stop4) ||
+              (i >= start5 && i <= stop5) || (i >= start6 && i <= stop6) ||
+              (i >= start7 && i <= stop7) || (i >= start8 && i <= stop8) ||
+              (i >= start9 && i <= stop9) || (i >= start10 && i <= stop10) ||
+              (i >= start11 && i <= stop11) || (i >= start12 && i <= stop12) ||
+              (i >= start13 && i <= stop13) || (i >= start14 && i <= stop14) ||
+              (i >= start15 && i <= stop15) || (i >= start16 && i <= stop16))
+            {
+              *vit = txPowerPerBand / (bit->fh - bit->fl);
+            }
+          else
+            {
+              *vit = 0;
+            }
+        }
+      NS_LOG_DEBUG ("Added signal power to subbands " << start1 << "-" << stop1 <<
+                    ", " << start2 << "-" << stop2 <<
+                    ", " << start3 << "-" << stop3 <<
+                    ", " << start4 << "-" << stop4 <<
+                    ", " << start5 << "-" << stop5 <<
+                    ", " << start6 << "-" << stop6 <<
+                    ", " << start7 << "-" << stop7 <<
+                    ", " << start8 << "-" << stop8 <<
+                    ", " << start9 << "-" << stop9 <<
+                    ", " << start10 << "-" << stop10 <<
+                    ", " << start11 << "-" << stop11 <<
+                    ", " << start12 << "-" << stop12 <<
+                    ", " << start13 << "-" << stop13 <<
+                    ", " << start14 << "-" << stop14 <<
+                    ", " << start15 << "-" << stop15 <<
+                    ", " << start16 << "-" << stop16);
       break;
     }
   NS_LOG_DEBUG ("Integrated power " << Integral (*c));
