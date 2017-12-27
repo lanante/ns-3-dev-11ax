@@ -385,8 +385,8 @@ DcaTxop::NotifyAccessGranted (void)
       m_currentParams.DisableRts ();
       m_currentParams.DisableAck ();
       m_currentParams.DisableNextData ();
-      GetLow ()->StartTransmission (m_currentPacket, &m_currentHdr, m_currentParams, this);
       NS_LOG_DEBUG ("tx broadcast");
+      GetLow ()->StartTransmission (m_currentPacket, &m_currentHdr, m_currentParams, this);
     }
   else
     {
@@ -448,6 +448,14 @@ DcaTxop::NotifySleep (void)
       m_queue->PushFront (Create<WifiMacQueueItem> (m_currentPacket, m_currentHdr));
       m_currentPacket = 0;
     }
+}
+
+void
+DcaTxop::NotifyOff (void)
+{
+  NS_LOG_FUNCTION (this);
+  m_queue->Flush ();
+  m_currentPacket = 0;
 }
 
 void

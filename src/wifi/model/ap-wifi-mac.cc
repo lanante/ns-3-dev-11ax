@@ -380,7 +380,7 @@ ApWifiMac::GetSupportedRates (void) const
   //Also the standard mentioned that at least 1 element should be included in the SupportedRates the rest can be in the ExtendedSupportedRates
   if (m_htSupported || m_vhtSupported || m_heSupported)
     {
-      for (uint32_t i = 0; i < m_phy->GetNBssMembershipSelectors (); i++)
+      for (uint8_t i = 0; i < m_phy->GetNBssMembershipSelectors (); i++)
         {
           rates.AddBssMembershipSelectorRate (m_phy->GetBssMembershipSelector (i));
         }
@@ -388,7 +388,7 @@ ApWifiMac::GetSupportedRates (void) const
   //
   //Send the set of supported rates and make sure that we indicate
   //the Basic Rate set in this set of supported rates.
-  for (uint32_t i = 0; i < m_phy->GetNModes (); i++)
+  for (uint8_t i = 0; i < m_phy->GetNModes (); i++)
     {
       WifiMode mode = m_phy->GetMode (i);
       uint64_t modeDataRate = mode.GetDataRate (m_phy->GetChannelWidth ());
@@ -404,7 +404,7 @@ ApWifiMac::GetSupportedRates (void) const
         }
     }
   //set the basic rates
-  for (uint32_t j = 0; j < m_stationManager->GetNBasicModes (); j++)
+  for (uint8_t j = 0; j < m_stationManager->GetNBasicModes (); j++)
     {
       WifiMode mode = m_stationManager->GetBasicMode (j);
       uint64_t modeDataRate = mode.GetDataRate (m_phy->GetChannelWidth ());
@@ -695,6 +695,7 @@ ApWifiMac::SendProbeResp (Mac48Address to)
     }
   if (m_htSupported || m_vhtSupported || m_heSupported)
     {
+      probe.SetExtendedCapabilities (GetExtendedCapabilities ());
       probe.SetHtCapabilities (GetHtCapabilities ());
       probe.SetHtOperation (GetHtOperation ());
     }
@@ -754,6 +755,7 @@ ApWifiMac::SendAssocResp (Mac48Address to, bool success)
     }
   if (m_htSupported || m_vhtSupported || m_heSupported)
     {
+      assoc.SetExtendedCapabilities (GetExtendedCapabilities ());
       assoc.SetHtCapabilities (GetHtCapabilities ());
       assoc.SetHtOperation (GetHtOperation ());
     }
@@ -810,6 +812,7 @@ ApWifiMac::SendOneBeacon (void)
     }
   if (m_htSupported || m_vhtSupported)
     {
+      beacon.SetExtendedCapabilities (GetExtendedCapabilities ());
       beacon.SetHtCapabilities (GetHtCapabilities ());
       beacon.SetHtOperation (GetHtOperation ());
     }
@@ -975,7 +978,7 @@ ApWifiMac::Receive (Ptr<Packet> packet, const WifiMacHeader *hdr)
               bool isOfdmStation = false;
               bool isErpStation = false;
               bool isDsssStation = false;
-              for (uint32_t i = 0; i < m_stationManager->GetNBasicModes (); i++)
+              for (uint8_t i = 0; i < m_stationManager->GetNBasicModes (); i++)
                 {
                   WifiMode mode = m_stationManager->GetBasicMode (i);
                   if (!rates.IsSupportedRate (mode.GetDataRate (m_phy->GetChannelWidth ())))
@@ -1022,7 +1025,7 @@ ApWifiMac::Receive (Ptr<Packet> packet, const WifiMacHeader *hdr)
                   if (htcapabilities.IsSupportedMcs (0))
                     {
                       isHtStation = true;
-                      for (uint32_t i = 0; i < m_stationManager->GetNBasicMcs (); i++)
+                      for (uint8_t i = 0; i < m_stationManager->GetNBasicMcs (); i++)
                         {
                           WifiMode mcs = m_stationManager->GetBasicMcs (i);
                           if (!htcapabilities.IsSupportedMcs (mcs.GetMcsValue ()))
@@ -1039,7 +1042,7 @@ ApWifiMac::Receive (Ptr<Packet> packet, const WifiMacHeader *hdr)
                   VhtCapabilities vhtcapabilities = assocReq.GetVhtCapabilities ();
                   if (vhtcapabilities.GetVhtCapabilitiesInfo () != 0)
                     {
-                      for (uint32_t i = 0; i < m_stationManager->GetNBasicMcs (); i++)
+                      for (uint8_t i = 0; i < m_stationManager->GetNBasicMcs (); i++)
                         {
                           WifiMode mcs = m_stationManager->GetBasicMcs (i);
                           if (!vhtcapabilities.IsSupportedTxMcs (mcs.GetMcsValue ()))
@@ -1056,7 +1059,7 @@ ApWifiMac::Receive (Ptr<Packet> packet, const WifiMacHeader *hdr)
                   HeCapabilities hecapabilities = assocReq.GetHeCapabilities ();
                   if (hecapabilities.GetSupportedMcsAndNss () != 0)
                     {
-                      for (uint32_t i = 0; i < m_stationManager->GetNBasicMcs (); i++)
+                      for (uint8_t i = 0; i < m_stationManager->GetNBasicMcs (); i++)
                         {
                           WifiMode mcs = m_stationManager->GetBasicMcs (i);
                           if (!hecapabilities.IsSupportedTxMcs (mcs.GetMcsValue ()))
@@ -1078,7 +1081,7 @@ ApWifiMac::Receive (Ptr<Packet> packet, const WifiMacHeader *hdr)
                 {
                   //station supports all rates in Basic Rate Set.
                   //record all its supported modes in its associated WifiRemoteStation
-                  for (uint32_t j = 0; j < m_phy->GetNModes (); j++)
+                  for (uint8_t j = 0; j < m_phy->GetNModes (); j++)
                     {
                       WifiMode mode = m_phy->GetMode (j);
                       if (rates.IsSupportedRate (mode.GetDataRate (m_phy->GetChannelWidth ())))
@@ -1101,7 +1104,7 @@ ApWifiMac::Receive (Ptr<Packet> packet, const WifiMacHeader *hdr)
                       if (vhtCapabilities.GetRxHighestSupportedLgiDataRate () > 0)
                         {
                           m_stationManager->AddStationVhtCapabilities (from, vhtCapabilities);
-                          for (uint32_t i = 0; i < m_phy->GetNMcs (); i++)
+                          for (uint8_t i = 0; i < m_phy->GetNMcs (); i++)
                             {
                               WifiMode mcs = m_phy->GetMcs (i);
                               if (mcs.GetModulationClass () == WIFI_MOD_CLASS_VHT && vhtCapabilities.IsSupportedTxMcs (mcs.GetMcsValue ()))
@@ -1117,7 +1120,7 @@ ApWifiMac::Receive (Ptr<Packet> packet, const WifiMacHeader *hdr)
                       HeCapabilities heCapabilities = assocReq.GetHeCapabilities ();
                       //todo: once we support non constant rate managers, we should add checks here whether HE is supported by the peer
                       m_stationManager->AddStationHeCapabilities (from, heCapabilities);
-                      for (uint32_t i = 0; i < m_phy->GetNMcs (); i++)
+                      for (uint8_t i = 0; i < m_phy->GetNMcs (); i++)
                         {
                           WifiMode mcs = m_phy->GetMcs (i);
                           if (mcs.GetModulationClass () == WIFI_MOD_CLASS_HE && heCapabilities.IsSupportedTxMcs (mcs.GetMcsValue ()))

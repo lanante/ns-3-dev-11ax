@@ -205,6 +205,7 @@ TcpSocketBase::GetInstanceTypeId () const
   return TcpSocketBase::GetTypeId ();
 }
 
+NS_OBJECT_ENSURE_REGISTERED (TcpSocketState);
 
 TypeId
 TcpSocketState::GetTypeId (void)
@@ -213,6 +214,14 @@ TcpSocketState::GetTypeId (void)
     .SetParent<Object> ()
     .SetGroupName ("Internet")
     .AddConstructor <TcpSocketState> ()
+    .AddAttribute ("EnablePacing", "Enable Pacing",
+                   BooleanValue (false),
+                   MakeBooleanAccessor (&TcpSocketState::m_pacing),
+                   MakeBooleanChecker ())
+    .AddAttribute ("MaxPacingRate", "Set Max Pacing Rate",
+                   DataRateValue (DataRate ("4Gb/s")),
+                   MakeDataRateAccessor (&TcpSocketState::m_maxPacingRate),
+                   MakeDataRateChecker ())
     .AddTraceSource ("CongestionWindow",
                      "The TCP connection's congestion window",
                      MakeTraceSourceAccessor (&TcpSocketState::m_cWnd),
@@ -250,7 +259,10 @@ TcpSocketState::TcpSocketState (void)
     // Change m_nextTxSequence for non-zero initial sequence number
     m_nextTxSequence (0),
     m_rcvTimestampValue (0),
-    m_rcvTimestampEchoReply (0)
+    m_rcvTimestampEchoReply (0),
+    m_pacing (false),
+    m_maxPacingRate (0),
+    m_currentPacingRate (0)
 {
 }
 
@@ -266,7 +278,10 @@ TcpSocketState::TcpSocketState (const TcpSocketState &other)
     m_highTxMark (other.m_highTxMark),
     m_nextTxSequence (other.m_nextTxSequence),
     m_rcvTimestampValue (other.m_rcvTimestampValue),
-    m_rcvTimestampEchoReply (other.m_rcvTimestampEchoReply)
+    m_rcvTimestampEchoReply (other.m_rcvTimestampEchoReply),
+    m_pacing (other.m_pacing),
+    m_maxPacingRate (other.m_maxPacingRate),
+    m_currentPacingRate (other.m_currentPacingRate)
 {
 }
 
@@ -332,12 +347,16 @@ TcpSocketBase::TcpSocketBase (void)
     m_retxThresh (3),
     m_limitedTx (false),
     m_congestionControl (0),
-    m_isFirstPartialAck (true)
+    m_isFirstPartialAck (true),
+    m_pacingTimer (Timer::REMOVE_ON_DESTROY)
 {
   NS_LOG_FUNCTION (this);
   m_rxBuffer = CreateObject<TcpRxBuffer> ();
   m_txBuffer = CreateObject<TcpTxBuffer> ();
   m_tcb      = CreateObject<TcpSocketState> ();
+
+  m_tcb->m_currentPacingRate = m_tcb->m_maxPacingRate;
+  m_pacingTimer.SetFunction (&TcpSocketBase::NotifyPacingPerformed, this);
 
   bool ok;
 
@@ -409,7 +428,8 @@ TcpSocketBase::TcpSocketBase (const TcpSocketBase& sock)
     m_limitedTx (sock.m_limitedTx),
     m_isFirstPartialAck (sock.m_isFirstPartialAck),
     m_txTrace (sock.m_txTrace),
-    m_rxTrace (sock.m_rxTrace)
+    m_rxTrace (sock.m_rxTrace),
+    m_pacingTimer (Timer::REMOVE_ON_DESTROY)
 {
   NS_LOG_FUNCTION (this);
   NS_LOG_LOGIC ("Invoked the copy constructor");
@@ -429,6 +449,10 @@ TcpSocketBase::TcpSocketBase (const TcpSocketBase& sock)
   m_txBuffer = CopyObject (sock.m_txBuffer);
   m_rxBuffer = CopyObject (sock.m_rxBuffer);
   m_tcb = CopyObject (sock.m_tcb);
+
+  m_tcb->m_currentPacingRate = m_tcb->m_maxPacingRate;
+  m_pacingTimer.SetFunction (&TcpSocketBase::NotifyPacingPerformed, this);
+
   if (sock.m_congestionControl)
     {
       m_congestionControl = sock.m_congestionControl->Fork ();
@@ -1853,7 +1877,7 @@ TcpSocketBase::ProcessAck (const SequenceNumber32 &ackNumber, bool scoreboardUpd
               // can increase cWnd)
               segsAcked = (ackNumber - m_recover) / m_tcb->m_segmentSize;
               m_congestionControl->PktsAcked (m_tcb, segsAcked, m_lastRtt);
-
+              m_congestionControl->CwndEvent (m_tcb, TcpSocketState::CA_EVENT_COMPLETE_CWR);
               m_congestionControl->CongestionStateSet (m_tcb, TcpSocketState::CA_OPEN);
               m_tcb->m_congState = TcpSocketState::CA_OPEN;
               exitedFastRecovery = true;
@@ -1885,7 +1909,7 @@ TcpSocketBase::ProcessAck (const SequenceNumber32 &ackNumber, bool scoreboardUpd
               // Follow NewReno procedures to exit FR if SACK is disabled
               // (RFC2582 sec.3 bullet #5 paragraph 2, option 1)
               m_tcb->m_cWnd = std::min (m_tcb->m_ssThresh.Get (),
-                                    BytesInFlight () + m_tcb->m_segmentSize);
+                                        BytesInFlight () + m_tcb->m_segmentSize);
               NS_LOG_DEBUG ("Leaving Fast Recovery; BytesInFlight() = " <<
                             BytesInFlight () << "; cWnd = " << m_tcb->m_cWnd);
             }
@@ -2269,7 +2293,7 @@ void
 TcpSocketBase::DoPeerClose (void)
 {
   NS_ASSERT (m_state == ESTABLISHED || m_state == SYN_RCVD ||
-    m_state == FIN_WAIT_1 || m_state == FIN_WAIT_2);
+             m_state == FIN_WAIT_1 || m_state == FIN_WAIT_2);
 
   // Move the state to CLOSE_WAIT
   NS_LOG_DEBUG (TcpStateName[m_state] << " -> CLOSE_WAIT");
@@ -2663,6 +2687,22 @@ TcpSocketBase::SendDataPacket (SequenceNumber32 seq, uint32_t maxSize, bool with
   uint8_t flags = withAck ? TcpHeader::ACK : 0;
   uint32_t remainingData = m_txBuffer->SizeFromSequence (seq + SequenceNumber32 (sz));
 
+  if (m_tcb->m_pacing)
+    {
+      NS_LOG_INFO ("Pacing is enabled");
+      if (m_pacingTimer.IsExpired ())
+        {
+          NS_LOG_DEBUG ("Current Pacing Rate " << m_tcb->m_currentPacingRate);
+          NS_LOG_DEBUG ("Timer is in expired state, activate it " << m_tcb->m_currentPacingRate.CalculateBytesTxTime (sz));
+          m_pacingTimer.Schedule (m_tcb->m_currentPacingRate.CalculateBytesTxTime (sz));
+        }
+      else
+        {
+          NS_LOG_INFO ("Timer is already in running state");
+        }
+    }
+
+
   if (withAck)
     {
       m_delAckEvent.Cancel ();
@@ -2834,6 +2874,17 @@ TcpSocketBase::SendPendingData (bool withAck)
   // else branch to control silly window syndrome and Nagle)
   while (availableWindow > 0)
     {
+      if (m_tcb->m_pacing)
+        {
+          NS_LOG_INFO ("Pacing is enabled");
+          if (m_pacingTimer.IsRunning ())
+            {
+              NS_LOG_INFO ("Skipping Packet due to pacing" << m_pacingTimer.GetDelayLeft ());
+              break;
+            }
+          NS_LOG_INFO ("Timer is not running");
+        }
+
       if (m_tcb->m_congState == TcpSocketState::CA_OPEN
           && m_state == TcpSocket::FIN_WAIT_1)
         {
@@ -2888,7 +2939,10 @@ TcpSocketBase::SendPendingData (bool withAck)
             {
               m_tcb->m_nextTxSequence = next;
             }
-
+          if (m_bytesInFlight.Get () == 0)
+            {
+              m_congestionControl->CwndEvent (m_tcb, TcpSocketState::CA_EVENT_TX_START);
+            }
           uint32_t sz = SendDataPacket (m_tcb->m_nextTxSequence, s, withAck);
           m_tcb->m_nextTxSequence += sz;
 
@@ -2902,8 +2956,18 @@ TcpSocketBase::SendPendingData (bool withAck)
                         " total unAck: " << UnAckDataCount () <<
                         " sent seq " << m_tcb->m_nextTxSequence <<
                         " size " << sz);
-
           ++nPacketsSent;
+          if (m_tcb->m_pacing)
+            {
+              NS_LOG_INFO ("Pacing is enabled");
+              if (m_pacingTimer.IsExpired ())
+                {
+                  NS_LOG_DEBUG ("Current Pacing Rate " << m_tcb->m_currentPacingRate);
+                  NS_LOG_DEBUG ("Timer is in expired state, activate it " << m_tcb->m_currentPacingRate.CalculateBytesTxTime (sz));
+                  m_pacingTimer.Schedule (m_tcb->m_currentPacingRate.CalculateBytesTxTime (sz));
+                  break;
+                }
+            }
         }
 
       // (C.4) The estimate of the amount of data outstanding in the
@@ -2953,7 +3017,7 @@ TcpSocketBase::BytesInFlight () const
   else
     {
       // TcpTxBuffer::BytesInFlight assumes SACK is enabled, so we calculate
-      // according to RFC 4898 page 23 PipeSize equation above  
+      // according to RFC 4898 page 23 PipeSize equation above
       uint32_t flightSize = m_tcb->m_nextTxSequence.Get () - m_txBuffer->HeadSequence ();
       uint32_t duplicatedSize;
       uint32_t retransOut = m_txBuffer->GetRetransmitsCount ();
@@ -3086,6 +3150,7 @@ TcpSocketBase::ReceivedData (Ptr<Packet> p, const TcpHeader& tcpHeader)
   // Now send a new ACK packet acknowledging all received and delivered data
   if (m_rxBuffer->Size () > m_rxBuffer->Available () || m_rxBuffer->NextRxSequence () > expectedSeq + p->GetSize ())
     { // A gap exists in the buffer, or we filled a gap: Always ACK
+      m_congestionControl->CwndEvent (m_tcb, TcpSocketState::CA_EVENT_NON_DELAYED_ACK);
       SendEmptyPacket (TcpHeader::ACK);
     }
   else
@@ -3094,6 +3159,7 @@ TcpSocketBase::ReceivedData (Ptr<Packet> p, const TcpHeader& tcpHeader)
         {
           m_delAckEvent.Cancel ();
           m_delAckCount = 0;
+          m_congestionControl->CwndEvent (m_tcb, TcpSocketState::CA_EVENT_NON_DELAYED_ACK);
           SendEmptyPacket (TcpHeader::ACK);
         }
       else if (m_delAckEvent.IsExpired ())
@@ -3218,13 +3284,16 @@ TcpSocketBase::ReTxTimeout ()
     {
       return;
     }
+
+  NS_LOG_DEBUG ("Checking if Connection is Established");
   // If all data are received (non-closing socket and nothing to send), just return
-  if (m_state <= ESTABLISHED && m_txBuffer->HeadSequence () >= m_tcb->m_highTxMark)
+  if (m_state <= ESTABLISHED && m_txBuffer->HeadSequence () >= m_tcb->m_highTxMark && m_txBuffer->Size () == 0)
     {
+      NS_LOG_DEBUG ("Already Sent full data" << m_txBuffer->HeadSequence () << " " << m_tcb->m_highTxMark);
       return;
     }
 
-  uint32_t inFlightBeforeRto = BytesInFlight();  
+  uint32_t inFlightBeforeRto = BytesInFlight ();
 
   // From RFC 6675, Section 5.1
   // [RFC2018] suggests that a TCP sender SHOULD expunge the SACK
@@ -3283,9 +3352,11 @@ TcpSocketBase::ReTxTimeout ()
 
   // Cwnd set to 1 MSS
   m_tcb->m_cWnd = m_tcb->m_segmentSize;
-
+  m_congestionControl->CwndEvent (m_tcb, TcpSocketState::CA_EVENT_LOSS);
   m_congestionControl->CongestionStateSet (m_tcb, TcpSocketState::CA_LOSS);
   m_tcb->m_congState = TcpSocketState::CA_LOSS;
+
+  m_pacingTimer.Cancel ();
 
   NS_LOG_DEBUG ("RTO. Reset cwnd to " <<  m_tcb->m_cWnd << ", ssthresh to " <<
                 m_tcb->m_ssThresh << ", restart from seqnum " <<
@@ -3306,6 +3377,7 @@ void
 TcpSocketBase::DelAckTimeout (void)
 {
   m_delAckCount = 0;
+  m_congestionControl->CwndEvent (m_tcb, TcpSocketState::CA_EVENT_DELAYED_ACK);
   SendEmptyPacket (TcpHeader::ACK);
 }
 
@@ -3415,6 +3487,14 @@ TcpSocketBase::DoRetransmit ()
   m_tcb->m_nextTxSequence = m_txBuffer->HeadSequence ();
   uint32_t sz = SendDataPacket (m_txBuffer->HeadSequence (), m_tcb->m_segmentSize, true);
 
+  if (m_tcb->m_pacing && m_tcb->m_congState == TcpSocketState::CA_LOSS)
+    {
+      m_pacingTimer.Cancel ();
+      NS_LOG_INFO ("RTO Current Pacing Rate " << m_tcb->m_currentPacingRate);
+      NS_LOG_DEBUG ("RTO Timer is in expired state, activate it " << m_tcb->m_currentPacingRate.CalculateBytesTxTime (sz));
+      m_pacingTimer.Schedule (m_tcb->m_currentPacingRate.CalculateBytesTxTime (sz));
+    }
+
   // In case of RTO, advance m_tcb->m_nextTxSequence
   if (oldSequence == m_tcb->m_nextTxSequence.Get ())
     {
@@ -3437,6 +3517,7 @@ TcpSocketBase::CancelAllTimers ()
   m_lastAckEvent.Cancel ();
   m_timewaitEvent.Cancel ();
   m_sendPendingDataEvent.Cancel ();
+  m_pacingTimer.Cancel ();
 }
 
 /* Move TCP to Time_Wait state and schedule a transition to Closed state */
@@ -3764,8 +3845,16 @@ TcpSocketBase::ProcessOptionTimestamp (const Ptr<const TcpOption> option,
 
   Ptr<const TcpOptionTS> ts = DynamicCast<const TcpOptionTS> (option);
 
+  // This is valid only when no overflow occours. It happens
+  // when a connection last longer than 50 days.
+  if (m_tcb->m_rcvTimestampValue > ts->GetTimestamp ())
+    {
+      // Do not save a smaller timestamp (probably there is reordering)
+      return;
+    }
+
   m_tcb->m_rcvTimestampValue = ts->GetTimestamp ();
-  m_tcb->m_rcvTimestampEchoReply = ts->GetEcho();
+  m_tcb->m_rcvTimestampEchoReply = ts->GetEcho ();
 
   if (seq == m_rxBuffer->NextRxSequence () && seq <= m_highTxAck)
     {
@@ -3929,6 +4018,15 @@ TcpSocketBase::SafeSubtraction (uint32_t a, uint32_t b)
 
   return 0;
 }
+
+void
+TcpSocketBase::NotifyPacingPerformed (void)
+{
+  NS_LOG_FUNCTION_NOARGS ();
+  NS_LOG_INFO ("Performing Pacing");
+  SendPendingData (m_connected);
+}
+
 
 //RttHistory methods
 RttHistory::RttHistory (SequenceNumber32 s, uint32_t c, Time t)

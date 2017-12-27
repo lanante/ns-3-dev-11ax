@@ -320,6 +320,12 @@ public:
    */
   void NotifySleepNow (void);
   /**
+   * This method is typically invoked by the PhyMacLowListener to notify
+   * the MAC layer that the device has been put into off mode. When the device is put
+   * into off mode, pending MAC transmissions (RTS, CTS, DATA and ACK) are cancelled.
+   */
+  void NotifyOffNow (void);
+  /**
    * \param respHdr Add block ack response from originator (action
    * frame).
    * \param originator Address of peer station involved in block ack
@@ -409,22 +415,6 @@ private:
    * or switching channel.
    */
   void CancelAllEvents (void);
-  /**
-   * Return the total size of the packet after WifiMacHeader and FCS trailer
-   * have been added.
-   *
-   * \param packet the packet to be encapsulated with WifiMacHeader and FCS trailer
-   * \param hdr the WifiMacHeader
-   * \param isAmpdu whether packet is part of an A-MPDU
-   * \return the total packet size
-   */
-  static uint32_t GetSize (Ptr<const Packet> packet, const WifiMacHeader *hdr, bool isAmpdu);
-  /**
-   * Add FCS trailer to a packet.
-   *
-   * \param packet
-   */
-  static void AddWifiMacTrailer (Ptr<Packet> packet);
   /**
    * Forward the packet down to WifiPhy for transmission. This is called for the entire A-MPDu when MPDU aggregation is used.
    *
@@ -542,12 +532,11 @@ private:
    * Return the time required to transmit the Block ACK to the specified address
    * given the TXVECTOR of the BAR (including preamble and FCS).
    *
-   * \param to
    * \param blockAckReqTxVector
    * \param type the Block ACK type
    * \return the time required to transmit the Block ACK (including preamble and FCS)
    */
-  Time GetBlockAckDuration (Mac48Address to, WifiTxVector blockAckReqTxVector, BlockAckType type) const;
+  Time GetBlockAckDuration (WifiTxVector blockAckReqTxVector, BlockAckType type) const;
   /**
    * Check if the current packet should be sent with a RTS protection.
    *
@@ -568,9 +557,8 @@ private:
    *
    * \param packet the packet
    * \param hdr the header
-   * \param preamble the preamble
    */
-  void NotifyNav (Ptr<const Packet> packet,const WifiMacHeader &hdr, WifiPreamble preamble);
+  void NotifyNav (Ptr<const Packet> packet,const WifiMacHeader &hdr);
   /**
    * Reset NAV with the given duration.
    *

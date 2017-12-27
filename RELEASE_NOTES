@@ -25,15 +25,21 @@ This release has been tested on the following platforms:
 
 New user-visible features
 -------------------------
+- (lr-wpan) Extended addressing mode is now supported.
+- (tcp) Implemented the core functionality of TCP Pacing.
+- (internet) Ipv[4,6]AddressGenerator can now check if an address or a network is allocated.
 
 Bugs fixed
 ----------
 - Bug 2505 - network:  Avoid asserts in Header/Trailer deserialization
+- Bug 2653 - tcp: Avoid saving smaller TS in case of packet reordering
 - Bug 2764 - wifi: WifiSpectrumModelId doesn't distinguish 11ax from legacy
-- Bug 2766 - core:  Modify logging for int64x64 to avoid stack overflow
+- Bug 2766 - core: Modify logging for int64x64 to avoid stack overflow
+- Bug 2820 - wifi: segmentation fault when Rrpaa wifi manager is used
 - Bug 2824 - ICMP opcode fr fragment timeout drop is wrong
 - Bug 2828 - OLSR simple P2P example produces wrong results
 - Bug 2827 - wifi: Active scanning not working with 802.11n/ac/ax
+- Bug 2836 - wifi: Missing VHT information in radiotap header when A-MPDU is used
 
 Known issues
 ------------

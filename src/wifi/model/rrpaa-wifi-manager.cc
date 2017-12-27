@@ -51,10 +51,10 @@ struct RrpaaWifiRemoteStation : public WifiRemoteStation
   bool m_lastFrameFail;          //!< Flag if the last frame sent has failed.
   bool m_initialized;            //!< For initializing variables.
 
-  uint32_t m_nRate;              //!< Number of supported rates.
+  uint8_t m_nRate;              //!< Number of supported rates.
 
-  uint32_t m_prevRateIndex;      //!< Rate index of the previous transmission.
-  uint32_t m_rateIndex;          //!< Current rate index.
+  uint8_t m_prevRateIndex;      //!< Rate index of the previous transmission.
+  uint8_t m_rateIndex;          //!< Current rate index.
   uint8_t m_prevPowerLevel;      //!< Power level of the previous transmission.
   uint8_t m_powerLevel;          //!< Current power level.
 
@@ -154,11 +154,11 @@ void
 RrpaaWifiManager::SetupPhy (const Ptr<WifiPhy> phy)
 {
   NS_LOG_FUNCTION (this);
-  m_minPower = phy->GetTxPowerStart ();
-  m_maxPower = phy->GetTxPowerEnd ();
-  m_nPower = m_maxPower - m_minPower + 1;
-  uint32_t nModes = phy->GetNModes ();
-  for (uint32_t i = 0; i < nModes; i++)
+  m_nPowerLevels = phy->GetNTxPower ();
+  m_maxPowerLevel = m_nPowerLevels  - 1;
+  m_minPowerLevel = 0;
+  uint8_t nModes = phy->GetNModes ();
+  for (uint8_t i = 0; i < nModes; i++)
     {
       WifiMode mode = phy->GetMode (i);
       WifiTxVector txVector;
@@ -246,20 +246,20 @@ RrpaaWifiManager::CheckInit (RrpaaWifiRemoteStation *station)
       //Initialize at minimal rate and maximal power.
       station->m_prevRateIndex = 0;
       station->m_rateIndex = 0;
-      station->m_prevPowerLevel = m_maxPower;
-      station->m_powerLevel = m_maxPower;
+      station->m_prevPowerLevel = m_maxPowerLevel;
+      station->m_powerLevel = m_maxPowerLevel;
       WifiMode mode = GetSupported (station, 0);
       uint8_t channelWidth = GetChannelWidth (station);
       DataRate rate = DataRate (mode.GetDataRate (channelWidth));
-      double power = GetPhy ()->GetPowerDbm (m_maxPower);
+      double power = GetPhy ()->GetPowerDbm (station->m_powerLevel);
       m_rateChange (rate, rate, station->m_state->m_address);
       m_powerChange (power, power, station->m_state->m_address);
 
-      station->m_pdTable = RrpaaProbabilitiesTable (station->m_nRate, std::vector<double> (m_nPower));
+      station->m_pdTable = RrpaaProbabilitiesTable (station->m_nRate, std::vector<double> (m_nPowerLevels));
       NS_LOG_DEBUG ("Initializing pdTable");
-      for (uint32_t i = 0; i < station->m_nRate; i++)
+      for (uint8_t i = 0; i < station->m_nRate; i++)
         {
-          for (uint8_t j = 0; j < m_nPower; j++)
+          for (uint8_t j = 0; j < m_nPowerLevels; j++)
             {
               station->m_pdTable[i][j] = 1;
             }
@@ -283,7 +283,7 @@ RrpaaWifiManager::InitThresholds (RrpaaWifiRemoteStation *station)
   double nextMtl = 0;
   double mtl = 0;
   double ori = 0;
-  for (uint32_t i = 0; i < station->m_nRate; i++)
+  for (uint8_t i = 0; i < station->m_nRate; i++)
     {
       WifiMode mode = GetSupported (station, i);
       Time totalTxTime = GetCalcTxTime (mode) + m_sifs + m_difs;
@@ -470,11 +470,11 @@ RrpaaWifiManager::RunBasicAlgorithm (RrpaaWifiRemoteStation *station)
   NS_LOG_DEBUG ("Worst loss prob= " << wploss);
   if (bploss >= thresholds.m_mtl)
     {
-      if (station->m_powerLevel < m_maxPower)
+      if (station->m_powerLevel < m_maxPowerLevel)
         {
           NS_LOG_DEBUG ("bploss >= MTL and power < maxPower => Increase Power");
           station->m_pdTable[station->m_rateIndex][station->m_powerLevel] /= m_gamma;
-          NS_LOG_DEBUG ("pdTable[" << station->m_rateIndex << "][" << station->m_powerLevel << "] = " << station->m_pdTable[station->m_rateIndex][station->m_powerLevel]);
+          NS_LOG_DEBUG ("pdTable[" << static_cast<uint16_t>(station->m_rateIndex) << "][" << station->m_powerLevel << "] = " << station->m_pdTable[station->m_rateIndex][station->m_powerLevel]);
           station->m_powerLevel++;
           ResetCountersBasic (station);
         }
@@ -482,7 +482,7 @@ RrpaaWifiManager::RunBasicAlgorithm (RrpaaWifiRemoteStation *station)
         {
           NS_LOG_DEBUG ("bploss >= MTL and power = maxPower => Decrease Rate");
           station->m_pdTable[station->m_rateIndex][station->m_powerLevel] /= m_gamma;
-          NS_LOG_DEBUG ("pdTable[" << station->m_rateIndex << "][" << station->m_powerLevel << "] = " << station->m_pdTable[station->m_rateIndex][station->m_powerLevel]);
+          NS_LOG_DEBUG ("pdTable[" << static_cast<uint16_t>(station->m_rateIndex) << "][" << station->m_powerLevel << "] = " << station->m_pdTable[station->m_rateIndex][station->m_powerLevel]);
           station->m_rateIndex--;
           ResetCountersBasic (station);
         }
@@ -498,14 +498,14 @@ RrpaaWifiManager::RunBasicAlgorithm (RrpaaWifiRemoteStation *station)
           NS_LOG_DEBUG ("wploss <= ORI and rate < maxRate => Probabilistic Rate Increase");
 
           // Recalculate probabilities of lower rates.
-          for (uint32_t i = 0; i <= station->m_rateIndex; i++)
+          for (uint8_t i = 0; i <= station->m_rateIndex; i++)
             {
               station->m_pdTable[i][station->m_powerLevel] *= m_delta;
               if (station->m_pdTable[i][station->m_powerLevel] > 1)
                 {
                   station->m_pdTable[i][station->m_powerLevel] = 1;
                 }
-              NS_LOG_DEBUG ("pdTable[" << i << "][" << station->m_powerLevel << "] = " << station->m_pdTable[i][station->m_powerLevel]);
+              NS_LOG_DEBUG ("pdTable[" << i << "][" << (int)station->m_powerLevel << "] = " << station->m_pdTable[i][station->m_powerLevel]);
             }
           double rand = m_uniformRandomVariable->GetValue (0,1);
           if (rand < station->m_pdTable[station->m_rateIndex + 1][station->m_powerLevel])
@@ -514,19 +514,19 @@ RrpaaWifiManager::RunBasicAlgorithm (RrpaaWifiRemoteStation *station)
               station->m_rateIndex++;
             }
         }
-      else if (station->m_powerLevel > m_minPower)
+      else if (station->m_powerLevel > m_minPowerLevel)
         {
           NS_LOG_DEBUG ("wploss <= ORI and rate = maxRate => Probabilistic Power Decrease");
 
           // Recalculate probabilities of higher powers.
-          for (uint32_t i = m_maxPower; i > station->m_powerLevel; i--)
+          for (uint32_t i = m_maxPowerLevel; i > station->m_powerLevel; i--)
             {
               station->m_pdTable[station->m_rateIndex][i] *= m_delta;
               if (station->m_pdTable[station->m_rateIndex][i] > 1)
                 {
                   station->m_pdTable[station->m_rateIndex][i] = 1;
                 }
-              NS_LOG_DEBUG ("pdTable[" << station->m_rateIndex << "][" << i << "] = " << station->m_pdTable[station->m_rateIndex][i]);
+              NS_LOG_DEBUG ("pdTable[" << static_cast<uint16_t>(station->m_rateIndex) << "][" << i << "] = " << station->m_pdTable[station->m_rateIndex][i]);
             }
           double rand = m_uniformRandomVariable->GetValue (0,1);
           if (rand < station->m_pdTable[station->m_rateIndex][station->m_powerLevel - 1])
@@ -539,19 +539,19 @@ RrpaaWifiManager::RunBasicAlgorithm (RrpaaWifiRemoteStation *station)
     }
   else if (bploss > thresholds.m_ori && wploss < thresholds.m_mtl)
     {
-      if (station->m_powerLevel > m_minPower)
+      if (station->m_powerLevel > m_minPowerLevel)
         {
-          NS_LOG_DEBUG ("loss between ORI and MTL and power > minPower => Probabilistic Power Decrease");
+          NS_LOG_DEBUG ("loss between ORI and MTL and power > minPowerLevel => Probabilistic Power Decrease");
 
           // Recalculate probabilities of higher powers.
-          for (uint32_t i = m_maxPower; i >= station->m_powerLevel; i--)
+          for (uint32_t i = m_maxPowerLevel; i >= station->m_powerLevel; i--)
             {
               station->m_pdTable[station->m_rateIndex][i] *= m_delta;
               if (station->m_pdTable[station->m_rateIndex][i] > 1)
                 {
                   station->m_pdTable[station->m_rateIndex][i] = 1;
                 }
-              NS_LOG_DEBUG ("pdTable[" << station->m_rateIndex << "][" << i << "] = " << station->m_pdTable[station->m_rateIndex][i]);
+              NS_LOG_DEBUG ("pdTable[" << static_cast<uint16_t>(station->m_rateIndex) << "][" << i << "] = " << station->m_pdTable[station->m_rateIndex][i]);
             }
           double rand = m_uniformRandomVariable->GetValue (0,1);
           if (rand < station->m_pdTable[station->m_rateIndex][station->m_powerLevel - 1])

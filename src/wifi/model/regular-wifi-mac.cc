@@ -25,8 +25,9 @@
 #include "mac-tx-middle.h"
 #include "mac-low.h"
 #include "dcf-manager.h"
-#include "msdu-standard-aggregator.h"
-#include "mpdu-standard-aggregator.h"
+#include "msdu-aggregator.h"
+#include "mpdu-aggregator.h"
+#include "wifi-utils.h"
 
 namespace ns3 {
 
@@ -138,6 +139,25 @@ RegularWifiMac::GetWifiRemoteStationManager () const
   return m_stationManager;
 }
 
+ExtendedCapabilities
+RegularWifiMac::GetExtendedCapabilities (void) const
+{
+  NS_LOG_FUNCTION (this);
+  ExtendedCapabilities capabilities;
+  if (m_htSupported || m_vhtSupported)
+    {
+      if (m_htSupported)
+        {
+          capabilities.SetHtSupported (1);
+        }
+      if (m_vhtSupported)
+        {
+          capabilities.SetVhtSupported (1);
+        }
+    }
+  return capabilities;
+}
+
 HtCapabilities
 RegularWifiMac::GetHtCapabilities (void) const
 {
@@ -145,7 +165,6 @@ RegularWifiMac::GetHtCapabilities (void) const
   HtCapabilities capabilities;
   if (m_htSupported)
     {
-      capabilities.SetHtSupported (1);
       capabilities.SetHtSupported (1);
       capabilities.SetLdpc (m_phy->GetLdpc ());
       capabilities.SetSupportedChannelWidth (m_phy->GetChannelWidth () >= 40);
@@ -265,15 +284,15 @@ RegularWifiMac::GetHeCapabilities (void) const
     {
       capabilities.SetHeSupported (1);
       uint8_t channelWidthSet = 0;
-      if (m_phy->GetChannelWidth () >= 40 && m_phy->Is2_4Ghz (m_phy->GetFrequency ()))
+      if (m_phy->GetChannelWidth () >= 40 && Is2_4Ghz (m_phy->GetFrequency ()))
         {
           channelWidthSet |= 0x01;
         }
-      if (m_phy->GetChannelWidth () >= 80 && m_phy->Is5Ghz (m_phy->GetFrequency ()))
+      if (m_phy->GetChannelWidth () >= 80 && Is5Ghz (m_phy->GetFrequency ()))
         {
           channelWidthSet |= 0x02;
         }
-      if (m_phy->GetChannelWidth () >= 160 && m_phy->Is5Ghz (m_phy->GetFrequency ()))
+      if (m_phy->GetChannelWidth () >= 160 && Is5Ghz (m_phy->GetFrequency ()))
         {
           channelWidthSet |= 0x04;
         }
@@ -1367,12 +1386,12 @@ RegularWifiMac::EnableAggregation (void)
     {
       if (i->second->GetMsduAggregator () == 0)
         {
-          Ptr<MsduStandardAggregator> msduAggregator = CreateObject<MsduStandardAggregator> ();
+          Ptr<MsduAggregator> msduAggregator = CreateObject<MsduAggregator> ();
           i->second->SetMsduAggregator (msduAggregator);
         }
       if (i->second->GetMpduAggregator () == 0)
         {
-          Ptr<MpduStandardAggregator> mpduAggregator = CreateObject<MpduStandardAggregator> ();
+          Ptr<MpduAggregator> mpduAggregator = CreateObject<MpduAggregator> ();
           i->second->SetMpduAggregator (mpduAggregator);
         }
     }

@@ -145,9 +145,9 @@ uint16_t EdcaTxopN::PeekNextSequenceNumberFor (WifiMacHeader *hdr)
 }
 
 Ptr<const Packet>
-EdcaTxopN::PeekNextRetransmitPacket (WifiMacHeader &header,Mac48Address recipient, uint8_t tid, Time *timestamp)
+EdcaTxopN::PeekNextRetransmitPacket (WifiMacHeader &header, Mac48Address recipient, uint8_t tid, Time *timestamp)
 {
-  return m_baManager->PeekNextPacketByTidAndAddress (header,recipient,tid, timestamp);
+  return m_baManager->PeekNextPacketByTidAndAddress (header, recipient, tid, timestamp);
 }
 
 void
@@ -220,8 +220,8 @@ EdcaTxopN::NotifyAccessGranted (void)
       m_currentParams.DisableRts ();
       m_currentParams.DisableAck ();
       m_currentParams.DisableNextData ();
-      m_low->StartTransmission (m_currentPacket, &m_currentHdr, m_currentParams, this);
       NS_LOG_DEBUG ("tx broadcast");
+      m_low->StartTransmission (m_currentPacket, &m_currentHdr, m_currentParams, this);
     }
   else if (m_currentHdr.GetType () == WIFI_MAC_CTL_BACKREQ)
     {

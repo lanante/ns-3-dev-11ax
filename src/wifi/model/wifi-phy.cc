@@ -373,8 +373,8 @@ WifiPhy::GetTypeId (void)
 WifiPhy::WifiPhy ()
   : m_mpdusNum (0),
     m_plcpSuccess (false),
-    m_txMpduReferenceNumber (0xffffffffffffffff),
-    m_rxMpduReferenceNumber (0xffffffffffffffff),
+    m_txMpduReferenceNumber (0xffffffff),
+    m_rxMpduReferenceNumber (0xffffffff),
     m_endRxEvent (),
     m_endPlcpRxEvent (),
     m_standard (WIFI_PHY_STANDARD_UNSPECIFIED),
@@ -923,7 +923,7 @@ WifiPhy::ConfigureHtDeviceMcsSet (void)
   NS_LOG_FUNCTION (this);
 
   bool htFound = false;
-  for (std::vector<uint32_t>::size_type i = 0; i < m_bssMembershipSelectorSet.size (); i++)
+  for (std::vector<uint8_t>::size_type i = 0; i < m_bssMembershipSelectorSet.size (); i++)
     {
       if (m_bssMembershipSelectorSet[i] == HT_PHY)
         {
@@ -1272,26 +1272,6 @@ WifiPhy::GetFrequency (void) const
   return m_channelCenterFrequency;
 }
 
-bool
-WifiPhy::Is2_4Ghz (double frequency)
-{
-  if (frequency >= 2400 && frequency <= 2500)
-    {
-      return true;
-    }
-  return false;
-}
-
-bool
-WifiPhy::Is5Ghz (double frequency)
-{
-  if (frequency >= 5000 && frequency <= 6000)
-    {
-      return true;
-    }
-  return false;
-}
-
 void
 WifiPhy::SetChannelWidth (uint8_t channelwidth)
 {
@@ -1347,14 +1327,14 @@ WifiPhy::GetMaxSupportedRxSpatialStreams (void) const
   return m_rxSpatialStreams;
 }
 
-uint32_t
+uint8_t
 WifiPhy::GetNBssMembershipSelectors (void) const
 {
   return m_bssMembershipSelectorSet.size ();
 }
 
-uint32_t
-WifiPhy::GetBssMembershipSelector (uint32_t selector) const
+uint8_t
+WifiPhy::GetBssMembershipSelector (uint8_t selector) const
 {
   return m_bssMembershipSelectorSet[selector];
 }
@@ -3479,42 +3459,6 @@ WifiPhy::GetHeMcs11 ()
 }
 
 bool
-WifiPhy::IsValidTxVector (WifiTxVector txVector)
-{
-  uint8_t chWidth = txVector.GetChannelWidth ();
-  uint8_t nss = txVector.GetNss ();
-  std::string modeName = txVector.GetMode ().GetUniqueName ();
-
-  if (chWidth == 20)
-    {
-      if (nss != 3 && nss != 6)
-        {
-          return (modeName != "VhtMcs9");
-        }
-    }
-  else if (chWidth == 80)
-    {
-      if (nss == 3 || nss == 7)
-        {
-          return (modeName != "VhtMcs6");
-        }
-      else if (nss == 6)
-        {
-          return (modeName != "VhtMcs9");
-        }
-    }
-  else if (chWidth == 160)
-    {
-      if (nss == 3)
-        {
-          return (modeName != "VhtMcs9");
-        }
-    }
-
-  return true;
-}
-
-bool
 WifiPhy::IsModeSupported (WifiMode mode) const
 {
   for (uint8_t i = 0; i < GetNModes (); i++)
@@ -3540,14 +3484,14 @@ WifiPhy::IsMcsSupported (WifiMode mcs) const
   return false;
 }
 
-uint32_t
+uint8_t
 WifiPhy::GetNModes (void) const
 {
   return m_deviceRateSet.size ();
 }
 
 WifiMode
-WifiPhy::GetMode (uint32_t mode) const
+WifiPhy::GetMode (uint8_t mode) const
 {
   return m_deviceRateSet[mode];
 }

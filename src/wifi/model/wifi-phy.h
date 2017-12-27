@@ -74,7 +74,7 @@ struct SignalNoiseDbm
 struct MpduInfo
 {
   MpduType type; ///< type
-  uint64_t mpduRefNumber; ///< MPDU ref number
+  uint32_t mpduRefNumber; ///< MPDU ref number
 };
 
 /**
@@ -149,6 +149,10 @@ public:
    * Notify listeners that we went to sleep
    */
   virtual void NotifySleep (void) = 0;
+  /**
+   * Notify listeners that we went to switch off
+   */
+  virtual void NotifyOff (void) = 0;
   /**
    * Notify listeners that we woke up
    */
@@ -479,7 +483,7 @@ public:
    *
    * \sa WifiPhy::GetMode()
    */
-  uint32_t GetNModes (void) const;
+  uint8_t GetNModes (void) const;
   /**
    * The WifiPhy::GetNModes() and WifiPhy::GetMode() methods are used
    * (e.g., by a WifiRemoteStationManager) to determine the set of
@@ -499,7 +503,7 @@ public:
    *
    * \sa WifiPhy::GetNModes()
    */
-  WifiMode GetMode (uint32_t mode) const;
+  WifiMode GetMode (uint8_t mode) const;
   /**
    * Check if the given WifiMode is supported by the PHY.
    *
@@ -537,7 +541,7 @@ public:
   *
   * \return the memebership selector whose index is specified.
   */
-  uint32_t GetNBssMembershipSelectors (void) const;
+  uint8_t GetNBssMembershipSelectors (void) const;
   /**
   * The WifiPhy::BssMembershipSelector() method is used
   * (e.g., by a WifiRemoteStationManager) to determine the set of
@@ -549,7 +553,7 @@ public:
   *
   * \return the memebership selector whose index is specified.
   */
-  uint32_t GetBssMembershipSelector (uint32_t selector) const;
+  uint8_t GetBssMembershipSelector (uint8_t selector) const;
   /**
    * The WifiPhy::GetMembershipSelectorModes() method is used
    * (e.g., by a WifiRemoteStationManager) to determine the set of
@@ -1203,16 +1207,6 @@ public:
   static WifiMode GetHeMcs11 ();
 
   /**
-   * The standard disallows certain combinations of WifiMode, number of
-   * spatial streams, and channel widths.  This method can be used to
-   * check whether this WifiTxVector contains an invalid combination.
-   *
-   * \param txVector the WifiTxVector to inspect
-   * \return true if the WifiTxVector parameters are allowed by the standard
-   */
-  static bool IsValidTxVector (WifiTxVector txVector);
-
-  /**
    * Public method used to fire a PhyTxBegin trace.
    * Implemented for encapsulation purposes.
    *
@@ -1522,16 +1516,6 @@ public:
    */
   uint8_t GetMaxSupportedRxSpatialStreams (void) const;
   /**
-   * \param frequency the frequency to check
-   * \return whether frequency is in the 2.4 GHz band
-   */
-  static bool Is2_4Ghz (double frequency);
-  /**
-   * \param frequency the frequency to check
-   * \return whether frequency is in the 5 GHz band
-   */
-  static bool Is5Ghz (double frequency);
-  /**
    * Enable or disable support for HT/VHT short guard interval.
    *
    * \param shortGuardInterval Enable or disable support for short guard interval
@@ -1693,8 +1677,8 @@ protected:
 
   uint16_t m_mpdusNum;                 //!< carries the number of expected mpdus that are part of an A-MPDU
   bool m_plcpSuccess;                  //!< Flag if the PLCP of the packet or the first MPDU in an A-MPDU has been received
-  uint64_t m_txMpduReferenceNumber;    //!< A-MPDU reference number to identify all transmitted subframes belonging to the same received A-MPDU
-  uint64_t m_rxMpduReferenceNumber;    //!< A-MPDU reference number to identify all received subframes belonging to the same received A-MPDU
+  uint32_t m_txMpduReferenceNumber;    //!< A-MPDU reference number to identify all transmitted subframes belonging to the same received A-MPDU
+  uint32_t m_rxMpduReferenceNumber;    //!< A-MPDU reference number to identify all received subframes belonging to the same received A-MPDU
 
   EventId m_endRxEvent;                //!< the end reeive event
   EventId m_endPlcpRxEvent;            //!< the end PLCP receive event
@@ -1936,7 +1920,7 @@ private:
   WifiModeList m_deviceRateSet;
   WifiModeList m_deviceMcsSet; //!< the device MCS set
 
-  std::vector<uint32_t> m_bssMembershipSelectorSet; //!< the BSS membership selector set
+  std::vector<uint8_t> m_bssMembershipSelectorSet; //!< the BSS membership selector set
 
   WifiPhyStandard m_standard;     //!< WifiPhyStandard
   bool m_isConstructed;                //!< true when ready to set frequency
