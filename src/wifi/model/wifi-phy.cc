@@ -372,7 +372,8 @@ WifiPhy::WifiPhy ()
     m_initialChannelNumber (0),
     m_totalAmpduSize (0),
     m_totalAmpduNumSymbols (0),
-    m_currentEvent (0)
+    m_currentEvent (0),
+    m_rxPowerDbm (0)
 {
   NS_LOG_FUNCTION (this);
   NS_UNUSED (m_numberOfTransmitters);
@@ -533,6 +534,13 @@ WifiPhy::GetTxPowerEnd (void) const
 {
   return m_txPowerEndDbm;
 }
+
+double
+WifiPhy::GetRxPowerDbm (void) const
+{
+  return m_rxPowerDbm;
+}
+
 
 void
 WifiPhy::SetNTxPower (uint32_t n)
@@ -2361,9 +2369,9 @@ WifiPhy::StartReceivePreambleAndHeader (Ptr<Packet> packet, double rxPowerW, Tim
 {
   //This function should be later split to check separately whether plcp preamble and plcp header can be successfully received.
   //Note: plcp preamble reception is not yet modeled.
-  NS_LOG_FUNCTION (this << packet << WToDbm (rxPowerW) << rxDuration);
   Time endRx = Simulator::Now () + rxDuration;
-
+  m_rxPowerDbm = WToDbm (rxPowerW);
+  NS_LOG_FUNCTION (this << packet << m_rxPowerDbm << rxDuration);
   WifiPhyTag tag;
   bool found = packet->RemovePacketTag (tag);
   if (!found)
@@ -2482,6 +2490,7 @@ WifiPhy::MaybeCcaBusyDuration ()
   //tracked by the InterferenceHelper class is higher than the CcaBusyThreshold
 
   Time delayUntilCcaEnd = m_interference.GetEnergyDuration (DbmToW (GetCcaMode1Threshold ()));
+  //std::cout << "WifiPhy::MaybeCcaBusyDuration (), new cca threshold" << GetCcaMode1Threshold () << std::endl;
   if (!delayUntilCcaEnd.IsZero ())
     {
       m_state->SwitchMaybeToCcaBusy (delayUntilCcaEnd);

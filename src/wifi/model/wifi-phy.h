@@ -1425,6 +1425,12 @@ public:
    */
   void SetNTxPower (uint32_t n);
   /**
+   * Return the Rx Power levels in dBm.
+   *
+   * \Return the Rx Power levels in dBm
+   */
+  double GetRxPowerDbm (void) const;
+  /**
    * Return the number of available transmission power levels.
    *
    * \return the number of available transmission power levels
@@ -1984,6 +1990,7 @@ private:
 
   Ptr<InterferenceHelper::Event> m_currentEvent; //!< Hold the current event
   Ptr<FrameCaptureModel> m_frameCaptureModel; //!< Frame capture model
+  double   m_rxPowerDbm;          //!< Received Power for sta-wifi-mac usage
 };
 
 /**
