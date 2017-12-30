@@ -213,21 +213,21 @@ main (int argc, char *argv[])
 {  
   //bool disableApps = false;
   bool enableTracing = true;
-  double duration = 120.0; // seconds
+  double duration = 2.0; // seconds
   double d1 = 30.0; // meters
   double d2 = 30.0; // meters
   double d3 = 100.0; // meters
   double d4 = 30.0; // meters
-  double powSta1 = 18.0; // dBm
-  double powSta2 = 18.0; // dBm
-  double powSta3 = 18.0; // dBm
-  double powAp1 = 23.0; // dBm
-  double powAp2 = 23.0; // dBm
-  double ccaTrSta1 = -82; // dBm
-  double ccaTrSta2 = -82; // dBm
-  double ccaTrSta3 = -82; // dBm
-  double ccaTrAp1 = -82; // dBm
-  double ccaTrAp2 = -82; // dBm
+  double powSta1 = 21.0; // dBm
+  double powSta2 = 21.0; // dBm
+  double powSta3 = 21.0; // dBm
+  double powAp1 = 25.0; // dBm
+  double powAp2 = 25.0; // dBm
+  double ccaTrSta1 = -62; // dBm
+  double ccaTrSta2 = -62; // dBm
+  double ccaTrSta3 = -62; // dBm
+  double ccaTrAp1 = -62; // dBm
+  double ccaTrAp2 = -62; // dBm
   uint32_t mcs = 0; // MCS value
 
   CommandLine cmd;
@@ -297,7 +297,9 @@ main (int argc, char *argv[])
   spectrumPhy.Set ("TxPowerStart", DoubleValue (powSta1));
   spectrumPhy.Set ("TxPowerEnd", DoubleValue (powSta1));
   spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrSta1));
-  spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-62.0));
+  Config::SetDefault ("ns3::StaWifiMac::ObssPdThreshold", DoubleValue (-82.0));
+
+  spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-82.0));
   Ssid ssidA = Ssid ("A");
   mac.SetType ("ns3::StaWifiMac",
                "Ssid", SsidValue (ssidA));
@@ -307,7 +309,7 @@ main (int argc, char *argv[])
   spectrumPhy.Set ("TxPowerStart", DoubleValue (powAp1));
   spectrumPhy.Set ("TxPowerEnd", DoubleValue (powAp1));
   spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrAp1));
-  spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-62.0));
+  spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-82.0));
   mac.SetType ("ns3::ApWifiMac",
                "Ssid", SsidValue (ssidA));
 
@@ -317,7 +319,8 @@ main (int argc, char *argv[])
   spectrumPhy.Set ("TxPowerStart", DoubleValue (powSta3));
   spectrumPhy.Set ("TxPowerEnd", DoubleValue (powSta3));
   spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrSta3));
-  spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-62.0));
+  spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-82.0));
+  Config::SetDefault ("ns3::StaWifiMac::ObssPdThreshold", DoubleValue (-82.0));
   Ssid ssidB = Ssid ("B");
   mac.SetType ("ns3::StaWifiMac",
                "Ssid", SsidValue (ssidB));
@@ -327,7 +330,7 @@ main (int argc, char *argv[])
   spectrumPhy.Set ("TxPowerStart", DoubleValue (powAp2));
   spectrumPhy.Set ("TxPowerEnd", DoubleValue (powAp2));
   spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrAp2));
-  spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-62.0));
+  spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-82.0));
   mac.SetType ("ns3::ApWifiMac",
                "Ssid", SsidValue (ssidB));
 
