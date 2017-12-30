@@ -125,6 +125,18 @@ private:
    */
   bool IsWaitAssocResp (void) const;
   /**
+   * Return the Updated Tx Power for OBSS PD.
+   *
+   * \Return the Updated Tx Power for OBSS PD
+   */
+  void TxPowerUpdateObssPd (void);
+  /**
+   * Return the Updated OBSS PD Threshold.
+   *
+   * \Return the Updated OBSS PD Threshold
+   */
+  void ObssPdThresholdUpdate (void);
+  /**
    * This method is called after we have not received a beacon from the AP
    */
   void MissedBeacons (void);
@@ -164,15 +176,23 @@ private:
    */
   CapabilityInformation GetCapabilities (void) const;
 
-  MacState m_state;            ///< MAC state
-  Time m_probeRequestTimeout;  ///< probe request timeout
-  Time m_assocRequestTimeout;  ///< assoc request timeout
-  EventId m_probeRequestEvent; ///< probe request event
-  EventId m_assocRequestEvent; ///< assoc request event
-  EventId m_beaconWatchdog;    ///< beacon watchdog
-  Time m_beaconWatchdogEnd;    ///< beacon watchdog end
-  uint32_t m_maxMissedBeacons; ///< maximum missed beacons
-  bool m_activeProbing;        ///< active probing
+  MacState m_state;              ///< MAC state
+  Time m_probeRequestTimeout;    ///< probe request timeout
+  Time m_assocRequestTimeout;    ///< assoc request timeout
+  EventId m_probeRequestEvent;   ///< probe request event
+  EventId m_assocRequestEvent;   ///< assoc request event
+  EventId m_beaconWatchdog;      ///< beacon watchdog
+  Time m_beaconWatchdogEnd;      ///< beacon watchdog end
+  uint32_t m_maxMissedBeacons;   ///< maximum missed beacons
+  bool m_activeProbing;          ///< active probing
+  uint16_t m_beaconCount;        ///< # of beacon for AVE
+  double m_rssiArray [10];       ///< array for beacon RSSI
+  double m_rssiAve;                ///< beacon RSSI Average
+  double m_obssPdThresholdLevel; ///< OBSS PD Threshold level
+  double m_txPowerObssPd;        ///< OBSS PD TX Power
+  double m_txPowerRefObssPd;     ///< OBSS PD TX Reference Power
+  double m_obssPdMax;            ///< OBSS PD Max
+  double m_obssPdMin;            ///< OBSS PD Min
 
   TracedCallback<Mac48Address> m_assocLogger;   ///< assoc logger
   TracedCallback<Mac48Address> m_deAssocLogger; ///< deassoc logger

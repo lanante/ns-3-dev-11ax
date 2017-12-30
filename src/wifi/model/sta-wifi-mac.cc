@@ -77,6 +77,12 @@ StaWifiMac::GetTypeId (void)
                    BooleanValue (false),
                    MakeBooleanAccessor (&StaWifiMac::SetActiveProbing, &StaWifiMac::GetActiveProbing),
                    MakeBooleanChecker ())
+    .AddAttribute ("ObssPdThreshold",
+                   "The energy of a received signal should be higher than "
+                   "this threshold (dbm) to allow the PHY layer to declare CCA BUSY state.",
+                   DoubleValue (-99.0),
+                   MakeDoubleAccessor (&StaWifiMac::m_obssPdThresholdLevel),
+                   MakeDoubleChecker<double> ())
     .AddTraceSource ("Assoc", "Associated with an access point.",
                      MakeTraceSourceAccessor (&StaWifiMac::m_assocLogger),
                      "ns3::Mac48Address::TracedCallback")
@@ -91,7 +97,13 @@ StaWifiMac::StaWifiMac ()
   : m_state (BEACON_MISSED),
     m_probeRequestEvent (),
     m_assocRequestEvent (),
-    m_beaconWatchdogEnd (Seconds (0))
+    m_beaconWatchdogEnd (Seconds (0)),
+    m_beaconCount (0),
+    m_rssiAve (0),
+    m_txPowerObssPd (0),
+    m_txPowerRefObssPd (0),
+    m_obssPdMax (0),
+    m_obssPdMin (0)
 {
   NS_LOG_FUNCTION (this);
 
@@ -316,6 +328,29 @@ bool
 StaWifiMac::IsWaitAssocResp (void) const
 {
   return m_state == WAIT_ASSOC_RESP;
+}
+
+void
+StaWifiMac::TxPowerUpdateObssPd (void) 
+{
+  if (m_obssPdThresholdLevel <= m_obssPdMin)
+    {
+      m_txPowerObssPd = m_txPowerRefObssPd;
+    }
+  else
+    {
+      m_txPowerObssPd = m_txPowerRefObssPd - (m_obssPdThresholdLevel-m_obssPdMin);
+    }
+}
+
+void
+StaWifiMac::ObssPdThresholdUpdate (void) 
+{
+double TempMax = std::max(m_obssPdMin,std::min(m_obssPdMax,m_obssPdMin+m_txPowerRefObssPd-m_txPowerObssPd));
+  if (m_obssPdThresholdLevel > TempMax)
+    {
+      m_obssPdThresholdLevel = TempMax;
+    }
 }
 
 void
@@ -597,6 +632,63 @@ StaWifiMac::Receive (Ptr<Packet> packet, const WifiMacHeader *hdr)
                   if (mcs.GetModulationClass () == WIFI_MOD_CLASS_HE && heCapabilities.IsSupportedRxMcs (mcs.GetMcsValue ()))
                     {
                       m_stationManager->AddSupportedMcs (hdr->GetAddr2 (), mcs);
+                    }
+                }
+              // using the SSID of the beacon instead of BSS color (for now) to update OBSS_PD  
+              if (beacon.GetSsid ().IsEqual (GetSsid ()))
+                {
+                  double aveRxPower=0;       
+                  if (m_beaconCount<10)
+                    {
+                      m_rssiArray[m_beaconCount] = m_phy->GetRxPowerDbm ();
+                      for (int i =0; i<m_beaconCount+1; i++)
+                       {
+                         aveRxPower = aveRxPower + m_rssiArray[i];
+                       }                          
+                        aveRxPower = aveRxPower/(m_beaconCount+1);
+                    }
+                  else
+                    {
+                      for (int i =0; i<9; i++)
+                       {
+                         m_rssiArray[i] = m_rssiArray[i+1];
+                         aveRxPower = aveRxPower + m_rssiArray[i];
+                       }
+                      m_rssiArray[9] = m_phy->GetRxPowerDbm ();
+                      aveRxPower = aveRxPower + m_rssiArray[9];
+                      aveRxPower = aveRxPower/(10);
+                    }
+
+                  if (m_beaconCount==0)
+                  {
+                    m_txPowerObssPd = m_phy->GetTxPowerEnd ();
+                    m_txPowerRefObssPd = m_phy->GetTxPowerEnd ();
+                    m_obssPdMax = m_phy->GetCcaMode1Threshold ();
+                    m_obssPdMin = m_phy->GetEdThreshold ();
+                  }
+                  //std::cout << "rxpower ave for " << aveRxPower << std::endl;
+
+                  m_beaconCount++;
+
+                  if (Abs(m_rssiAve-(aveRxPower-2)) > 1)
+                    {
+                      m_obssPdThresholdLevel = m_obssPdMax;
+                      TxPowerUpdateObssPd ();
+
+                      m_rssiAve = aveRxPower-2; // discuss
+                      std::cout << "rx ave power: " << aveRxPower << std::endl;
+                      m_obssPdThresholdLevel = m_rssiAve;
+                      ObssPdThresholdUpdate ();
+ 
+                      TxPowerUpdateObssPd ();
+                      m_phy->SetTxPowerStart (m_txPowerObssPd);
+                      m_phy->SetTxPowerEnd (m_txPowerObssPd);
+
+                      ObssPdThresholdUpdate ();
+                      m_phy->SetEdThreshold (m_obssPdThresholdLevel);
+
+                    std::cout << "New OBSS PD Level: " << m_obssPdThresholdLevel << std::endl;
+                    std::cout << "New Tx Power: " << m_txPowerObssPd << std::endl;
                     }
                 }
             }
