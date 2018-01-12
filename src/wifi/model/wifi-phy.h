@@ -1361,6 +1361,20 @@ public:
    */
   double GetEdThreshold (void) const;
   /**
+   * Sets the obss pd threshold (dBm).
+   * The energy of a received signal of a BSS with different Color should be higher than
+   * this threshold (dbm) to allow the PHY layer to detect the signal.
+   *
+   * \param threshold the obss pd threshold in dBm
+   */
+  void SetObssPdThreshold (double threshold);
+  /**
+   * Return the obss pd threshold (dBm).
+   *
+   * \return the obss pd threshold in dBm
+   */
+  double GetObssPdThresholdW (void) const;
+  /**
    * Return the energy detection threshold.
    *
    * \return the energy detection threshold.
@@ -1951,7 +1965,7 @@ private:
   bool m_frequencyChannelNumberInitialized; //!< Store initialization state
   uint8_t m_channelWidth;             //!< Channel width
 
-  double m_edThresholdW;          //!< Energy detection threshold in watts
+  double   m_edThresholdW;        //!< Energy detection threshold in watts
   double   m_ccaMode1ThresholdW;  //!< Clear channel assessment (CCA) threshold in watts
   double   m_txGainDb;            //!< Transmission gain (dB)
   double   m_rxGainDb;            //!< Reception gain (dB)
@@ -1991,6 +2005,7 @@ private:
   Ptr<InterferenceHelper::Event> m_currentEvent; //!< Hold the current event
   Ptr<FrameCaptureModel> m_frameCaptureModel; //!< Frame capture model
   double   m_rxPowerDbm;          //!< Received Power for sta-wifi-mac usage
+  double   m_obssPdThresholdW;    //!< Obss Pd threshold in watts
 };
 
 /**

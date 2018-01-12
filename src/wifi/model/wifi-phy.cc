@@ -373,7 +373,8 @@ WifiPhy::WifiPhy ()
     m_totalAmpduSize (0),
     m_totalAmpduNumSymbols (0),
     m_currentEvent (0),
-    m_rxPowerDbm (0)
+    m_rxPowerDbm (0),
+    m_obssPdThresholdW (0)
 {
   NS_LOG_FUNCTION (this);
   NS_UNUSED (m_numberOfTransmitters);
@@ -474,6 +475,20 @@ double
 WifiPhy::GetEdThresholdW (void) const
 {
   return m_edThresholdW;
+}
+
+void
+WifiPhy::SetObssPdThreshold (double threshold)
+{
+  NS_LOG_FUNCTION (this << threshold);
+  m_obssPdThresholdW = DbmToW (threshold);
+  NS_LOG_DEBUG ("Value" << m_obssPdThresholdW << "W");
+}
+
+double
+WifiPhy::GetObssPdThresholdW (void) const
+{
+  return m_obssPdThresholdW;
 }
 
 double
