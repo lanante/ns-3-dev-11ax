@@ -290,13 +290,14 @@ public:
   /**
    * \param packet packet received
    * \param rxSnr snr of packet received
+   * \param rxPowerDbm  rxPower in dBm of packet received
    * \param txVector TXVECTOR of packet received
    * \param ampduSubframe true if this MPDU is part of an A-MPDU
    *
    * This method is typically invoked by the lower PHY layer to notify
    * the MAC layer that a packet was successfully received.
    */
-  void ReceiveOk (Ptr<Packet> packet, double rxSnr, WifiTxVector txVector, bool ampduSubframe);
+  void ReceiveOk (Ptr<Packet> packet, double rxSnr, double rxPowerDbm, WifiTxVector txVector, bool ampduSubframe);
   /**
    * \param packet packet received.
    * \param rxSnr snr of packet received.
@@ -366,12 +367,13 @@ public:
   /**
    * \param aggregatedPacket which is the current A-MPDU
    * \param rxSnr snr of packet received
+   * \param rxPowerDbm  rxPower in dBm of packet received
    * \param txVector TXVECTOR of packet received
    *
    * This function de-aggregates an A-MPDU and decide if each MPDU is received correctly or not
    *
    */
-  void DeaggregateAmpduAndReceive (Ptr<Packet> aggregatedPacket, double rxSnr, WifiTxVector txVector);
+  void DeaggregateAmpduAndReceive (Ptr<Packet> aggregatedPacket, double rxSnr, double rxPowerDbm, WifiTxVector txVector);
   /**
    * \param peekedPacket the packet to be aggregated
    * \param peekedHdr the WifiMacHeader for the packet.

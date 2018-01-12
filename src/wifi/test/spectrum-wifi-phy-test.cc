@@ -68,9 +68,10 @@ protected:
    * Spectrum wifi receive success function
    * \param p the packet
    * \param snr the SNR
+   * \param rxPowerDbm the rx Power (dBm)
    * \param txVector the transmit vector
    */
-  void SpectrumWifiPhyRxSuccess (Ptr<Packet> p, double snr, WifiTxVector txVector);
+  void SpectrumWifiPhyRxSuccess (Ptr<Packet> p, double snr, double rxPowerDbm, WifiTxVector txVector);
   /**
    * Spectrum wifi receive failure function
    * \param p the packet
@@ -132,7 +133,7 @@ SpectrumWifiPhyBasicTest::SendSignal (double txPowerWatts)
 }
 
 void
-SpectrumWifiPhyBasicTest::SpectrumWifiPhyRxSuccess (Ptr<Packet> p, double snr, WifiTxVector txVector)
+SpectrumWifiPhyBasicTest::SpectrumWifiPhyRxSuccess (Ptr<Packet> p, double snr, double rxPowerDbm, WifiTxVector txVector)
 {
   m_count++;
 }

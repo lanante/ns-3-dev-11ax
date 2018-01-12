@@ -653,9 +653,11 @@ TracedCallbackTypedefTestCase::DoRun (void)
          Ptr<const Packet>, double,
          empty, empty, empty);
 
+  /*  Too many args :(
   CHECK (WifiPhyStateHelper::RxOkTracedCallback,
-         Ptr<const Packet>, double, WifiMode, WifiPreamble,
+         Ptr<const Packet>, double, double, WifiMode, WifiPreamble,
          empty);
+  */
 
   CHECK (WifiPhyStateHelper::StateTracedCallback,
          Time, Time, WifiPhy::State,

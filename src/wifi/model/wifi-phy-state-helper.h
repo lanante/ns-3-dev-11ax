@@ -159,9 +159,10 @@ public:
    *
    * \param packet the successfully received packet
    * \param snr the SNR of the received packet
+   * \param rxPowerDbm the received power in dBm
    * \param txVector TXVECTOR of the packet
    */
-  void SwitchFromRxEndOk (Ptr<Packet> packet, double snr, WifiTxVector txVector);
+  void SwitchFromRxEndOk (Ptr<Packet> packet, double snr, double rxPowerDbm, WifiTxVector txVector);
   /**
    * Switch from RX after the reception failed.
    *
@@ -205,10 +206,11 @@ public:
    *
    * \param [in] packet The received packet.
    * \param [in] snr    The SNR of the received packet.
+   * \param [in] rxPowerDbm    The received power (dBm) of the received packet.
    * \param [in] mode   The transmission mode of the packet.
    * \param [in] preamble The preamble of the packet.
    */
-  typedef void (* RxOkTracedCallback)(Ptr<const Packet> packet, double snr, WifiMode mode, WifiPreamble preamble);
+  typedef void (* RxOkTracedCallback)(Ptr<const Packet> packet, double snr, double rxPowerDbm, WifiMode mode, WifiPreamble preamble);
 
   /**
    * TracedCallback signature for receive end error event.

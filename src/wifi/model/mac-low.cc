@@ -265,7 +265,7 @@ MacLow::GetPhy (void) const
 void
 MacLow::ResetPhy (void)
 {
-  m_phy->SetReceiveOkCallback (MakeNullCallback<void, Ptr<Packet>, double, WifiTxVector> ());
+  m_phy->SetReceiveOkCallback (MakeNullCallback<void, Ptr<Packet>, double, double, WifiTxVector> ());
   m_phy->SetReceiveErrorCallback (MakeNullCallback<void, Ptr<Packet>, double> ());
   RemovePhyMacLowListener (m_phy);
   m_phy = 0;
@@ -634,7 +634,7 @@ MacLow::NotifySleepNow (void)
 }
 
 void
-MacLow::ReceiveOk (Ptr<Packet> packet, double rxSnr, WifiTxVector txVector, bool ampduSubframe)
+MacLow::ReceiveOk (Ptr<Packet> packet, double rxSnr, double rxPowerDbm, WifiTxVector txVector, bool ampduSubframe)
 {
   NS_LOG_FUNCTION (this << packet << rxSnr << txVector.GetMode () << txVector.GetPreambleType ());
   /* A packet is received from the PHY.
@@ -953,6 +953,7 @@ MacLow::ReceiveOk (Ptr<Packet> packet, double rxSnr, WifiTxVector txVector, bool
                   // Apply SNR tag for beacon quality measurements
                   SnrTag tag;
                   tag.Set (rxSnr);
+                  tag.SetRxPowerDbm (rxPowerDbm);
                   packet->AddPacketTag (tag);
                 }
               goto rxPacket;
@@ -2285,7 +2286,7 @@ MacLow::RegisterEdcaForAc (AcIndex ac, Ptr<EdcaTxopN> edca)
 }
 
 void
-MacLow::DeaggregateAmpduAndReceive (Ptr<Packet> aggregatedPacket, double rxSnr, WifiTxVector txVector)
+MacLow::DeaggregateAmpduAndReceive (Ptr<Packet> aggregatedPacket, double rxSnr, double rxPowerDbm, WifiTxVector txVector)
 {
   NS_LOG_FUNCTION (this);
   AmpduTag ampdu;
@@ -2325,12 +2326,12 @@ MacLow::DeaggregateAmpduAndReceive (Ptr<Packet> aggregatedPacket, double rxSnr, 
 
           if (firsthdr.IsAck () || firsthdr.IsBlockAck () || firsthdr.IsBlockAckReq ())
             {
-              ReceiveOk ((*n).first, rxSnr, txVector, ampduSubframe);
+              ReceiveOk ((*n).first, rxSnr, rxPowerDbm, txVector, ampduSubframe);
             }
           else if (firsthdr.IsData () || firsthdr.IsQosData ())
             {
               NS_LOG_DEBUG ("Deaggregate packet from " << firsthdr.GetAddr2 () << " with sequence=" << firsthdr.GetSequenceNumber ());
-              ReceiveOk ((*n).first, rxSnr, txVector, ampduSubframe);
+              ReceiveOk ((*n).first, rxSnr, rxPowerDbm, txVector, ampduSubframe);
               if (firsthdr.IsQosAck ())
                 {
                   NS_LOG_DEBUG ("Normal Ack");
@@ -2370,7 +2371,7 @@ MacLow::DeaggregateAmpduAndReceive (Ptr<Packet> aggregatedPacket, double rxSnr, 
     }
   else
     {
-      ReceiveOk (aggregatedPacket, rxSnr, txVector, ampduSubframe);
+      ReceiveOk (aggregatedPacket, rxSnr, rxPowerDbm, txVector, ampduSubframe);
     }
 }
 

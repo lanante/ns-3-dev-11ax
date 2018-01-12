@@ -203,10 +203,11 @@ public:
   /**
    * arg1: packet received successfully
    * arg2: snr of packet
+   * arg3: rx power (dBm) of packet
    * arg3: TXVECTOR of packet
    * arg4: type of preamble used for packet.
    */
-  typedef Callback<void, Ptr<Packet>, double, WifiTxVector> RxOkCallback;
+  typedef Callback<void, Ptr<Packet>, double, double, WifiTxVector> RxOkCallback;
   /**
    * arg1: packet received unsuccessfully
    * arg2: snr of packet
@@ -1439,12 +1440,6 @@ public:
    */
   void SetNTxPower (uint32_t n);
   /**
-   * Return the Rx Power levels in dBm.
-   *
-   * \Return the Rx Power levels in dBm
-   */
-  double GetRxPowerDbm (void) const;
-  /**
    * Return the number of available transmission power levels.
    *
    * \return the number of available transmission power levels
@@ -2004,7 +1999,6 @@ private:
 
   Ptr<InterferenceHelper::Event> m_currentEvent; //!< Hold the current event
   Ptr<FrameCaptureModel> m_frameCaptureModel; //!< Frame capture model
-  double   m_rxPowerDbm;          //!< Received Power for sta-wifi-mac usage
   double   m_obssPdThresholdW;    //!< Obss Pd threshold in watts
 };
 

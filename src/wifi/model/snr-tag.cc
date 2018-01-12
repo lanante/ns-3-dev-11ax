@@ -51,32 +51,35 @@ SnrTag::GetInstanceTypeId (void) const
 }
 
 SnrTag::SnrTag ()
-  : m_snr (0)
+  : m_snr (0),
+    m_rxPowerDbm (0)
 {
 }
 
 uint32_t
 SnrTag::GetSerializedSize (void) const
 {
-  return sizeof (double);
+  return 2 * sizeof (double);
 }
 
 void
 SnrTag::Serialize (TagBuffer i) const
 {
   i.WriteDouble (m_snr);
+  i.WriteDouble (m_rxPowerDbm);
 }
 
 void
 SnrTag::Deserialize (TagBuffer i)
 {
   m_snr = i.ReadDouble ();
+  m_rxPowerDbm = i.ReadDouble ();
 }
 
 void
 SnrTag::Print (std::ostream &os) const
 {
-  os << "Snr=" << m_snr;
+  os << "Snr=" << m_snr << ";RxPowerDbm=" << m_rxPowerDbm;
 }
 
 void
@@ -90,5 +93,18 @@ SnrTag::Get (void) const
 {
   return m_snr;
 }
+
+void
+SnrTag::SetRxPowerDbm (double rxPowerDbm)
+{
+  m_rxPowerDbm = rxPowerDbm;
+}
+
+double
+SnrTag::GetRxPowerDbm (void) const
+{
+  return m_rxPowerDbm;
+}
+
 
 }

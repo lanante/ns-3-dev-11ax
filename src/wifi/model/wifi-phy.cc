@@ -373,7 +373,6 @@ WifiPhy::WifiPhy ()
     m_totalAmpduSize (0),
     m_totalAmpduNumSymbols (0),
     m_currentEvent (0),
-    m_rxPowerDbm (0),
     m_obssPdThresholdW (0)
 {
   NS_LOG_FUNCTION (this);
@@ -549,13 +548,6 @@ WifiPhy::GetTxPowerEnd (void) const
 {
   return m_txPowerEndDbm;
 }
-
-double
-WifiPhy::GetRxPowerDbm (void) const
-{
-  return m_rxPowerDbm;
-}
-
 
 void
 WifiPhy::SetNTxPower (uint32_t n)
@@ -2385,8 +2377,7 @@ WifiPhy::StartReceivePreambleAndHeader (Ptr<Packet> packet, double rxPowerW, Tim
   //This function should be later split to check separately whether plcp preamble and plcp header can be successfully received.
   //Note: plcp preamble reception is not yet modeled.
   Time endRx = Simulator::Now () + rxDuration;
-  m_rxPowerDbm = WToDbm (rxPowerW);
-  NS_LOG_FUNCTION (this << packet << m_rxPowerDbm << rxDuration);
+  NS_LOG_FUNCTION (this << packet << WToDbm (rxPowerW) << rxDuration);
   WifiPhyTag tag;
   bool found = packet->RemovePacketTag (tag);
   if (!found)
@@ -2577,7 +2568,7 @@ WifiPhy::EndReceive (Ptr<Packet> packet, WifiPreamble preamble, MpduType mpdutyp
           aMpdu.type = mpdutype;
           aMpdu.mpduRefNumber = m_rxMpduReferenceNumber;
           NotifyMonitorSniffRx (packet, GetFrequency (), event->GetTxVector (), aMpdu, signalNoise);
-          m_state->SwitchFromRxEndOk (packet, snrPer.snr, event->GetTxVector ());
+          m_state->SwitchFromRxEndOk (packet, snrPer.snr, WToDbm (event->GetRxPowerW ()), event->GetTxVector ());
         }
       else
         {

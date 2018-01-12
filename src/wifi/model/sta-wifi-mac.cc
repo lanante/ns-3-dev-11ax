@@ -24,6 +24,7 @@
 #include "ns3/log.h"
 #include "ns3/simulator.h"
 #include "mac-low.h"
+#include "snr-tag.h"
 
 /*
  * The state machine for this STA is:
@@ -638,9 +639,12 @@ StaWifiMac::Receive (Ptr<Packet> packet, const WifiMacHeader *hdr)
               if (beacon.GetSsid ().IsEqual (GetSsid ()))
                 {
                   double aveRxPower=0;       
+                  SnrTag tag;
+                  bool found = packet->RemovePacketTag (tag);
+                  NS_ABORT_MSG_UNLESS (found, "Error, Rx power not found");
                   if (m_beaconCount<10)
                     {
-                      m_rssiArray[m_beaconCount] = m_phy->GetRxPowerDbm ();
+                      m_rssiArray[m_beaconCount] = tag.GetRxPowerDbm ();
                       for (int i =0; i<m_beaconCount+1; i++)
                         {
                           aveRxPower = aveRxPower + m_rssiArray[i];
@@ -654,7 +658,7 @@ StaWifiMac::Receive (Ptr<Packet> packet, const WifiMacHeader *hdr)
                           m_rssiArray[i] = m_rssiArray[i+1];
                           aveRxPower = aveRxPower + m_rssiArray[i];
                         }
-                      m_rssiArray[9] = m_phy->GetRxPowerDbm ();
+                      m_rssiArray[9] = tag.GetRxPowerDbm ();
                       aveRxPower = aveRxPower + m_rssiArray[9];
                       aveRxPower = aveRxPower/(10);
                     }
