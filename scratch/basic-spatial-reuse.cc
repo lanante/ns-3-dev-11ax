@@ -218,11 +218,11 @@ main (int argc, char *argv[])
   double d2 = 30.0; // meters
   double d3 = 100.0; // meters
   double d4 = 30.0; // meters
-  double powSta1 = 21.0; // dBm
-  double powSta2 = 21.0; // dBm
-  double powSta3 = 21.0; // dBm
-  double powAp1 = 25.0; // dBm
-  double powAp2 = 25.0; // dBm
+  double powSta1 = 18.0; // dBm
+  double powSta2 = 18.0; // dBm
+  double powSta3 = 18.0; // dBm
+  double powAp1 = 21.0; // dBm
+  double powAp2 = 21.0; // dBm
   double ccaTrSta1 = -62; // dBm
   double ccaTrSta2 = -62; // dBm
   double ccaTrSta3 = -62; // dBm

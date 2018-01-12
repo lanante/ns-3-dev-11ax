@@ -101,7 +101,7 @@ StaWifiMac::StaWifiMac ()
     m_beaconCount (0),
     m_rssiAve (0),
     m_txPowerObssPd (0),
-    m_txPowerRefObssPd (0),
+    m_txPowerRefObssPd (21),
     m_obssPdMax (0),
     m_obssPdMin (0)
 {
@@ -330,18 +330,18 @@ StaWifiMac::IsWaitAssocResp (void) const
   return m_state == WAIT_ASSOC_RESP;
 }
 
-void
-StaWifiMac::TxPowerUpdateObssPd (void) 
-{
-  if (m_obssPdThresholdLevel <= m_obssPdMin)
-    {
-      m_txPowerObssPd = m_txPowerRefObssPd;
-    }
-  else
-    {
-      m_txPowerObssPd = m_txPowerRefObssPd - (m_obssPdThresholdLevel-m_obssPdMin);
-    }
-}
+//void
+//StaWifiMac::TxPowerUpdateObssPd (void) 
+//{
+//  if (m_obssPdThresholdLevel <= m_obssPdMin)
+//    {
+//      m_txPowerObssPd = m_txPowerRefObssPd;
+//    }
+//  else
+//    {
+//      m_txPowerObssPd = m_txPowerRefObssPd - (m_obssPdThresholdLevel-m_obssPdMin);
+//    }
+//}
 
 void
 StaWifiMac::ObssPdThresholdUpdate (void) 
@@ -642,18 +642,18 @@ StaWifiMac::Receive (Ptr<Packet> packet, const WifiMacHeader *hdr)
                     {
                       m_rssiArray[m_beaconCount] = m_phy->GetRxPowerDbm ();
                       for (int i =0; i<m_beaconCount+1; i++)
-                       {
-                         aveRxPower = aveRxPower + m_rssiArray[i];
-                       }                          
-                        aveRxPower = aveRxPower/(m_beaconCount+1);
+                        {
+                          aveRxPower = aveRxPower + m_rssiArray[i];
+                        }                          
+                      aveRxPower = aveRxPower/(m_beaconCount+1);
                     }
                   else
                     {
                       for (int i =0; i<9; i++)
-                       {
-                         m_rssiArray[i] = m_rssiArray[i+1];
-                         aveRxPower = aveRxPower + m_rssiArray[i];
-                       }
+                        {
+                          m_rssiArray[i] = m_rssiArray[i+1];
+                          aveRxPower = aveRxPower + m_rssiArray[i];
+                        }
                       m_rssiArray[9] = m_phy->GetRxPowerDbm ();
                       aveRxPower = aveRxPower + m_rssiArray[9];
                       aveRxPower = aveRxPower/(10);
@@ -662,7 +662,6 @@ StaWifiMac::Receive (Ptr<Packet> packet, const WifiMacHeader *hdr)
                   if (m_beaconCount==0)
                   {
                     m_txPowerObssPd = m_phy->GetTxPowerEnd ();
-                    m_txPowerRefObssPd = m_phy->GetTxPowerEnd ();
                     m_obssPdMax = m_phy->GetCcaMode1Threshold ();
                     m_obssPdMin = m_phy->GetEdThreshold ();
                   }
@@ -670,26 +669,35 @@ StaWifiMac::Receive (Ptr<Packet> packet, const WifiMacHeader *hdr)
 
                   m_beaconCount++;
 
-                  if (Abs(m_rssiAve-(aveRxPower-2)) > 1)
+                  if (Abs(m_rssiAve-(aveRxPower-5)) > 2)
                     {
-                      m_obssPdThresholdLevel = m_obssPdMax;
-                      TxPowerUpdateObssPd ();
-
-                      m_rssiAve = aveRxPower-2; // discuss
-                      std::cout << "rx ave power: " << aveRxPower << std::endl;
+                      m_rssiAve = aveRxPower-5;
                       m_obssPdThresholdLevel = m_rssiAve;
                       ObssPdThresholdUpdate ();
- 
-                      TxPowerUpdateObssPd ();
-                      m_phy->SetTxPowerStart (m_txPowerObssPd);
-                      m_phy->SetTxPowerEnd (m_txPowerObssPd);
-
-                      ObssPdThresholdUpdate ();
-                      m_phy->SetEdThreshold (m_obssPdThresholdLevel);
-
-                    std::cout << "New OBSS PD Level: " << m_obssPdThresholdLevel << std::endl;
-                    std::cout << "New Tx Power: " << m_txPowerObssPd << std::endl;
+                      m_phy->SetObssPdThreshold (m_obssPdThresholdLevel);
+                      std::cout << "New OBSS PD Level: " << m_obssPdThresholdLevel << std::endl;
                     }
+
+                  //if (Abs(m_rssiAve-(aveRxPower-5)) > 1)
+                    //{
+                      //m_obssPdThresholdLevel = m_obssPdMax;
+                      //TxPowerUpdateObssPd ();
+
+                      //m_rssiAve = aveRxPower-5; // discuss
+                      //std::cout << "rx ave power: " << aveRxPower << std::endl;
+                      //m_obssPdThresholdLevel = m_rssiAve;
+                      //ObssPdThresholdUpdate ();
+ 
+                      //TxPowerUpdateObssPd ();
+                      //m_phy->SetTxPowerStart (m_txPowerObssPd);
+                      //m_phy->SetTxPowerEnd (m_txPowerObssPd);
+
+                      //ObssPdThresholdUpdate ();
+                      //m_phy->SetEdThreshold (m_obssPdThresholdLevel);
+
+                      //std::cout << "New OBSS PD Level: " << m_obssPdThresholdLevel << std::endl;
+                      //std::cout << "New Tx Power: " << m_txPowerObssPd << std::endl;
+                    //}
                 }
             }
           m_stationManager->SetShortPreambleEnabled (isShortPreambleEnabled);
