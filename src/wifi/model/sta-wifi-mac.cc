@@ -912,6 +912,7 @@ StaWifiMac::Receive (Ptr<Packet> packet, const WifiMacHeader *hdr)
                   //todo: once we support non constant rate managers, we should add checks here whether HE is supported by the peer
                   m_stationManager->AddStationHeCapabilities (hdr->GetAddr2 (), hecapabilities);
                   HeOperation heOperation = assocResp.GetHeOperation ();
+                  m_phy->SetBssColor (heOperation.GetBssColor ());
                 }
               for (uint32_t i = 0; i < m_phy->GetNModes (); i++)
                 {

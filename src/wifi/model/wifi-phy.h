@@ -1471,6 +1471,16 @@ public:
   double GetRxGain (void) const;
 
   /**
+   * Set the BSS color
+   * \param color the value to set
+   */
+  void SetBssColor (uint8_t color);
+  /**
+   * Get the BSS color
+   * \return the color value
+   */
+  uint8_t GetBssColor (void) const;
+  /**
    * Sets the device this PHY is associated with.
    *
    * \param device the device this PHY is associated with
@@ -1999,7 +2009,10 @@ private:
 
   Ptr<InterferenceHelper::Event> m_currentEvent; //!< Hold the current event
   Ptr<FrameCaptureModel> m_frameCaptureModel; //!< Frame capture model
+
+  // The following HE configuration can be moved to a separate object
   double   m_obssPdThresholdW;    //!< Obss Pd threshold in watts
+  uint8_t  m_bssColor;            //!< BSS color
 };
 
 /**

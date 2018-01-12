@@ -490,6 +490,18 @@ WifiPhy::GetObssPdThresholdW (void) const
   return m_obssPdThresholdW;
 }
 
+void
+WifiPhy::SetBssColor (uint8_t color)
+{
+  m_bssColor = color;
+}
+
+uint8_t
+WifiPhy::GetBssColor (void) const
+{
+  return m_bssColor;
+}
+
 double
 WifiPhy::GetEdThreshold (void) const
 {

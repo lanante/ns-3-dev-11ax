@@ -315,6 +315,9 @@ main (int argc, char *argv[])
 
   NetDeviceContainer apDeviceA;
   apDeviceA = wifi.Install (spectrumPhy, mac, ap1);
+  Ptr<WifiNetDevice> apDevice = apDeviceA.Get (0)->GetObject<WifiNetDevice> ();
+  Ptr<ApWifiMac> apWifiMac = apDevice->GetMac ()->GetObject<ApWifiMac> ();
+  apWifiMac->SetBssColor (1);
 
   spectrumPhy.Set ("TxPowerStart", DoubleValue (powSta3));
   spectrumPhy.Set ("TxPowerEnd", DoubleValue (powSta3));
@@ -336,6 +339,9 @@ main (int argc, char *argv[])
 
   NetDeviceContainer apDeviceB;
   apDeviceB = wifi.Install (spectrumPhy, mac, ap2);
+  Ptr<WifiNetDevice> ap2Device = apDeviceB.Get (0)->GetObject<WifiNetDevice> ();
+  apWifiMac = ap2Device->GetMac ()->GetObject<ApWifiMac> ();
+  apWifiMac->SetBssColor (2);
 
   MobilityHelper mobility;
   Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator> ();

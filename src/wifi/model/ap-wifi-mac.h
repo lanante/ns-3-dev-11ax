@@ -130,6 +130,18 @@ public:
   uint8_t GetVhtOperationalChannelWidth (void) const;
 
   /**
+   * Set the BSS color for the AP
+   * \param bssColor the color value
+   */
+  void SetBssColor (uint8_t bssColor);
+
+  /**
+   * Get the BSS color for the AP
+   * \return the color value
+   */
+  uint8_t GetBssColor (void) const;
+
+  /**
    * Assign a fixed random variable stream number to the random variables
    * used by this model.  Return the number of streams (possibly zero) that
    * have been assigned.

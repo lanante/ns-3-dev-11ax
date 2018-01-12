@@ -74,6 +74,17 @@ public:
   uint32_t GetBasicHeMcsAndNssSet (void) const;
 
   /**
+   * Set the BSS color
+   * \param bssColor the BSS color value
+   */
+  void SetBssColor (uint8_t bssColor);
+  /**
+   * Get the BSS color
+   * \return the BSS color value
+   */
+  uint8_t GetBssColor (void) const;
+
+  /**
    * Return the element ID.
    *
    * \returns the element ID
@@ -120,14 +131,14 @@ public:
 
 private:
   //HE Operation Parameters fields
-  uint8_t m_bsssColor; //!< BSS color
+  uint8_t m_bssColor; //!< BSS color
   uint8_t m_defaultPEDuration; //!< default PE duration
   uint8_t m_twtRequired; //!< TWT required
   uint16_t m_heDurationBasedRtsThreshold; //!< HE duration based RTS threshold
   uint8_t m_partialBsssColor; //!< partial BSS color
   uint8_t m_maxBssidIndicator; //!< max BSSID indicator
   uint8_t m_txBssidIndicator; //!< TX BSSID indicator
-  uint8_t m_bsssColorDisabled; //!< BSS color disabled
+  uint8_t m_bssColorDisabled; //!< BSS color disabled
   uint8_t m_dualBeacon; //!< BSS color disabled
 
   //Basic HE-MCS and NSS Set

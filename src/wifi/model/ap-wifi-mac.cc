@@ -657,6 +657,7 @@ ApWifiMac::GetHeOperation (void) const
         {
           operation.SetMaxHeMcsPerNss (nss, 11); //TBD: hardcode to 11 for now since we assume all MCS values are supported
         }
+      operation.SetBssColor (m_phy->GetBssColor ());
     }
   return operation;
 }
@@ -1256,6 +1257,18 @@ ApWifiMac::GetRifsMode (void) const
       m_stationManager->SetRifsPermitted (false);
     }
   return rifsMode;
+}
+
+void
+ApWifiMac::SetBssColor (uint8_t bssColor)
+{
+  m_phy->SetBssColor (bssColor);
+}
+
+uint8_t
+ApWifiMac::GetBssColor (void) const
+{
+  return m_phy->GetBssColor ();
 }
 
 } //namespace ns3
