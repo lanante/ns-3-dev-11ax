@@ -373,7 +373,8 @@ WifiPhy::WifiPhy ()
     m_totalAmpduSize (0),
     m_totalAmpduNumSymbols (0),
     m_currentEvent (0),
-    m_obssPdThresholdW (0)
+    m_obssPdThresholdW (0),
+    m_bssColor (0)
 {
   NS_LOG_FUNCTION (this);
   NS_UNUSED (m_numberOfTransmitters);
@@ -2380,6 +2381,7 @@ WifiPhy::SendPacket (Ptr<const Packet> packet, WifiTxVector txVector, MpduType m
   WifiPhyTag tag (txVector, mpdutype);
   newPacket->AddPacketTag (tag);
 
+  txVector.SetBssColor (GetBssColor ());
   StartTx (newPacket, txVector, txDuration);
 }
 
