@@ -29,6 +29,7 @@
 #include "ns3/boolean.h"
 #include "wifi-spectrum-signal-parameters.h"
 #include "wifi-utils.h"
+#include "wifi-phy-tag.h"
 
 namespace ns3 {
 
@@ -249,9 +250,32 @@ SpectrumWifiPhy::StartRx (Ptr<SpectrumSignalParameters> rxParams)
       SwitchMaybeToCcaBusy ();
       return;
     }
-
-  NS_LOG_INFO ("Received Wi-Fi signal");
+  // Ideally we check this after the preamble and header are received
+  // but we need to insert a receive event for that (TBD)
+  if (rxPowerW < GetCcaCsThreshold ())
+    {
+      NS_LOG_INFO ("Received Wi-Fi signal but below CCA-CS threshold");
+      m_interference.AddForeignSignal (rxDuration, rxPowerW);
+      SwitchMaybeToCcaBusy ();
+      return;
+    }
+  WifiPhyTag tag;
   Ptr<Packet> packet = wifiRxParams->packet->Copy ();
+  bool found = packet->PeekPacketTag (tag);
+  if (!found)
+    {
+      NS_FATAL_ERROR ("Received Wi-Fi Signal with no WifiPhyTag");
+      return;
+    }
+  WifiTxVector txVector = tag.GetWifiTxVector ();
+  if (txVector.GetBssColor () != GetBssColor () && rxPowerW < GetObssPdThresholdW ())
+    {
+      NS_LOG_INFO ("Received OBSS Wi-Fi signal but below CCA-CS threshold");
+      m_interference.AddForeignSignal (rxDuration, rxPowerW);
+      SwitchMaybeToCcaBusy ();
+      return;
+    }
+  NS_LOG_INFO ("Received Wi-Fi signal");
   StartReceivePreambleAndHeader (packet, rxPowerW, rxDuration);
 }
 

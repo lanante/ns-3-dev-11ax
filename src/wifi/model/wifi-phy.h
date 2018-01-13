@@ -1361,6 +1361,25 @@ public:
    * \return the energy detection threshold in dBm
    */
   double GetEdThreshold (void) const;
+
+  /**
+   * Set the CCA-CS threshold (dBm).
+   *
+   * \param threshold the CCA-CS threshold in dBm
+   */
+  void SetCcaCsThreshold (double threshold);
+  /**
+   * Return the CCA-CS threshold (W).
+   *
+   * \return the CCA-CS threshold in W
+   */
+  double GetCcaCsThresholdW (void) const;
+  /**
+   * Return the CCA-CS threshold (dBm).
+   *
+   * \return the CCA-CS threshold in dBm
+   */
+  double GetCcaCsThreshold (void) const;
   /**
    * Sets the obss pd threshold (dBm).
    * The energy of a received signal of a BSS with different Color should be higher than
@@ -1972,6 +1991,7 @@ private:
 
   double   m_edThresholdW;        //!< Energy detection threshold in watts
   double   m_ccaMode1ThresholdW;  //!< Clear channel assessment (CCA) threshold in watts
+  double   m_ccaCsThresholdW;     //!< CCA-CS threshold in watts
   double   m_txGainDb;            //!< Transmission gain (dB)
   double   m_rxGainDb;            //!< Reception gain (dB)
   double   m_txPowerBaseDbm;      //!< Minimum transmission power (dBm)
