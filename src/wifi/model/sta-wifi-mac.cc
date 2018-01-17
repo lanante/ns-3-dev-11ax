@@ -494,8 +494,7 @@ StaWifiMac::Receive (Ptr<Packet> packet, const WifiMacHeader *hdr)
       CapabilityInformation capabilities = beacon.GetCapabilities ();
       NS_ASSERT (capabilities.IsEss ());
       bool goodBeacon = false;
-      if (GetSsid ().IsBroadcast ()
-          || beacon.GetSsid ().IsEqual (GetSsid ()))
+      if (GetSsid ().IsBroadcast () || beacon.GetSsid ().IsEqual (GetSsid ()))
         {
           NS_LOG_LOGIC ("Beacon is for our SSID");
           goodBeacon = true;
@@ -627,6 +626,7 @@ StaWifiMac::Receive (Ptr<Packet> packet, const WifiMacHeader *hdr)
               //todo: once we support non constant rate managers, we should add checks here whether HE is supported by the peer
               m_stationManager->AddStationHeCapabilities (hdr->GetAddr2 (), heCapabilities);
               HeOperation heOperation = beacon.GetHeOperation ();
+              //m_phy->SetBssColor (heOperation.GetBssColor ());
               for (uint32_t i = 0; i < m_phy->GetNMcs (); i++)
                 {
                   WifiMode mcs = m_phy->GetMcs (i);
@@ -636,9 +636,11 @@ StaWifiMac::Receive (Ptr<Packet> packet, const WifiMacHeader *hdr)
                     }
                 }
               // using the SSID of the beacon instead of BSS color (for now) to update OBSS_PD  
-              if (beacon.GetSsid ().IsEqual (GetSsid ()))
+//std::cout << "m-phy STA color: " << m_phy->GetBssColor () << std::endl;
+//std::cout << "beacon color: " << heOperation.GetBssColor () << std::endl;
+              if (heOperation.GetBssColor () == m_phy->GetBssColor ())//(beacon.GetSsid ().IsEqual (GetSsid ()))//
                 {
-                  double aveRxPower=0;       
+                  double aveRxPower=0;
                   SnrTag tag;
                   bool found = packet->RemovePacketTag (tag);
                   NS_ABORT_MSG_UNLESS (found, "Error, Rx power not found");
@@ -666,10 +668,9 @@ StaWifiMac::Receive (Ptr<Packet> packet, const WifiMacHeader *hdr)
                   if (m_beaconCount==0)
                   {
                     m_txPowerObssPd = m_phy->GetTxPowerEnd ();
-                    m_obssPdMax = m_phy->GetCcaMode1Threshold ();
-                    m_obssPdMin = m_phy->GetEdThreshold ();
+                    m_obssPdMax = -62.0;
+                    m_obssPdMin = m_phy->GetCcaCsThreshold ();
                   }
-                  //std::cout << "rxpower ave for " << aveRxPower << std::endl;
 
                   m_beaconCount++;
 
@@ -680,6 +681,7 @@ StaWifiMac::Receive (Ptr<Packet> packet, const WifiMacHeader *hdr)
                       ObssPdThresholdUpdate ();
                       m_phy->SetObssPdThreshold (m_obssPdThresholdLevel);
                       std::cout << "New OBSS PD Level: " << m_obssPdThresholdLevel << std::endl;
+                      //std::cout << "rxpower= " << tag.GetRxPowerDbm () << std::endl;
                     }
 
                   //if (Abs(m_rssiAve-(aveRxPower-5)) > 1)
@@ -913,6 +915,7 @@ StaWifiMac::Receive (Ptr<Packet> packet, const WifiMacHeader *hdr)
                   m_stationManager->AddStationHeCapabilities (hdr->GetAddr2 (), hecapabilities);
                   HeOperation heOperation = assocResp.GetHeOperation ();
                   m_phy->SetBssColor (heOperation.GetBssColor ());
+std::cout << "Assoc BSS color: " << heOperation.GetBssColor () << std::endl;
                 }
               for (uint32_t i = 0; i < m_phy->GetNModes (); i++)
                 {
