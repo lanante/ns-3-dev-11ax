@@ -2404,10 +2404,10 @@ WifiPhy::SendPacket (Ptr<const Packet> packet, WifiTxVector txVector, MpduType m
   Ptr<Packet> newPacket = packet->Copy (); // obtain non-const Packet
   WifiPhyTag oldtag;
   newPacket->RemovePacketTag (oldtag);
+  txVector.SetBssColor (GetBssColor ());
   WifiPhyTag tag (txVector, mpdutype);
   newPacket->AddPacketTag (tag);
 
-  txVector.SetBssColor (GetBssColor ());
   StartTx (newPacket, txVector, txDuration);
 }
 

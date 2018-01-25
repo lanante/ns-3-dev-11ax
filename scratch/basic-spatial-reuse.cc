@@ -94,6 +94,7 @@ struct SignalArrival
 std::vector<uint32_t> packetsReceived (100);
 std::vector<uint32_t> bytesReceived (100);
 double packetCount[3];
+//double packetCountRe[2];
 
 // Parse context strings of the form "/NodeList/3/DeviceList/1/Mac/Assoc"
 // to extract the NodeId
@@ -153,6 +154,7 @@ void
 StateCb (std::string context, Time start, Time duration, WifiPhy::State state)
 {
   g_stateFile << ContextToNodeId (context) << " " << start.GetSeconds () << " " << duration.GetSeconds () << " " << StateToString (state) << std::endl;
+
   if ( ContextToNodeId (context) == 0 && StateToString (state) == "TX" )
   {
     packetCount[0] = packetCount[0]+1;
@@ -165,6 +167,16 @@ StateCb (std::string context, Time start, Time duration, WifiPhy::State state)
   {
     packetCount[2] = packetCount[2]+1;
   }
+/*
+  if ( ContextToNodeId (context) == 2 && StateToString (state) == "RX" )
+  {
+    packetCountRe[0] = packetCountRe[0]+1;
+  }
+  else if ( ContextToNodeId (context) == 4 && StateToString (state) == "RX" )
+  {
+    packetCountRe[1] = packetCountRe[1]+1;
+  }*/
+//check for RX received packet for counting the 
 }
 
 void
@@ -237,6 +249,7 @@ int
 main (int argc, char *argv[])
 {  
   //bool disableApps = false;
+  bool tracing = true;
   bool enableTracing = true;
   double duration = 20.0; // seconds
   double d1 = 30.0; // meters
@@ -255,6 +268,12 @@ main (int argc, char *argv[])
   double ccaTrAp2 = -62; // dBm
   uint32_t payloadSize = 1000; // bytes
   uint32_t mcs = 0; // MCS value
+  RngSeedManager::SetSeed (3);
+  RngSeedManager::SetRun (7);
+
+
+packetCount[0] = 0; packetCount[1] = 0; packetCount[2] = 0;
+//packetCountRe[0] = 0; packetCountRe[1] = 0;
 
   CommandLine cmd;
   cmd.AddValue ("d1", "Distance of STA1 to AP1", d1);
@@ -324,6 +343,11 @@ main (int argc, char *argv[])
   spectrumPhy.Set ("TxPowerEnd", DoubleValue (powSta1));
   spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrSta1));
   Config::SetDefault ("ns3::StaWifiMac::ObssPdThreshold", DoubleValue (-82.0));
+
+  Config::SetDefault ("ns3::RegularWifiMac::VO_BlockAckThreshold", UintegerValue (0));
+  Config::SetDefault ("ns3::RegularWifiMac::VI_BlockAckThreshold", UintegerValue (0));
+  Config::SetDefault ("ns3::RegularWifiMac::BE_BlockAckThreshold", UintegerValue (0));
+  Config::SetDefault ("ns3::RegularWifiMac::BK_BlockAckThreshold", UintegerValue (0));
 
   spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-92.0));
   Ssid ssidA = Ssid ("A");
@@ -397,16 +421,16 @@ main (int argc, char *argv[])
   //BSS 1
   for (uint32_t i=0;i<2;i++)
     {
-  PacketSocketAddress socketAddr;
-  socketAddr.SetSingleDevice (staDevicesA.Get (i)->GetIfIndex ());
-  socketAddr.SetPhysicalAddress (apDeviceA.Get (0)->GetAddress ());
-  socketAddr.SetProtocol (1);
-  Ptr<PacketSocketClient> client = CreateObject<PacketSocketClient> ();
-  client->SetRemote (socketAddr);
-  allNodes.Get (i)->AddApplication (client);
-  client->SetAttribute ("PacketSize", UintegerValue (payloadSize));
-  client->SetAttribute ("MaxPackets", UintegerValue (0));
-  client->SetAttribute ("Interval", TimeValue (MicroSeconds (100+i*10)));
+      PacketSocketAddress socketAddr;
+      socketAddr.SetSingleDevice (staDevicesA.Get (i)->GetIfIndex ());
+      socketAddr.SetPhysicalAddress (apDeviceA.Get (0)->GetAddress ());
+      socketAddr.SetProtocol (1);
+      Ptr<PacketSocketClient> client = CreateObject<PacketSocketClient> ();
+      client->SetRemote (socketAddr);
+      allNodes.Get (i)->AddApplication (client);
+      client->SetAttribute ("PacketSize", UintegerValue (payloadSize));
+      client->SetAttribute ("MaxPackets", UintegerValue (0));
+      client->SetAttribute ("Interval", TimeValue (MicroSeconds (100)));
       Ptr<PacketSocketServer> server = CreateObject<PacketSocketServer> ();
       server->SetLocal (socketAddr);
       allNodes.Get (2)->AddApplication (server);
@@ -415,16 +439,16 @@ main (int argc, char *argv[])
   // BSS 2
   for (uint32_t i=0;i<1;i++)
     {
-  PacketSocketAddress socketAddr;
-  socketAddr.SetSingleDevice (staDevicesB.Get (i)->GetIfIndex ());
-  socketAddr.SetPhysicalAddress (apDeviceB.Get (0)->GetAddress ());
-  socketAddr.SetProtocol (1);
-  Ptr<PacketSocketClient> client = CreateObject<PacketSocketClient> ();
-  client->SetRemote (socketAddr);
-  allNodes.Get (i+3)->AddApplication (client);
-  client->SetAttribute ("PacketSize", UintegerValue (payloadSize));
-  client->SetAttribute ("MaxPackets", UintegerValue (0));
-  client->SetAttribute ("Interval", TimeValue (MicroSeconds (100)));
+      PacketSocketAddress socketAddr;
+      socketAddr.SetSingleDevice (staDevicesB.Get (i)->GetIfIndex ());
+      socketAddr.SetPhysicalAddress (apDeviceB.Get (0)->GetAddress ());
+      socketAddr.SetProtocol (1);
+      Ptr<PacketSocketClient> client = CreateObject<PacketSocketClient> ();
+      client->SetRemote (socketAddr);
+      allNodes.Get (i+3)->AddApplication (client);
+      client->SetAttribute ("PacketSize", UintegerValue (payloadSize));
+      client->SetAttribute ("MaxPackets", UintegerValue (0));
+      client->SetAttribute ("Interval", TimeValue (MicroSeconds (100)));
       Ptr<PacketSocketServer> server = CreateObject<PacketSocketServer> ();
       server->SetLocal (socketAddr);
       allNodes.Get (4)->AddApplication (server);
@@ -520,7 +544,7 @@ main (int argc, char *argv[])
 
   // Log packet receptions
   Config::Connect ("/NodeList/*/ApplicationList/*/$ns3::PacketSocketServer/Rx", MakeCallback (&SocketRecvStats));
-//$ns3::Node/
+
   if (enableTracing)
     {
       AsciiTraceHelper ascii;
@@ -539,6 +563,16 @@ main (int argc, char *argv[])
   Config::SetDefault ("ns3::ConfigStore::Mode", StringValue ("Save"));
   ConfigStore outputConfig;
   outputConfig.ConfigureAttributes ();
+
+    if (tracing == true)
+    {
+      spectrumPhy.EnablePcap ("pcapforPackets", staDevicesA);
+ /*     spectrumPhy.EnablePcap ("pcapforPackets", allNodes.Get (1));
+      spectrumPhy.EnablePcap ("pcapforPackets", allNodes.Get (2));
+      spectrumPhy.EnablePcap ("pcapforPackets", allNodes.Get (3));
+      spectrumPhy.EnablePcap ("pcapforPackets", allNodes.Get (4));*/
+      // spectrumPhy.EnablePcap ("dc-spectrumPhy", staDevices.Get (0));
+    }
 
   Time durationTime = Seconds (duration);
   Simulator::Stop (durationTime);
@@ -572,18 +606,27 @@ main (int argc, char *argv[])
 //      std::cout << "  Throughput: " << i->second.rxBytes * 8.0 / (duration * 1000000.0)  << " Mbps\n";
 //    }
 //  monitor->SerializeToXmlFile("lab-1.flowmon", true, true);
-/*  double throughputpernode[5];
+  double throughputpernode[5];
   for (uint32_t k = 0; k < 5; k++)
     {
        throughputpernode[k] = (double)bytesReceived[k]*8 / 1000 / 1000 / duration;  // for 100 seconds
-       std::cout << "Node " << k << "; throughput " << throughputpernode[k] << std::endl;
-  }*/
+       std::cout << "Node " << k << "; throughput Received = " << throughputpernode[k] << std::endl;
+  }
+
   double throughputpernode1[3];
   for (uint32_t k = 0; k < 3; k++)
     {
        throughputpernode1[k] = (double)packetCount[k]*payloadSize*8 / 1000 / 1000 / duration;  // for 100 seconds
-       std::cout << "Node " << k << "; throughput " << throughputpernode1[k] << std::endl;
+       std::cout << "Node " << k << "; throughput Transmitted = " << throughputpernode1[k] << std::endl;
     }
+/*
+  double throughputpernode2[2];
+  for (uint32_t k = 0; k < 2; k++)
+    {
+       throughputpernode2[k] = (double)packetCountRe[k]*payloadSize*8 / 1000 / 1000 / duration;  // for 100 seconds
+       std::cout << "Node " << k << "; throughput " << throughputpernode2[k] << std::endl;
+    }
+*/
           //std::cout << "Total throughput " << throughput << std::endl;
           //mean_t += throughput;
           //throughputVector[run_index - 1] = throughput;

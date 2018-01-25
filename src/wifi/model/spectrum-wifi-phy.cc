@@ -252,23 +252,42 @@ SpectrumWifiPhy::StartRx (Ptr<SpectrumSignalParameters> rxParams)
     }
   // Ideally we check this after the preamble and header are received
   // but we need to insert a receive event for that (TBD)
-  WifiPhyTag tag;
-  WifiTxVector txVector = tag.GetWifiTxVector ();
-//  std::cout << "RxPower: " << WToDbm (rxPowerW) << std::endl;
-  if (txVector.GetBssColor () == GetBssColor () && rxPowerW < GetCcaCsThresholdW ())
-    {
-//  std::cout << "RxPower Same BSS: " << WToDbm (rxPowerW) << std::endl;
-      NS_LOG_INFO ("Received Wi-Fi signal but below CCA-CS threshold");
-      m_interference.AddForeignSignal (rxDuration, rxPowerW);
-      SwitchMaybeToCcaBusy ();
-      return;
-    }
-
+/*  Tag tag; 
   Ptr<Packet> packet = wifiRxParams->packet->Copy ();
+  PacketTagIterator i = packet->GetPacketTagIterator ();
+  PacketTagIterator::Item item = i.Next(); 
+  item.GetTag (tag);        
+  WifiPhyTag wifitag =dynamic_cast<WifiPhyTag&>(tag);*/
+
+/*  Ptr<Packet> packet = wifiRxParams->packet->Copy ();
+  WifiPhyTag tag;
   bool found = packet->PeekPacketTag (tag);
   if (!found)
     {
       NS_FATAL_ERROR ("Received Wi-Fi Signal with no WifiPhyTag");
+      return;
+    }
+  WifiTxVector txVector = tag.GetWifiTxVector ();*/
+
+  Ptr<Packet> packet = wifiRxParams->packet->Copy ();
+  WifiPhyTag tag;
+  bool found = packet->PeekPacketTag (tag);
+  if (!found)
+    {
+      NS_FATAL_ERROR ("Received Wi-Fi Signal with no WifiPhyTag");
+      return;
+    }
+  WifiTxVector txVector = tag.GetWifiTxVector ();
+
+//  std::cout << "RxPower: " << WToDbm (rxPowerW) << std::endl;
+//  std::cout << "Diff BSS Color: " << (unsigned)txVector.GetBssColor () << (unsigned)GetBssColor () << "rx Dur" << rxDuration << std::endl;
+  if (txVector.GetBssColor () == GetBssColor () && rxPowerW < GetCcaCsThresholdW ())
+    {
+//  std::cout << "RxPower Same BSS: " << WToDbm (rxPowerW) << std::endl;
+//  std::cout << "Same BSS Color: " << (unsigned)txVector.GetBssColor () << (unsigned)GetBssColor () << std::endl;
+      NS_LOG_INFO ("Received Wi-Fi signal but below CCA-CS threshold");
+      m_interference.AddForeignSignal (rxDuration, rxPowerW);
+      SwitchMaybeToCcaBusy ();
       return;
     }
 
