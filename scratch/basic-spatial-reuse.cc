@@ -1,6 +1,6 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2017 University of Washington
+ * Copyright (c) 2018 University of Washington
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -72,11 +72,9 @@
 #include <ns3/mobility-module.h>
 #include <ns3/internet-module.h>
 #include <ns3/wifi-module.h>
-#include <ns3/config-store-module.h>
 #include <ns3/spectrum-module.h>
 #include <ns3/applications-module.h>
 #include <ns3/propagation-module.h>
-//#include "ns3/flow-monitor-module.h"
 
 using namespace ns3;
 
@@ -94,7 +92,6 @@ struct SignalArrival
 std::vector<uint32_t> packetsReceived (100);
 std::vector<uint32_t> bytesReceived (100);
 double packetCount[3];
-//double packetCountRe[2];
 
 // Parse context strings of the form "/NodeList/3/DeviceList/1/Mac/Assoc"
 // to extract the NodeId
@@ -112,7 +109,6 @@ SocketRecvStats (std::string context, Ptr<const Packet> p, const Address &addr)
 {
   uint32_t nodeId = ContextToNodeId (context);
   bytesReceived[nodeId] += p->GetSize ();
-  //std::cout << "received bytes" << bytesReceived[nodeId] << std::endl;
   packetsReceived[nodeId]++;
 }
 
@@ -125,7 +121,7 @@ StateToString (WifiPhy::State state)
 {
   std::string stateString;
   switch (state)
-  {
+    {
     case WifiPhy::IDLE:
       stateString = "IDLE";
       break;
@@ -146,7 +142,7 @@ StateToString (WifiPhy::State state)
       break;
     default:
       NS_FATAL_ERROR ("Unknown state");
-  }
+    }
   return stateString;
 }
 
@@ -156,43 +152,33 @@ StateCb (std::string context, Time start, Time duration, WifiPhy::State state)
   g_stateFile << ContextToNodeId (context) << " " << start.GetSeconds () << " " << duration.GetSeconds () << " " << StateToString (state) << std::endl;
 
   if ( ContextToNodeId (context) == 0 && StateToString (state) == "TX" )
-  {
-    packetCount[0] = packetCount[0]+1;
-  }
+    {
+      packetCount[0] = packetCount[0] + 1;
+    }
   else if ( ContextToNodeId (context) == 1 && StateToString (state) == "TX" )
-  {
-    packetCount[1] = packetCount[1]+1;
-  }
+    {
+      packetCount[1] = packetCount[1] + 1;
+    }
   else if ( ContextToNodeId (context) == 3 && StateToString (state) == "TX" )
-  {
-    packetCount[2] = packetCount[2]+1;
-  }
-/*
-  if ( ContextToNodeId (context) == 2 && StateToString (state) == "RX" )
-  {
-    packetCountRe[0] = packetCountRe[0]+1;
-  }
-  else if ( ContextToNodeId (context) == 4 && StateToString (state) == "RX" )
-  {
-    packetCountRe[1] = packetCountRe[1]+1;
-  }*/
-//check for RX received packet for counting the 
+    {
+      packetCount[2] = packetCount[2] + 1;
+    }
 }
 
 void
 SignalCb (std::string context, bool wifi, uint32_t senderNodeId, double rxPowerDbm, Time rxDuration)
 {
   SignalArrival arr;
-  arr.m_time = Simulator::Now();
+  arr.m_time = Simulator::Now ();
   arr.m_duration = rxDuration;
   arr.m_nodeId = ContextToNodeId (context);
   arr.m_senderNodeId = senderNodeId;
   arr.m_wifi = wifi;
   arr.m_power = rxPowerDbm;
   g_arrivals.push_back (arr);
-  g_arrivalsDurationCounter += rxDuration.GetSeconds();
+  g_arrivalsDurationCounter += rxDuration.GetSeconds ();
 
-  NS_LOG_DEBUG (context << " " << wifi << " " << senderNodeId << " " << rxPowerDbm << " " << rxDuration.GetSeconds ()/1000.0);
+  NS_LOG_DEBUG (context << " " << wifi << " " << senderNodeId << " " << rxPowerDbm << " " << rxDuration.GetSeconds () / 1000.0);
 }
 
 void
@@ -247,8 +233,7 @@ ScheduleStateLogDisconnect (void)
 
 int
 main (int argc, char *argv[])
-{  
-  //bool disableApps = false;
+{
   bool tracing = true;
   bool enableTracing = true;
   double duration = 20.0; // seconds
@@ -266,16 +251,23 @@ main (int argc, char *argv[])
   double ccaTrSta3 = -62; // dBm
   double ccaTrAp1 = -62; // dBm
   double ccaTrAp2 = -62; // dBm
-  uint32_t payloadSize = 1000; // bytes
+  //uint32_t payloadSize = 1000; // bytes
+  uint32_t payloadSize = 1500; // bytes
   uint32_t mcs = 0; // MCS value
+  Time interval = MicroSeconds (100);
+  bool enableObssPd = true;
   RngSeedManager::SetSeed (3);
   RngSeedManager::SetRun (7);
 
 
-packetCount[0] = 0; packetCount[1] = 0; packetCount[2] = 0;
-//packetCountRe[0] = 0; packetCountRe[1] = 0;
+  packetCount[0] = 0;
+  packetCount[1] = 0;
+  packetCount[2] = 0;
 
   CommandLine cmd;
+  cmd.AddValue ("duration", "Duration of simulation (sec)", duration);
+  cmd.AddValue ("interval", "Per-packet interval (s)", interval);
+  cmd.AddValue ("enableObssPd", "Enable OBSS_PD", enableObssPd);
   cmd.AddValue ("d1", "Distance of STA1 to AP1", d1);
   cmd.AddValue ("d2", "Distance of STA2 to AP1", d2);
   cmd.AddValue ("d3", "Distance of AP1 to AP2", d3);
@@ -329,7 +321,7 @@ packetCount[0] = 0; packetCount[1] = 0; packetCount[2] = 0;
   spectrumPhy.SetChannel (spectrumChannel);
   spectrumPhy.SetErrorRateModel ("ns3::YansErrorRateModel");
   spectrumPhy.Set ("Frequency", UintegerValue (5180)); // channel 36 at 20 MHz
- 
+
   WifiHelper wifi;
   wifi.SetStandard (WIFI_PHY_STANDARD_80211ax_5GHZ);
   WifiMacHelper mac;
@@ -367,7 +359,10 @@ packetCount[0] = 0; packetCount[1] = 0; packetCount[2] = 0;
   apDeviceA = wifi.Install (spectrumPhy, mac, ap1);
   Ptr<WifiNetDevice> apDevice = apDeviceA.Get (0)->GetObject<WifiNetDevice> ();
   Ptr<ApWifiMac> apWifiMac = apDevice->GetMac ()->GetObject<ApWifiMac> ();
-  apWifiMac->SetBssColor (1);
+  if (enableObssPd)
+    {
+      apWifiMac->SetBssColor (1);
+    }
 
   spectrumPhy.Set ("TxPowerStart", DoubleValue (powSta3));
   spectrumPhy.Set ("TxPowerEnd", DoubleValue (powSta3));
@@ -391,7 +386,10 @@ packetCount[0] = 0; packetCount[1] = 0; packetCount[2] = 0;
   apDeviceB = wifi.Install (spectrumPhy, mac, ap2);
   Ptr<WifiNetDevice> ap2Device = apDeviceB.Get (0)->GetObject<WifiNetDevice> ();
   apWifiMac = ap2Device->GetMac ()->GetObject<ApWifiMac> ();
-  apWifiMac->SetBssColor (2);
+  if (enableObssPd)
+    {
+      apWifiMac->SetBssColor (2);
+    }
 
   MobilityHelper mobility;
   Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator> ();
@@ -400,12 +398,11 @@ packetCount[0] = 0; packetCount[1] = 0; packetCount[2] = 0;
   positionAlloc->Add (Vector (d1, 0, 0.0));        // AP1
   positionAlloc->Add (Vector (d1 + d3, d4, 0.0));  // STA3
   positionAlloc->Add (Vector (d1 + d3, 0, 0.0));   // AP2
-/*  positionAlloc->Add (Vector (0.0, 0.0, 0.0));     // STA1 at origin
   positionAlloc->Add (Vector (d1+d3, 0.0, 0.0));       // STA2
   positionAlloc->Add (Vector (d1, -d2, 0.0));        // AP1
   positionAlloc->Add (Vector (d1, d2, 0.0));  // STA3
   positionAlloc->Add (Vector (d1, d2+d4, 0.0));   // AP2*/
-  
+
   mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
   mobility.SetPositionAllocator (positionAlloc);
   mobility.Install (allNodes);
@@ -419,7 +416,7 @@ packetCount[0] = 0; packetCount[1] = 0; packetCount[2] = 0;
   TypeId tid = TypeId::LookupByName ("ns3::UdpSocketFactory");
 
   //BSS 1
-  for (uint32_t i=0;i<2;i++)
+  for (uint32_t i = 0; i < 2; i++)
     {
       PacketSocketAddress socketAddr;
       socketAddr.SetSingleDevice (staDevicesA.Get (i)->GetIfIndex ());
@@ -430,14 +427,14 @@ packetCount[0] = 0; packetCount[1] = 0; packetCount[2] = 0;
       allNodes.Get (i)->AddApplication (client);
       client->SetAttribute ("PacketSize", UintegerValue (payloadSize));
       client->SetAttribute ("MaxPackets", UintegerValue (0));
-      client->SetAttribute ("Interval", TimeValue (MicroSeconds (100)));
+      client->SetAttribute ("Interval", TimeValue (interval));
       Ptr<PacketSocketServer> server = CreateObject<PacketSocketServer> ();
       server->SetLocal (socketAddr);
       allNodes.Get (2)->AddApplication (server);
     }
 
   // BSS 2
-  for (uint32_t i=0;i<1;i++)
+  for (uint32_t i = 0; i < 1; i++)
     {
       PacketSocketAddress socketAddr;
       socketAddr.SetSingleDevice (staDevicesB.Get (i)->GetIfIndex ());
@@ -445,102 +442,14 @@ packetCount[0] = 0; packetCount[1] = 0; packetCount[2] = 0;
       socketAddr.SetProtocol (1);
       Ptr<PacketSocketClient> client = CreateObject<PacketSocketClient> ();
       client->SetRemote (socketAddr);
-      allNodes.Get (i+3)->AddApplication (client);
+      allNodes.Get (i + 3)->AddApplication (client);
       client->SetAttribute ("PacketSize", UintegerValue (payloadSize));
       client->SetAttribute ("MaxPackets", UintegerValue (0));
-      client->SetAttribute ("Interval", TimeValue (MicroSeconds (100)));
+      client->SetAttribute ("Interval", TimeValue (interval));
       Ptr<PacketSocketServer> server = CreateObject<PacketSocketServer> ();
       server->SetLocal (socketAddr);
       allNodes.Get (4)->AddApplication (server);
     }
-
-/*
-  // Internet stack
-  InternetStackHelper stack;
-  stack.Install (allNodes);
-
-  Ipv4AddressHelper address;
-  address.SetBase ("192.168.1.0", "255.255.255.0");
-  Ipv4InterfaceContainer staInterfacesA;
-  Ipv4InterfaceContainer apInterfaceA;
-
-  staInterfacesA = address.Assign (staDevicesA);
-  apInterfaceA = address.Assign (apDeviceA);
-
-  address.SetBase ("192.168.2.0", "255.255.255.0");
-  Ipv4InterfaceContainer staInterfacesB;
-  Ipv4InterfaceContainer apInterfaceB;
-
-  staInterfacesB = address.Assign (staDevicesB);
-  apInterfaceB = address.Assign (apDeviceB);
-*/
-
-  // Add application data here
-
-  // Create an OnOff application to send UDP datagrams with payload size
-  // 1000 bytes at a rate of 1 pps
-  // NS_LOG_INFO ("Create Applications.");
-//  uint16_t port = 9;
-
-//  OnOffHelper onoff ("ns3::UdpSocketFactory",
-//                     InetSocketAddress (Ipv4Address ("192.168.1.3"), port));
-//  onoff.SetConstantRate (DataRate ("8kbps"));
-//  onoff.SetAttribute ("PacketSize", UintegerValue (1000));
-
-//  ApplicationContainer app1 = onoff.Install (sta1);
-//  app1.Start (Seconds (0.5));
-//  app1.Stop (Seconds (duration - 0.5));
-
-//  PacketSinkHelper sink ("ns3::UdpSocketFactory",
-//                         Address (InetSocketAddress (Ipv4Address::GetAny (), port)));
-//  ApplicationContainer sinkApp = sink.Install (ap1);
-//  sinkApp.Start (Seconds (0.5));
-//  sinkApp.Stop (Seconds (duration - 0.5));
-
-/*
-  //BSS 1
-  UdpServerHelper echoServer1 (9);
-//  echoServer1.SetAttribute ("MaxPackets", UintegerValue (100000));
-//  echoServer1.SetAttribute ("Interval", TimeValue (Seconds (0.00001)));
-//  echoServer1.SetAttribute ("PacketSize", UintegerValue (payloadSize));
-  ApplicationContainer serverApps1 = echoServer1.Install ( ap1 );
-  serverApps1.Start (Seconds (0.5));
-  serverApps1.Stop  (Seconds (duration + 0.5));
-
-  UdpClientHelper echoClient1 ( apInterfaceA.GetAddress (0), 9);
-  echoClient1.SetAttribute ("MaxPackets", UintegerValue (10000000));
-  echoClient1.SetAttribute ("Interval", TimeValue (Seconds (0.00001)));
-  echoClient1.SetAttribute ("PacketSize", UintegerValue (payloadSize));
-  ApplicationContainer clientApps1 = echoClient1.Install ( sta1 );
-  clientApps1.Start (Seconds (0.5));
-  clientApps1.Stop  (Seconds (duration + 0.5));
-
-  UdpClientHelper echoClient2 ( apInterfaceA.GetAddress (0), 9);
-  echoClient2.SetAttribute ("MaxPackets", UintegerValue (10000000));
-  echoClient2.SetAttribute ("Interval", TimeValue (Seconds (0.00001)));
-  echoClient2.SetAttribute ("PacketSize", UintegerValue (payloadSize));
-  ApplicationContainer clientApps2 = echoClient2.Install ( sta2 );
-  clientApps2.Start (Seconds (0.5));
-  clientApps2.Stop  (Seconds (duration + 0.5));
-
-
-  //BSS 2
-  UdpServerHelper echoServer2 (9);
-//  echoServer2.SetAttribute ("MaxPackets", UintegerValue (100000));
-//  echoServer2.SetAttribute ("Interval", TimeValue (Seconds (0.00001)));
-//  echoServer2.SetAttribute ("PacketSize", UintegerValue (payloadSize));
-  ApplicationContainer serverApps2 = echoServer2.Install ( ap2 );
-  serverApps2.Start (Seconds (0.5));
-  serverApps2.Stop  (Seconds (duration + 0.5));
-
-  UdpClientHelper echoClient3 ( apInterfaceB.GetAddress (0), 9);
-  echoClient3.SetAttribute ("MaxPackets", UintegerValue (10000000));
-  echoClient3.SetAttribute ("Interval", TimeValue (Seconds (0.00001)));
-  echoClient3.SetAttribute ("PacketSize", UintegerValue (payloadSize));
-  ApplicationContainer clientApps3 = echoClient3.Install ( sta3 );
-  clientApps3.Start (Seconds (0.5));
-  clientApps3.Stop  (Seconds (duration + 0.5));
-*/
 
   // Log packet receptions
   Config::Connect ("/NodeList/*/ApplicationList/*/$ns3::PacketSocketServer/Rx", MakeCallback (&SocketRecvStats));
@@ -564,14 +473,9 @@ packetCount[0] = 0; packetCount[1] = 0; packetCount[2] = 0;
   ConfigStore outputConfig;
   outputConfig.ConfigureAttributes ();
 
-    if (tracing == true)
+  if (tracing == true)
     {
       spectrumPhy.EnablePcap ("pcapforPackets", staDevicesA);
- /*     spectrumPhy.EnablePcap ("pcapforPackets", allNodes.Get (1));
-      spectrumPhy.EnablePcap ("pcapforPackets", allNodes.Get (2));
-      spectrumPhy.EnablePcap ("pcapforPackets", allNodes.Get (3));
-      spectrumPhy.EnablePcap ("pcapforPackets", allNodes.Get (4));*/
-      // spectrumPhy.EnablePcap ("dc-spectrumPhy", staDevices.Get (0));
     }
 
   Time durationTime = Seconds (duration);
@@ -586,51 +490,19 @@ packetCount[0] = 0; packetCount[1] = 0; packetCount[2] = 0;
 
   Simulator::Destroy ();
 
-//
-// Calculate Throughput using Flowmonitor
-//
-//  FlowMonitorHelper flowmon;
-//  Ptr<FlowMonitor> monitor = flowmon.InstallAll();
-
-//  Simulator::Run ();
-
-//  monitor->CheckForLostPackets ();
-//  Ptr<Ipv4FlowClassifier> classifier = DynamicCast<Ipv4FlowClassifier> (flowmon.GetClassifier ());
-//  std::map<FlowId, FlowMonitor::FlowStats> stats = monitor->GetFlowStats ();
-//  for (std::map<FlowId, FlowMonitor::FlowStats>::const_iterator i = stats.begin (); i != stats.end (); ++i)
-//    {
-//      Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow (i->first);
-//     std::cout << "  Flow " << i->first  << " (" << t.sourceAddress << " -> " << t.destinationAddress << ")\n";
-//      std::cout << "  Tx Bytes:   " << i->second.txBytes << "\n";
-//      std::cout << "  Rx Bytes:   " << i->second.rxBytes << "\n";
-//      std::cout << "  Throughput: " << i->second.rxBytes * 8.0 / (duration * 1000000.0)  << " Mbps\n";
-//    }
-//  monitor->SerializeToXmlFile("lab-1.flowmon", true, true);
   double throughputpernode[5];
   for (uint32_t k = 0; k < 5; k++)
     {
-       throughputpernode[k] = (double)bytesReceived[k]*8 / 1000 / 1000 / duration;  // for 100 seconds
-       std::cout << "Node " << k << "; throughput Received = " << throughputpernode[k] << std::endl;
-  }
+      throughputpernode[k] = (double)bytesReceived[k] * 8 / 1000 / 1000 / duration; // for 100 seconds
+      std::cout << "Node " << k << "; throughput Received = " << throughputpernode[k] << std::endl;
+    }
 
   double throughputpernode1[3];
   for (uint32_t k = 0; k < 3; k++)
     {
-       throughputpernode1[k] = (double)packetCount[k]*payloadSize*8 / 1000 / 1000 / duration;  // for 100 seconds
-       std::cout << "Node " << k << "; throughput Transmitted = " << throughputpernode1[k] << std::endl;
+      throughputpernode1[k] = (double)packetCount[k] * payloadSize * 8 / 1000 / 1000 / duration; // for 100 seconds
+      std::cout << "Node " << k << "; throughput Transmitted = " << throughputpernode1[k] << std::endl;
     }
-/*
-  double throughputpernode2[2];
-  for (uint32_t k = 0; k < 2; k++)
-    {
-       throughputpernode2[k] = (double)packetCountRe[k]*payloadSize*8 / 1000 / 1000 / duration;  // for 100 seconds
-       std::cout << "Node " << k << "; throughput " << throughputpernode2[k] << std::endl;
-    }
-*/
-          //std::cout << "Total throughput " << throughput << std::endl;
-          //mean_t += throughput;
-          //throughputVector[run_index - 1] = throughput;
-
 
   return 0;
 }
