@@ -138,6 +138,12 @@ RegularWifiMac::GetWifiRemoteStationManager () const
   return m_stationManager;
 }
 
+Ptr<DcfManager>
+RegularWifiMac::GetDcfManager () const
+{
+  return m_dcfManager;
+}
+
 HtCapabilities
 RegularWifiMac::GetHtCapabilities (void) const
 {

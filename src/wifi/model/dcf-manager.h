@@ -51,6 +51,12 @@ class MacLow;
 class DcfManager : public Object
 {
 public:
+  /**
+   * \brief Get the type ID.
+   * \return the object TypeId
+   */
+  static TypeId GetTypeId (void);
+
   DcfManager ();
   virtual ~DcfManager ();
 
@@ -202,6 +208,14 @@ public:
    */
   void NotifyCtsTimeoutResetNow ();
 
+  /**
+   * TracedCallback signature for NAV state changes
+   *
+   * \param [in] start Time when NAV started
+   * \param [in] duration Amount of time in NAV state
+   */
+  typedef void (* NavStateTraceCallback)(Time start, Time duration);
+
 protected:
   // Inherited from ns3::Object
   void DoDispose (void);
@@ -349,6 +363,7 @@ private:
   uint32_t m_slotTimeUs;        //!< the slot time in microseconds
   Time m_sifs;                  //!< the SIFS time
   PhyListener* m_phyListener;   //!< the phy listener
+  TracedCallback<Time, Time>  m_navStateTrace; //!< NAV state trace
 };
 
 } //namespace ns3

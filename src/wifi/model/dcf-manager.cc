@@ -26,6 +26,8 @@ namespace ns3 {
 
 NS_LOG_COMPONENT_DEFINE ("DcfManager");
 
+NS_OBJECT_ENSURE_REGISTERED (DcfManager);
+
 /**
  * Listener for PHY events. Forwards to DcfManager
  */
@@ -85,6 +87,21 @@ private:
 /****************************************************************
  *      Implement the DCF manager of all DCF state holders
  ****************************************************************/
+
+TypeId
+DcfManager::GetTypeId (void)
+{
+  static TypeId tid = TypeId ("ns3::DcfManager")
+    .SetParent<Object> ()
+    .SetGroupName("Wifi")
+    .AddConstructor<DcfManager> ()
+    .AddTraceSource ("NavState",
+                     "The state of the NAV",
+                     MakeTraceSourceAccessor (&DcfManager::m_navStateTrace),
+                     "ns3::DcfManager::NavStateTracedCallback")
+  ;
+  return tid;
+}
 
 DcfManager::DcfManager ()
   : m_lastAckTimeoutEnd (MicroSeconds (0)),
@@ -703,8 +720,14 @@ DcfManager::NotifyNavResetNow (Time duration)
   NS_LOG_FUNCTION (this << duration);
   NS_LOG_DEBUG ("nav reset for=" << duration);
   UpdateBackoff ();
+  Time prevNavStart = m_lastNavStart;
+  Time prevNavDuration = m_lastNavDuration;
   m_lastNavStart = Simulator::Now ();
   m_lastNavDuration = duration;
+  if (m_lastNavStart != prevNavStart && m_lastNavDuration != prevNavDuration)
+    {
+      m_navStateTrace (m_lastNavStart, m_lastNavDuration);
+    }
   /**
    * If the nav reset indicates an end-of-nav which is earlier
    * than the previous end-of-nav, the expected end of backoff
@@ -727,6 +750,7 @@ DcfManager::NotifyNavStartNow (Time duration)
     {
       m_lastNavStart = Simulator::Now ();
       m_lastNavDuration = duration;
+      m_navStateTrace (m_lastNavStart, m_lastNavDuration);
     }
 }
 

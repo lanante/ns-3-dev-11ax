@@ -283,6 +283,7 @@ public:
   void SetCompressedBlockAckTimeout (Time blockAckTimeout);
   Time GetCompressedBlockAckTimeout (void) const;
 
+  Ptr<DcfManager> GetDcfManager (void) const;
 
 protected:
   virtual void DoInitialize ();
