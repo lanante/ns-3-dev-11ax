@@ -66,6 +66,8 @@ enum NavTestCase {
   CASE_UNKNOWN,
   CASE_11a,
   CASE_11a_RTS,
+  CASE_11ac,
+  CASE_11ac_RTS,
 };
 enum NavTestCase navTestCase;
 
@@ -229,11 +231,10 @@ main (int argc, char *argv[])
   double ccaTrSta3 = -62; // dBm
   double ccaTrAp1 = -62; // dBm
   double ccaTrAp2 = -62; // dBm
-  //uint32_t payloadSize = 1000; // bytes
   uint32_t payloadSize = 1500; // bytes
-  Time interval = MicroSeconds (100);
+  Time interval = MicroSeconds (10);
   bool enableObssPd = true;
-  uint32_t maxPackets = 1;
+  uint32_t maxPackets = 10;
   std::string testCaseString = "11a";
 
   CommandLine cmd;
@@ -261,11 +262,13 @@ main (int argc, char *argv[])
   // Map strings to enum so we can switch on the value
   if (testCaseString == "11a") navTestCase = CASE_11a;
   if (testCaseString == "11a-RTS") navTestCase = CASE_11a_RTS;
+  if (testCaseString == "11ac") navTestCase = CASE_11ac;
+  if (testCaseString == "11ac-RTS") navTestCase = CASE_11ac_RTS;
 
   WifiHelper wifi;
   bool sta1Client = true;
   Time startTimeSta1 = Seconds (1);
-  bool sta2Client = false;
+  bool sta2Client = true;
   Time startTimeSta2 = Seconds (1);
   // Handle variable assignments for each test case
   switch (navTestCase)
@@ -277,6 +280,21 @@ main (int argc, char *argv[])
       wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager","DataMode", StringValue ("OfdmRate6Mbps"),
                                     "ControlMode", StringValue ("OfdmRate6Mbps"));
       startTimeSta1 = MilliSeconds (300);
+      startTimeSta2 = MilliSeconds (300);
+      duration = 0.5;
+      if (verbose)
+        {
+          LogComponentEnable ("DcfManager", LOG_LEVEL_ALL);
+        }
+      break;
+    case CASE_11ac_RTS:
+      Config::SetDefault ("ns3::WifiRemoteStationManager::RtsCtsThreshold", StringValue ("400"));
+    case CASE_11ac:
+      wifi.SetStandard (WIFI_PHY_STANDARD_80211ac);
+      wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager","DataMode", StringValue ("VhtMcs0"),
+                                    "ControlMode", StringValue ("VhtMcs0"));
+      startTimeSta1 = MilliSeconds (300);
+      startTimeSta2 = MilliSeconds (300);
       duration = 0.5;
       if (verbose)
         {
@@ -332,7 +350,12 @@ main (int argc, char *argv[])
   spectrumPhy.Set ("TxPowerStart", DoubleValue (powSta1));
   spectrumPhy.Set ("TxPowerEnd", DoubleValue (powSta1));
   spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrSta1));
-  spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-92.0));
+  spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-82.0));
+
+/*  Config::SetDefault ("ns3::RegularWifiMac::VO_BlockAckThreshold", UintegerValue (0));
+  Config::SetDefault ("ns3::RegularWifiMac::VI_BlockAckThreshold", UintegerValue (0));
+  Config::SetDefault ("ns3::RegularWifiMac::BE_BlockAckThreshold", UintegerValue (0));
+  Config::SetDefault ("ns3::RegularWifiMac::BK_BlockAckThreshold", UintegerValue (0));*/
 
   WifiMacHelper mac;
   Ssid ssidA = Ssid ("A");
@@ -344,7 +367,7 @@ main (int argc, char *argv[])
   spectrumPhy.Set ("TxPowerStart", DoubleValue (powAp1));
   spectrumPhy.Set ("TxPowerEnd", DoubleValue (powAp1));
   spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrAp1));
-  spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-92.0));
+  spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-82.0));
   mac.SetType ("ns3::ApWifiMac",
                "Ssid", SsidValue (ssidA));
 
@@ -366,6 +389,10 @@ main (int argc, char *argv[])
   Ptr<DcfManager> dcf1 = mac1->GetDcfManager ();
   dcf1->TraceConnect ("NavState", std::to_string (nd1->GetNode ()->GetId ()), MakeCallback (&NavStateTrace));
   
+/*      Config::SetDefault ("ns3::RegularWifiMac::VO_BlockAckThreshold", UintegerValue (1));
+      Config::SetDefault ("ns3::RegularWifiMac::VI_BlockAckThreshold", UintegerValue (1));
+      Config::SetDefault ("ns3::RegularWifiMac::BE_BlockAckThreshold", UintegerValue (1));
+      Config::SetDefault ("ns3::RegularWifiMac::BK_BlockAckThreshold", UintegerValue (1));*/
 
 #if 0
   spectrumPhy.Set ("TxPowerStart", DoubleValue (powSta3));
@@ -401,8 +428,8 @@ main (int argc, char *argv[])
   MobilityHelper mobility;
   Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator> ();
   positionAlloc->Add (Vector (0.0, 0.0, 0.0));     // STA1 at origin
-  positionAlloc->Add (Vector (d1, 0, 0.0));        // AP1
-  positionAlloc->Add (Vector (d1 + d2, 0.0, 0.0));       // STA2
+  positionAlloc->Add (Vector (d1 + d2, 0.0, 0.0));        // STA2
+  positionAlloc->Add (Vector (d1, 0.0, 0.0));       // AP1
 
   mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
   mobility.SetPositionAllocator (positionAlloc);
