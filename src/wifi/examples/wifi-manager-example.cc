@@ -43,6 +43,7 @@
 #include "ns3/stats-module.h"
 #include "ns3/mobility-module.h"
 #include "ns3/propagation-module.h"
+#include "ns3/rng-seed-manager.h"
 
 using namespace ns3;
 
@@ -102,7 +103,7 @@ struct StandardInfo
    * \param xMax x maximum
    * \param yMax y maximum
    */
-  StandardInfo (std::string name, enum WifiPhyStandard standard, uint16_t width, double snrLow, double snrHigh, double xMin, double xMax, double yMax)
+  StandardInfo (std::string name, WifiPhyStandard standard, uint16_t width, double snrLow, double snrHigh, double xMin, double xMax, double yMax)
     : m_name (name),
       m_standard (standard),
       m_width (width),
@@ -114,7 +115,7 @@ struct StandardInfo
   {
   }
   std::string m_name; ///< name
-  enum WifiPhyStandard m_standard; ///< standard
+  WifiPhyStandard m_standard; ///< standard
   uint16_t m_width; ///< channel width
   double m_snrLow; ///< lowest SNR
   double m_snrHigh; ///< highest SNR
@@ -363,6 +364,11 @@ int main (int argc, char *argv[])
       serverDevice = wifi.Install (wifiPhy, wifiMac, serverNode);
       clientDevice = wifi.Install (wifiPhy, wifiMac, clientNode);
     }
+
+  RngSeedManager::SetSeed (1);
+  RngSeedManager::SetRun (2);
+  wifi.AssignStreams(serverDevice, 100);
+  wifi.AssignStreams(clientDevice, 100);
 
   if (wifiManager == "MinstrelHt")
     {

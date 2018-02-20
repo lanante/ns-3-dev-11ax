@@ -50,6 +50,11 @@ class WifiPhyStateHelper;
 class FrameCaptureModel;
 
 /**
+ * WifiRadioEnergyModel class
+ */
+class WifiRadioEnergyModel;
+    
+/**
  * This enumeration defines the type of an MPDU.
  */
 /// MpduType enumeration
@@ -312,35 +317,44 @@ public:
    * Resume from sleep mode.
    */
   void ResumeFromSleep (void);
+  /**
+   * Put in off mode.
+   */
+  void SetOffMode (void);
 
   /**
    * \return true of the current state of the PHY layer is WifiPhy::IDLE, false otherwise.
    */
-  bool IsStateIdle (void);
+  bool IsStateIdle (void) const;
   /**
    * \return true of the current state of the PHY layer is WifiPhy::CCA_BUSY, false otherwise.
    */
-  bool IsStateCcaBusy (void);
+  bool IsStateCcaBusy (void) const;
   /**
    * \return true of the current state of the PHY layer is not WifiPhy::IDLE, false otherwise.
    */
-  bool IsStateBusy (void);
+  bool IsStateBusy (void) const;
   /**
    * \return true of the current state of the PHY layer is WifiPhy::RX, false otherwise.
    */
-  bool IsStateRx (void);
+  bool IsStateRx (void) const;
   /**
    * \return true of the current state of the PHY layer is WifiPhy::TX, false otherwise.
    */
-  bool IsStateTx (void);
+  bool IsStateTx (void) const;
   /**
    * \return true of the current state of the PHY layer is WifiPhy::SWITCHING, false otherwise.
    */
-  bool IsStateSwitching (void);
+  bool IsStateSwitching (void) const;
   /**
    * \return true if the current state of the PHY layer is WifiPhy::SLEEP, false otherwise.
    */
-  bool IsStateSleep (void);
+  bool IsStateSleep (void) const;
+  /**
+   * \return true if the current state of the PHY layer is WifiPhy::OFF, false otherwise.
+   */
+  bool IsStateOff (void) const ;
+
   /**
    * \return the amount of time since the current state has started.
    */
@@ -1417,13 +1431,13 @@ public:
    *
    * \param n the number of available levels
    */
-  void SetNTxPower (uint32_t n);
+  void SetNTxPower (uint8_t n);
   /**
    * Return the number of available transmission power levels.
    *
    * \return the number of available transmission power levels
    */
-  uint32_t GetNTxPower (void) const;
+  uint8_t GetNTxPower (void) const;
   /**
    * Sets the transmission gain (dB).
    *
@@ -1608,6 +1622,13 @@ public:
    * \return the frame capture model this PHY is using
    */
   Ptr<FrameCaptureModel> GetFrameCaptureModel (void) const;
+
+  /**
+   * Sets the wifi radio energy model.
+   *
+   * \param wifiRadioEnergyModel the wifi radio energy model
+   */
+  void SetWifiRadioEnergyModel (const Ptr<WifiRadioEnergyModel> wifiRadioEnergyModel);
 
   /**
    * \return the channel width
@@ -1935,7 +1956,7 @@ private:
   double   m_rxGainDb;            //!< Reception gain (dB)
   double   m_txPowerBaseDbm;      //!< Minimum transmission power (dBm)
   double   m_txPowerEndDbm;       //!< Maximum transmission power (dBm)
-  uint32_t m_nTxPower;            //!< Number of available transmission power levels
+  uint8_t  m_nTxPower;            //!< Number of available transmission power levels
 
   bool     m_ldpc;                  //!< Flag if LDPC is used
   bool     m_stbc;                  //!< Flag if STBC is used
@@ -1944,9 +1965,6 @@ private:
   bool     m_shortPreamble;         //!< Flag if short PLCP preamble is supported
 
   Time m_guardInterval; //!< Supported HE guard interval
-
-  uint8_t m_numberOfTransmitters; //!< Number of transmitters (DEPRECATED)
-  uint8_t m_numberOfReceivers;    //!< Number of receivers (DEPRECATED)
 
   uint8_t m_numberOfAntennas;  //!< Number of transmitters
   uint8_t m_txSpatialStreams;  //!< Number of supported TX spatial streams
@@ -1968,6 +1986,7 @@ private:
 
   Ptr<InterferenceHelper::Event> m_currentEvent; //!< Hold the current event
   Ptr<FrameCaptureModel> m_frameCaptureModel; //!< Frame capture model
+  Ptr<WifiRadioEnergyModel> m_wifiRadioEnergyModel; //!< Wifi radio energy model
 };
 
 /**

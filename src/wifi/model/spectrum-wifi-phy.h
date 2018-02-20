@@ -100,6 +100,15 @@ public:
    * \param txDuration duration of the transmission.
    */
   void StartTx (Ptr<Packet> packet, WifiTxVector txVector, Time txDuration);
+  /**
+   * Get the center frequency of the channel corresponding the current TxVector rather than
+   * that of the supported channel width.
+   * Consider that this "primary channel" is on the lower part for the time being.
+   *
+   * \param txVector the TXVECTOR that has the channel width that is to be used
+   * \return the center frequency corresponding to the channel width to be used
+   */
+  uint32_t GetCenterFrequencyForChannelWidth (WifiTxVector txVector) const;
 
   /**
    * Method to encapsulate the creation of the WifiSpectrumPhyInterface
@@ -146,7 +155,7 @@ public:
   /**
    * \return the width of the guard band (MHz)
    */
-  uint32_t GetGuardBandwidth (void) const;
+  double GetGuardBandwidth (void) const;
 
   /**
    * Callback invoked when the Phy model starts to process a signal

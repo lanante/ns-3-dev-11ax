@@ -48,9 +48,7 @@ struct RraaWifiRemoteStation : public WifiRemoteStation
   bool m_adaptiveRtsOn;          //!< Check if Adaptive RTS mechanism is on.
   bool m_lastFrameFail;          //!< Flag if the last frame sent has failed.
   bool m_initialized;            //!< For initializing variables.
-
   uint8_t m_nRate;              //!< Number of supported rates.
-
   uint8_t m_rateIndex;          //!< Current rate index.
 
   RraaThresholdsTable m_thresholds; //!< RRAA thresholds for this station.
@@ -336,7 +334,7 @@ RraaWifiManager::DoGetDataTxVector (WifiRemoteStation *st)
 {
   NS_LOG_FUNCTION (this << st);
   RraaWifiRemoteStation *station = (RraaWifiRemoteStation *) st;
-  uint32_t channelWidth = GetChannelWidth (station);
+  uint8_t channelWidth = GetChannelWidth (station);
   if (channelWidth > 20 && channelWidth != 22)
     {
       //avoid to use legacy rate adaptation algorithms for IEEE 802.11n/ac
@@ -357,7 +355,7 @@ RraaWifiManager::DoGetRtsTxVector (WifiRemoteStation *st)
 {
   NS_LOG_FUNCTION (this << st);
   RraaWifiRemoteStation *station = (RraaWifiRemoteStation *) st;
-  uint32_t channelWidth = GetChannelWidth (station);
+  uint8_t channelWidth = GetChannelWidth (station);
   if (channelWidth > 20 && channelWidth != 22)
     {
       //avoid to use legacy rate adaptation algorithms for IEEE 802.11n/ac
@@ -408,7 +406,7 @@ RraaWifiManager::RunBasicAlgorithm (RraaWifiRemoteStation *station)
 {
   NS_LOG_FUNCTION (this << station);
   WifiRraaThresholds thresholds = GetThresholds (station, station->m_rateIndex);
-  double ploss = (double) station->m_nFailed / (double) thresholds.m_ewnd;
+  double ploss = (static_cast<double> (station->m_nFailed) / thresholds.m_ewnd);
   if (station->m_counter == 0
       || ploss > thresholds.m_mtl)
     {
@@ -452,10 +450,9 @@ RraaWifiManager::ARts (RraaWifiRemoteStation *station)
 }
 
 WifiRraaThresholds
-RraaWifiManager::GetThresholds (RraaWifiRemoteStation *station,
-                                uint32_t rate) const
+RraaWifiManager::GetThresholds (RraaWifiRemoteStation *station, uint8_t rate) const
 {
-  NS_LOG_FUNCTION (this << station << rate);
+  NS_LOG_FUNCTION (this << station << static_cast<uint16_t>(rate));
   WifiMode mode = GetSupported (station, rate);
   return GetThresholds (station, mode);
 }
