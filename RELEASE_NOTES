@@ -25,21 +25,35 @@ This release has been tested on the following platforms:
 
 New user-visible features
 -------------------------
+- (tcp) Added TCP-LP as congestion control module
 - (lr-wpan) Extended addressing mode is now supported.
 - (tcp) Implemented the core functionality of TCP Pacing.
 - (internet) Ipv[4,6]AddressGenerator can now check if an address or a network is allocated.
+- (internet) Ipv6AddressHelper is now more pedantic but you can use more than one in a script.
+- (lte) UEs can now use IPv6 to send and receive traffic.
 
 Bugs fixed
 ----------
+- Bug 1745 - There can be only one Ipv6AddressHelper in a script
 - Bug 2505 - network:  Avoid asserts in Header/Trailer deserialization
+- Bug 2656 - wifi: Minstrel and MinstrelHt provide different results for 802.11a/b/g
 - Bug 2653 - tcp: Avoid saving smaller TS in case of packet reordering
 - Bug 2764 - wifi: WifiSpectrumModelId doesn't distinguish 11ax from legacy
 - Bug 2766 - core: Modify logging for int64x64 to avoid stack overflow
+- Bug 2768 - lte: LteUeNetDevice has a null MAC address
+- Bug 2807 - energy: GetTotalEnergyConsumption is not updated correctly
+- Bug 2809 - wifi: Wifi doesn't fully stop when energy is depleted
+- Bug 2813 - wifi: OFDM 10 MHz and 5 MHz PHYs do not have correct subcarrier frequency spacings
 - Bug 2820 - wifi: segmentation fault when Rrpaa wifi manager is used
 - Bug 2824 - ICMP opcode fr fragment timeout drop is wrong
 - Bug 2828 - OLSR simple P2P example produces wrong results
 - Bug 2827 - wifi: Active scanning not working with 802.11n/ac/ax
 - Bug 2836 - wifi: Missing VHT information in radiotap header when A-MPDU is used
+- Bug 2838 - wifi: ht-wifi-network crashes with RTS/CTS enabled and frequency set to 2.4GHz
+- Bug 2843 - spectrum, wifi: Incorrect channel width and center frequency provided for non-HT PPDUs when building SpectralDensity
+- Bug 2848 - wifi: Association ID not correctly set upon association
+- Bug 2849 - lte: Received RLC and PDCP PDUs are missing in the stats files
+- Bug 2854 - wifi: he-wifi-network crashes when frequency is set at 2.4 GHz
 
 Known issues
 ------------

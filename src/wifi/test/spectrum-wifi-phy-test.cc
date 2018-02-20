@@ -25,8 +25,11 @@
 #include "ns3/wifi-mac-trailer.h"
 #include "ns3/wifi-phy-tag.h"
 #include "ns3/wifi-spectrum-signal-parameters.h"
+#include "ns3/log.h"
 
 using namespace ns3;
+
+NS_LOG_COMPONENT_DEFINE("SpectrumWifiPhyBasicTest");
 
 static const uint8_t CHANNEL_NUMBER = 36;
 static const uint32_t FREQUENCY = 5180; // MHz
@@ -113,7 +116,7 @@ SpectrumWifiPhyBasicTest::MakeSignal (double txPowerWatts)
 
   pkt->AddHeader (hdr);
   pkt->AddTrailer (trailer);
-  WifiPhyTag tag (txVector, mpdutype);
+  WifiPhyTag tag (txVector, mpdutype, 1);
   pkt->AddPacketTag (tag);
   Ptr<SpectrumValue> txPowerSpectrum = WifiSpectrumValueHelper::CreateOfdmTxPowerSpectralDensity (FREQUENCY, CHANNEL_WIDTH, txPowerWatts, GUARD_WIDTH);
   Ptr<WifiSpectrumSignalParameters> txParams = Create<WifiSpectrumSignalParameters> ();
@@ -134,12 +137,14 @@ SpectrumWifiPhyBasicTest::SendSignal (double txPowerWatts)
 void
 SpectrumWifiPhyBasicTest::SpectrumWifiPhyRxSuccess (Ptr<Packet> p, double snr, WifiTxVector txVector)
 {
+  NS_LOG_FUNCTION(this << p << snr << txVector);
   m_count++;
 }
 
 void
 SpectrumWifiPhyBasicTest::SpectrumWifiPhyRxFailure (Ptr<Packet> p, double snr)
 {
+  NS_LOG_FUNCTION(this << p << snr);
   m_count++;
 }
 
@@ -207,21 +212,26 @@ public:
   }
   virtual void NotifyRxStart (Time duration)
   {
+    NS_LOG_FUNCTION (this << duration);
     ++m_notifyRxStart;
   }
   virtual void NotifyRxEndOk (void)
   {
+    NS_LOG_FUNCTION (this);
     ++m_notifyRxEndOk;
   }
   virtual void NotifyRxEndError (void)
   {
+    NS_LOG_FUNCTION (this);
     ++m_notifyRxEndError;
   }
   virtual void NotifyTxStart (Time duration, double txPowerDbm)
   {
+    NS_LOG_FUNCTION (this << duration << txPowerDbm);
   }
   virtual void NotifyMaybeCcaBusyStart (Time duration)
   {
+    NS_LOG_FUNCTION (this);
     ++m_notifyMaybeCcaBusyStart;
   }
   virtual void NotifySwitchingStart (Time duration)

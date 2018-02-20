@@ -302,6 +302,12 @@ public:
    */
   void SetStatusCode (StatusCode code);
   /**
+   * Set the association ID.
+   *
+   * \param aid the association ID
+   */
+  void SetAssociationId (uint16_t aid);
+  /**
    * Set the ERP information.
    *
    * \param erpInformation the ERP information
@@ -565,7 +571,7 @@ public:
    * \param extendedcapabilities the extended capabilities
    */
   void SetExtendedCapabilities (ExtendedCapabilities extendedcapabilities);
-  /*
+  /**
    * Set the HT capabilities.
    *
    * \param htcapabilities HT capabilities
@@ -1123,7 +1129,7 @@ public:
    *
    * \param tid traffic ID
    */
-  void SetTid (uint8_t);
+  void SetTid (uint8_t tid);
   /**
    * Set the initiator bit in the DELBA.
    */

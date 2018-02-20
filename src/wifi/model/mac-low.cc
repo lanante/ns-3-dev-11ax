@@ -460,6 +460,12 @@ MacLow::StartTransmission (Ptr<const Packet> packet,
                            MacLowTransmissionParameters params,
                            Ptr<DcaTxop> dca)
 {
+  if (m_phy->IsStateOff ())
+    {
+      NS_LOG_DEBUG ("Cannot start TX because device is OFF");
+      return;
+    }
+
   NS_LOG_FUNCTION (this << packet << hdr << params << dca);
   /* m_currentPacket is not NULL because someone started
    * a transmission and was interrupted before one of:
@@ -572,8 +578,8 @@ MacLow::StartTransmission (Ptr<const Packet> packet,
         }
     }
 
-  /* When this method completes, we have taken ownership of the medium. */
-  NS_ASSERT (m_phy->IsStateTx ());
+  /* When this method completes, either we have taken ownership of the medium or the device switched off in the meantime. */
+  NS_ASSERT (m_phy->IsStateTx () || m_phy->IsStateOff ());
 }
 
 bool
@@ -725,7 +731,6 @@ MacLow::ReceiveOk (Ptr<Packet> packet, double rxSnr, WifiTxVector txVector, bool
       NS_ASSERT (m_sendDataEvent.IsExpired ());
       m_sendDataEvent = Simulator::Schedule (GetSifs (),
                                              &MacLow::SendDataAfterCts, this,
-                                             hdr.GetAddr1 (),
                                              hdr.GetDuration ());
     }
   else if (hdr.IsAck ()
@@ -1706,7 +1711,6 @@ MacLow::SendCtsToSelf (void)
 
   m_sendDataEvent = Simulator::Schedule (txDuration,
                                          &MacLow::SendDataAfterCts, this,
-                                         cts.GetAddr1 (),
                                          duration);
 }
 
@@ -1743,7 +1747,7 @@ MacLow::SendCtsAfterRts (Mac48Address source, Time duration, WifiTxVector rtsTxV
 }
 
 void
-MacLow::SendDataAfterCts (Mac48Address source, Time duration)
+MacLow::SendDataAfterCts (Time duration)
 {
   NS_LOG_FUNCTION (this);
   /* send the third step in a
@@ -1922,7 +1926,7 @@ MacLow::ReceiveMpdu (Ptr<Packet> packet, WifiMacHeader hdr)
                       (*it).second.first.SetWinEnd (seqNumber);
                       int16_t winEnd = (*it).second.first.GetWinEnd ();
                       int16_t bufferSize = (*it).second.first.GetBufferSize ();
-                      uint16_t sum = ((uint16_t)(std::abs (winEnd - bufferSize + 1))) % 4096;
+                      uint16_t sum = (static_cast<uint16_t> (std::abs (winEnd - bufferSize + 1))) % 4096;
                       (*it).second.first.SetStartingSequence (sum);
                       RxCompleteBufferedPacketsWithSmallerSequence ((*it).second.first.GetStartingSequenceControl (), originator, tid);
                     }
@@ -2183,7 +2187,7 @@ MacLow::SendBlockAckAfterAmpdu (uint8_t tid, Mac48Address originator, Time durat
   NS_LOG_FUNCTION (this);
   if (!m_phy->IsStateTx () && !m_phy->IsStateRx ())
     {
-      NS_LOG_FUNCTION (this << (uint16_t) tid << originator << duration.As (Time::S) << blockAckReqTxVector << rxSnr);
+      NS_LOG_FUNCTION (this << static_cast<uint16_t> (tid) << originator << duration.As (Time::S) << blockAckReqTxVector << rxSnr);
       CtrlBAckResponseHeader blockAck;
       uint16_t seqNumber = 0;
       BlockAckCachesI i = m_bAckCaches.find (std::make_pair (originator, tid));

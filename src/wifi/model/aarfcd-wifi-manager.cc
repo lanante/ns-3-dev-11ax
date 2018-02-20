@@ -47,7 +47,7 @@ struct AarfcdWifiRemoteStation : public WifiRemoteStation
   uint32_t m_retry; ///< retry
   uint32_t m_successThreshold; ///< success threshold
   uint32_t m_timerTimeout; ///< timer timeout
-  uint32_t m_rate; ///< rate
+  uint8_t m_rate; ///< rate
   bool m_rtsOn; ///< RTS on
   uint32_t m_rtsWnd; ///< RTS window
   uint32_t m_rtsCounter; ///< RTS counter
@@ -307,7 +307,7 @@ AarfcdWifiManager::DoGetDataTxVector (WifiRemoteStation *st)
 {
   NS_LOG_FUNCTION (this << st);
   AarfcdWifiRemoteStation *station = (AarfcdWifiRemoteStation *) st;
-  uint32_t channelWidth = GetChannelWidth (station);
+  uint8_t channelWidth = GetChannelWidth (station);
   if (channelWidth > 20 && channelWidth != 22)
     {
       //avoid to use legacy rate adaptation algorithms for IEEE 802.11n/ac
@@ -329,7 +329,7 @@ AarfcdWifiManager::DoGetRtsTxVector (WifiRemoteStation *st)
   /// \todo we could/should implement the Aarf algorithm for
   /// RTS only by picking a single rate within the BasicRateSet.
   AarfcdWifiRemoteStation *station = (AarfcdWifiRemoteStation *) st;
-  uint32_t channelWidth = GetChannelWidth (station);
+  uint8_t channelWidth = GetChannelWidth (station);
   if (channelWidth > 20 && channelWidth != 22)
     {
       //avoid to use legacy rate adaptation algorithms for IEEE 802.11n/ac

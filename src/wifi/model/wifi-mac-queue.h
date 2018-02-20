@@ -28,6 +28,7 @@
 #include "wifi-mac-header.h"
 
 namespace ns3 {
+
 class QosBlockedDestinations;
 
 /**
@@ -65,7 +66,7 @@ public:
    * \param type the type of the address to return
    * \return the address
    */
-  Mac48Address GetAddress (enum WifiMacHeader::AddressType type) const;
+  Mac48Address GetAddress (WifiMacHeader::AddressType type) const;
 
   /**
    * \brief Get the timestamp included in this item

@@ -452,7 +452,7 @@ public:
    *
    * \return the fragment number of the header
    */
-  uint16_t GetFragmentNumber (void) const;
+  uint8_t GetFragmentNumber (void) const;
   /**
    * Return if the Retry bit is set.
    *
@@ -588,7 +588,7 @@ private:
   uint8_t m_qosEosp; ///< QOS EOSP
   uint8_t m_qosAckPolicy; ///< QOS ack policy
   uint8_t m_amsduPresent; ///< AMSDU present
-  uint16_t m_qosStuff; ///< QOS stuff
+  uint8_t m_qosStuff; ///< QOS stuff
 };
 
 } //namespace ns3

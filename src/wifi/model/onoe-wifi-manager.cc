@@ -44,7 +44,7 @@ struct OnoeWifiRemoteStation : public WifiRemoteStation
   uint32_t m_tx_err; ///< transmit error
   uint32_t m_tx_retr; ///< transmit retr
   uint32_t m_tx_upper; ///< transmit upper
-  uint32_t m_txrate; ///< transmit rate
+  uint8_t m_txrate; ///< transmit rate
 };
 
 NS_OBJECT_ENSURE_REGISTERED (OnoeWifiManager);
@@ -175,7 +175,7 @@ OnoeWifiManager::UpdateMode (OnoeWifiRemoteStation *station)
    */
 
   int dir = 0, enough;
-  uint32_t nrate;
+  uint8_t nrate;
   enough = (station->m_tx_ok + station->m_tx_err >= 10);
 
   /* no packet reached -> down */
@@ -249,7 +249,7 @@ OnoeWifiManager::DoGetDataTxVector (WifiRemoteStation *st)
   OnoeWifiRemoteStation *station = (OnoeWifiRemoteStation *)st;
   UpdateMode (station);
   NS_ASSERT (station->m_txrate < GetNSupported (station));
-  uint32_t rateIndex;
+  uint8_t rateIndex;
   if (station->m_longRetry < 4)
     {
       rateIndex = station->m_txrate;
@@ -287,7 +287,7 @@ OnoeWifiManager::DoGetDataTxVector (WifiRemoteStation *st)
           rateIndex = station->m_txrate;
         }
     }
-  uint32_t channelWidth = GetChannelWidth (station);
+  uint8_t channelWidth = GetChannelWidth (station);
   if (channelWidth > 20 && channelWidth != 22)
     {
       //avoid to use legacy rate adaptation algorithms for IEEE 802.11n/ac
@@ -306,7 +306,7 @@ WifiTxVector
 OnoeWifiManager::DoGetRtsTxVector (WifiRemoteStation *st)
 {
   OnoeWifiRemoteStation *station = (OnoeWifiRemoteStation *)st;
-  uint32_t channelWidth = GetChannelWidth (station);
+  uint8_t channelWidth = GetChannelWidth (station);
   if (channelWidth > 20 && channelWidth != 22)
     {
       //avoid to use legacy rate adaptation algorithms for IEEE 802.11n/ac

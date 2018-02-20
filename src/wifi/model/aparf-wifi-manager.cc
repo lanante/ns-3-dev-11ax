@@ -43,9 +43,9 @@ AparfWifiRemoteStation : public WifiRemoteStation
   uint32_t m_pCount;                    //!< Number of power changes.
   uint32_t m_successThreshold;          //!< The minimum number of successful transmissions to try a new power or rate.
   uint32_t m_failThreshold;             //!< The minimum number of failed transmissions to try a new power or rate.
-  uint32_t m_prevRateIndex;             //!< Rate index of the previous transmission.
-  uint32_t m_rateIndex;                 //!< Current rate index.
-  uint32_t m_critRateIndex;             //!< Critical rate.
+  uint8_t m_prevRateIndex;              //!< Rate index of the previous transmission.
+  uint8_t m_rateIndex;                  //!< Current rate index.
+  uint8_t m_critRateIndex;              //!< Critical rate.
   uint8_t m_prevPowerLevel;             //!< Power level of the previous transmission.
   uint8_t m_powerLevel;                 //!< Current power level.
   uint32_t m_nSupported;                //!< Number of supported rates by the remote station.
@@ -86,22 +86,22 @@ AparfWifiManager::GetTypeId (void)
                    "Step size for decrement the power.",
                    UintegerValue (1),
                    MakeUintegerAccessor (&AparfWifiManager::m_powerDec),
-                   MakeUintegerChecker<uint32_t> ())
+                   MakeUintegerChecker<uint8_t> ())
     .AddAttribute ("PowerIncrementStep",
                    "Step size for increment the power.",
                    UintegerValue (1),
                    MakeUintegerAccessor (&AparfWifiManager::m_powerInc),
-                   MakeUintegerChecker<uint32_t> ())
+                   MakeUintegerChecker<uint8_t> ())
     .AddAttribute ("RateDecrementStep",
                    "Step size for decrement the rate.",
                    UintegerValue (1),
                    MakeUintegerAccessor (&AparfWifiManager::m_rateDec),
-                   MakeUintegerChecker<uint32_t> ())
+                   MakeUintegerChecker<uint8_t> ())
     .AddAttribute ("RateIncrementStep",
                    "Step size for increment the rate.",
                    UintegerValue (1),
                    MakeUintegerAccessor (&AparfWifiManager::m_rateInc),
-                   MakeUintegerChecker<uint32_t> ())
+                   MakeUintegerChecker<uint8_t> ())
     .AddTraceSource ("PowerChange",
                      "The transmission power has change",
                      MakeTraceSourceAccessor (&AparfWifiManager::m_powerChange),
@@ -146,8 +146,8 @@ AparfWifiManager::DoCreateStation (void) const
   station->m_aparfState = AparfWifiManager::High;
   station->m_initialized = false;
 
-  NS_LOG_DEBUG ("create station=" << station << ", rate=" << station->m_rateIndex
-                                  << ", power=" << (int)station->m_powerLevel);
+  NS_LOG_DEBUG ("create station=" << station << ", rate=" << static_cast<uint16_t>(station->m_rateIndex)
+                                  << ", power=" << static_cast<uint16_t>(station->m_powerLevel));
 
   return station;
 }
@@ -244,7 +244,7 @@ AparfWifiManager::DoReportDataOk (WifiRemoteStation *st, double ackSnr,
   CheckInit (station);
   station->m_nSuccess++;
   station->m_nFailed = 0;
-  NS_LOG_DEBUG ("station=" << station << " data ok success=" << station->m_nSuccess << ", rate=" << station->m_rateIndex << ", power=" << (int)station->m_powerLevel);
+  NS_LOG_DEBUG ("station=" << station << " data ok success=" << station->m_nSuccess << ", rate=" << static_cast<uint16_t>(station->m_rateIndex) << ", power=" << static_cast<uint16_t>(station->m_powerLevel));
 
   if ((station->m_aparfState == AparfWifiManager::High) && (station->m_nSuccess >= station->m_successThreshold))
     {
@@ -321,7 +321,7 @@ AparfWifiManager::DoGetDataTxVector (WifiRemoteStation *st)
 {
   NS_LOG_FUNCTION (this << st);
   AparfWifiRemoteStation *station = (AparfWifiRemoteStation *) st;
-  uint32_t channelWidth = GetChannelWidth (station);
+  uint8_t channelWidth = GetChannelWidth (station);
   if (channelWidth > 20 && channelWidth != 22)
     {
       //avoid to use legacy rate adaptation algorithms for IEEE 802.11n/ac
@@ -353,7 +353,7 @@ AparfWifiManager::DoGetRtsTxVector (WifiRemoteStation *st)
   /// \todo we could/should implement the Arf algorithm for
   /// RTS only by picking a single rate within the BasicRateSet.
   AparfWifiRemoteStation *station = (AparfWifiRemoteStation *) st;
-  uint32_t channelWidth = GetChannelWidth (station);
+  uint8_t channelWidth = GetChannelWidth (station);
   if (channelWidth > 20 && channelWidth != 22)
     {
       //avoid to use legacy rate adaptation algorithms for IEEE 802.11n/ac
