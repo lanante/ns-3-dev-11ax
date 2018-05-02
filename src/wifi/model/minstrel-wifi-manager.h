@@ -24,10 +24,11 @@
 
 #include "ns3/traced-value.h"
 #include "wifi-remote-station-manager.h"
-#include "ns3/random-variable-stream.h"
 #include <fstream>
 
 namespace ns3 {
+
+class UniformRandomVariable;
 
 /**
  * A struct to contain all information related to a data rate
@@ -356,7 +357,8 @@ private:
   double m_ewmaLevel;       ///< exponential weighted moving average
   uint32_t m_sampleCol;     ///< number of sample columns
   uint32_t m_pktLen;        ///< packet length used for calculate mode TxTime
-  bool m_printStats;        ///< If statistics table should be printed.
+  bool m_printStats;        ///< whether statistics table should be printed.
+  bool m_printSamples;      ///< whether samples table should be printed.
 
   /// Provides uniform random variables.
   Ptr<UniformRandomVariable> m_uniformRandomVariable;

@@ -20,6 +20,7 @@
  *          Mirko Banchi <mk.banchi@gmail.com>
  */
 
+#include "ns3/nstime.h"
 #include "ns3/address-utils.h"
 #include "wifi-mac-header.h"
 
@@ -720,13 +721,6 @@ WifiMacHeader::GetQosTid (void) const
 {
   NS_ASSERT (IsQosData ());
   return m_qosTid;
-}
-
-uint8_t
-WifiMacHeader::GetQosTxopLimit (void) const
-{
-  NS_ASSERT (IsQosData ());
-  return m_qosStuff;
 }
 
 uint16_t

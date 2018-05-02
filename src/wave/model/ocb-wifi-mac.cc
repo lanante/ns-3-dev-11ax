@@ -19,6 +19,8 @@
  * Author: Mathieu Lacage <mathieu.lacage@sophia.inria.fr>
  *         Junling Bu <linlinjavaer@gmail.com>
  */
+
+#include "ns3/event-id.h"
 #include "ns3/pointer.h"
 #include "ns3/log.h"
 #include "ns3/string.h"
@@ -440,10 +442,10 @@ OcbWifiMac::EnableForWave (Ptr<WaveNetDevice> device)
   (DynamicCast<WaveMacLow> (m_low))->SetWaveNetDevice (device);
   m_low->SetRxCallback (MakeCallback (&MacRxMiddle::Receive, m_rxMiddle));
   m_dcfManager->SetupLow (m_low);
-  m_dca->SetLow (m_low);
+  m_dca->SetMacLow (m_low);
   for (EdcaQueues::iterator i = m_edca.begin (); i != m_edca.end (); ++i)
     {
-      i->second->SetLow (m_low);
+      i->second->SetMacLow (m_low);
       i->second->CompleteConfig ();
     }
 }

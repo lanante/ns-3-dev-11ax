@@ -19,11 +19,12 @@
  *          Sébastien Deronne <sebastien.deronne@gmail.com>
  */
 
-#include "interference-helper.h"
-#include "wifi-phy.h"
+#include "ns3/packet.h"
 #include "ns3/simulator.h"
 #include "ns3/log.h"
-#include <algorithm>
+#include "interference-helper.h"
+#include "wifi-phy.h"
+#include "error-rate-model.h"
 
 namespace ns3 {
 
@@ -33,7 +34,7 @@ NS_LOG_COMPONENT_DEFINE ("InterferenceHelper");
  *       Phy event class
  ****************************************************************/
 
-InterferenceHelper::Event::Event (Ptr<const Packet> packet, WifiTxVector txVector, Time duration, double rxPower)
+Event::Event (Ptr<const Packet> packet, WifiTxVector txVector, Time duration, double rxPower)
   : m_packet (packet),
     m_txVector (txVector),
     m_startTime (Simulator::Now ()),
@@ -42,42 +43,42 @@ InterferenceHelper::Event::Event (Ptr<const Packet> packet, WifiTxVector txVecto
 {
 }
 
-InterferenceHelper::Event::~Event ()
+Event::~Event ()
 {
 }
 
 Ptr<const Packet>
-InterferenceHelper::Event::GetPacket (void) const
+Event::GetPacket (void) const
 {
   return m_packet;
 }
 
 Time
-InterferenceHelper::Event::GetStartTime (void) const
+Event::GetStartTime (void) const
 {
   return m_startTime;
 }
 
 Time
-InterferenceHelper::Event::GetEndTime (void) const
+Event::GetEndTime (void) const
 {
   return m_endTime;
 }
 
 double
-InterferenceHelper::Event::GetRxPowerW (void) const
+Event::GetRxPowerW (void) const
 {
   return m_rxPowerW;
 }
 
 WifiTxVector
-InterferenceHelper::Event::GetTxVector (void) const
+Event::GetTxVector (void) const
 {
   return m_txVector;
 }
 
 WifiMode
-InterferenceHelper::Event::GetPayloadMode (void) const
+Event::GetPayloadMode (void) const
 {
   return m_txVector.GetMode ();
 }
@@ -88,35 +89,28 @@ InterferenceHelper::Event::GetPayloadMode (void) const
  *       short period of time.
  ****************************************************************/
 
-InterferenceHelper::NiChange::NiChange (Time time, double delta, Ptr<InterferenceHelper::Event> event)
-  : m_time (time),
-    m_delta (delta),
+InterferenceHelper::NiChange::NiChange (double power, Ptr<Event> event)
+  : m_power (power),
     m_event (event)
 {
 }
 
-Time
-InterferenceHelper::NiChange::GetTime (void) const
-{
-  return m_time;
-}
-
 double
-InterferenceHelper::NiChange::GetDelta (void) const
+InterferenceHelper::NiChange::GetPower (void) const
 {
-  return m_delta;
+  return m_power;
 }
 
-Ptr<InterferenceHelper::Event>
+void
+InterferenceHelper::NiChange::AddPower (double power)
+{
+  m_power += power;
+}
+
+Ptr<Event>
 InterferenceHelper::NiChange::GetEvent (void) const
 {
   return m_event;
-}
-
-bool
-InterferenceHelper::NiChange::operator < (const InterferenceHelper::NiChange& o) const
-{
-  return (m_time < o.m_time);
 }
 
 
@@ -130,6 +124,8 @@ InterferenceHelper::InterferenceHelper ()
     m_firstPower (0),
     m_rxing (false)
 {
+  // Always have a zero power noise event in the list
+  AddNiChangeEvent (Time (0), NiChange (0.0, 0));
 }
 
 InterferenceHelper::~InterferenceHelper ()
@@ -138,11 +134,10 @@ InterferenceHelper::~InterferenceHelper ()
   m_errorRateModel = 0;
 }
 
-Ptr<InterferenceHelper::Event>
+Ptr<Event>
 InterferenceHelper::Add (Ptr<const Packet> packet, WifiTxVector txVector, Time duration, double rxPowerW)
 {
-  Ptr<InterferenceHelper::Event> event;
-  event = Create<InterferenceHelper::Event> (packet, txVector, duration, rxPowerW);
+  Ptr<Event> event = Create<Event> (packet, txVector, duration, rxPowerW);
   AppendEvent (event);
   return event;
 }
@@ -161,12 +156,6 @@ void
 InterferenceHelper::SetNoiseFigure (double value)
 {
   m_noiseFigure = value;
-}
-
-double
-InterferenceHelper::GetNoiseFigure (void) const
-{
-  return m_noiseFigure;
 }
 
 void
@@ -191,17 +180,12 @@ Time
 InterferenceHelper::GetEnergyDuration (double energyW) const
 {
   Time now = Simulator::Now ();
-  double noiseInterferenceW = 0;
-  Time end = now;
-  noiseInterferenceW = m_firstPower;
-  for (NiChanges::const_iterator i = m_niChanges.begin (); i != m_niChanges.end (); i++)
+  auto i = GetPreviousPosition (now);
+  Time end = i->first;
+  for (; i != m_niChanges.end (); ++i)
     {
-      noiseInterferenceW += i->GetDelta ();
-      end = i->GetTime ();
-      if (end < now)
-        {
-          continue;
-        }
+      double noiseInterferenceW = i->second.GetPower ();
+      end = i->first;
       if (noiseInterferenceW < energyW)
         {
           break;
@@ -211,24 +195,31 @@ InterferenceHelper::GetEnergyDuration (double energyW) const
 }
 
 void
-InterferenceHelper::AppendEvent (Ptr<InterferenceHelper::Event> event)
+InterferenceHelper::AppendEvent (Ptr<Event> event)
 {
-  Time now = Simulator::Now ();
+  NS_LOG_FUNCTION (this);
+  double previousPowerStart = 0;
+  double previousPowerEnd = 0;
+  previousPowerStart = GetPreviousPosition (event->GetStartTime ())->second.GetPower ();
+  previousPowerEnd = GetPreviousPosition (event->GetEndTime ())->second.GetPower ();
+
   if (!m_rxing)
     {
-      NiChanges::const_iterator nowIterator = GetPosition (now);
-      for (NiChanges::const_iterator i = m_niChanges.begin (); i != nowIterator; i++)
-        {
-          m_firstPower += i->GetDelta ();
-        }
-      m_niChanges.erase (m_niChanges.begin (), nowIterator);
+      m_firstPower = previousPowerStart;
+      // Always leave the first zero power noise event in the list
+      m_niChanges.erase (++(m_niChanges.begin ()),
+                         GetNextPosition (event->GetStartTime ()));
     }
-  AddNiChangeEvent (NiChange (event->GetStartTime (), event->GetRxPowerW (), event));
-  AddNiChangeEvent (NiChange (event->GetEndTime (), -event->GetRxPowerW (), event));
+  auto first = AddNiChangeEvent (event->GetStartTime (), NiChange (previousPowerStart, event));
+  auto last = AddNiChangeEvent (event->GetEndTime (), NiChange (previousPowerEnd, event));
+  for (auto i = first; i != last; ++i)
+    {
+      i->second.AddPower (event->GetRxPowerW ());
+    }
 }
 
 double
-InterferenceHelper::CalculateSnr (double signal, double noiseInterference, uint8_t channelWidth) const
+InterferenceHelper::CalculateSnr (double signal, double noiseInterference, uint16_t channelWidth) const
 {
   //thermal noise at 290K in J/s = W
   static const double BOLTZMANN = 1.3803e-23;
@@ -238,49 +229,25 @@ InterferenceHelper::CalculateSnr (double signal, double noiseInterference, uint8
   double noiseFloor = m_noiseFigure * Nt;
   double noise = noiseFloor + noiseInterference;
   double snr = signal / noise; //linear scale
-  NS_LOG_DEBUG ("bandwidth(MHz)=" << static_cast<uint16_t> (channelWidth) << ", signal(W)= " << signal << ", noise(W)=" << noiseFloor << ", interference(W)=" << noiseInterference << ", snr(linear)=" << snr);
+  NS_LOG_DEBUG ("bandwidth(MHz)=" << channelWidth << ", signal(W)= " << signal << ", noise(W)=" << noiseFloor << ", interference(W)=" << noiseInterference << ", snr(linear)=" << snr);
   return snr;
 }
 
 double
-InterferenceHelper::CalculateNoiseInterferenceW (Ptr<InterferenceHelper::Event> event, NiChanges *ni) const
+InterferenceHelper::CalculateNoiseInterferenceW (Ptr<Event> event, NiChanges *ni) const
 {
   double noiseInterference = m_firstPower;
-  NiChanges::const_iterator eventIterator = m_niChanges.begin ();
-  while (eventIterator != m_niChanges.end ())
+  auto it = m_niChanges.find (event->GetStartTime ());
+  for (; it != m_niChanges.end () && it->second.GetEvent () != event; ++it)
     {
-      // Iterate the NI change list from the beginning to the end
-      // until find the position of the event in the NI change list
-      // The reason of using the event that causes the NI change to identify
-      // different NI changes is because in some special cases
-      // different NI changes happen at the same time with the same delta
-      // value. Therefore, it may be impossible to identify a NI change that belongs
-      // to which event based on just the NI time and NI delta value
-      if (eventIterator->GetEvent () != event)
-        {
-          // The NI changes which happen before the event should be considered
-          // as the interference. This considers the case that the receiving event
-          // arrives while another receiving event is going on. The SINR of
-          // the newly arrived event is calculated for checking the possibility of frame capture
-          noiseInterference += eventIterator->GetDelta ();
-        }
-      else
-        {
-          break;
-        }
-      ++eventIterator;
+      noiseInterference = it->second.GetPower ();
     }
-
-  for (NiChanges::const_iterator i = eventIterator + 1; i != m_niChanges.end (); ++i)
+  ni->emplace (event->GetStartTime (), NiChange (0, event));
+  while (++it != m_niChanges.end () && it->second.GetEvent () != event)
     {
-      if (event->GetEndTime () == i->GetTime () && event == i->GetEvent ())
-        {
-          break;
-        }
-      ni->push_back (*i);
+      ni->insert (*it);
     }
-  ni->insert (ni->begin (), NiChange (event->GetStartTime (), noiseInterference, event));
-  ni->push_back (NiChange (event->GetEndTime (), 0, event));
+  ni->emplace (event->GetEndTime (), NiChange (0, event));
   return noiseInterference;
 }
 
@@ -297,8 +264,8 @@ InterferenceHelper::CalculateChunkSuccessRate (double snir, Time duration, WifiM
     {
       nbits /= txVector.GetNss (); //divide effective number of bits by NSS to achieve same chunk error rate as SISO for AWGN
       double gain = (txVector.GetNTx () * m_numRxAntennas); //compute gain offered by MIMO, SIMO or MISO compared to SISO for AWGN
-      NS_LOG_DEBUG ("TX=" << static_cast<uint16_t> (txVector.GetNTx ()) <<
-                    ", RX=" << static_cast<uint16_t> (m_numRxAntennas) <<
+      NS_LOG_DEBUG ("TX=" << +txVector.GetNTx () <<
+                    ", RX=" << +m_numRxAntennas <<
                     ", SNIR improvement=+" << 10 * std::log10 (gain) << "dB");
       snir *= gain;
     }
@@ -307,25 +274,24 @@ InterferenceHelper::CalculateChunkSuccessRate (double snir, Time duration, WifiM
 }
 
 double
-InterferenceHelper::CalculatePlcpPayloadPer (Ptr<const InterferenceHelper::Event> event, NiChanges *ni) const
+InterferenceHelper::CalculatePlcpPayloadPer (Ptr<const Event> event, NiChanges *ni) const
 {
   NS_LOG_FUNCTION (this);
   const WifiTxVector txVector = event->GetTxVector ();
   double psr = 1.0; /* Packet Success Rate */
-  NiChanges::const_iterator j = ni->begin ();
-  Time previous = (*j).GetTime ();
+  auto j = ni->begin ();
+  Time previous = j->first;
   WifiMode payloadMode = event->GetPayloadMode ();
   WifiPreamble preamble = txVector.GetPreambleType ();
-  Time plcpHeaderStart = (*j).GetTime () + WifiPhy::GetPlcpPreambleDuration (txVector); //packet start time + preamble
+  Time plcpHeaderStart = j->first + WifiPhy::GetPlcpPreambleDuration (txVector); //packet start time + preamble
   Time plcpHsigHeaderStart = plcpHeaderStart + WifiPhy::GetPlcpHeaderDuration (txVector); //packet start time + preamble + L-SIG
   Time plcpTrainingSymbolsStart = plcpHsigHeaderStart + WifiPhy::GetPlcpHtSigHeaderDuration (preamble) + WifiPhy::GetPlcpSigA1Duration (preamble) + WifiPhy::GetPlcpSigA2Duration (preamble); //packet start time + preamble + L-SIG + HT-SIG or SIG-A
   Time plcpPayloadStart = plcpTrainingSymbolsStart + WifiPhy::GetPlcpTrainingSymbolDuration (txVector) + WifiPhy::GetPlcpSigBDuration (preamble); //packet start time + preamble + L-SIG + HT-SIG or SIG-A + Training + SIG-B
-  double noiseInterferenceW = (*j).GetDelta ();
+  double noiseInterferenceW = m_firstPower;
   double powerW = event->GetRxPowerW ();
-  j++;
-  while (ni->end () != j)
+  while (++j != ni->end ())
     {
-      Time current = (*j).GetTime ();
+      Time current = j->first;
       NS_LOG_DEBUG ("previous= " << previous << ", current=" << current);
       NS_ASSERT (current >= previous);
       //Case 1: Both previous and current point to the payload
@@ -348,22 +314,21 @@ InterferenceHelper::CalculatePlcpPayloadPer (Ptr<const InterferenceHelper::Event
                                             payloadMode, txVector);
           NS_LOG_DEBUG ("previous is before payload and current is in the payload: mode=" << payloadMode << ", psr=" << psr);
         }
-      noiseInterferenceW += (*j).GetDelta ();
-      previous = (*j).GetTime ();
-      j++;
+      noiseInterferenceW = j->second.GetPower () - powerW;
+      previous = j->first;
     }
   double per = 1 - psr;
   return per;
 }
 
 double
-InterferenceHelper::CalculatePlcpHeaderPer (Ptr<const InterferenceHelper::Event> event, NiChanges *ni) const
+InterferenceHelper::CalculatePlcpHeaderPer (Ptr<const Event> event, NiChanges *ni) const
 {
   NS_LOG_FUNCTION (this);
   const WifiTxVector txVector = event->GetTxVector ();
   double psr = 1.0; /* Packet Success Rate */
-  NiChanges::const_iterator j = ni->begin ();
-  Time previous = (*j).GetTime ();
+  auto j = ni->begin ();
+  Time previous = j->first;
   WifiPreamble preamble = txVector.GetPreambleType ();
   WifiMode mcsHeaderMode;
   if (preamble == WIFI_PREAMBLE_HT_MF || preamble == WIFI_PREAMBLE_HT_GF)
@@ -382,16 +347,15 @@ InterferenceHelper::CalculatePlcpHeaderPer (Ptr<const InterferenceHelper::Event>
       mcsHeaderMode = WifiPhy::GetHePlcpHeaderMode ();
     }
   WifiMode headerMode = WifiPhy::GetPlcpHeaderMode (txVector);
-  Time plcpHeaderStart = (*j).GetTime () + WifiPhy::GetPlcpPreambleDuration (txVector); //packet start time + preamble
+  Time plcpHeaderStart = j->first + WifiPhy::GetPlcpPreambleDuration (txVector); //packet start time + preamble
   Time plcpHsigHeaderStart = plcpHeaderStart + WifiPhy::GetPlcpHeaderDuration (txVector); //packet start time + preamble + L-SIG
   Time plcpTrainingSymbolsStart = plcpHsigHeaderStart + WifiPhy::GetPlcpHtSigHeaderDuration (preamble) + WifiPhy::GetPlcpSigA1Duration (preamble) + WifiPhy::GetPlcpSigA2Duration (preamble); //packet start time + preamble + L-SIG + HT-SIG or SIG-A
   Time plcpPayloadStart = plcpTrainingSymbolsStart + WifiPhy::GetPlcpTrainingSymbolDuration (txVector) + WifiPhy::GetPlcpSigBDuration (preamble); //packet start time + preamble + L-SIG + HT-SIG or SIG-A + Training + SIG-B
-  double noiseInterferenceW = (*j).GetDelta ();
+  double noiseInterferenceW = m_firstPower;
   double powerW = event->GetRxPowerW ();
-  j++;
-  while (ni->end () != j)
+  while (++j != ni->end ())
     {
-      Time current = (*j).GetTime ();
+      Time current = j->first;
       NS_LOG_DEBUG ("previous= " << previous << ", current=" << current);
       NS_ASSERT (current >= previous);
       //Case 1: previous and current after playload start: nothing to do
@@ -492,7 +456,7 @@ InterferenceHelper::CalculatePlcpHeaderPer (Ptr<const InterferenceHelper::Event>
           //Case 3c: current with previous in HT-SIG or SIG-A
           else
             {
-              //Case 3bi: VHT or HE format
+              //Case 3ci: VHT or HE format
               if (preamble == WIFI_PREAMBLE_VHT || preamble == WIFI_PREAMBLE_HE_SU)
                 {
                   //SIG-A is sent using legacy OFDM modulation
@@ -503,7 +467,7 @@ InterferenceHelper::CalculatePlcpHeaderPer (Ptr<const InterferenceHelper::Event>
                                                     headerMode, txVector);
                   NS_LOG_DEBUG ("Case 3ci - previous with current in SIG-A: mode=" << headerMode << ", psr=" << psr);
                 }
-              //Case 3bii: HT mixed format or HT greenfield
+              //Case 3cii: HT mixed format or HT greenfield
               else
                 {
                   psr *= CalculateChunkSuccessRate (CalculateSnr (powerW,
@@ -636,7 +600,7 @@ InterferenceHelper::CalculatePlcpHeaderPer (Ptr<const InterferenceHelper::Event>
                                                               txVector.GetChannelWidth ()),
                                                 current - previous,
                                                 headerMode, txVector);
-              NS_LOG_DEBUG ("Case 3c - current with previous in L-SIG: mode=" << headerMode << ", psr=" << psr);
+              NS_LOG_DEBUG ("Case 4d - current with previous in L-SIG: mode=" << headerMode << ", psr=" << psr);
             }
         }
       //Case 5: previous is in the preamble works for all cases
@@ -764,9 +728,8 @@ InterferenceHelper::CalculatePlcpHeaderPer (Ptr<const InterferenceHelper::Event>
             }
         }
 
-      noiseInterferenceW += (*j).GetDelta ();
-      previous = (*j).GetTime ();
-      j++;
+      noiseInterferenceW = j->second.GetPower () - powerW;
+      previous = j->first;
     }
 
   double per = 1 - psr;
@@ -774,7 +737,7 @@ InterferenceHelper::CalculatePlcpHeaderPer (Ptr<const InterferenceHelper::Event>
 }
 
 struct InterferenceHelper::SnrPer
-InterferenceHelper::CalculatePlcpPayloadSnrPer (Ptr<InterferenceHelper::Event> event)
+InterferenceHelper::CalculatePlcpPayloadSnrPer (Ptr<Event> event) const
 {
   NiChanges ni;
   double noiseInterferenceW = CalculateNoiseInterferenceW (event, &ni);
@@ -794,7 +757,7 @@ InterferenceHelper::CalculatePlcpPayloadSnrPer (Ptr<InterferenceHelper::Event> e
 }
 
 struct InterferenceHelper::SnrPer
-InterferenceHelper::CalculatePlcpHeaderSnrPer (Ptr<InterferenceHelper::Event> event)
+InterferenceHelper::CalculatePlcpHeaderSnrPer (Ptr<Event> event) const
 {
   NiChanges ni;
   double noiseInterferenceW = CalculateNoiseInterferenceW (event, &ni);
@@ -817,20 +780,32 @@ void
 InterferenceHelper::EraseEvents (void)
 {
   m_niChanges.clear ();
+  // Always have a zero power noise event in the list
+  AddNiChangeEvent (Time (0), NiChange (0.0, 0));
   m_rxing = false;
   m_firstPower = 0;
 }
 
 InterferenceHelper::NiChanges::const_iterator
-InterferenceHelper::GetPosition (Time moment)
+InterferenceHelper::GetNextPosition (Time moment) const
 {
-  return std::upper_bound (m_niChanges.begin (), m_niChanges.end (), NiChange (moment, 0, NULL));
+  return m_niChanges.upper_bound (moment);
 }
 
-void
-InterferenceHelper::AddNiChangeEvent (NiChange change)
+InterferenceHelper::NiChanges::const_iterator
+InterferenceHelper::GetPreviousPosition (Time moment) const
 {
-  m_niChanges.insert (GetPosition (change.GetTime ()), change);
+  auto it = GetNextPosition (moment);
+  // This is safe since there is always an NiChange at time 0,
+  // before moment.
+  --it;
+  return it;
+}
+
+InterferenceHelper::NiChanges::iterator
+InterferenceHelper::AddNiChangeEvent (Time moment, NiChange change)
+{
+  return m_niChanges.insert (GetNextPosition (moment), std::make_pair (moment, change));
 }
 
 void
@@ -845,6 +820,10 @@ InterferenceHelper::NotifyRxEnd ()
 {
   NS_LOG_FUNCTION (this);
   m_rxing = false;
+  //Update m_firstPower for frame capture
+  auto it = m_niChanges.find (Simulator::Now ());
+  it--;
+  m_firstPower = it->second.GetPower ();
 }
 
 } //namespace ns3

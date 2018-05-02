@@ -195,6 +195,11 @@ def configure(conf):
                                 stdout=subprocess.PIPE).communicate()[0]
         pybindgen_version = maybe_decode(out.strip())
         conf.msg('Checking for pybindgen version', pybindgen_version)
+        if not pybindgen_version:
+            Logs.warn("pybindgen_version is an empty string")
+            conf.report_optional_feature("python", "Python Bindings", False,
+                                         "PyBindGen version not found")
+            return
         if not (split_version(pybindgen_version) >= split_version(REQUIRED_PYBINDGEN_VERSION)):
             Logs.warn("pybindgen (found %r), (need %r)" %
                       (pybindgen_version, REQUIRED_PYBINDGEN_VERSION))
@@ -273,10 +278,15 @@ int main ()
                                      "Missing 'pygccxml' Python module")
         return
 
-    out = subprocess.Popen([conf.env['PYTHON'][0], "-c",
-                            "import pygccxml; print pygccxml.__version__"],
-                            stdout=subprocess.PIPE).communicate()[0]
-    pygccxml_version_str = out.strip()
+    try:
+        import pygccxml as pygccxml_imported
+        pygccxml_version_str = pygccxml_imported.__version__
+    except (ImportError, AttributeError):
+        Logs.warn("pygccxml version cannot be determined")
+        conf.report_optional_feature("castxml", "Python API Scanning Support", False,
+                                     "pygccxml Python module version is unknown")
+        return
+
     # Bug 2013:  pygccxml versions > 1.0.0 prepend a 'v' to version number
     pygccxml_version_str = pygccxml_version_str.lstrip('v')
     pygccxml_version = tuple([int(x) for x in pygccxml_version_str.split('.')])

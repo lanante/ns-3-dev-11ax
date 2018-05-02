@@ -82,13 +82,13 @@ WifiRadioEnergyModel::GetTypeId (void)
                      "Total energy consumption of the radio device.",
                      MakeTraceSourceAccessor (&WifiRadioEnergyModel::m_totalEnergyConsumption),
                      "ns3::TracedValueCallback::Double")
-  ; 
+  ;
   return tid;
 }
 
 WifiRadioEnergyModel::WifiRadioEnergyModel ()
   : m_source (0),
-    m_currentState (WifiPhy::IDLE),
+    m_currentState (WifiPhyState::IDLE),
     m_lastUpdateTime (Seconds (0.0)),
     m_nPendingChangeState (0)
 {
@@ -104,6 +104,7 @@ WifiRadioEnergyModel::WifiRadioEnergyModel ()
 WifiRadioEnergyModel::~WifiRadioEnergyModel ()
 {
   NS_LOG_FUNCTION (this);
+  m_txCurrentModel = 0;
   delete m_listener;
 }
 
@@ -115,7 +116,7 @@ WifiRadioEnergyModel::SetEnergySource (const Ptr<EnergySource> source)
   m_source = source;
   m_switchToOffEvent.Cancel ();
   Time durationToOff = GetMaximumTimeInState (m_currentState);
-  m_switchToOffEvent = Simulator::Schedule (durationToOff, &WifiRadioEnergyModel::ChangeState, this, WifiPhy::OFF);
+  m_switchToOffEvent = Simulator::Schedule (durationToOff, &WifiRadioEnergyModel::ChangeState, this, WifiPhyState::OFF);
 }
 
 double
@@ -131,25 +132,25 @@ WifiRadioEnergyModel::GetTotalEnergyConsumption (void) const
   double supplyVoltage = m_source->GetSupplyVoltage ();
   switch (m_currentState)
     {
-    case WifiPhy::IDLE:
+    case WifiPhyState::IDLE:
       energyToDecrease = duration.GetSeconds () * m_idleCurrentA * supplyVoltage;
       break;
-    case WifiPhy::CCA_BUSY:
+    case WifiPhyState::CCA_BUSY:
       energyToDecrease = duration.GetSeconds () * m_ccaBusyCurrentA * supplyVoltage;
       break;
-    case WifiPhy::TX:
+    case WifiPhyState::TX:
       energyToDecrease = duration.GetSeconds () * m_txCurrentA * supplyVoltage;
       break;
-    case WifiPhy::RX:
+    case WifiPhyState::RX:
       energyToDecrease = duration.GetSeconds () * m_rxCurrentA * supplyVoltage;
       break;
-    case WifiPhy::SWITCHING:
+    case WifiPhyState::SWITCHING:
       energyToDecrease = duration.GetSeconds () * m_switchingCurrentA * supplyVoltage;
       break;
-    case WifiPhy::SLEEP:
+    case WifiPhyState::SLEEP:
       energyToDecrease = duration.GetSeconds () * m_sleepCurrentA * supplyVoltage;
       break;
-    case WifiPhy::OFF:
+    case WifiPhyState::OFF:
       energyToDecrease = 0;
       break;
     default:
@@ -246,7 +247,7 @@ WifiRadioEnergyModel::SetSleepCurrentA (double sleepCurrentA)
   m_sleepCurrentA = sleepCurrentA;
 }
 
-WifiPhy::State
+WifiPhyState
 WifiRadioEnergyModel::GetCurrentState (void) const
 {
   NS_LOG_FUNCTION (this);
@@ -296,26 +297,26 @@ Time
 WifiRadioEnergyModel::GetMaximumTimeInState (int state) const
 {
   Time remainingTime;
-  double remainingEnergy = m_source->GetRemainingEnergy();
+  double remainingEnergy = m_source->GetRemainingEnergy ();
   double supplyVoltage = m_source->GetSupplyVoltage ();
   switch (state)
     {
-    case WifiPhy::IDLE:
+    case WifiPhyState::IDLE:
       remainingTime = NanoSeconds (1e9 * (remainingEnergy / (m_idleCurrentA * supplyVoltage)));
       break;
-    case WifiPhy::CCA_BUSY:
+    case WifiPhyState::CCA_BUSY:
       remainingTime = NanoSeconds (1e9 * (remainingEnergy / (m_ccaBusyCurrentA * supplyVoltage)));
       break;
-    case WifiPhy::TX:
+    case WifiPhyState::TX:
       remainingTime = NanoSeconds (1e9 * (remainingEnergy / (m_txCurrentA * supplyVoltage)));
       break;
-    case WifiPhy::RX:
+    case WifiPhyState::RX:
       remainingTime = NanoSeconds (1e9 * (remainingEnergy / (m_rxCurrentA * supplyVoltage)));
       break;
-    case WifiPhy::SWITCHING:
+    case WifiPhyState::SWITCHING:
       remainingTime = NanoSeconds (1e9 * (remainingEnergy / (m_switchingCurrentA * supplyVoltage)));
       break;
-    case WifiPhy::SLEEP:
+    case WifiPhyState::SLEEP:
       remainingTime = NanoSeconds (1e9 * (remainingEnergy / (m_sleepCurrentA * supplyVoltage)));
       break;
     default:
@@ -331,18 +332,18 @@ WifiRadioEnergyModel::ChangeState (int newState)
 
   m_nPendingChangeState++;
 
-  if (m_nPendingChangeState > 1 && newState == WifiPhy::OFF)
+  if (m_nPendingChangeState > 1 && newState == WifiPhyState::OFF)
     {
-      SetWifiRadioState ((WifiPhy::State) newState);
+      SetWifiRadioState ((WifiPhyState) newState);
       m_nPendingChangeState--;
       return;
     }
 
-  if (newState != WifiPhy::OFF)
+  if (newState != WifiPhyState::OFF)
     {
       m_switchToOffEvent.Cancel ();
       Time durationToOff = GetMaximumTimeInState (newState);
-      m_switchToOffEvent = Simulator::Schedule (durationToOff, &WifiRadioEnergyModel::ChangeState, this, WifiPhy::OFF);
+      m_switchToOffEvent = Simulator::Schedule (durationToOff, &WifiRadioEnergyModel::ChangeState, this, WifiPhyState::OFF);
     }
 
   Time duration = Simulator::Now () - m_lastUpdateTime;
@@ -353,25 +354,25 @@ WifiRadioEnergyModel::ChangeState (int newState)
   double supplyVoltage = m_source->GetSupplyVoltage ();
   switch (m_currentState)
     {
-    case WifiPhy::IDLE:
+    case WifiPhyState::IDLE:
       energyToDecrease = (duration.GetNanoSeconds () * m_idleCurrentA * supplyVoltage) / 1e9;
       break;
-    case WifiPhy::CCA_BUSY:
+    case WifiPhyState::CCA_BUSY:
       energyToDecrease = (duration.GetNanoSeconds () * m_ccaBusyCurrentA * supplyVoltage) / 1e9;
       break;
-    case WifiPhy::TX:
+    case WifiPhyState::TX:
       energyToDecrease = (duration.GetNanoSeconds () * m_txCurrentA * supplyVoltage) / 1e9;
       break;
-    case WifiPhy::RX:
+    case WifiPhyState::RX:
       energyToDecrease = (duration.GetNanoSeconds () * m_rxCurrentA * supplyVoltage) / 1e9;
       break;
-    case WifiPhy::SWITCHING:
+    case WifiPhyState::SWITCHING:
       energyToDecrease = (duration.GetNanoSeconds () * m_switchingCurrentA * supplyVoltage) / 1e9;
       break;
-    case WifiPhy::SLEEP:
+    case WifiPhyState::SLEEP:
       energyToDecrease = (duration.GetNanoSeconds () * m_sleepCurrentA * supplyVoltage) / 1e9;
       break;
-    case WifiPhy::OFF:
+    case WifiPhyState::OFF:
       energyToDecrease = 0.0;
       break;
     default:
@@ -395,10 +396,10 @@ WifiRadioEnergyModel::ChangeState (int newState)
   // by the previous instance is erroneously the final state stored in m_currentState. The check below
   // ensures that previous instances do not change m_currentState.
 
-  if (m_nPendingChangeState <= 1 && m_currentState != WifiPhy::OFF)
+  if (m_nPendingChangeState <= 1 && m_currentState != WifiPhyState::OFF)
     {
       // update current state & last update time stamp
-      SetWifiRadioState ((WifiPhy::State) newState);
+      SetWifiRadioState ((WifiPhyState) newState);
 
       // some debug message
       NS_LOG_DEBUG ("WifiRadioEnergyModel:Total energy consumption is " <<
@@ -437,11 +438,11 @@ WifiRadioEnergyModel::HandleEnergyChanged (void)
 {
   NS_LOG_FUNCTION (this);
   NS_LOG_DEBUG ("WifiRadioEnergyModel:Energy is changed!");
-  if (m_currentState != WifiPhy::OFF)
+  if (m_currentState != WifiPhyState::OFF)
     {
       m_switchToOffEvent.Cancel ();
       Time durationToOff = GetMaximumTimeInState (m_currentState);
-      m_switchToOffEvent = Simulator::Schedule (durationToOff, &WifiRadioEnergyModel::ChangeState, this, WifiPhy::OFF);
+      m_switchToOffEvent = Simulator::Schedule (durationToOff, &WifiRadioEnergyModel::ChangeState, this, WifiPhyState::OFF);
     }
 }
 
@@ -469,19 +470,19 @@ WifiRadioEnergyModel::DoGetCurrentA (void) const
 {
   switch (m_currentState)
     {
-    case WifiPhy::IDLE:
+    case WifiPhyState::IDLE:
       return m_idleCurrentA;
-    case WifiPhy::CCA_BUSY:
+    case WifiPhyState::CCA_BUSY:
       return m_ccaBusyCurrentA;
-    case WifiPhy::TX:
+    case WifiPhyState::TX:
       return m_txCurrentA;
-    case WifiPhy::RX:
+    case WifiPhyState::RX:
       return m_rxCurrentA;
-    case WifiPhy::SWITCHING:
+    case WifiPhyState::SWITCHING:
       return m_switchingCurrentA;
-    case WifiPhy::SLEEP:
+    case WifiPhyState::SLEEP:
       return m_sleepCurrentA;
-    case WifiPhy::OFF:
+    case WifiPhyState::OFF:
       return 0.0;
     default:
       NS_FATAL_ERROR ("WifiRadioEnergyModel: undefined radio state " << m_currentState);
@@ -489,32 +490,32 @@ WifiRadioEnergyModel::DoGetCurrentA (void) const
 }
 
 void
-WifiRadioEnergyModel::SetWifiRadioState (const WifiPhy::State state)
+WifiRadioEnergyModel::SetWifiRadioState (const WifiPhyState state)
 {
   NS_LOG_FUNCTION (this << state);
   m_currentState = state;
   std::string stateName;
   switch (state)
     {
-    case WifiPhy::IDLE:
+    case WifiPhyState::IDLE:
       stateName = "IDLE";
       break;
-    case WifiPhy::CCA_BUSY:
+    case WifiPhyState::CCA_BUSY:
       stateName = "CCA_BUSY";
       break;
-    case WifiPhy::TX:
+    case WifiPhyState::TX:
       stateName = "TX";
       break;
-    case WifiPhy::RX:
+    case WifiPhyState::RX:
       stateName = "RX";
       break;
-    case WifiPhy::SWITCHING:
+    case WifiPhyState::SWITCHING:
       stateName = "SWITCHING";
       break;
-    case WifiPhy::SLEEP:
+    case WifiPhyState::SLEEP:
       stateName = "SLEEP";
       break;
-    case WifiPhy::OFF:
+    case WifiPhyState::OFF:
       stateName = "OFF";
       break;
     }
@@ -560,7 +561,7 @@ WifiRadioEnergyModelPhyListener::NotifyRxStart (Time duration)
     {
       NS_FATAL_ERROR ("WifiRadioEnergyModelPhyListener:Change state callback not set!");
     }
-  m_changeStateCallback (WifiPhy::RX);
+  m_changeStateCallback (WifiPhyState::RX);
   m_switchToIdleEvent.Cancel ();
 }
 
@@ -572,7 +573,7 @@ WifiRadioEnergyModelPhyListener::NotifyRxEndOk (void)
     {
       NS_FATAL_ERROR ("WifiRadioEnergyModelPhyListener:Change state callback not set!");
     }
-  m_changeStateCallback (WifiPhy::IDLE);
+  m_changeStateCallback (WifiPhyState::IDLE);
 }
 
 void
@@ -583,7 +584,7 @@ WifiRadioEnergyModelPhyListener::NotifyRxEndError (void)
     {
       NS_FATAL_ERROR ("WifiRadioEnergyModelPhyListener:Change state callback not set!");
     }
-  m_changeStateCallback (WifiPhy::IDLE);
+  m_changeStateCallback (WifiPhyState::IDLE);
 }
 
 void
@@ -599,7 +600,7 @@ WifiRadioEnergyModelPhyListener::NotifyTxStart (Time duration, double txPowerDbm
     {
       NS_FATAL_ERROR ("WifiRadioEnergyModelPhyListener:Change state callback not set!");
     }
-  m_changeStateCallback (WifiPhy::TX);
+  m_changeStateCallback (WifiPhyState::TX);
   // schedule changing state back to IDLE after TX duration
   m_switchToIdleEvent.Cancel ();
   m_switchToIdleEvent = Simulator::Schedule (duration, &WifiRadioEnergyModelPhyListener::SwitchToIdle, this);
@@ -613,7 +614,7 @@ WifiRadioEnergyModelPhyListener::NotifyMaybeCcaBusyStart (Time duration)
     {
       NS_FATAL_ERROR ("WifiRadioEnergyModelPhyListener:Change state callback not set!");
     }
-  m_changeStateCallback (WifiPhy::CCA_BUSY);
+  m_changeStateCallback (WifiPhyState::CCA_BUSY);
   // schedule changing state back to IDLE after CCA_BUSY duration
   m_switchToIdleEvent.Cancel ();
   m_switchToIdleEvent = Simulator::Schedule (duration, &WifiRadioEnergyModelPhyListener::SwitchToIdle, this);
@@ -627,7 +628,7 @@ WifiRadioEnergyModelPhyListener::NotifySwitchingStart (Time duration)
     {
       NS_FATAL_ERROR ("WifiRadioEnergyModelPhyListener:Change state callback not set!");
     }
-  m_changeStateCallback (WifiPhy::SWITCHING);
+  m_changeStateCallback (WifiPhyState::SWITCHING);
   // schedule changing state back to IDLE after CCA_BUSY duration
   m_switchToIdleEvent.Cancel ();
   m_switchToIdleEvent = Simulator::Schedule (duration, &WifiRadioEnergyModelPhyListener::SwitchToIdle, this);
@@ -641,19 +642,19 @@ WifiRadioEnergyModelPhyListener::NotifySleep (void)
     {
       NS_FATAL_ERROR ("WifiRadioEnergyModelPhyListener:Change state callback not set!");
     }
-  m_changeStateCallback (WifiPhy::SLEEP);
+  m_changeStateCallback (WifiPhyState::SLEEP);
   m_switchToIdleEvent.Cancel ();
 }
 
 void
-WifiRadioEnergyModelPhyListener::NotifyWakeup(void)
+WifiRadioEnergyModelPhyListener::NotifyWakeup (void)
 {
   NS_LOG_FUNCTION (this);
   if (m_changeStateCallback.IsNull ())
     {
       NS_FATAL_ERROR ("WifiRadioEnergyModelPhyListener:Change state callback not set!");
     }
-  m_changeStateCallback (WifiPhy::IDLE);
+  m_changeStateCallback (WifiPhyState::IDLE);
 }
 
 void
@@ -664,8 +665,19 @@ WifiRadioEnergyModelPhyListener::NotifyOff (void)
     {
       NS_FATAL_ERROR ("WifiRadioEnergyModelPhyListener:Change state callback not set!");
     }
-  m_changeStateCallback (WifiPhy::OFF);
+  m_changeStateCallback (WifiPhyState::OFF);
   m_switchToIdleEvent.Cancel ();
+}
+
+void
+WifiRadioEnergyModelPhyListener::NotifyOn (void)
+{
+  NS_LOG_FUNCTION (this);
+  if (m_changeStateCallback.IsNull ())
+    {
+      NS_FATAL_ERROR ("WifiRadioEnergyModelPhyListener:Change state callback not set!");
+    }
+  m_changeStateCallback (WifiPhyState::IDLE);
 }
 
 void
@@ -676,7 +688,7 @@ WifiRadioEnergyModelPhyListener::SwitchToIdle (void)
     {
       NS_FATAL_ERROR ("WifiRadioEnergyModelPhyListener:Change state callback not set!");
     }
-  m_changeStateCallback (WifiPhy::IDLE);
+  m_changeStateCallback (WifiPhyState::IDLE);
 }
 
 } // namespace ns3

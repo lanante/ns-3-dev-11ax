@@ -20,8 +20,9 @@
  *          Mirko Banchi <mk.banchi@gmail.com>
  */
 
-#include "mgt-headers.h"
 #include "ns3/simulator.h"
+#include "ns3/address-utils.h"
+#include "mgt-headers.h"
 
 namespace ns3 {
 
@@ -149,6 +150,7 @@ MgtProbeRequestHeader::Print (std::ostream &os) const
 {
   os << "ssid=" << m_ssid << ", "
      << "rates=" << m_rates << ", "
+     << "Extended Capabilities=" << m_extendedCapability << " , "
      << "HT Capabilities=" << m_htCapability << " , "
      << "VHT Capabilities=" << m_vhtCapability << " , "
      << "HE Capabilities=" << m_heCapability;
@@ -416,6 +418,7 @@ MgtProbeResponseHeader::Print (std::ostream &os) const
   os << "ssid=" << m_ssid << ", "
      << "rates=" << m_rates << ", "
      << "ERP information=" << m_erpInformation << ", "
+     << "Extended Capabilities=" << m_extendedCapability << " , "
      << "HT Capabilities=" << m_htCapability << " , "
      << "HT Operation=" << m_htOperation << " , "
      << "VHT Capabilities=" << m_vhtCapability << " , "
@@ -648,6 +651,7 @@ MgtAssocRequestHeader::Print (std::ostream &os) const
 {
   os << "ssid=" << m_ssid << ", "
      << "rates=" << m_rates << ", "
+     << "Extended Capabilities=" << m_extendedCapability << " , "
      << "HT Capabilities=" << m_htCapability << " , "
      << "VHT Capabilities=" << m_vhtCapability << " , "
      << "HE Capabilities=" << m_heCapability;
@@ -686,7 +690,204 @@ MgtAssocRequestHeader::Deserialize (Buffer::Iterator start)
 
 
 /***********************************************************
- *          Assoc Response
+ *          Ressoc Request
+ ***********************************************************/
+
+NS_OBJECT_ENSURE_REGISTERED (MgtReassocRequestHeader);
+
+MgtReassocRequestHeader::MgtReassocRequestHeader ()
+  : m_currentApAddr (Mac48Address ())
+{
+}
+
+MgtReassocRequestHeader::~MgtReassocRequestHeader ()
+{
+}
+
+void
+MgtReassocRequestHeader::SetSsid (Ssid ssid)
+{
+  m_ssid = ssid;
+}
+
+void
+MgtReassocRequestHeader::SetSupportedRates (SupportedRates rates)
+{
+  m_rates = rates;
+}
+
+void
+MgtReassocRequestHeader::SetListenInterval (uint16_t interval)
+{
+  m_listenInterval = interval;
+}
+
+void
+MgtReassocRequestHeader::SetCapabilities (CapabilityInformation capabilities)
+{
+  m_capability = capabilities;
+}
+
+CapabilityInformation
+MgtReassocRequestHeader::GetCapabilities (void) const
+{
+  return m_capability;
+}
+
+void
+MgtReassocRequestHeader::SetExtendedCapabilities (ExtendedCapabilities extendedcapabilities)
+{
+  m_extendedCapability = extendedcapabilities;
+}
+
+ExtendedCapabilities
+MgtReassocRequestHeader::GetExtendedCapabilities (void) const
+{
+  return m_extendedCapability;
+}
+
+void
+MgtReassocRequestHeader::SetHtCapabilities (HtCapabilities htcapabilities)
+{
+  m_htCapability = htcapabilities;
+}
+
+HtCapabilities
+MgtReassocRequestHeader::GetHtCapabilities (void) const
+{
+  return m_htCapability;
+}
+
+void
+MgtReassocRequestHeader::SetVhtCapabilities (VhtCapabilities vhtcapabilities)
+{
+  m_vhtCapability = vhtcapabilities;
+}
+
+VhtCapabilities
+MgtReassocRequestHeader::GetVhtCapabilities (void) const
+{
+  return m_vhtCapability;
+}
+
+void
+MgtReassocRequestHeader::SetHeCapabilities (HeCapabilities hecapabilities)
+{
+  m_heCapability = hecapabilities;
+}
+
+HeCapabilities
+MgtReassocRequestHeader::GetHeCapabilities (void) const
+{
+  return m_heCapability;
+}
+
+Ssid
+MgtReassocRequestHeader::GetSsid (void) const
+{
+  return m_ssid;
+}
+
+SupportedRates
+MgtReassocRequestHeader::GetSupportedRates (void) const
+{
+  return m_rates;
+}
+
+uint16_t
+MgtReassocRequestHeader::GetListenInterval (void) const
+{
+  return m_listenInterval;
+}
+
+void
+MgtReassocRequestHeader::SetCurrentApAddress (Mac48Address currentApAddr)
+{
+  m_currentApAddr = currentApAddr;
+}
+
+TypeId
+MgtReassocRequestHeader::GetTypeId (void)
+{
+  static TypeId tid = TypeId ("ns3::MgtReassocRequestHeader")
+    .SetParent<Header> ()
+    .SetGroupName ("Wifi")
+    .AddConstructor<MgtReassocRequestHeader> ()
+  ;
+  return tid;
+}
+
+TypeId
+MgtReassocRequestHeader::GetInstanceTypeId (void) const
+{
+  return GetTypeId ();
+}
+
+uint32_t
+MgtReassocRequestHeader::GetSerializedSize (void) const
+{
+  uint32_t size = 0;
+  size += m_capability.GetSerializedSize ();
+  size += 2; //listen interval
+  size += 6; //current AP address
+  size += m_ssid.GetSerializedSize ();
+  size += m_rates.GetSerializedSize ();
+  size += m_rates.extended.GetSerializedSize ();
+  size += m_extendedCapability.GetSerializedSize ();
+  size += m_htCapability.GetSerializedSize ();
+  size += m_vhtCapability.GetSerializedSize ();
+  size += m_heCapability.GetSerializedSize ();
+  return size;
+}
+
+void
+MgtReassocRequestHeader::Print (std::ostream &os) const
+{
+  os << "current AP address=" << m_currentApAddr << ", "
+     << "ssid=" << m_ssid << ", "
+     << "rates=" << m_rates << ", "
+     << "Extended Capabilities=" << m_extendedCapability << " , "
+     << "HT Capabilities=" << m_htCapability << " , "
+     << "VHT Capabilities=" << m_vhtCapability << " , "
+     << "HE Capabilities=" << m_heCapability;
+}
+
+void
+MgtReassocRequestHeader::Serialize (Buffer::Iterator start) const
+{
+  Buffer::Iterator i = start;
+  i = m_capability.Serialize (i);
+  i.WriteHtolsbU16 (m_listenInterval);
+  WriteTo (i, m_currentApAddr);
+  i = m_ssid.Serialize (i);
+  i = m_rates.Serialize (i);
+  i = m_rates.extended.Serialize (i);
+  i = m_extendedCapability.Serialize (i);
+  i = m_htCapability.Serialize (i);
+  i = m_vhtCapability.Serialize (i);
+  i = m_heCapability.Serialize (i);
+}
+
+uint32_t
+MgtReassocRequestHeader::Deserialize (Buffer::Iterator start)
+{
+  Buffer::Iterator i = start;
+  i = m_capability.Deserialize (i);
+  m_listenInterval = i.ReadLsbtohU16 ();
+  ReadFrom (i, m_currentApAddr);
+  i = m_ssid.Deserialize (i);
+  i = m_rates.Deserialize (i);
+  i = m_rates.extended.DeserializeIfPresent (i);
+  i = m_extendedCapability.DeserializeIfPresent (i);
+  i = m_htCapability.DeserializeIfPresent (i);
+  i = m_vhtCapability.DeserializeIfPresent (i);
+  i = m_heCapability.DeserializeIfPresent (i);
+  return i.GetDistanceFrom (start);
+}
+
+
+/***********************************************************
+ *          Assoc/Reassoc Response
  ***********************************************************/
 
 NS_OBJECT_ENSURE_REGISTERED (MgtAssocResponseHeader);
@@ -889,6 +1090,7 @@ MgtAssocResponseHeader::Print (std::ostream &os) const
      << "aid=" << m_aid << ", "
      << "rates=" << m_rates << ", "
      << "ERP information=" << m_erpInformation << ", "
+     << "Extended Capabilities=" << m_extendedCapability << " , "
      << "HT Capabilities=" << m_htCapability << " , "
      << "HT Operation=" << m_htOperation << " , "
      << "VHT Capabilities=" << m_vhtCapability << " , "

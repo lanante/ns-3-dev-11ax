@@ -18,9 +18,9 @@
  * Author: Federico Maguolo <maguolof@dei.unipd.it>
  */
 
-#include "cara-wifi-manager.h"
 #include "ns3/log.h"
-#include "ns3/uinteger.h"
+#include "cara-wifi-manager.h"
+#include "wifi-tx-vector.h"
 
 #define Min(a,b) ((a < b) ? a : b)
 
@@ -141,7 +141,6 @@ CaraWifiManager::DoReportRtsOk (WifiRemoteStation *st,
                                 double ctsSnr, WifiMode ctsMode, double rtsSnr)
 {
   NS_LOG_FUNCTION (this << st << ctsSnr << ctsMode << rtsSnr);
-  NS_LOG_DEBUG ("self=" << st << " rts ok");
 }
 
 void
@@ -161,7 +160,7 @@ CaraWifiManager::DoReportDataOk (WifiRemoteStation *st,
         {
           station->m_rate++;
         }
-      NS_LOG_DEBUG ("self=" << station << " inc rate=" << static_cast<uint16_t>(station->m_rate));
+      NS_LOG_DEBUG ("self=" << station << " inc rate=" << +station->m_rate);
       station->m_timer = 0;
       station->m_success = 0;
     }
@@ -184,7 +183,7 @@ CaraWifiManager::DoGetDataTxVector (WifiRemoteStation *st)
 {
   NS_LOG_FUNCTION (this << st);
   CaraWifiRemoteStation *station = (CaraWifiRemoteStation *) st;
-  uint8_t channelWidth = GetChannelWidth (station);
+  uint16_t channelWidth = GetChannelWidth (station);
   if (channelWidth > 20 && channelWidth != 22)
     {
       //avoid to use legacy rate adaptation algorithms for IEEE 802.11n/ac
@@ -196,7 +195,7 @@ CaraWifiManager::DoGetDataTxVector (WifiRemoteStation *st)
       NS_LOG_DEBUG ("New datarate: " << mode.GetDataRate (channelWidth));
       m_currentRate = mode.GetDataRate (channelWidth);
     }
-  return WifiTxVector (mode, GetDefaultTxPowerLevel (), GetLongRetryCount (station), GetPreambleForTransmission (mode, GetAddress (station)), 800, 1, 1, 0, channelWidth, GetAggregation (station), false);
+  return WifiTxVector (mode, GetDefaultTxPowerLevel (), GetPreambleForTransmission (mode, GetAddress (station)), 800, 1, 1, 0, channelWidth, GetAggregation (station), false);
 }
 
 WifiTxVector
@@ -206,7 +205,7 @@ CaraWifiManager::DoGetRtsTxVector (WifiRemoteStation *st)
   CaraWifiRemoteStation *station = (CaraWifiRemoteStation *) st;
   /// \todo we could/should implement the Arf algorithm for
   /// RTS only by picking a single rate within the BasicRateSet.
-  uint8_t channelWidth = GetChannelWidth (station);
+  uint16_t channelWidth = GetChannelWidth (station);
   if (channelWidth > 20 && channelWidth != 22)
     {
       //avoid to use legacy rate adaptation algorithms for IEEE 802.11n/ac
@@ -222,7 +221,7 @@ CaraWifiManager::DoGetRtsTxVector (WifiRemoteStation *st)
     {
       mode = GetNonErpSupported (station, 0);
     }
-  rtsTxVector = WifiTxVector (mode, GetDefaultTxPowerLevel (), GetLongRetryCount (station), GetPreambleForTransmission (mode, GetAddress (station)), 800, 1, 1, 0, channelWidth, GetAggregation (station), false);
+  rtsTxVector = WifiTxVector (mode, GetDefaultTxPowerLevel (), GetPreambleForTransmission (mode, GetAddress (station)), 800, 1, 1, 0, channelWidth, GetAggregation (station), false);
   return rtsTxVector;
 }
 
@@ -238,7 +237,6 @@ CaraWifiManager::DoNeedRts (WifiRemoteStation *st,
 bool
 CaraWifiManager::IsLowLatency (void) const
 {
-  NS_LOG_FUNCTION (this);
   return true;
 }
 

@@ -323,7 +323,7 @@ public:
    *\
    * \return the MCS is supported
    */
-  bool IsSupportedMcs (uint8_t mcs);
+  bool IsSupportedMcs (uint8_t mcs) const;
   /**
    * Return receive highest supported data rate.
    *
@@ -443,9 +443,6 @@ private:
 };
 
 std::ostream &operator << (std::ostream &os, const HtOperation &htOperation);
-std::istream &operator >> (std::istream &is, HtOperation &htOperation);
-
-ATTRIBUTE_HELPER_HEADER (HtOperation);
 
 } //namespace ns3
 

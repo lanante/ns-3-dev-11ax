@@ -24,7 +24,10 @@
 
 #include "ns3/device-energy-model.h"
 #include "ns3/traced-value.h"
-#include "wifi-phy.h"
+#include "ns3/event-id.h"
+#include "ns3/nstime.h"
+#include "wifi-phy-listener.h"
+#include "wifi-phy-state.h"
 
 namespace ns3 {
 
@@ -129,6 +132,11 @@ public:
    * Defined in ns3::WifiPhyListener
    */
   void NotifyWakeup (void);
+
+  /**
+   * Defined in ns3::WifiPhyListener
+   */
+  void NotifyOn (void);
 
 
 private:
@@ -316,7 +324,7 @@ public:
   /**
    * \returns Current state.
    */
-  WifiPhy::State GetCurrentState (void) const;
+  WifiPhyState GetCurrentState (void) const;
 
   /**
    * \param callback Callback function.
@@ -404,7 +412,7 @@ private:
    * Sets current state. This function is private so that only the energy model
    * can change its own state.
    */
-  void SetWifiRadioState (const WifiPhy::State state);
+  void SetWifiRadioState (const WifiPhyState state);
 
   Ptr<EnergySource> m_source; ///< energy source
 
@@ -421,7 +429,7 @@ private:
   TracedValue<double> m_totalEnergyConsumption;
 
   // State variables.
-  WifiPhy::State m_currentState;  ///< current state the radio is in
+  WifiPhyState m_currentState;  ///< current state the radio is in
   Time m_lastUpdateTime;          ///< time stamp of previous energy update
 
   uint8_t m_nPendingChangeState; ///< pending state change

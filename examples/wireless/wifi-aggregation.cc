@@ -18,11 +18,20 @@
  * Author: Sébastien Deronne <sebastien.deronne@gmail.com>
  */
 
-#include "ns3/core-module.h"
-#include "ns3/applications-module.h"
-#include "ns3/wifi-module.h"
-#include "ns3/mobility-module.h"
-#include "ns3/internet-module.h"
+#include "ns3/command-line.h"
+#include "ns3/config.h"
+#include "ns3/uinteger.h"
+#include "ns3/boolean.h"
+#include "ns3/string.h"
+#include "ns3/log.h"
+#include "ns3/yans-wifi-helper.h"
+#include "ns3/ssid.h"
+#include "ns3/mobility-helper.h"
+#include "ns3/internet-stack-helper.h"
+#include "ns3/ipv4-address-helper.h"
+#include "ns3/udp-client-server-helper.h"
+#include "ns3/packet-sink-helper.h"
+#include "ns3/yans-wifi-channel.h"
 
 // This is an example that illustrates how 802.11n aggregation is configured.
 // It defines 4 independant Wi-Fi networks (working on different channels).
@@ -65,7 +74,7 @@ NS_LOG_COMPONENT_DEFINE ("SimpleMpduAggregation");
 int main (int argc, char *argv[])
 {
   uint32_t payloadSize = 1472; //bytes
-  uint64_t simulationTime = 10; //seconds
+  double simulationTime = 10; //seconds
   double distance = 5; //meters
   bool enableRts = 0;
   bool enablePcap = 0;

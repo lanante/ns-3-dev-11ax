@@ -18,9 +18,11 @@
  * Author: Mathieu Lacage <mathieu.lacage@sophia.inria.fr>
  */
 
-#include "regular-wifi-mac.h"
 #include "ns3/log.h"
 #include "ns3/pointer.h"
+#include "ns3/packet.h"
+#include "regular-wifi-mac.h"
+#include "wifi-phy.h"
 #include "mac-rx-middle.h"
 #include "mac-tx-middle.h"
 #include "mac-low.h"
@@ -28,6 +30,8 @@
 #include "msdu-aggregator.h"
 #include "mpdu-aggregator.h"
 #include "wifi-utils.h"
+#include "mgt-headers.h"
+#include "amsdu-subframe-header.h"
 
 namespace ns3 {
 
@@ -55,8 +59,8 @@ RegularWifiMac::RegularWifiMac ()
   m_dcfManager->SetupLow (m_low);
 
   m_dca = CreateObject<DcaTxop> ();
-  m_dca->SetLow (m_low);
-  m_dca->SetManager (m_dcfManager);
+  m_dca->SetMacLow (m_low);
+  m_dca->SetDcfManager (m_dcfManager);
   m_dca->SetTxMiddle (m_txMiddle);
   m_dca->SetTxOkCallback (MakeCallback (&RegularWifiMac::TxOk, this));
   m_dca->SetTxFailedCallback (MakeCallback (&RegularWifiMac::TxFailed, this));
@@ -155,6 +159,7 @@ RegularWifiMac::GetExtendedCapabilities (void) const
           capabilities.SetVhtSupported (1);
         }
     }
+  //TODO: to be completed
   return capabilities;
 }
 
@@ -398,28 +403,28 @@ RegularWifiMac::SetBkMaxAmpduSize (uint16_t size)
 void
 RegularWifiMac::SetVoBlockAckThreshold (uint8_t threshold)
 {
-  NS_LOG_FUNCTION (this << static_cast<uint16_t> (threshold));
+  NS_LOG_FUNCTION (this << +threshold);
   GetVOQueue ()->SetBlockAckThreshold (threshold);
 }
 
 void
 RegularWifiMac::SetViBlockAckThreshold (uint8_t threshold)
 {
-  NS_LOG_FUNCTION (this << static_cast<uint16_t> (threshold));
+  NS_LOG_FUNCTION (this << +threshold);
   GetVIQueue ()->SetBlockAckThreshold (threshold);
 }
 
 void
 RegularWifiMac::SetBeBlockAckThreshold (uint8_t threshold)
 {
-  NS_LOG_FUNCTION (this << static_cast<uint16_t> (threshold));
+  NS_LOG_FUNCTION (this << +threshold);
   GetBEQueue ()->SetBlockAckThreshold (threshold);
 }
 
 void
 RegularWifiMac::SetBkBlockAckThreshold (uint8_t threshold)
 {
-  NS_LOG_FUNCTION (this << static_cast<uint16_t> (threshold));
+  NS_LOG_FUNCTION (this << +threshold);
   GetBKQueue ()->SetBlockAckThreshold (threshold);
 }
 
@@ -461,8 +466,8 @@ RegularWifiMac::SetupEdcaQueue (AcIndex ac)
   NS_ASSERT (m_edca.find (ac) == m_edca.end ());
 
   Ptr<EdcaTxopN> edca = CreateObject<EdcaTxopN> ();
-  edca->SetLow (m_low);
-  edca->SetManager (m_dcfManager);
+  edca->SetMacLow (m_low);
+  edca->SetDcfManager (m_dcfManager);
   edca->SetTxMiddle (m_txMiddle);
   edca->SetTxOkCallback (MakeCallback (&RegularWifiMac::TxOk, this));
   edca->SetTxFailedCallback (MakeCallback (&RegularWifiMac::TxFailed, this));
@@ -682,12 +687,6 @@ RegularWifiMac::SetCtsToSelfSupported (bool enable)
 {
   NS_LOG_FUNCTION (this);
   m_low->SetCtsToSelfSupported (enable);
-}
-
-bool
-RegularWifiMac::GetCtsToSelfSupported () const
-{
-  return m_low->GetCtsToSelfSupported ();
 }
 
 void
@@ -1004,12 +1003,10 @@ RegularWifiMac::Receive (Ptr<Packet> packet, const WifiMacHeader *hdr)
 }
 
 void
-RegularWifiMac::DeaggregateAmsduAndForward (Ptr<Packet> aggregatedPacket,
-                                            const WifiMacHeader *hdr)
+RegularWifiMac::DeaggregateAmsduAndForward (Ptr<Packet> aggregatedPacket, const WifiMacHeader *hdr)
 {
-  MsduAggregator::DeaggregatedMsdus packets =
-    MsduAggregator::Deaggregate (aggregatedPacket);
-
+  NS_LOG_FUNCTION (this << aggregatedPacket << hdr);
+  MsduAggregator::DeaggregatedMsdus packets = MsduAggregator::Deaggregate (aggregatedPacket);
   for (MsduAggregator::DeaggregatedMsdusCI i = packets.begin ();
        i != packets.end (); ++i)
     {
@@ -1109,8 +1106,7 @@ RegularWifiMac::GetTypeId (void)
     .AddAttribute ("CtsToSelfSupported",
                    "Use CTS to Self when using a rate that is not in the basic rate set.",
                    BooleanValue (false),
-                   MakeBooleanAccessor (&RegularWifiMac::SetCtsToSelfSupported,
-                                        &RegularWifiMac::GetCtsToSelfSupported),
+                   MakeBooleanAccessor (&RegularWifiMac::SetCtsToSelfSupported),
                    MakeBooleanChecker ())
     .AddAttribute ("VO_MaxAmsduSize",
                    "Maximum length in bytes of an A-MSDU for AC_VO access class. "

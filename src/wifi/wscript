@@ -34,7 +34,6 @@ def build(bld):
         'model/status-code.cc',
         'model/mgt-headers.cc',
         'model/dcf-manager.cc',
-        'model/dcf-state.cc',
         'model/wifi-mac.cc',
         'model/regular-wifi-mac.cc',
         'model/wifi-remote-station-manager.cc',
@@ -85,6 +84,7 @@ def build(bld):
         'model/simple-frame-capture-model.cc',
         'model/he-operation.cc',
         'model/extended-capabilities.cc',
+        'model/wifi-mac-queue-item.cc',
         'helper/wifi-radio-energy-model-helper.cc',
         'helper/athstats-helper.cc',
         'helper/wifi-helper.cc',
@@ -103,6 +103,7 @@ def build(bld):
         'test/spectrum-wifi-phy-test.cc',
         'test/wifi-aggregation-test.cc',
         'test/wifi-error-rate-models-test.cc',
+        'test/wifi-transmit-mask-test.cc',
         ]
 
     headers = bld(features='ns3header')
@@ -159,7 +160,6 @@ def build(bld):
         'model/status-code.h',
         'model/capability-information.h',
         'model/dcf-manager.h',
-        'model/dcf-state.h',
         'model/mac-tx-middle.h', 
         'model/mac-rx-middle.h', 
         'model/mac-low.h',
@@ -192,6 +192,11 @@ def build(bld):
         'model/qos-blocked-destinations.h',
         'model/he-operation.h',
         'model/extended-capabilities.h',
+        'model/wifi-mac-queue-item.h',
+        'model/wifi-phy-state.h',
+        'model/wifi-phy-listener.h',
+        'model/block-ack-type.h',
+        'model/wifi-mpdu-type.h',
         'helper/wifi-radio-energy-model-helper.h',
         'helper/athstats-helper.h',
         'helper/wifi-helper.h',

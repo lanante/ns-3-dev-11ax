@@ -21,6 +21,7 @@
 #include "wifi-radio-energy-model-helper.h"
 #include "ns3/wifi-net-device.h"
 #include "ns3/wifi-tx-current-model.h"
+#include "ns3/wifi-phy.h"
 
 namespace ns3 {
 
@@ -115,9 +116,11 @@ WifiRadioEnergyModelHelper::DoInstall (Ptr<NetDevice> device,
     }
   // set energy recharged callback
   // if none is specified, make a callback to WifiPhy::ResumeFromOff
-  //TODO: ResumeFromOff not supported yet
-  //model->SetEnergyRechargedCallback (MakeCallback (&WifiPhy::ResumeFromOff, wifiPhy));
-  if (!m_rechargedCallback.IsNull ())
+  if (m_rechargedCallback.IsNull ())
+    {
+      model->SetEnergyRechargedCallback (MakeCallback (&WifiPhy::ResumeFromOff, wifiPhy));
+    }
+  else
     {
       model->SetEnergyRechargedCallback (m_rechargedCallback);
     }

@@ -18,10 +18,11 @@
  * Author: Matias Richart <mrichart@fing.edu.uy>
  */
 
-#include "aparf-wifi-manager.h"
-#include "wifi-phy.h"
 #include "ns3/log.h"
 #include "ns3/uinteger.h"
+#include "ns3/data-rate.h"
+#include "aparf-wifi-manager.h"
+#include "wifi-phy.h"
 
 #define Min(a,b) ((a < b) ? a : b)
 
@@ -127,6 +128,7 @@ AparfWifiManager::~AparfWifiManager ()
 void
 AparfWifiManager::SetupPhy (const Ptr<WifiPhy> phy)
 {
+  NS_LOG_FUNCTION (this << phy);
   m_minPower = phy->GetTxPowerStart ();
   m_maxPower = phy->GetTxPowerEnd ();
   WifiRemoteStationManager::SetupPhy (phy);
@@ -146,8 +148,8 @@ AparfWifiManager::DoCreateStation (void) const
   station->m_aparfState = AparfWifiManager::High;
   station->m_initialized = false;
 
-  NS_LOG_DEBUG ("create station=" << station << ", rate=" << static_cast<uint16_t>(station->m_rateIndex)
-                                  << ", power=" << static_cast<uint16_t>(station->m_powerLevel));
+  NS_LOG_DEBUG ("create station=" << station << ", rate=" << +station->m_rateIndex
+                                  << ", power=" << +station->m_powerLevel);
 
   return station;
 }
@@ -164,7 +166,7 @@ AparfWifiManager::CheckInit (AparfWifiRemoteStation *station)
       station->m_prevPowerLevel = m_maxPower;
       station->m_critRateIndex = 0;
       WifiMode mode = GetSupported (station, station->m_rateIndex);
-      uint8_t channelWidth = GetChannelWidth (station);
+      uint16_t channelWidth = GetChannelWidth (station);
       DataRate rate = DataRate (mode.GetDataRate (channelWidth));
       double power = GetPhy ()->GetPowerDbm (m_maxPower);
       m_powerChange (power, power, station->m_state->m_address);
@@ -232,7 +234,6 @@ AparfWifiManager::DoReportRtsOk (WifiRemoteStation *station, double ctsSnr,
                                  WifiMode ctsMode, double rtsSnr)
 {
   NS_LOG_FUNCTION (this << station << ctsSnr << ctsMode << rtsSnr);
-  NS_LOG_DEBUG ("station=" << station << " rts ok");
 }
 
 void
@@ -244,7 +245,7 @@ AparfWifiManager::DoReportDataOk (WifiRemoteStation *st, double ackSnr,
   CheckInit (station);
   station->m_nSuccess++;
   station->m_nFailed = 0;
-  NS_LOG_DEBUG ("station=" << station << " data ok success=" << station->m_nSuccess << ", rate=" << static_cast<uint16_t>(station->m_rateIndex) << ", power=" << static_cast<uint16_t>(station->m_powerLevel));
+  NS_LOG_DEBUG ("station=" << station << " data ok success=" << station->m_nSuccess << ", rate=" << +station->m_rateIndex << ", power=" << +station->m_powerLevel);
 
   if ((station->m_aparfState == AparfWifiManager::High) && (station->m_nSuccess >= station->m_successThreshold))
     {
@@ -321,7 +322,7 @@ AparfWifiManager::DoGetDataTxVector (WifiRemoteStation *st)
 {
   NS_LOG_FUNCTION (this << st);
   AparfWifiRemoteStation *station = (AparfWifiRemoteStation *) st;
-  uint8_t channelWidth = GetChannelWidth (station);
+  uint16_t channelWidth = GetChannelWidth (station);
   if (channelWidth > 20 && channelWidth != 22)
     {
       //avoid to use legacy rate adaptation algorithms for IEEE 802.11n/ac
@@ -343,7 +344,7 @@ AparfWifiManager::DoGetDataTxVector (WifiRemoteStation *st)
       m_rateChange (prevRate, rate, station->m_state->m_address);
       station->m_prevRateIndex = station->m_rateIndex;
     }
-  return WifiTxVector (mode, station->m_powerLevel, GetLongRetryCount (station), GetPreambleForTransmission (mode, GetAddress (st)), 800, 1, 1, 0, channelWidth, GetAggregation (station), false);
+  return WifiTxVector (mode, station->m_powerLevel, GetPreambleForTransmission (mode, GetAddress (st)), 800, 1, 1, 0, channelWidth, GetAggregation (station), false);
 }
 
 WifiTxVector
@@ -353,7 +354,7 @@ AparfWifiManager::DoGetRtsTxVector (WifiRemoteStation *st)
   /// \todo we could/should implement the Arf algorithm for
   /// RTS only by picking a single rate within the BasicRateSet.
   AparfWifiRemoteStation *station = (AparfWifiRemoteStation *) st;
-  uint8_t channelWidth = GetChannelWidth (station);
+  uint16_t channelWidth = GetChannelWidth (station);
   if (channelWidth > 20 && channelWidth != 22)
     {
       //avoid to use legacy rate adaptation algorithms for IEEE 802.11n/ac
@@ -369,14 +370,13 @@ AparfWifiManager::DoGetRtsTxVector (WifiRemoteStation *st)
     {
       mode = GetNonErpSupported (station, 0);
     }
-  rtsTxVector = WifiTxVector (mode, GetDefaultTxPowerLevel (), GetShortRetryCount (station), GetPreambleForTransmission (mode, GetAddress (st)), 800, 1, 1, 0, channelWidth, GetAggregation (station), false);
+  rtsTxVector = WifiTxVector (mode, GetDefaultTxPowerLevel (), GetPreambleForTransmission (mode, GetAddress (st)), 800, 1, 1, 0, channelWidth, GetAggregation (station), false);
   return rtsTxVector;
 }
 
 bool
 AparfWifiManager::IsLowLatency (void) const
 {
-  NS_LOG_FUNCTION (this);
   return true;
 }
 

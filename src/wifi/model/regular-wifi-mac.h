@@ -22,8 +22,8 @@
 #define REGULAR_WIFI_MAC_H
 
 #include "wifi-mac.h"
-#include "dca-txop.h"
 #include "edca-txop-n.h"
+#include "ssid.h"
 
 namespace ns3 {
 
@@ -31,6 +31,7 @@ class MacLow;
 class MacRxMiddle;
 class MacTxMiddle;
 class DcfManager;
+class ExtendedCapabilities;
 
 /**
  * \brief base class for all MAC-level wifi objects.
@@ -118,14 +119,6 @@ public:
    *               false otherwise
    */
   void SetCtsToSelfSupported (bool enable);
-  /**
-   * Return whether the device supports CTS-to-self
-   * capability.
-   *
-   * \return true if CTS-to-self is supported,
-   *         false otherwise.
-   */
-  bool GetCtsToSelfSupported () const;
 
   /**
    * Enable or disable short slot time feature.
@@ -216,7 +209,7 @@ public:
   /**
    * \param phy the physical layer attached to this MAC.
    */
-  void SetWifiPhy (const Ptr<WifiPhy> phy);
+  virtual void SetWifiPhy (const Ptr<WifiPhy> phy);
   /**
    * \return the physical layer attached to this MAC.
    */

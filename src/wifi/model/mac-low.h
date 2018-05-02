@@ -23,26 +23,32 @@
 #ifndef MAC_LOW_H
 #define MAC_LOW_H
 
-#include "wifi-phy.h"
+#include "ns3/object.h"
+#include "ns3/nstime.h"
 #include "dcf-manager.h"
-#include "wifi-remote-station-manager.h"
-#include "block-ack-agreement.h"
-#include "qos-utils.h"
 #include "block-ack-cache.h"
-#include "mpdu-aggregator.h"
-#include "msdu-aggregator.h"
 #include "mac-low-transmission-parameters.h"
+#include "qos-utils.h"
+#include "wifi-mac-header.h"
+#include "wifi-tx-vector.h"
+#include "block-ack-type.h"
+#include "wifi-mpdu-type.h"
 
 class TwoLevelAggregationTest;
 class AmpduAggregationTest;
 
 namespace ns3 {
 
+class WifiPhy;
 class DcaTxop;
 class EdcaTxopN;
-class DcfManager;
 class WifiMacQueueItem;
 class WifiMacQueue;
+class BlockAckAgreement;
+class MgtAddBaResponseHeader;
+class WifiRemoteStationManager;
+class CtrlBAckRequestHeader;
+class CtrlBAckResponseHeader;
 
 /**
  * \ingroup wifi
@@ -612,18 +618,6 @@ private:
    */
   void NormalAckTimeout (void);
   /**
-   * Event handler when fast ACK timeout occurs (idle).
-   */
-  void FastAckTimeout (void);
-  /**
-   * Event handler when super fast ACK timeout occurs.
-   */
-  void SuperFastAckTimeout (void);
-  /**
-   * Event handler when fast ACK timeout occurs (busy).
-   */
-  void FastAckFailedTimeout (void);
-  /**
    * Event handler when block ACK timeout occurs.
    */
   void BlockAckTimeout (void);
@@ -851,9 +845,6 @@ private:
   DcfManagers m_dcfManagers; //!< List of DcfManager
 
   EventId m_normalAckTimeoutEvent;      //!< Normal ACK timeout event
-  EventId m_fastAckTimeoutEvent;        //!< Fast ACK timeout event
-  EventId m_superFastAckTimeoutEvent;   //!< Super fast ACK timeout event
-  EventId m_fastAckFailedTimeoutEvent;  //!< Fast ACK failed timeout event
   EventId m_blockAckTimeoutEvent;       //!< Block ACK timeout event
   EventId m_ctsTimeoutEvent;            //!< CTS timeout event
   EventId m_sendCtsEvent;               //!< Event to send CTS

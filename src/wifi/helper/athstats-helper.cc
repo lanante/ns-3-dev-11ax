@@ -21,6 +21,11 @@
 #include "ns3/log.h"
 #include "ns3/simulator.h"
 #include "ns3/config.h"
+#include "ns3/wifi-mode.h"
+#include "ns3/wifi-preamble.h"
+#include "ns3/wifi-phy-state.h"
+#include "ns3/net-device-container.h"
+#include "ns3/node-container.h"
 #include "athstats-helper.h"
 #include <iomanip>
 #include <fstream>
@@ -227,7 +232,7 @@ AthstatsWifiTraceSink::PhyTxTrace (std::string context, Ptr<const Packet> packet
 }
 
 void
-AthstatsWifiTraceSink::PhyStateTrace (std::string context, Time start, Time duration, WifiPhy::State state)
+AthstatsWifiTraceSink::PhyStateTrace (std::string context, Time start, Time duration, WifiPhyState state)
 {
   NS_LOG_FUNCTION (this << context << start << duration << state);
 }

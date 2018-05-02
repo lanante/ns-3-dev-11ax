@@ -469,8 +469,6 @@ HeCapabilities::GetHighestNssSupported (void) const
   return m_highestNssSupportedM1 + 1;
 }
 
-ATTRIBUTE_HELPER_CPP (HeCapabilities);
-
 /**
  * output stream output operator
  * \param os the output stream
@@ -481,31 +479,11 @@ std::ostream &
 operator << (std::ostream &os, const HeCapabilities &HeCapabilities)
 {
   os << HeCapabilities.GetHeMacCapabilitiesInfo1 () << "|"
-     << static_cast<uint16_t> (HeCapabilities.GetHeMacCapabilitiesInfo2 ()) << "|"
+     << +HeCapabilities.GetHeMacCapabilitiesInfo2 () << "|"
      << HeCapabilities.GetHePhyCapabilitiesInfo1 () << "|"
-     << static_cast<uint16_t> (HeCapabilities.GetHePhyCapabilitiesInfo2 ()) << "|"
+     << +HeCapabilities.GetHePhyCapabilitiesInfo2 () << "|"
      << HeCapabilities.GetSupportedMcsAndNss ();
   return os;
-}
-
-/**
- * input stream input operator
- * \param is the output stream
- * \param HeCapabilities the HE capabilities
- * \returns the input stream
- */
-std::istream &operator >> (std::istream &is, HeCapabilities &HeCapabilities)
-{
-  uint32_t c1;
-  uint8_t c2;
-  uint64_t c3;
-  uint8_t c4;
-  uint16_t c5;
-  is >> c1 >> c2 >> c3 >> c4 >> c5;
-  HeCapabilities.SetHeMacCapabilitiesInfo (c1, c2);
-  HeCapabilities.SetHePhyCapabilitiesInfo (c3, c4);
-  HeCapabilities.SetSupportedMcsAndNss (c5);
-  return is;
 }
 
 } //namespace ns3

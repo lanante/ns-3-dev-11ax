@@ -21,7 +21,6 @@
 #ifndef HE_CAPABILITIES_H
 #define HE_CAPABILITIES_H
 
-#include "ns3/buffer.h"
 #include "wifi-information-element.h"
 
 namespace ns3 {
@@ -287,9 +286,6 @@ private:
 };
 
 std::ostream &operator << (std::ostream &os, const HeCapabilities &HeCapabilities);
-std::istream &operator >> (std::istream &is, HeCapabilities &HeCapabilities);
-
-ATTRIBUTE_HELPER_HEADER (HeCapabilities);
 
 } //namespace ns3
 

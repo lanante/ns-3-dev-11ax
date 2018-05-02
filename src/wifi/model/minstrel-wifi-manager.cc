@@ -29,14 +29,14 @@
  * http://linuxwireless.org/en/developers/Documentation/mac80211/RateControl/minstrel
  */
 
-#include "minstrel-wifi-manager.h"
+#include <iomanip>
+#include "ns3/packet.h"
+#include "ns3/random-variable-stream.h"
 #include "ns3/simulator.h"
 #include "ns3/log.h"
-#include "ns3/double.h"
-#include "ns3/boolean.h"
+#include "minstrel-wifi-manager.h"
 #include "wifi-mac.h"
 #include "wifi-phy.h"
-#include <iomanip>
 
 #define Min(a,b) ((a < b) ? a : b)
 
@@ -82,6 +82,11 @@ MinstrelWifiManager::GetTypeId (void)
                    "Print statistics table",
                    BooleanValue (false),
                    MakeBooleanAccessor (&MinstrelWifiManager::m_printStats),
+                   MakeBooleanChecker ())
+    .AddAttribute ("PrintSamples",
+                   "Print samples table",
+                   BooleanValue (false),
+                   MakeBooleanAccessor (&MinstrelWifiManager::m_printSamples),
                    MakeBooleanChecker ())
     .AddTraceSource ("Rate",
                      "Traced value for rate changes (b/s)",
@@ -352,7 +357,7 @@ WifiTxVector
 MinstrelWifiManager::GetDataTxVector (MinstrelWifiRemoteStation *station)
 {
   NS_LOG_FUNCTION (this << station);
-  uint8_t channelWidth = GetChannelWidth (station);
+  uint16_t channelWidth = GetChannelWidth (station);
   if (channelWidth > 20 && channelWidth != 22)
     {
       //avoid to use legacy rate adaptation algorithms for IEEE 802.11n/ac
@@ -368,7 +373,7 @@ MinstrelWifiManager::GetDataTxVector (MinstrelWifiRemoteStation *station)
       NS_LOG_DEBUG ("New datarate: " << mode.GetDataRate (channelWidth));
       m_currentRate = mode.GetDataRate (channelWidth);
     }
-  return WifiTxVector (mode, GetDefaultTxPowerLevel (), GetLongRetryCount (station), GetPreambleForTransmission (mode, GetAddress (station)), 800, 1, 1, 0, channelWidth, GetAggregation (station), false);
+  return WifiTxVector (mode, GetDefaultTxPowerLevel (), GetPreambleForTransmission (mode, GetAddress (station)), 800, 1, 1, 0, channelWidth, GetAggregation (station), false);
 }
 
 WifiTxVector
@@ -376,7 +381,7 @@ MinstrelWifiManager::GetRtsTxVector (MinstrelWifiRemoteStation *station)
 {
   NS_LOG_FUNCTION (this << station);
   NS_LOG_DEBUG ("DoGetRtsMode m_txrate=" << station->m_txrate);
-  uint8_t channelWidth = GetChannelWidth (station);
+  uint16_t channelWidth = GetChannelWidth (station);
   if (channelWidth > 20 && channelWidth != 22)
     {
       //avoid to use legacy rate adaptation algorithms for IEEE 802.11n/ac
@@ -392,7 +397,7 @@ MinstrelWifiManager::GetRtsTxVector (MinstrelWifiRemoteStation *station)
     {
       mode = GetNonErpSupported (station, 0);
     }
-  rtsTxVector = WifiTxVector (mode, GetDefaultTxPowerLevel (), GetShortRetryCount (station), GetPreambleForTransmission (mode, GetAddress (station)), 800, 1, 1, 0, channelWidth, GetAggregation (station), false);
+  rtsTxVector = WifiTxVector (mode, GetDefaultTxPowerLevel (), GetPreambleForTransmission (mode, GetAddress (station)), 800, 1, 1, 0, channelWidth, GetAggregation (station), false);
   return rtsTxVector;
 }
 
@@ -486,7 +491,7 @@ MinstrelWifiManager::FindRate (MinstrelWifiRemoteStation *station)
           // if samplieLimit is zero, then don't sample this rate
           if (!station->m_minstrelTable[idx].sampleLimit)
             {
-              idx =  station->m_maxTpRate;
+              idx = station->m_maxTpRate;
               station->m_isSampling = false;
             }
           else
@@ -504,7 +509,7 @@ MinstrelWifiManager::FindRate (MinstrelWifiRemoteStation *station)
       if (station->m_sampleDeferred)
         {
           NS_LOG_DEBUG ("The next look around rate is slower than the maximum throughput rate, continue with the maximum throughput rate: " << station->m_maxTpRate << "(" << GetSupported (station, station->m_maxTpRate) << ")");
-          idx =  station->m_maxTpRate;
+          idx = station->m_maxTpRate;
         }
     }
   //continue using the best rate
@@ -691,11 +696,14 @@ MinstrelWifiManager::UpdateStats (MinstrelWifiRemoteStation *station)
     {
       PrintTable (station);
     }
+  if (m_printSamples)
+    {
+      PrintSampleTable (station);
+    }
 }
 
 void
-MinstrelWifiManager::DoReportRxOk (WifiRemoteStation *st,
-                                   double rxSnr, WifiMode txMode)
+MinstrelWifiManager::DoReportRxOk (WifiRemoteStation *st, double rxSnr, WifiMode txMode)
 {
   NS_LOG_FUNCTION (this << st << rxSnr << txMode);
   NS_LOG_DEBUG ("DoReportRxOk m_txrate=" << ((MinstrelWifiRemoteStation *)st)->m_txrate);
@@ -707,15 +715,13 @@ MinstrelWifiManager::DoReportRtsFailed (WifiRemoteStation *st)
   NS_LOG_FUNCTION (this << st);
   MinstrelWifiRemoteStation *station = (MinstrelWifiRemoteStation *)st;
   NS_LOG_DEBUG ("DoReportRtsFailed m_txrate=" << station->m_txrate);
-
   station->m_shortRetry++;
 }
 
 void
 MinstrelWifiManager::DoReportRtsOk (WifiRemoteStation *st, double ctsSnr, WifiMode ctsMode, double rtsSnr)
 {
-  NS_LOG_FUNCTION (this << st);
-  NS_LOG_DEBUG ("self=" << st << " rts ok");
+  NS_LOG_FUNCTION (this << st << ctsSnr << ctsMode << rtsSnr);
 }
 
 void
@@ -723,7 +729,6 @@ MinstrelWifiManager::DoReportFinalRtsFailed (WifiRemoteStation *st)
 {
   NS_LOG_FUNCTION (this << st);
   MinstrelWifiRemoteStation *station = (MinstrelWifiRemoteStation *)st;
-  NS_LOG_DEBUG ("Final RTS failed");
   UpdateRetry (station);
 }
 
@@ -746,7 +751,7 @@ void
 MinstrelWifiManager::DoReportDataOk (WifiRemoteStation *st,
                                      double ackSnr, WifiMode ackMode, double dataSnr)
 {
-  NS_LOG_FUNCTION (st << ackSnr << ackMode << dataSnr);
+  NS_LOG_FUNCTION (this << st << ackSnr << ackMode << dataSnr);
   MinstrelWifiRemoteStation *station = (MinstrelWifiRemoteStation *) st;
 
   CheckInit (station);
@@ -880,7 +885,6 @@ MinstrelWifiManager::DoNeedDataRetransmission (WifiRemoteStation *st, Ptr<const 
 bool
 MinstrelWifiManager::IsLowLatency (void) const
 {
-  NS_LOG_FUNCTION (this);
   return true;
 }
 
@@ -909,11 +913,10 @@ MinstrelWifiManager::GetNextSample (MinstrelWifiRemoteStation *station)
 void
 MinstrelWifiManager::RateInit (MinstrelWifiRemoteStation *station)
 {
-  NS_LOG_FUNCTION (station);
-
+  NS_LOG_FUNCTION (this << station);
   for (uint8_t i = 0; i < station->m_nModes; i++)
     {
-      NS_LOG_DEBUG ("Initializing rate index " << static_cast<uint16_t>(i) << " " << GetSupported (station, i));
+      NS_LOG_DEBUG ("Initializing rate index " << +i << " " << GetSupported (station, i));
       station->m_minstrelTable[i].numRateAttempt = 0;
       station->m_minstrelTable[i].numRateSuccess = 0;
       station->m_minstrelTable[i].prevNumRateSuccess = 0;
@@ -979,8 +982,7 @@ MinstrelWifiManager::CalculateTimeUnicastPacket (Time dataTransmissionTime, uint
 void
 MinstrelWifiManager::InitSampleTable (MinstrelWifiRemoteStation *station)
 {
-  NS_LOG_DEBUG ("InitSampleTable=" << this);
-
+  NS_LOG_FUNCTION (this << station);
   station->m_col = station->m_index = 0;
 
   //for off-setting to make rates fall between 0 and nModes
@@ -996,7 +998,7 @@ MinstrelWifiManager::InitSampleTable (MinstrelWifiRemoteStation *station)
            * between 0 and the number of available rates
            */
           int uv = m_uniformRandomVariable->GetInteger (0, numSampleRates);
-          NS_LOG_DEBUG("InitSampleTable uv: " << uv);
+          NS_LOG_DEBUG ("InitSampleTable uv: " << uv);
           newIndex = (i + uv) % numSampleRates;
 
           //this loop is used for filling in other uninitialized places
@@ -1012,8 +1014,6 @@ MinstrelWifiManager::InitSampleTable (MinstrelWifiRemoteStation *station)
 void
 MinstrelWifiManager::PrintSampleTable (MinstrelWifiRemoteStation *station)
 {
-  NS_LOG_DEBUG ("PrintSampleTable=" << station);
-
   uint8_t numSampleRates = station->m_nModes;
   std::stringstream table;
   for (uint8_t i = 0; i < numSampleRates; i++)
@@ -1030,9 +1030,6 @@ MinstrelWifiManager::PrintSampleTable (MinstrelWifiRemoteStation *station)
 void
 MinstrelWifiManager::PrintTable (MinstrelWifiRemoteStation *station)
 {
-  NS_LOG_FUNCTION (this << station);
-  NS_LOG_DEBUG ("PrintTable=" << station);
-
   station->m_statsFile << "best   _______________rate________________    ________statistics________    ________last_______    ______sum-of________\n" <<
     "rate  [      name       idx airtime max_tp]  [avg(tp) avg(prob) sd(prob)]  [prob.|retry|suc|att]  [#success | #attempts]\n";
 
