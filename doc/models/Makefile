@@ -64,6 +64,7 @@ SOURCES = \
 	$(SRC)/internet/doc/ipv6.rst \
 	$(SRC)/internet/doc/routing-overview.rst \
 	$(SRC)/internet/doc/tcp.rst \
+	$(SRC)/internet/doc/udp.rst \
 	$(SRC)/internet-apps/doc/internet-apps.rst \
 	$(SRC)/mobility/doc/mobility.rst \
 	$(SRC)/olsr/doc/olsr.rst \
@@ -80,6 +81,8 @@ SOURCES = \
 	$(SRC)/traffic-control/doc/traffic-control-layer.rst \
 	$(SRC)/traffic-control/doc/queue-discs.rst \
 	$(SRC)/traffic-control/doc/pfifo-fast.rst \
+	$(SRC)/traffic-control/doc/fifo.rst \
+	$(SRC)/traffic-control/doc/tbf.rst \
 	$(SRC)/traffic-control/doc/red.rst \
 	$(SRC)/traffic-control/doc/codel.rst \
 	$(SRC)/traffic-control/doc/fq-codel.rst \

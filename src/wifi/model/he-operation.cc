@@ -27,7 +27,7 @@ HeOperation::HeOperation ()
     m_defaultPEDuration (0),
     m_twtRequired (0),
     m_heDurationBasedRtsThreshold (0),
-    m_partialBsssColor (0),
+    m_partialBssColor (0),
     m_maxBssidIndicator (0),
     m_txBssidIndicator (0),
     m_bssColorDisabled (0),
@@ -64,7 +64,7 @@ HeOperation::SetHeOperationParameters (uint32_t ctrl)
   m_defaultPEDuration = (ctrl >> 6) & 0x07;
   m_twtRequired = (ctrl >> 9) & 0x01;
   m_heDurationBasedRtsThreshold = (ctrl >> 10) & 0x03ff;
-  m_partialBsssColor = (ctrl >> 20) & 0x01;
+  m_partialBssColor = (ctrl >> 20) & 0x01;
   m_maxBssidIndicator = (ctrl >> 21) & 0xff;
   m_txBssidIndicator = (ctrl >> 29) & 0x01;
   m_bssColorDisabled = (ctrl >> 30) & 0x01;
@@ -79,7 +79,7 @@ HeOperation::GetHeOperationParameters () const
   val |= (m_defaultPEDuration & 0x07) << 6;
   val |= (m_twtRequired & 0x01) << 9;
   val |= (m_heDurationBasedRtsThreshold & 0x03ff) << 10;
-  val |= (m_partialBsssColor & 0x01) << 20;
+  val |= (m_partialBssColor & 0x01) << 20;
   val |= (m_maxBssidIndicator & 0xff) << 21;
   val |= (m_txBssidIndicator & 0x01) << 29;
   val |= (m_bssColorDisabled & 0x01) << 30;
@@ -164,8 +164,6 @@ HeOperation::DeserializeInformationField (Buffer::Iterator start, uint8_t length
   return length;
 }
 
-ATTRIBUTE_HELPER_CPP (HeOperation);
-
 /**
  * output stream output operator
  *
@@ -180,22 +178,6 @@ operator << (std::ostream &os, const HeOperation &HeOperation)
   os << HeOperation.GetHeOperationParameters () << "|"
      << HeOperation.GetBasicHeMcsAndNssSet ();
   return os;
-}
-
-/**
- * input stream input operator
- *
- * \param is input stream
- * \param HeOperation the HE operation
- *
- * \returns input stream
- */
-std::istream &operator >> (std::istream &is, HeOperation &HeOperation)
-{
-  uint32_t c1;
-  is >> c1;
-  HeOperation.SetHeOperationParameters (c1);
-  return is;
 }
 
 } //namespace ns3

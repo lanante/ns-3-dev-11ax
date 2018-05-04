@@ -18,9 +18,13 @@
  * Author: Sébastien Deronne <sebastien.deronne@gmail.com>
  */
 
+#include "ns3/packet.h"
+#include "ns3/nstime.h"
 #include "wifi-utils.h"
+#include "ctrl-headers.h"
 #include "wifi-mac-header.h"
-#include <cmath>
+#include "wifi-mac-trailer.h"
+#include "wifi-mode.h"
 
 namespace ns3 {
 
@@ -55,6 +59,26 @@ double
 RatioToDb (double ratio)
 {
   return 10.0 * std::log10 (ratio);
+}
+
+bool
+Is2_4Ghz (double frequency)
+{
+  if (frequency >= 2400 && frequency <= 2500)
+    {
+      return true;
+    }
+  return false;
+}
+
+bool
+Is5Ghz (double frequency)
+{
+  if (frequency >= 5000 && frequency <= 6000)
+    {
+      return true;
+    }
+  return false;
 }
 
 uint16_t
@@ -126,6 +150,29 @@ bool
 IsInWindow (uint16_t seq, uint16_t winstart, uint16_t winsize)
 {
   return ((seq - winstart + 4096) % 4096) < winsize;
+}
+
+void
+AddWifiMacTrailer (Ptr<Packet> packet)
+{
+  WifiMacTrailer fcs;
+  packet->AddTrailer (fcs);
+}
+
+uint32_t
+GetSize (Ptr<const Packet> packet, const WifiMacHeader *hdr, bool isAmpdu)
+{
+  uint32_t size;
+  WifiMacTrailer fcs;
+  if (isAmpdu)
+    {
+      size = packet->GetSize ();
+    }
+  else
+    {
+      size = packet->GetSize () + hdr->GetSize () + fcs.GetSerializedSize ();
+    }
+  return size;
 }
 
 } //namespace ns3

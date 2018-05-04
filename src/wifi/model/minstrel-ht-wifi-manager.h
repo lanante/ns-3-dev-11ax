@@ -47,10 +47,9 @@ struct McsGroup
 {
   uint8_t streams; ///< streams
   uint8_t sgi; ///< short guard interval (0 or 1)
-  uint8_t chWidth; ///< channel width (MHz)
+  uint16_t chWidth; ///< channel width (MHz)
   bool isVht; ///< is VHT?
   bool isSupported; ///< is supported?
-
   // To accurately account for TX times, we separate the TX time of the first
   // MPDU in an A-MPDU from the rest of the MPDUs.
   TxTime ratesTxTimeTable; ///< rates transmit time table
@@ -74,28 +73,21 @@ struct HtRateInfo
    * Given a bit rate and a packet length n bytes.
    */
   Time perfectTxTime;
-
   bool supported;               //!< If the rate is supported.
-
-  uint32_t mcsIndex;            //!< The index in the operationalMcsSet of the WifiRemoteStationManager.
-
+  uint8_t mcsIndex;             //!< The index in the operationalMcsSet of the WifiRemoteStationManager.
   uint32_t retryCount;          //!< Retry limit.
   uint32_t adjustedRetryCount;  //!< Adjust the retry limit for this rate.
   uint32_t numRateAttempt;      //!< Number of transmission attempts so far.
   uint32_t numRateSuccess;      //!< Number of successful frames transmitted so far.
   double prob;                  //!< Current probability within last time interval. (# frame success )/(# total frames)
-
   bool retryUpdated;            //!< If number of retries was updated already.
-
   /**
    * Exponential weighted moving average of probability.
    * EWMA calculation:
    * ewma_prob =[prob *(100 - ewma_level) + (ewma_prob_old * ewma_level)]/100
    */
   double ewmaProb;
-
   double ewmsdProb;             //!< Exponential weighted moving standard deviation of probability.
-
   uint32_t prevNumRateAttempt;  //!< Number of transmission attempts with previous rate.
   uint32_t prevNumRateSuccess;  //!< Number of successful frames transmitted with previous rate.
   uint32_t numSamplesSkipped;   //!< Number of times this rate statistics were not updated because no attempts have been made.
@@ -120,13 +112,10 @@ struct GroupInfo
    */
   uint8_t m_col;                  //!< Sample table column.
   uint8_t m_index;                //!< Sample table index.
-
   bool m_supported;               //!< If the rates of this group are supported by the station.
-
   uint32_t m_maxTpRate;           //!< The max throughput rate of this group.
   uint32_t m_maxTpRate2;          //!< The second max throughput rate of this group.
   uint32_t m_maxProbRate;         //!< The highest success probability rate of this group.
-
   HtMinstrelRate m_ratesTable;    //!< Information about rates of this group.
 };
 
@@ -254,11 +243,6 @@ private:
                               double rxSnr, double dataSnr);
   bool IsLowLatency (void) const;
   bool DoNeedDataRetransmission (WifiRemoteStation *st, Ptr<const Packet> packet, bool normally);
-  /**
-   * Dispose station function
-   * \param station the wifi remote station
-   */
-  void DoDisposeStation (WifiRemoteStation *station);
 
   /**
    * Check the validity of a combination of number of streams, chWidth and mode.
@@ -269,7 +253,7 @@ private:
    * \param mode the wifi mode
    * \returns true if the combination is valid
    */
-  bool IsValidMcs (Ptr<WifiPhy> phy, uint8_t streams, uint8_t chWidth, WifiMode mode);
+  bool IsValidMcs (Ptr<WifiPhy> phy, uint8_t streams, uint16_t chWidth, WifiMode mode);
 
   /**
    * Estimates the TxTime of a frame with a given mode and group (stream, guard interval and channel width).
@@ -281,7 +265,7 @@ private:
    * \param mode the wifi mode
    * \returns the transmit time
    */
-  Time CalculateMpduTxDuration (Ptr<WifiPhy> phy, uint8_t streams, uint8_t sgi, uint8_t chWidth, WifiMode mode);
+  Time CalculateMpduTxDuration (Ptr<WifiPhy> phy, uint8_t streams, uint8_t sgi, uint16_t chWidth, WifiMode mode);
 
   /**
    * Estimates the TxTime of a frame with a given mode and group (stream, guard interval and channel width).
@@ -293,7 +277,7 @@ private:
    * \param mode the wifi mode
    * \returns the transmit time
    */
-  Time CalculateFirstMpduTxDuration (Ptr<WifiPhy> phy, uint8_t streams, uint8_t sgi, uint8_t chWidth, WifiMode mode);
+  Time CalculateFirstMpduTxDuration (Ptr<WifiPhy> phy, uint8_t streams, uint8_t sgi, uint16_t chWidth, WifiMode mode);
 
   /**
    * Obtain the TXtime saved in the group information.
@@ -557,7 +541,7 @@ private:
    * \param chWidth the channel width (MHz)
    * \returns the HT group ID
    */
-  uint32_t GetHtGroupId (uint8_t txstreams, uint8_t sgi, uint8_t chWidth);
+  uint32_t GetHtGroupId (uint8_t txstreams, uint8_t sgi, uint16_t chWidth);
 
   /**
    * Returns the groupId of a VHT MCS with the given number of streams, if using sgi and the channel width used.
@@ -567,7 +551,7 @@ private:
    * \param chWidth the channel width (MHz)
    * \returns the VHT group ID
    */
-  uint32_t GetVhtGroupId (uint8_t txstreams, uint8_t sgi, uint8_t chWidth);
+  uint32_t GetVhtGroupId (uint8_t txstreams, uint8_t sgi, uint16_t chWidth);
 
   /**
    * Returns the lowest global index of the rates supported by the station.

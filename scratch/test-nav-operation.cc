@@ -98,27 +98,27 @@ std::ofstream g_phyStateFile;
 std::ofstream g_navStateFile;
 
 std::string
-StateToString (WifiPhy::State state)
+StateToString (WifiPhyState state)
 {
   std::string stateString;
   switch (state)
     {
-    case WifiPhy::IDLE:
+    case WifiPhyState::IDLE:
       stateString = "IDLE";
       break;
-    case WifiPhy::CCA_BUSY:
+    case WifiPhyState::CCA_BUSY:
       stateString = "CCA_BUSY";
       break;
-    case WifiPhy::TX:
+    case WifiPhyState::TX:
       stateString = "TX";
       break;
-    case WifiPhy::RX:
+    case WifiPhyState::RX:
       stateString = "RX";
       break;
-    case WifiPhy::SWITCHING:
+    case WifiPhyState::SWITCHING:
       stateString = "SWITCHING";
       break;
-    case WifiPhy::SLEEP:
+    case WifiPhyState::SLEEP:
       stateString = "SLEEP";
       break;
     default:
@@ -128,7 +128,7 @@ StateToString (WifiPhy::State state)
 }
 
 void
-StateCb (std::string context, Time start, Time duration, WifiPhy::State state)
+StateCb (std::string context, Time start, Time duration, WifiPhyState state)
 {
   g_phyStateFile << ContextToNodeId (context) << " "
               << std::setprecision (6) << start.GetSeconds () << " " 

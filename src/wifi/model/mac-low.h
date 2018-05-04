@@ -23,26 +23,32 @@
 #ifndef MAC_LOW_H
 #define MAC_LOW_H
 
-#include "wifi-phy.h"
+#include "ns3/object.h"
+#include "ns3/nstime.h"
 #include "dcf-manager.h"
-#include "wifi-remote-station-manager.h"
-#include "block-ack-agreement.h"
-#include "qos-utils.h"
 #include "block-ack-cache.h"
-#include "mpdu-aggregator.h"
-#include "msdu-aggregator.h"
 #include "mac-low-transmission-parameters.h"
+#include "qos-utils.h"
+#include "wifi-mac-header.h"
+#include "wifi-tx-vector.h"
+#include "block-ack-type.h"
+#include "wifi-mpdu-type.h"
 
 class TwoLevelAggregationTest;
 class AmpduAggregationTest;
 
 namespace ns3 {
 
+class WifiPhy;
 class DcaTxop;
 class EdcaTxopN;
-class DcfManager;
 class WifiMacQueueItem;
 class WifiMacQueue;
+class BlockAckAgreement;
+class MgtAddBaResponseHeader;
+class WifiRemoteStationManager;
+class CtrlBAckRequestHeader;
+class CtrlBAckResponseHeader;
 
 /**
  * \ingroup wifi
@@ -321,6 +327,12 @@ public:
    */
   void NotifySleepNow (void);
   /**
+   * This method is typically invoked by the PhyMacLowListener to notify
+   * the MAC layer that the device has been put into off mode. When the device is put
+   * into off mode, pending MAC transmissions (RTS, CTS, DATA and ACK) are cancelled.
+   */
+  void NotifyOffNow (void);
+  /**
    * \param respHdr Add block ack response from originator (action
    * frame).
    * \param originator Address of peer station involved in block ack
@@ -411,22 +423,6 @@ private:
    * or switching channel.
    */
   void CancelAllEvents (void);
-  /**
-   * Return the total size of the packet after WifiMacHeader and FCS trailer
-   * have been added.
-   *
-   * \param packet the packet to be encapsulated with WifiMacHeader and FCS trailer
-   * \param hdr the WifiMacHeader
-   * \param isAmpdu whether packet is part of an A-MPDU
-   * \return the total packet size
-   */
-  static uint32_t GetSize (Ptr<const Packet> packet, const WifiMacHeader *hdr, bool isAmpdu);
-  /**
-   * Add FCS trailer to a packet.
-   *
-   * \param packet
-   */
-  static void AddWifiMacTrailer (Ptr<Packet> packet);
   /**
    * Forward the packet down to WifiPhy for transmission. This is called for the entire A-MPDu when MPDU aggregation is used.
    *
@@ -544,12 +540,11 @@ private:
    * Return the time required to transmit the Block ACK to the specified address
    * given the TXVECTOR of the BAR (including preamble and FCS).
    *
-   * \param to
    * \param blockAckReqTxVector
    * \param type the Block ACK type
    * \return the time required to transmit the Block ACK (including preamble and FCS)
    */
-  Time GetBlockAckDuration (Mac48Address to, WifiTxVector blockAckReqTxVector, BlockAckType type) const;
+  Time GetBlockAckDuration (WifiTxVector blockAckReqTxVector, BlockAckType type) const;
   /**
    * Check if the current packet should be sent with a RTS protection.
    *
@@ -570,9 +565,8 @@ private:
    *
    * \param packet the packet
    * \param hdr the header
-   * \param preamble the preamble
    */
-  void NotifyNav (Ptr<const Packet> packet,const WifiMacHeader &hdr, WifiPreamble preamble);
+  void NotifyNav (Ptr<const Packet> packet,const WifiMacHeader &hdr);
   /**
    * Reset NAV with the given duration.
    *
@@ -626,18 +620,6 @@ private:
    */
   void NormalAckTimeout (void);
   /**
-   * Event handler when fast ACK timeout occurs (idle).
-   */
-  void FastAckTimeout (void);
-  /**
-   * Event handler when super fast ACK timeout occurs.
-   */
-  void SuperFastAckTimeout (void);
-  /**
-   * Event handler when fast ACK timeout occurs (busy).
-   */
-  void FastAckFailedTimeout (void);
-  /**
    * Event handler when block ACK timeout occurs.
    */
   void BlockAckTimeout (void);
@@ -670,10 +652,9 @@ private:
   /**
    * Send DATA after receiving CTS.
    *
-   * \param source
    * \param duration
    */
-  void SendDataAfterCts (Mac48Address source, Time duration);
+  void SendDataAfterCts (Time duration);
 
   /**
    * Event handler that is usually scheduled to fired at the appropriate time
@@ -866,9 +847,6 @@ private:
   DcfManagers m_dcfManagers; //!< List of DcfManager
 
   EventId m_normalAckTimeoutEvent;      //!< Normal ACK timeout event
-  EventId m_fastAckTimeoutEvent;        //!< Fast ACK timeout event
-  EventId m_superFastAckTimeoutEvent;   //!< Super fast ACK timeout event
-  EventId m_fastAckFailedTimeoutEvent;  //!< Fast ACK failed timeout event
   EventId m_blockAckTimeoutEvent;       //!< Block ACK timeout event
   EventId m_ctsTimeoutEvent;            //!< CTS timeout event
   EventId m_sendCtsEvent;               //!< Event to send CTS

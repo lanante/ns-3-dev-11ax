@@ -24,12 +24,12 @@
 #define STA_WIFI_MAC_H
 
 #include "regular-wifi-mac.h"
-#include "supported-rates.h"
-#include "capability-information.h"
 
 namespace ns3  {
 
 class MgtAddBaRequestHeader;
+class SupportedRates;
+class CapabilityInformation;
 
 /**
  * \ingroup wifi
@@ -57,6 +57,11 @@ public:
    * access is granted to this MAC.
    */
   void Enqueue (Ptr<const Packet> packet, Mac48Address to);
+
+  /**
+   * \param phy the physical layer attached to this MAC.
+   */
+  void SetWifiPhy (const Ptr<WifiPhy> phy);
 
 
 private:
@@ -93,10 +98,14 @@ private:
    */
   void SendProbeRequest (void);
   /**
-   * Forward an association request packet to the DCF. The standard is not clear on the correct
-   * queue for management frames if QoS is supported. We always use the DCF.
+   * Forward an association or reassociation request packet to the DCF.
+   * The standard is not clear on the correct queue for management frames if QoS is supported.
+   * We always use the DCF.
+   *
+   * \param isReassoc flag whether it is a reassociation request
+   *
    */
-  void SendAssociationRequest (void);
+  void SendAssociationRequest (bool isReassoc);
   /**
    * Try to ensure that we are associated with an AP by taking an appropriate action
    * depending on the current association status.
@@ -168,7 +177,7 @@ private:
    * \param aifsn the number of slots that make up an AIFS
    * \param txopLimit the TXOP limit
    */
-  void SetEdcaParameters (AcIndex ac, uint8_t cwMin, uint8_t cwMax, uint8_t aifsn, Time txopLimit);
+  void SetEdcaParameters (AcIndex ac, uint32_t cwMin, uint32_t cwMax, uint8_t aifsn, Time txopLimit);
   /**
    * Return the Capability information of the current STA.
    *
@@ -193,6 +202,10 @@ private:
   double m_txPowerRefObssPd;     ///< OBSS PD TX Reference Power
   double m_obssPdMax;            ///< OBSS PD Max
   double m_obssPdMin;            ///< OBSS PD Min
+  /**
+   * Indicate that PHY capabilities have changed.
+   */
+  void PhyCapabilitiesChanged (void);
 
   TracedCallback<Mac48Address> m_assocLogger;   ///< assoc logger
   TracedCallback<Mac48Address> m_deAssocLogger; ///< deassoc logger
