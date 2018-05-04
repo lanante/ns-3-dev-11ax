@@ -1,0 +1,4526 @@
+diff -r cf9f06803ccb src/wifi/doc/source/figures/WifiTimeline.dia
+Binary file src/wifi/doc/source/figures/WifiTimeline.dia has changed
+diff -r cf9f06803ccb src/wifi/doc/source/wifi-sync.rst
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/src/wifi/doc/source/wifi-sync.rst	Sun Dec 27 16:46:11 2015 -0800
+@@ -0,0 +1,19 @@
++.. include:: replace.txt
++.. highlight:: cpp
++
++++++++++++++++++++++++++
++PLCP Preamble Sync Model
++++++++++++++++++++++++++
++
++
++|ns3| nodes can contain a collection of NetDevice objects, much like an actual
++computer contains separate interface cards for Ethernet, Wifi, Bluetooth, etc.
++This chapter describes the |ns3| WifiNetDevice and related models. By adding
++WifiNetDevice objects to |ns3| nodes, one can create models of 802.11-based
++infrastructure and ad hoc networks. Figure :ref:`timeline` showa the reception process timeline, and the associated decisions. 
++
++.. _timeline:
++
++.. figure:: figures/WifiTimeline
++   
++   Reception Timeline.
+diff -r cf9f06803ccb src/wifi/helper/yans-wifi-helper.cc
+--- a/src/wifi/helper/yans-wifi-helper.cc	Sun Sep 27 12:49:29 2015 -0700
++++ b/src/wifi/helper/yans-wifi-helper.cc	Sun Dec 27 16:46:11 2015 -0800
+@@ -191,7 +191,7 @@
+ YansWifiPhyHelper::Default (void)
+ {
+   YansWifiPhyHelper helper;
+-  helper.SetErrorRateModel ("ns3::NistErrorRateModel");
++  helper.SetErrorRateModel ("ns3::UwErrorRateModel");
+   return helper;
+ }
+ 
+diff -r cf9f06803ccb src/wifi/model/ErrorModel/MCS0Ser.txt
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/src/wifi/model/ErrorModel/MCS0Ser.txt	Sun Dec 27 16:46:11 2015 -0800
+@@ -0,0 +1,1 @@
++1.00 0.99 0.99 0.99 0.98 0.96 0.95 0.90 0.81 0.65 0.47 0.29 0.13 0.04 0.01 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00
+diff -r cf9f06803ccb src/wifi/model/ErrorModel/MCS0Snr.txt
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/src/wifi/model/ErrorModel/MCS0Snr.txt	Sun Dec 27 16:46:11 2015 -0800
+@@ -0,0 +1,1 @@
++-10 -9 -8 -7 -6 -5 -4 -3 -2 -1 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17
+diff -r cf9f06803ccb src/wifi/model/ErrorModel/MCS1Ser.txt
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/src/wifi/model/ErrorModel/MCS1Ser.txt	Sun Dec 27 16:46:11 2015 -0800
+@@ -0,0 +1,1 @@
++1.00 0.99 0.99 0.99 0.98 0.96 0.95 0.90 0.81 0.65 0.47 0.29 0.13 0.04 0.01 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00
+diff -r cf9f06803ccb src/wifi/model/ErrorModel/MCS1Snr.txt
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/src/wifi/model/ErrorModel/MCS1Snr.txt	Sun Dec 27 16:46:11 2015 -0800
+@@ -0,0 +1,1 @@
++-10 -9 -8 -7 -6 -5 -4 -3 -2 -1 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17
+diff -r cf9f06803ccb src/wifi/model/ErrorModel/MCS2Ser.txt
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/src/wifi/model/ErrorModel/MCS2Ser.txt	Sun Dec 27 16:46:11 2015 -0800
+@@ -0,0 +1,1 @@
++1.00 0.99 0.99 0.99 0.98 0.96 0.95 0.90 0.81 0.65 0.47 0.29 0.13 0.04 0.01 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00
+diff -r cf9f06803ccb src/wifi/model/ErrorModel/MCS2Snr.txt
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/src/wifi/model/ErrorModel/MCS2Snr.txt	Sun Dec 27 16:46:11 2015 -0800
+@@ -0,0 +1,1 @@
++-10 -9 -8 -7 -6 -5 -4 -3 -2 -1 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17
+diff -r cf9f06803ccb src/wifi/model/ErrorModel/MCS3Ser.txt
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/src/wifi/model/ErrorModel/MCS3Ser.txt	Sun Dec 27 16:46:11 2015 -0800
+@@ -0,0 +1,1 @@
++1.00 0.99 0.99 0.99 0.98 0.96 0.95 0.90 0.81 0.65 0.47 0.29 0.13 0.04 0.01 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00
+diff -r cf9f06803ccb src/wifi/model/ErrorModel/MCS3Snr.txt
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/src/wifi/model/ErrorModel/MCS3Snr.txt	Sun Dec 27 16:46:11 2015 -0800
+@@ -0,0 +1,1 @@
++-10 -9 -8 -7 -6 -5 -4 -3 -2 -1 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17
+diff -r cf9f06803ccb src/wifi/model/ErrorModel/MCS4Ser.txt
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/src/wifi/model/ErrorModel/MCS4Ser.txt	Sun Dec 27 16:46:11 2015 -0800
+@@ -0,0 +1,1 @@
++1.00 0.99 0.99 0.99 0.98 0.96 0.95 0.90 0.81 0.65 0.47 0.29 0.13 0.04 0.01 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00
+diff -r cf9f06803ccb src/wifi/model/ErrorModel/MCS4Snr.txt
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/src/wifi/model/ErrorModel/MCS4Snr.txt	Sun Dec 27 16:46:11 2015 -0800
+@@ -0,0 +1,1 @@
++-10 -9 -8 -7 -6 -5 -4 -3 -2 -1 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17
+diff -r cf9f06803ccb src/wifi/model/ErrorModel/MCS5Ser.txt
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/src/wifi/model/ErrorModel/MCS5Ser.txt	Sun Dec 27 16:46:11 2015 -0800
+@@ -0,0 +1,1 @@
++1.00 0.99 0.99 0.99 0.98 0.96 0.95 0.90 0.81 0.65 0.47 0.29 0.13 0.04 0.01 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00
+diff -r cf9f06803ccb src/wifi/model/ErrorModel/MCS5Snr.txt
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/src/wifi/model/ErrorModel/MCS5Snr.txt	Sun Dec 27 16:46:11 2015 -0800
+@@ -0,0 +1,1 @@
++-10 -9 -8 -7 -6 -5 -4 -3 -2 -1 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17
+diff -r cf9f06803ccb src/wifi/model/ErrorModel/MCS6Ser.txt
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/src/wifi/model/ErrorModel/MCS6Ser.txt	Sun Dec 27 16:46:11 2015 -0800
+@@ -0,0 +1,1 @@
++1.00 0.99 0.99 0.99 0.98 0.96 0.95 0.90 0.81 0.65 0.47 0.29 0.13 0.04 0.01 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00
+diff -r cf9f06803ccb src/wifi/model/ErrorModel/MCS6Snr.txt
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/src/wifi/model/ErrorModel/MCS6Snr.txt	Sun Dec 27 16:46:11 2015 -0800
+@@ -0,0 +1,1 @@
++-10 -9 -8 -7 -6 -5 -4 -3 -2 -1 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17
+diff -r cf9f06803ccb src/wifi/model/ErrorModel/MCS7Ser.txt
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/src/wifi/model/ErrorModel/MCS7Ser.txt	Sun Dec 27 16:46:11 2015 -0800
+@@ -0,0 +1,1 @@
++1.00 0.99 0.99 0.99 0.98 0.96 0.95 0.90 0.81 0.65 0.47 0.29 0.13 0.04 0.01 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00
+diff -r cf9f06803ccb src/wifi/model/ErrorModel/MCS7Snr.txt
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/src/wifi/model/ErrorModel/MCS7Snr.txt	Sun Dec 27 16:46:11 2015 -0800
+@@ -0,0 +1,1 @@
++-10 -9 -8 -7 -6 -5 -4 -3 -2 -1 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17
+diff -r cf9f06803ccb src/wifi/model/ap-wifi-mac.cc
+--- a/src/wifi/model/ap-wifi-mac.cc	Sun Sep 27 12:49:29 2015 -0700
++++ b/src/wifi/model/ap-wifi-mac.cc	Sun Dec 27 16:46:11 2015 -0800
+@@ -334,6 +334,14 @@
+   return rates;
+ }
+ 
++CapabilityInformation
++ApWifiMac::GetCapabilities (void) const
++{
++  CapabilityInformation capabilities;
++  capabilities.SetShortPreamble (m_phy->GetShortPlcpPreamble ());
++  return capabilities;
++}
++
+ HtCapabilities
+ ApWifiMac::GetHtCapabilities (void) const
+ {
+@@ -417,6 +425,7 @@
+   probe.SetSsid (GetSsid ());
+   probe.SetSupportedRates (GetSupportedRates ());
+   probe.SetBeaconIntervalUs (m_beaconInterval.GetMicroSeconds ());
++  probe.SetCapabilities (GetCapabilities ());
+   if (m_htSupported || m_vhtSupported)
+     {
+       probe.SetHtCapabilities (GetHtCapabilities ());
+@@ -459,7 +468,7 @@
+     }
+   assoc.SetSupportedRates (GetSupportedRates ());
+   assoc.SetStatusCode (code);
+-
++  assoc.SetCapabilities (GetCapabilities ());
+   if (m_htSupported || m_vhtSupported)
+     {
+       assoc.SetHtCapabilities (GetHtCapabilities ());
+@@ -494,6 +503,7 @@
+   beacon.SetSsid (GetSsid ());
+   beacon.SetSupportedRates (GetSupportedRates ());
+   beacon.SetBeaconIntervalUs (m_beaconInterval.GetMicroSeconds ());
++  beacon.SetCapabilities (GetCapabilities ());
+   if (m_htSupported || m_vhtSupported)
+     {
+       beacon.SetHtCapabilities (GetHtCapabilities ());
+@@ -630,6 +640,8 @@
+               //rate set is compatible with our Basic Rate set
+               MgtAssocRequestHeader assocReq;
+               packet->RemoveHeader (assocReq);
++              CapabilityInformation capabilities = assocReq.GetCapabilities ();
++              m_stationManager->AddSupportedPlcpPreamble (from, capabilities.IsShortPreamble ());
+               SupportedRates rates = assocReq.GetSupportedRates ();
+               bool problem = false;
+               for (uint32_t i = 0; i < m_stationManager->GetNBasicModes (); i++)
+diff -r cf9f06803ccb src/wifi/model/ap-wifi-mac.h
+--- a/src/wifi/model/ap-wifi-mac.h	Sun Sep 27 12:49:29 2015 -0700
++++ b/src/wifi/model/ap-wifi-mac.h	Sun Dec 27 16:46:11 2015 -0800
+@@ -24,11 +24,12 @@
+ #define AP_WIFI_MAC_H
+ 
+ #include "regular-wifi-mac.h"
++#include "capability-information.h"
+ #include "ht-capabilities.h"
++#include "vht-capabilities.h"
+ #include "amsdu-subframe-header.h"
+ #include "supported-rates.h"
+ #include "ns3/random-variable-stream.h"
+-#include "vht-capabilities.h"
+ 
+ namespace ns3 {
+ 
+@@ -181,6 +182,12 @@
+    */
+   void SendOneBeacon (void);
+   /**
++   * Return the Capability information of the current AP.
++   *
++   * \return the Capability information that we support
++   */
++  CapabilityInformation GetCapabilities (void) const;
++  /**
+    * Return the HT capability of the current AP.
+    *
+    * \return the HT capability that we support
+diff -r cf9f06803ccb src/wifi/model/capability-information.cc
+--- a/src/wifi/model/capability-information.cc	Sun Sep 27 12:49:29 2015 -0700
++++ b/src/wifi/model/capability-information.cc	Sun Dec 27 16:46:11 2015 -0800
+@@ -47,6 +47,16 @@
+   Set (1);
+ }
+ 
++void
++CapabilityInformation::SetShortPreamble (bool shortPreamble)
++{
++  NS_LOG_FUNCTION (this);
++  if (shortPreamble)
++    {
++      Set (5);
++    }
++}
++
+ bool
+ CapabilityInformation::IsEss (void) const
+ {
+@@ -61,6 +71,13 @@
+   return Is (1);
+ }
+ 
++bool
++CapabilityInformation::IsShortPreamble (void) const
++{
++  NS_LOG_FUNCTION (this);
++  return Is (5);
++}
++
+ void
+ CapabilityInformation::Set (uint8_t n)
+ {
+diff -r cf9f06803ccb src/wifi/model/capability-information.h
+--- a/src/wifi/model/capability-information.h	Sun Sep 27 12:49:29 2015 -0700
++++ b/src/wifi/model/capability-information.h	Sun Dec 27 16:46:11 2015 -0800
+@@ -46,6 +46,14 @@
+    * in the capability information field.
+    */
+   void SetIbss (void);
++  /**
++   * Set the short preamble bit
++   * in the capability information field.
++   *
++   * shortPreamble the short preamble bit
++   *
++   */
++  void SetShortPreamble (bool shortPreamble);
+ 
+   /**
+    * Check if the Extended Service Set (ESS) bit
+@@ -63,6 +71,14 @@
+    *         field is set to 1
+    */
+   bool IsIbss (void) const;
++  /**
++   * Check if the short preamble bit
++   * in the capability information field is set to 1.
++   *
++   * \return short preamble bit in the capability information
++   *         field is set to 1
++   */
++  bool IsShortPreamble (void) const;
+ 
+   /**
+    * Return the serialized size of capability
+diff -r cf9f06803ccb src/wifi/model/dcf-manager.cc
+--- a/src/wifi/model/dcf-manager.cc	Sun Sep 27 12:49:29 2015 -0700
++++ b/src/wifi/model/dcf-manager.cc	Sun Dec 27 16:46:11 2015 -0800
+@@ -266,6 +266,10 @@
+   {
+     m_dcf->NotifyRxEndErrorNow ();
+   }
++  virtual void NotifyRxPreambleStart (Time duration)
++  {
++    // Ignored by this model
++  }
+   virtual void NotifyTxStart (Time duration, double txPowerDbm)
+   {
+     m_dcf->NotifyTxStartNow (duration);
+diff -r cf9f06803ccb src/wifi/model/error-rate-model.h
+--- a/src/wifi/model/error-rate-model.h	Sun Sep 27 12:49:29 2015 -0700
++++ b/src/wifi/model/error-rate-model.h	Sun Dec 27 16:46:11 2015 -0800
+@@ -62,7 +62,8 @@
+    * \return probability of successfully receiving the chunk
+    */
+   virtual double GetChunkSuccessRate (WifiMode mode, WifiTxVector txVector, double snr, uint32_t nbits) const = 0;
+-};
++  
++ };
+ 
+ } //namespace ns3
+ 
+diff -r cf9f06803ccb src/wifi/model/frame-sync-error-rate-lookup.cc
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/src/wifi/model/frame-sync-error-rate-lookup.cc	Sun Dec 27 16:46:11 2015 -0800
+@@ -0,0 +1,359 @@
++/* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
++/*
++ * Copyright (c) 2015 University of Washington
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation;
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ *
++ * Author: Benjamin Cizdziel <ben.cizdziel@gmail.com>
++ */
++
++#include "ns3/log.h"
++#include "ns3/enum.h"
++#include <cmath>
++#include "frame-sync-error-rate-lookup.h"
++
++namespace ns3
++{
++
++NS_LOG_COMPONENT_DEFINE ("FrameSyncErrorRateLookup");
++
++NS_OBJECT_ENSURE_REGISTERED (FrameSyncErrorRateLookup);
++
++
++// Data for signal to noise ratio (SNR) (in dB) to delayed autocorrelation frame
++// synchronization error rate (SER) mapping for Additive White Gaussian
++// Noise (AWGN) channel.
++
++static const unsigned int g_channelAwgnNumSnrSerDatapoints = 28;
++static const double g_channelAwgnSnrs[28] = {-10, -9, -8, -7, -6, -5, -4, -3,
++                                             -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8,
++                                             9, 10, 11, 12, 13, 14, 15, 16, 17};
++static const double g_channelAwgnSers[28] = {1.00, 0.99, 0.99, 0.99, 0.98, 0.96,
++                                             0.95, 0.90, 0.81, 0.65, 0.47, 0.29,
++                                             0.13, 0.04, 0.01, 0.00, 0.00, 0.00,
++                                             0.00, 0.00, 0.00, 0.00, 0.00, 0.00,
++                                             0.00, 0.00, 0.00, 0.00};
++static uint8_t g_channelAwgnNumSnrDecPlaces = 0;
++static const double g_channelAwgnSnrSpacing = 1;
++static const double g_channelAwgnSnrMin = -10;
++static const double g_channelAwgnSnrMax = 17;
++
++
++TypeId
++FrameSyncErrorRateLookup::GetTypeId (void)
++{
++  static TypeId tid = TypeId("ns3::FrameSyncErrorRateLookup")
++    .SetParent<Object> ()
++    .AddConstructor<FrameSyncErrorRateLookup> ()
++  ;
++  return tid;
++}
++
++
++FrameSyncErrorRateLookup::FrameSyncErrorRateLookup ()
++  : m_errorRateTableIsLoaded (false),
++    m_numSnrDecPlaces (0),
++    m_numSnrDecPlacesIsSet (false),
++    m_snrSpacing (1),
++    m_snrSpacingIsSet (false),
++    m_snrMin (-10),
++    m_snrMax (17),
++    m_snrOffset (0),
++    m_snrOffsetIsSet (false)
++{
++  NS_LOG_FUNCTION (this);
++}
++
++
++FrameSyncErrorRateLookup::~FrameSyncErrorRateLookup ()
++{
++  NS_LOG_FUNCTION (this);
++}
++
++
++void
++FrameSyncErrorRateLookup::SetNumSnrDatapointDecPlaces (double numDecimalPlaces)
++{
++  NS_LOG_FUNCTION (this << numDecimalPlaces);
++  m_numSnrDecPlaces = numDecimalPlaces;
++  m_numSnrDecPlacesIsSet = true;
++}
++
++
++void
++FrameSyncErrorRateLookup::SetSnrDatapointSpacing (double snrDatapointSpacing)
++{
++  NS_LOG_FUNCTION (this << snrDatapointSpacing);
++  m_snrSpacing = snrDatapointSpacing;
++  m_snrSpacingIsSet = true;
++}
++
++
++void
++FrameSyncErrorRateLookup::AddSnrSerDatapoint (double snr, double ser)
++{
++  NS_LOG_FUNCTION (this << snr << ser);
++  NS_ASSERT_MSG (m_numSnrDecPlacesIsSet, "number of decimal places of SNR"
++                                         " datapoints must be set before"
++                                         " manually adding datapoints");
++  if (m_frameSyncErrorRateTable.empty ())
++    {
++      m_snrMin = snr;
++      m_snrMax = snr;
++    }
++  else if (snr < m_snrMin)
++    {
++      m_snrMin = snr;
++    }
++  else if (snr > m_snrMax)
++    {
++      m_snrMax = snr;
++    }
++  std::pair<std::map<int, double>::iterator, bool> ret;
++  int snrInt = DoubleToHashKeyInt (snr); //SNR converted to an integer to use as hash key
++  ret = m_frameSyncErrorRateTable.insert (std::pair<int, double> (snrInt, ser)); //add datapoint to hash map
++  NS_ASSERT_MSG (ret.second, "element with snr hash of " << snrInt <<
++                             " already exists in frame sync error rate hash map with value of "
++                             << ret.first->second);
++  m_errorRateTableIsLoaded = true;
++}
++
++double
++FrameSyncErrorRateLookup::GetFrameSyncErrorRate (double snr)
++{
++  NS_LOG_FUNCTION (this << snr);
++  snr = 10.0 * std::log10 (snr); //convert SNR from ratio to dB
++  if (!m_errorRateTableIsLoaded)
++    {
++      LoadErrorRateDataToTable (); //load error rates the first time this method is called
++    }
++  if (!m_snrOffsetIsSet)
++    {
++      DetermineSnrOffset ();
++    }
++  bool snrAtBound = false;
++  if (snr <= m_snrMin)
++    {
++      NS_LOG_DEBUG ("SNR is lower than minimum frame sync error rate datapoint;"
++                    " setting SNR to " << m_snrMin << " (min SNR)");
++      snr = m_snrMin;
++      snrAtBound = true;
++    }
++  else if (snr >= m_snrMax)
++    {
++      NS_LOG_DEBUG ("SNR is higher than maximum frame sync error rate datapoint;"
++                    " setting SNR to " << m_snrMax << " (max SNR)");
++      snr = m_snrMax;
++      snrAtBound = true;
++    }
++  InterpolParams iParams;
++  double ser; //sync error rate to return
++  iParams = FindDatapointBounds (snr, snrAtBound);
++  ser = InterpolateAndRetrieveData (snr, iParams.snrLoBound, iParams.snrHiBound);
++  return ser;
++}
++
++
++int
++FrameSyncErrorRateLookup::RoundDoubleToInt (double val)
++{
++  NS_LOG_FUNCTION (this << val);
++  if (val > 0.0)
++    {
++      return val + 0.5;
++    }
++  else
++    {
++      return val - 0.5;
++    }
++}
++
++
++int
++FrameSyncErrorRateLookup::DoubleToHashKeyInt (double val)
++{
++  NS_LOG_FUNCTION (this << val);
++  for (uint8_t i = 0; i < m_numSnrDecPlaces; i++)
++    {
++      val = val * 10;
++    }
++  return (int)(round (val));
++}
++
++
++void
++FrameSyncErrorRateLookup::LoadErrorRateDataToTable ()
++{
++  NS_LOG_FUNCTION (this);
++  NS_ASSERT_MSG (!m_errorRateTableIsLoaded, "frame sync error rate table has"
++                                            " already been loaded");
++  std::pair<std::map<int, double>::iterator, bool> ret;
++  int snrInt; //SNR converted to an integer to use as hash key
++  m_numSnrDecPlaces = g_channelAwgnNumSnrDecPlaces;
++  m_numSnrDecPlacesIsSet = true;
++  m_snrSpacing = g_channelAwgnSnrSpacing;
++  m_snrSpacingIsSet = true;
++  m_snrMin = g_channelAwgnSnrMin;
++  m_snrMax = g_channelAwgnSnrMax;
++  for (unsigned int i = 0; i < g_channelAwgnNumSnrSerDatapoints; i++)
++   {
++     snrInt = DoubleToHashKeyInt (g_channelAwgnSnrs[i]);
++     ret = m_frameSyncErrorRateTable.insert (std::pair<int, double> (snrInt, g_channelAwgnSers[i])); //add datapoint to hash map
++     NS_ASSERT_MSG (ret.second, "element with snr hash of " << snrInt <<
++                                " already exists in frame sync error rate hash map with value of "
++                                << ret.first->second);
++    }
++  m_errorRateTableIsLoaded = true;
++}
++
++
++void
++FrameSyncErrorRateLookup::DetermineSnrOffset ()
++{
++  NS_LOG_FUNCTION (this);
++  double snr = m_snrMin;
++  double toleranceForAssumingZero = 0.0001;
++  for (int i = 0; i < m_numSnrDecPlaces; i++)
++    {
++      toleranceForAssumingZero /= 10;
++    }
++  if (m_snrMin < 0)
++    {
++      for (; snr <= 2 * m_snrSpacing; snr += m_snrSpacing)
++        {
++          if (snr >= 0)
++            {
++              m_snrOffset = snr;
++              break;
++            }
++        }
++      if (std::abs (snr) <= toleranceForAssumingZero) //if less than tolerance assume 0
++        {
++          m_snrOffset = 0;
++        }
++    }
++  else if (m_snrMin > 0)
++    {
++      for (; snr >= -2 * m_snrSpacing; snr -= m_snrSpacing)
++        {
++          if (snr <= 0)
++            {
++              m_snrOffset = snr;
++              break;
++            }
++        }
++      if (std::abs (snr) <= toleranceForAssumingZero) //if less than tolerance assume 0
++        {
++          m_snrOffset = 0;
++        }
++    }
++  else //if m_snrMin == 0
++    {
++      m_snrOffset = 0;
++    }
++  m_snrOffsetIsSet = true;
++}
++
++
++double
++FrameSyncErrorRateLookup::RoundToNearestDataMidpoint (double value, double dataSpacing, double offset)
++{
++  NS_LOG_FUNCTION (this << value << dataSpacing << offset);
++  double newOffset = (dataSpacing / 2) + offset;
++  return (RoundDoubleToInt ((value - newOffset) / dataSpacing) * dataSpacing) + newOffset;
++}
++
++
++FrameSyncErrorRateLookup::InterpolParams
++FrameSyncErrorRateLookup::FindDatapointBounds (double snr, bool snrAtBound)
++{
++  NS_LOG_FUNCTION (this << snr << snrAtBound);
++  InterpolParams iParams;
++  if (snrAtBound)
++    {
++      iParams.snrLoBound = snr;
++      iParams.snrHiBound = snr;
++    }
++  else
++    {
++      double snrRatio = snr / m_snrSpacing;
++      double snrLoBoundNoOffset = floor (snrRatio) * m_snrSpacing;
++      double snrHiBoundNoOffset = ceil (snrRatio) * m_snrSpacing;
++      double nearestMidSnrPoint = RoundToNearestDataMidpoint (snr, m_snrSpacing, m_snrOffset);
++      if (snr > nearestMidSnrPoint)
++        {
++          iParams.snrLoBound = snrLoBoundNoOffset - m_snrOffset;
++          iParams.snrHiBound = snrHiBoundNoOffset - m_snrOffset;
++        }
++      else
++        {
++          iParams.snrLoBound = snrLoBoundNoOffset + m_snrOffset;
++          iParams.snrHiBound = snrHiBoundNoOffset + m_snrOffset;
++        }
++    }
++  return iParams;
++}
++
++
++double
++FrameSyncErrorRateLookup::InterpolateAndRetrieveData (double xd, double x1d, double x2d)
++{
++  NS_LOG_FUNCTION (this << xd << x1d << x2d);
++  int x = DoubleToHashKeyInt (xd);
++  int x1 = DoubleToHashKeyInt (x1d);
++  int x2 = DoubleToHashKeyInt (x2d);
++  std::map<int, double>::iterator elemIter;
++  double fp; //retrieved value after any interpolation
++  if (x1 != x2) //1D linear interpolation (x)
++    {
++      NS_LOG_DEBUG ("performing linear interpolation on snr for frame sync error rate lookup");
++      double fq1;
++      double fq2;
++      elemIter = m_frameSyncErrorRateTable.find (x1);
++      if (elemIter == m_frameSyncErrorRateTable.end ())
++        {
++          NS_FATAL_ERROR ("No frame sync error rate data stored for snr key = " << x1);
++        }
++      else
++        {
++          fq1 = (*elemIter).second;
++        }
++      elemIter = m_frameSyncErrorRateTable.find (x2);
++      if (elemIter == m_frameSyncErrorRateTable.end ())
++        {
++          NS_FATAL_ERROR ("No frame sync error rate data stored for snr key = " << x2);
++        }
++      else
++        {
++          fq2 = (*elemIter).second;
++        }
++      fp = (((x2d - xd) / (x2d - x1d)) * fq1) + (((xd - x1d) / (x2d - x1d)) * fq2);
++    }
++  else //x1 == x2; no interpolation needed
++    {
++      NS_LOG_DEBUG ("no interpolation needed--direct table lookup for frame sync error rate");
++      elemIter = m_frameSyncErrorRateTable.find (x);
++      if (elemIter == m_frameSyncErrorRateTable.end ())
++        {
++          NS_FATAL_ERROR ("No frame sync error rate data stored for snr key = " << x);
++        }
++      else
++        {
++          fp = (*elemIter).second;
++        }
++    }
++  return fp;
++}
++
++} // namespace ns3
+diff -r cf9f06803ccb src/wifi/model/frame-sync-error-rate-lookup.h
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/src/wifi/model/frame-sync-error-rate-lookup.h	Sun Dec 27 16:46:11 2015 -0800
+@@ -0,0 +1,194 @@
++/* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
++/*
++ * Copyright (c) 2015 University of Washington
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation;
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ *
++ * Author: Benjamin Cizdziel <ben.cizdziel@gmail.com>
++ */
++
++#ifndef FRAME_SYNC_ERROR_RATE_LOOKUP_H
++#define FRAME_SYNC_ERROR_RATE_LOOKUP_H
++
++#include "wifi-phy.h"
++
++namespace ns3
++{
++
++/**
++ * \ingroup wifi
++ *
++ * \brief Provides lookup for SNR to frame synchronization error rate mapping.
++ *
++ * This class provides a lookup table to obtain the Wi-Fi frame synchronization
++ * error rate (SER) for a given signal to noise ratio (SNR) (in dB) using the
++ * specified channel model. Default channel models (from link simulation results)
++ * are included as options, as well as an API for users to add their own.
++ */
++class FrameSyncErrorRateLookup : public Object
++{
++public:
++  FrameSyncErrorRateLookup (); //!< Default constructor
++  virtual ~FrameSyncErrorRateLookup (); //!< Destructor
++
++  /**
++   * Register this type.
++   * \return The object TypeId.
++   */
++  static TypeId GetTypeId (void);
++
++  /** 
++   * Manually set the maximum number of decimal places needed to fully represent
++   * all the SNR datapoint values in the lookup table. For example, 1 decimal
++   * place is required to represent the set of SNRs {0, 0.5, 1, 1.5, and 2}.
++   * ChannelModel attribute must be set to 'user' before calling this method.
++   *
++   * @param numDecimalPlaces the number of decimal places for SNR values
++   */
++  void SetNumSnrDatapointDecPlaces (double numDecimalPlaces);
++
++  /** 
++   * Manually set the spacing (in dB) between SNR datapoints in the lookup table.
++   * For example, the SNR set {0, 2, 4, 6, 8,...} has an SNR spacing of 2.
++   * ChannelModel attribute must be set to 'user' before calling this method.
++   *
++   * @param snrDatapointSpacing the spacing (in dB) between SNR datapoints
++   */
++  void SetSnrDatapointSpacing (double snrDatapointSpacing);
++
++  /** 
++   * Manually add an (SNR, SER) datapoint to the lookup table. SNR stands for
++   * signal to noise ratio and SER stands for frame synchronization error rate.
++   * Duplicate SNR values cannot be added. ChannelModel attribute must be set to
++   * 'user' and SetNumSnrDatapointDecPlaces() must be called before calling this
++   * method.
++   *
++   * @param snr the signal to noise ratio (in dB) of the datapoint
++   * @param ser the frame synchronization error rate/probability of the datapoint
++   */
++  void AddSnrSerDatapoint (double snr, double ser);
++
++  /** 
++   * Returns the frame synchronization error rate (SER) for the given signal to
++   * noise ratio (SNR) input from the lookup table. If the input SNR lie in
++   * between SNR datapoints, linear interpolation is performed to calculate the
++   * SER value to be returned. If the input SNR falls below/above the
++   * minimum/maximum SNR of the datapoints, the SER corresponding to the
++   * minimum/maximum SNR datapoint is returned. If ChannelModel attribute is set
++   * to 'user', SetNumSnrDatapointDecPlaces() and SetSnrDatapointSpacing() must
++   * be called before calling this method, and AddSnrSerDatapoint() must have
++   * been called at least once.
++   *
++   * @param snr the signal to noise ratio (in dB) corresponding to the SER to
++   * look up
++   *
++   * @return the retrieved frame sync error rate corresponding to the input SNR
++   */
++  double GetFrameSyncErrorRate (double snr);
++
++private:
++  /**
++   * A struct containing the lower and upper SNR datapoint bounds used in linear
++   * interpolation.
++   */
++  struct InterpolParams
++  {
++    double snrLoBound;
++    double snrHiBound;
++  };
++
++  /** 
++   * Rounds input double value to the nearest integer.
++   *
++   * @param val the double value to round
++   *
++   * @return the input value rounded to the nearest integer
++   */
++  int RoundDoubleToInt (double val);
++
++  /** 
++   * Converts double value to integer key used for lookup table indexing.
++   *
++   * @param val the double value to convert to integer key
++   *
++   * @return the integer key corresponding to the input double value
++   */
++  int DoubleToHashKeyInt (double val);
++
++  /** 
++   * Loads one of the default frame sync error rate models to the lookup table
++   * based on ChannelModel attribute selected.
++   */
++  void LoadErrorRateDataToTable (void);
++
++  /** 
++   * Determines offset from zero of SNR datapoints in lookup table.
++   */
++  void DetermineSnrOffset (void);
++
++  /** 
++   * Rounds input value to the nearest data midpoint with given data spacing
++   * and offset from zero. For example, an SNR dataset with SNR datapoints at
++   * {-5, -2, 1, 4, 7, 10,...} has offset=1 and dataSpacing=3. The midpoints
++   * between these numbers would be {-3.5, -0.5, 2.5, 5.5, 8.5,...}. So for
++   * value=3.5 for this dataset, this method will return 2.5.
++   *
++   * @param value the input value to round
++   * @param dataSpacing the spacing between datapoints
++   * @param offset the offset from zero of the dataset
++   *
++   * @return the nearest data midpoint value
++   */
++  double RoundToNearestDataMidpoint (double value, double dataSpacing, double offset);
++
++  /** 
++   * Finds upper and lower SNR datapoint bounds around input SNR. If input SNR
++   * is at upper or lower bound, both bounds are set equal to input SNR.
++   *
++   * @param snr the input SNR (in dB)
++   * @param snrAtBound a flag set to true if input SNR is at upper or lower
++   * datapoint bound
++   *
++   * @return the struct containing the upper and lower SNR datapoint bounds
++   */
++  InterpolParams FindDatapointBounds (double snr, bool snrAtBound);
++
++  /** 
++   * Retrieves SER value from lookup table based on input SNR and its SNR
++   * datapoint bounds, performing linear interpolation if necessary.
++   *
++   * @param xd the SNR (in dB) corresponding to the SER to look up
++   * @param x1d the lower SNR datapoint bound (in dB) of xd
++   * @param x2d the upper SNR datapoint bound (in dB) of xd
++   *
++   * @return the retrieved SER
++   */
++  double InterpolateAndRetrieveData (double xd, double x1d, double x2d);
++
++ // enum WifiPhy::ChannelModel m_channelModel; //!< Channel model to use for frame sync error rate results
++  bool m_errorRateTableIsLoaded; //!< Indicates if frames sync error rate table has been loaded (true) or not (false)
++  uint8_t m_numSnrDecPlaces; //!< Number of decimal places in SNR datapoints
++  bool m_numSnrDecPlacesIsSet; //!< Indicates if number of SNR datapoint decimal places has been set (true) or not (false)
++  double m_snrSpacing; //!< Spacing (in dB) between SNR datapoints
++  bool m_snrSpacingIsSet; //!< Indicates if SNR datapoint spacing has been set (true) or not (false)
++  double m_snrMin; //!< Minimum (in dB) SNR datapoint value
++  double m_snrMax; //!< Maximum (in dB) SNR datapoint value
++  double m_snrOffset; //!< Offset from zero (in dB) of SNR datapoints
++  bool m_snrOffsetIsSet; //!< Indicates if SNR offset from zero has been set (true) or not (false)
++  std::map<int, double> m_frameSyncErrorRateTable; //!< Stores frame synchronization error rate values indexed by integer SNR key
++};
++
++} // namespace ns3
++
++#endif /* FRAME_SYNC_ERROR_RATE_LOOKUP_H */
+diff -r cf9f06803ccb src/wifi/model/interference-helper.cc
+--- a/src/wifi/model/interference-helper.cc	Sun Sep 27 12:49:29 2015 -0700
++++ b/src/wifi/model/interference-helper.cc	Sun Dec 27 16:46:11 2015 -0800
+@@ -21,6 +21,7 @@
+ 
+ #include "interference-helper.h"
+ #include "wifi-phy.h"
++#include "uw-error-rate-model.h"
+ #include "error-rate-model.h"
+ #include "ns3/simulator.h"
+ #include "ns3/log.h"
+@@ -214,7 +215,7 @@
+ InterferenceHelper::AppendEvent (Ptr<InterferenceHelper::Event> event)
+ {
+   Time now = Simulator::Now ();
+-  if (!m_rxing)
++  if (!m_rxing && !m_preambleRxing)
+     {
+       NiChanges::iterator nowIterator = GetPosition (now);
+       for (NiChanges::iterator i = m_niChanges.begin (); i != nowIterator; i++)
+@@ -252,7 +253,7 @@
+ InterferenceHelper::CalculateNoiseInterferenceW (Ptr<InterferenceHelper::Event> event, NiChanges *ni) const
+ {
+   double noiseInterference = m_firstPower;
+-  NS_ASSERT (m_rxing);
++  NS_ASSERT (m_rxing || m_preambleRxing);
+   for (NiChanges::const_iterator i = m_niChanges.begin () + 1; i != m_niChanges.end (); i++)
+     {
+       if ((event->GetEndTime () == i->GetTime ()) && event->GetRxPowerW () == -i->GetDelta ())
+@@ -267,6 +268,20 @@
+ }
+ 
+ double
++InterferenceHelper::CalculatePlcpPreambleChunkSuccessRate (double snir, Time duration, WifiMode mode, WifiTxVector txVector) const
++{
++  if (duration == NanoSeconds (0))
++    {
++      return 1.0;
++    }
++  double csr = 0;
++  uint32_t rate = mode.GetPhyRate (txVector.GetChannelWidth (), txVector.IsShortGuardInterval (), 1);
++  uint64_t nbits = (uint64_t)(rate * duration.GetSeconds ());
++  csr = m_errorRateModel->GetChunkSuccessRate (mode, txVector, snir, (uint32_t)nbits);
++  return csr;
++}
++
++double
+ InterferenceHelper::CalculateChunkSuccessRate (double snir, Time duration, WifiMode mode, WifiTxVector txVector) const
+ {
+   if (duration == NanoSeconds (0))
+@@ -309,7 +324,7 @@
+                                             current - previous,
+                                             payloadMode, event->GetTxVector ());
+ 
+-          NS_LOG_DEBUG ("Both previous and current point to the payload: mode=" << payloadMode << ", psr=" << psr);
++          NS_LOG_DEBUG ("Case 1 - both previous and current point to the payload: mode=" << payloadMode << ", psr=" << psr);
+         }
+       //Case 2: previous is before payload and current is in the payload
+       else if (current >= plcpPayloadStart)
+@@ -319,7 +334,7 @@
+                                                           event->GetTxVector ().GetChannelWidth ()),
+                                             current - plcpPayloadStart,
+                                             payloadMode, event->GetTxVector ());
+-          NS_LOG_DEBUG ("previous is before payload and current is in the payload: mode=" << payloadMode << ", psr=" << psr);
++          NS_LOG_DEBUG ("Case 2 - previous is before payload and current is in the payload: mode=" << payloadMode << ", psr=" << psr);
+         }
+ 
+       noiseInterferenceW += (*j).GetDelta ();
+@@ -332,6 +347,138 @@
+ }
+ 
+ double
++InterferenceHelper::CalculateAvgSyncFieldSnir (Ptr<InterferenceHelper::Event> event)
++{
++  NiChanges ni;
++  double powerW = event->GetRxPowerW ();
++ // WifiMode payloadMode = event->GetPayloadMode ();
++  WifiPreamble preamble = event->GetPreambleType ();
++  WifiTxVector txVector = event->GetTxVector ();
++  CalculateNoiseInterferenceW (event, &ni);
++  NiChanges::iterator j = ni.begin ();
++  Time packetStartTime = (*j).GetTime ();
++  Time plcpSyncFieldEnd = packetStartTime + WifiPhy::GetPlcpPreambleDuration (event->GetTxVector (), preamble);// packet start time + sync field
++  struct InterferencePowerDuration interferencePowerDuration;
++  std::vector<struct InterferencePowerDuration> interferencePowerDurationVect;
++  bool niChangesEndsBeforeSyncFieldEnd = true;
++  double noiseInterferenceW = (*j).GetDelta ();
++  Time previous = packetStartTime;
++  j++;
++  while (ni.end () != j)
++    {
++      Time current = (*j).GetTime ();
++      NS_ASSERT (current >= previous);
++      if (current >= plcpSyncFieldEnd)
++        {
++          interferencePowerDuration.interferencePowerW = noiseInterferenceW;
++          interferencePowerDuration.duration = plcpSyncFieldEnd - previous;
++          interferencePowerDurationVect.push_back (interferencePowerDuration);
++          niChangesEndsBeforeSyncFieldEnd = false;
++          break;
++        }
++      interferencePowerDuration.interferencePowerW = noiseInterferenceW;
++      interferencePowerDuration.duration = current - previous;
++      interferencePowerDurationVect.push_back (interferencePowerDuration);
++      noiseInterferenceW += (*j).GetDelta ();
++      previous = current;
++      j++;
++    }
++  if (niChangesEndsBeforeSyncFieldEnd) // end of NiChanges occurs before end of sync field
++    {
++      // zero interference power for rest of sync field
++      interferencePowerDuration.interferencePowerW = 0;
++      interferencePowerDuration.duration = plcpSyncFieldEnd - previous;
++      interferencePowerDurationVect.push_back (interferencePowerDuration);
++    }
++  double weightedTotal = 0;
++  double sumOfWeights = 0;
++  for (std::vector<struct InterferencePowerDuration>::iterator it =
++       interferencePowerDurationVect.begin (); it != interferencePowerDurationVect.end (); ++it)
++    {
++      double weightDuration = (*it).duration.GetMicroSeconds();
++      weightedTotal += (*it).interferencePowerW * weightDuration;
++      sumOfWeights += weightDuration;
++    }
++  double averageInterferencePowerW = 0;
++  if (sumOfWeights != 0)
++    {
++      averageInterferencePowerW = weightedTotal / sumOfWeights; // weighted average
++    }
++  return CalculateSnr (powerW, averageInterferencePowerW, txVector.GetChannelWidth ());
++}
++
++double
++InterferenceHelper::CalculatePlcpPreamblePer (Ptr<InterferenceHelper::Event> event, NiChanges *ni) 
++{
++  NS_LOG_FUNCTION (this);
++  double psr = 1.0; /* Packet Success Rate */
++  NiChanges::iterator j = ni->begin ();
++  Time previous = (*j).GetTime ();
++  WifiMode payloadMode = event->GetPayloadMode ();
++  WifiPreamble preamble = event->GetPreambleType ();
++  WifiMode preambleMode = WifiPhy::GetPlcpPreambleMode (payloadMode, event->GetTxVector ());
++
++  Ptr<UwErrorRateModel> uwErrorModel = m_errorRateModel->GetObject<UwErrorRateModel> ();
++  if (uwErrorModel != NULL) // is UW error rate model
++    { 
++      double snir = CalculateAvgSyncFieldSnir(event);
++      plcp_snir = snir;
++      Ptr<FrameSyncErrorRateLookup> m_frameSyncErrorRateModel; // Pointer to FrameSyncErrorRateLookup
++      m_frameSyncErrorRateModel = CreateObject<FrameSyncErrorRateLookup> ();
++      psr = 1 - m_frameSyncErrorRateModel->GetFrameSyncErrorRate (snir);
++    }
++  else
++    {
++      Time plcpStart = (*j).GetTime ();
++      Time plcpHeaderStart = plcpStart + WifiPhy::GetPlcpPreambleDuration (event->GetTxVector (), preamble); //packet start time + preamble
++      double noiseInterferenceW = (*j).GetDelta ();
++      double powerW = event->GetRxPowerW ();
++      j++;
++      while (ni->end () != j)
++        {
++      Time current = (*j).GetTime ();
++      NS_LOG_DEBUG ("previous= " << previous << ", current=" << current);
++      NS_ASSERT (current >= previous);
++      //Case 1: previous and current after header start: nothing to do
++      if (previous >= plcpHeaderStart)
++        {
++          NS_LOG_DEBUG ("Case 1 - previous and current after header start: nothing to do");
++        }
++      //Case 2: previous is in preamble
++      else
++        {
++          //Case 2a: current after header start
++          if (current >= plcpHeaderStart)
++            {
++	          psr *= CalculatePlcpPreambleChunkSuccessRate (CalculateSnr (powerW,
++                                                                          noiseInterferenceW,
++                                                                          event->GetTxVector ().GetChannelWidth ()),
++                                                            plcpHeaderStart - previous,
++                                                            preambleMode, event->GetTxVector ());
++              NS_LOG_DEBUG ("Case 2a - previous is in the preamble and current is after header start: mode=" << preambleMode << ", psr=" << psr);
++            }
++          //Case 2b: current before header start
++          else
++            {
++              psr *= CalculatePlcpPreambleChunkSuccessRate (CalculateSnr (powerW,
++                                                                          noiseInterferenceW,
++                                                                          event->GetTxVector ().GetChannelWidth ()),
++                                                                          current - previous,
++                                                                          preambleMode, event->GetTxVector ());
++              NS_LOG_DEBUG ("Case 2b - previous and current are in the preamble: mode=" << preambleMode << ", psr=" << psr);
++            }
++        }
++
++      noiseInterferenceW += (*j).GetDelta ();
++      previous = (*j).GetTime ();
++      j++;
++    }
++   }
++  double per = 1 - psr;
++  return per;
++}
++
++double
+ InterferenceHelper::CalculatePlcpHeaderPer (Ptr<const InterferenceHelper::Event> event, NiChanges *ni) const
+ {
+   NS_LOG_FUNCTION (this);
+@@ -367,7 +514,6 @@
+       //Case 1: previous and current after playload start: nothing to do
+       if (previous >= plcpPayloadStart)
+         {
+-          psr *= 1;
+           NS_LOG_DEBUG ("Case 1 - previous and current after playload start: nothing to do");
+         }
+       //Case 2: previous is in (V)HT training or in VHT-SIG-B: Non (V)HT will not enter here since it didn't enter in the last two and they are all the same for non (V)HT
+@@ -806,6 +952,26 @@
+ }
+ 
+ struct InterferenceHelper::SnrPer
++InterferenceHelper::CalculatePlcpPreambleSnrPer (Ptr<InterferenceHelper::Event> event)
++{
++  NiChanges ni;
++  double noiseInterferenceW = CalculateNoiseInterferenceW (event, &ni);
++  double snr = CalculateSnr (event->GetRxPowerW (),
++                             noiseInterferenceW,
++                             event->GetTxVector ().GetChannelWidth ());
++
++  /* calculate the SNIR at the start of the plcp header and accumulate
++   * all SNIR changes in the snir vector.
++   */
++  double per = CalculatePlcpPreamblePer (event, &ni);
++
++  struct SnrPer snrPer;
++  snrPer.snr = snr;
++  snrPer.per = per;
++  return snrPer;
++}
++
++struct InterferenceHelper::SnrPer
+ InterferenceHelper::CalculatePlcpHeaderSnrPer (Ptr<InterferenceHelper::Event> event)
+ {
+   NiChanges ni;
+@@ -846,6 +1012,20 @@
+ }
+ 
+ void
++InterferenceHelper::NotifyRxPreambleStart ()
++{
++  NS_LOG_FUNCTION (this);
++  m_preambleRxing = true;
++}
++
++void
++InterferenceHelper::NotifyRxPreambleEnd ()
++{
++  NS_LOG_FUNCTION (this);
++  m_preambleRxing = false;
++}
++
++void
+ InterferenceHelper::NotifyRxStart ()
+ {
+   NS_LOG_FUNCTION (this);
+diff -r cf9f06803ccb src/wifi/model/interference-helper.h
+--- a/src/wifi/model/interference-helper.h	Sun Sep 27 12:49:29 2015 -0700
++++ b/src/wifi/model/interference-helper.h	Sun Dec 27 16:46:11 2015 -0800
+@@ -24,9 +24,11 @@
+ #include <stdint.h>
+ #include <vector>
+ #include <list>
++#include <map>
+ #include "wifi-mode.h"
+ #include "wifi-preamble.h"
+ #include "wifi-phy-standard.h"
++#include "frame-sync-error-rate-lookup.h"
+ #include "ns3/nstime.h"
+ #include "ns3/simple-ref-count.h"
+ #include "ns3/wifi-tx-vector.h"
+@@ -130,6 +132,15 @@
+     double per;
+   };
+ 
++  /**
++   * A struct containing interference power level and its time duration
++   */
++  struct InterferencePowerDuration
++  {
++    double interferencePowerW;
++    Time duration;
++  };
++
+   InterferenceHelper ();
+   ~InterferenceHelper ();
+ 
+@@ -145,7 +156,14 @@
+    * \param rate Error rate model
+    */
+   void SetErrorRateModel (Ptr<ErrorRateModel> rate);
+-
++  /**
++   * Calculate the average SNIR (in W/W) during the PLCP SYNC field of the
++   * packet's preamble.
++   *
++   * \param event the event corresponding to the first time the packet arrives
++   * \return the average SNIR (in W/W) during SYNC field
++   */
++  double CalculateAvgSyncFieldSnir (Ptr<InterferenceHelper::Event> event);
+   /**
+    * Return the noise figure.
+    *
+@@ -193,6 +211,15 @@
+    */
+   struct InterferenceHelper::SnrPer CalculatePlcpPayloadSnrPer (Ptr<InterferenceHelper::Event> event);
+   /**
++   * Calculate the SNIR at the start of the plcp preamble and accumulate
++   * all SNIR changes in the snir vector.
++   *
++   * \param event the event corresponding to the first time the corresponding packet arrives
++   *
++   * \return struct of SNR and PER
++   */
++  struct InterferenceHelper::SnrPer CalculatePlcpPreambleSnrPer (Ptr<InterferenceHelper::Event> event);
++  /**
+    * Calculate the SNIR at the start of the plcp header and accumulate
+    * all SNIR changes in the snir vector.
+    *
+@@ -203,6 +230,14 @@
+   struct InterferenceHelper::SnrPer CalculatePlcpHeaderSnrPer (Ptr<InterferenceHelper::Event> event);
+ 
+   /**
++   * Notify that Preamble RX has started.
++   */
++  void NotifyRxPreambleStart ();
++    /**
++   * Notify that Preamble RX has ended.
++   */
++  void NotifyRxPreambleEnd ();
++  /**
+    * Notify that RX has started.
+    */
+   void NotifyRxStart ();
+@@ -290,6 +325,19 @@
+    * \return SNR in liear ratio
+    */
+   double CalculateSnr (double signal, double noiseInterference, uint32_t channelWidth) const;
++  
++   /**
++   * Calculate the success rate of the plcp preamble chunk given the SINR, duration, and Wi-Fi mode.
++   * The duration and mode are used to calculate how many bits are present in the chunk.
++   *
++   * \param snir SINR
++   * \param duration
++   * \param mode
++   * \param txVector
++   *
++   * \return the success rate
++   */
++  double CalculatePlcpPreambleChunkSuccessRate (double snir, Time duration, WifiMode mode, WifiTxVector txVector) const;
+   /**
+    * Calculate the success rate of the chunk given the SINR, duration, and Wi-Fi mode.
+    * The duration and mode are used to calculate how many bits are present in the chunk.
+@@ -312,6 +360,16 @@
+    * \return the error rate of the packet
+    */
+   double CalculatePlcpPayloadPer (Ptr<const Event> event, NiChanges *ni) const;
++   /**
++   * Calculate the error rate of the plcp preamble. The plcp header can be divided into
++   * multiple chunks (e.g. due to interference from other transmissions).
++   *
++   * \param event
++   * \param ni
++   *
++   * \return the error rate of the packet
++   */
++  double CalculatePlcpPreamblePer (Ptr<Event> event, NiChanges *ni);
+   /**
+    * Calculate the error rate of the plcp header. The plcp header can be divided into
+    * multiple chunks (e.g. due to interference from other transmissions).
+@@ -328,7 +386,9 @@
+   /// Experimental: needed for energy duration calculation
+   NiChanges m_niChanges;
+   double m_firstPower;
++  double plcp_snir; //keeps the preamble snir value if needed for payload decode.
+   bool m_rxing;
++  bool m_preambleRxing;
+   /// Returns an iterator to the first nichange, which is later than moment
+   NiChanges::iterator GetPosition (Time moment);
+   /**
+diff -r cf9f06803ccb src/wifi/model/mac-low.cc
+--- a/src/wifi/model/mac-low.cc	Sun Sep 27 12:49:29 2015 -0700
++++ b/src/wifi/model/mac-low.cc	Sun Dec 27 16:46:11 2015 -0800
+@@ -326,6 +326,9 @@
+   virtual void NotifyRxEndError (void)
+   {
+   }
++  virtual void NotifyRxPreambleStart (Time duration)
++  {
++  }
+   virtual void NotifyTxStart (Time duration, double txPowerDbm)
+   {
+   }
+@@ -1422,6 +1425,10 @@
+     {
+       preamble = WIFI_PREAMBLE_HT_MF;
+     }
++  else if (m_phy->GetShortPlcpPreamble () && m_stationManager->GetShortPreambleSupported (m_currentHdr.GetAddr1 ()))
++    {
++      preamble = WIFI_PREAMBLE_SHORT;
++    }
+   else
+     {
+       preamble = WIFI_PREAMBLE_LONG;
+@@ -1458,6 +1465,10 @@
+         {
+           preamble = WIFI_PREAMBLE_HT_MF;
+         }
++      else if (m_phy->GetShortPlcpPreamble () && m_stationManager->GetShortPreambleSupported (m_currentHdr.GetAddr1 ()))
++        {
++          preamble = WIFI_PREAMBLE_SHORT;
++        }
+       else
+         {
+           preamble = WIFI_PREAMBLE_LONG;
+@@ -1862,6 +1873,10 @@
+     {
+       preamble = WIFI_PREAMBLE_HT_MF;
+     }
++  else if (m_phy->GetShortPlcpPreamble () && m_stationManager->GetShortPreambleSupported (m_currentHdr.GetAddr1 ()))
++    {
++      preamble = WIFI_PREAMBLE_SHORT;
++    }
+   else
+     {
+       preamble = WIFI_PREAMBLE_LONG;
+@@ -1946,6 +1961,10 @@
+     {
+       preamble = WIFI_PREAMBLE_HT_MF;
+     }
++  else if (m_phy->GetShortPlcpPreamble () && m_stationManager->GetShortPreambleSupported (m_currentHdr.GetAddr1 ()))
++    {
++      preamble = WIFI_PREAMBLE_SHORT;
++    }
+   else
+     {
+       preamble = WIFI_PREAMBLE_LONG;
+@@ -2176,6 +2195,10 @@
+     {
+       preamble = WIFI_PREAMBLE_HT_MF;
+     }
++  else if (m_phy->GetShortPlcpPreamble () && m_stationManager->GetShortPreambleSupported (m_currentHdr.GetAddr1 ()))
++    {
++      preamble = WIFI_PREAMBLE_SHORT;
++    }
+   else
+     {
+       preamble = WIFI_PREAMBLE_LONG;
+@@ -2814,6 +2837,10 @@
+     {
+       preamble = WIFI_PREAMBLE_HT_MF;
+     }
++  else if (m_phy->GetShortPlcpPreamble () && m_stationManager->GetShortPreambleSupported (m_currentHdr.GetAddr1 ()))
++    {
++      preamble = WIFI_PREAMBLE_SHORT;
++    }
+   else
+     {
+       preamble = WIFI_PREAMBLE_LONG;
+diff -r cf9f06803ccb src/wifi/model/mgt-headers.cc
+--- a/src/wifi/model/mgt-headers.cc	Sun Sep 27 12:49:29 2015 -0700
++++ b/src/wifi/model/mgt-headers.cc	Sun Dec 27 16:46:11 2015 -0800
+@@ -186,6 +186,18 @@
+ }
+ 
+ void
++MgtProbeResponseHeader::SetCapabilities (CapabilityInformation capabilities)
++{
++  m_capability = capabilities;
++}
++
++CapabilityInformation
++MgtProbeResponseHeader::GetCapabilities (void) const
++{
++  return m_capability;
++}
++
++void
+ MgtProbeResponseHeader::SetHtCapabilities (HtCapabilities htcapabilities)
+ {
+   m_htCapability = htcapabilities;
+@@ -358,15 +370,33 @@
+ }
+ 
+ void
++MgtAssocRequestHeader::SetListenInterval (uint16_t interval)
++{
++  m_listenInterval = interval;
++}
++
++void
++MgtAssocRequestHeader::SetCapabilities (CapabilityInformation capabilities)
++{
++  m_capability = capabilities;
++}
++
++CapabilityInformation
++MgtAssocRequestHeader::GetCapabilities (void) const
++{
++  return m_capability;
++}
++
++void
+ MgtAssocRequestHeader::SetHtCapabilities (HtCapabilities htcapabilities)
+ {
+   m_htCapability = htcapabilities;
+ }
+ 
+-void
+-MgtAssocRequestHeader::SetListenInterval (uint16_t interval)
++HtCapabilities
++MgtAssocRequestHeader::GetHtCapabilities (void) const
+ {
+-  m_listenInterval = interval;
++  return m_htCapability;
+ }
+ 
+ void
+@@ -381,12 +411,6 @@
+   return m_vhtCapability;
+ }
+ 
+-HtCapabilities
+-MgtAssocRequestHeader::GetHtCapabilities (void) const
+-{
+-  return m_htCapability;
+-}
+-
+ Ssid
+ MgtAssocRequestHeader::GetSsid (void) const
+ {
+@@ -513,6 +537,18 @@
+ }
+ 
+ void
++MgtAssocResponseHeader::SetCapabilities (CapabilityInformation capabilities)
++{
++  m_capability = capabilities;
++}
++
++CapabilityInformation
++MgtAssocResponseHeader::GetCapabilities (void) const
++{
++  return m_capability;
++}
++
++void
+ MgtAssocResponseHeader::SetHtCapabilities (HtCapabilities htcapabilities)
+ {
+   m_htCapability = htcapabilities;
+diff -r cf9f06803ccb src/wifi/model/mgt-headers.h
+--- a/src/wifi/model/mgt-headers.h	Sun Sep 27 12:49:29 2015 -0700
++++ b/src/wifi/model/mgt-headers.h	Sun Dec 27 16:46:11 2015 -0800
+@@ -31,7 +31,6 @@
+ #include "supported-rates.h"
+ #include "ssid.h"
+ #include "ht-capabilities.h"
+-#include "ht-capabilities.h"
+ #include "vht-capabilities.h"
+ 
+ namespace ns3 {
+@@ -65,6 +64,12 @@
+    */
+   void SetListenInterval (uint16_t interval);
+   /**
++   * Set the Capability information.
++   *
++   * \param capabilities Capability information
++   */
++  void SetCapabilities (CapabilityInformation capabilities);
++  /**
+    * Set the HT capabilities.
+    *
+    * \param htcapabilities HT capabilities
+@@ -77,18 +82,23 @@
+     */
+   void SetVhtCapabilities (VhtCapabilities vhtcapabilities);
+   /**
+-  * Return the VHT capabilities.
+-  *
+-  * \return VHT capabilities
+-  */
+-  VhtCapabilities GetVhtCapabilities (void) const;
+-
++   * Return the Capability information.
++   *
++   * \return Capability information
++   */
++  CapabilityInformation GetCapabilities (void) const;
+   /**
+    * Return the HT capabilities.
+    *
+    * \return HT capabilities
+    */
+   HtCapabilities GetHtCapabilities (void) const;
++  /**
++  * Return the VHT capabilities.
++  *
++  * \return VHT capabilities
++  */
++  VhtCapabilities GetVhtCapabilities (void) const;
+ 
+   /**
+    * Return the Service Set Identifier (SSID).
+@@ -154,6 +164,18 @@
+    */
+   SupportedRates GetSupportedRates (void);
+   /**
++   * Return the Capability information.
++   *
++   * \return Capability information
++   */
++  CapabilityInformation GetCapabilities (void) const;
++  /**
++   * Set the Capability information.
++   *
++   * \param capabilities Capability information
++   */
++  void SetCapabilities (CapabilityInformation capabilities);
++  /**
+    * Return the HT capabilities.
+    *
+    * \return HT capabilities
+@@ -319,30 +341,42 @@
+    */
+   SupportedRates GetSupportedRates (void) const;
+   /**
++   * Return the Capability information.
++   *
++   * \return Capability information
++   */
++  CapabilityInformation GetCapabilities (void) const;
++  /**
+    * Return the HT capabilities.
+    *
+    * \return HT capabilities
+    */
+   HtCapabilities GetHtCapabilities (void) const;
+   /**
+-   * Set the VHT capabilities.
+-   *
+-   * \param vhtcapabilities VHT capabilities
+-   */
+-  void SetVhtCapabilities (VhtCapabilities vhtcapabilities);
+-  /**
+   * Return the VHT capabilities.
+   *
+   * \return VHT capabilities
+   */
+   VhtCapabilities GetVhtCapabilities (void) const;
+   /**
++   * Set the Capability information.
++   *
++   * \param capabilities Capability information
++   */
++  void SetCapabilities (CapabilityInformation capabilities);
++  /**
+    * Set the HT capabilities.
+    *
+    * \param htcapabilities HT capabilities
+    */
+   void SetHtCapabilities (HtCapabilities htcapabilities);
+   /**
++   * Set the VHT capabilities.
++   *
++   * \param vhtcapabilities VHT capabilities
++   */
++  void SetVhtCapabilities (VhtCapabilities vhtcapabilities);
++  /**
+    * Set the Service Set Identifier (SSID).
+    *
+    * \param ssid SSID
+diff -r cf9f06803ccb src/wifi/model/sta-wifi-mac.cc
+--- a/src/wifi/model/sta-wifi-mac.cc	Sun Sep 27 12:49:29 2015 -0700
++++ b/src/wifi/model/sta-wifi-mac.cc	Sun Dec 27 16:46:11 2015 -0800
+@@ -222,6 +222,7 @@
+   MgtAssocRequestHeader assoc;
+   assoc.SetSsid (GetSsid ());
+   assoc.SetSupportedRates (GetSupportedRates ());
++  assoc.SetCapabilities (GetCapabilities ());
+   if (m_htSupported || m_vhtSupported)
+     {
+       assoc.SetHtCapabilities (GetHtCapabilities ());
+@@ -558,6 +559,8 @@
+         {
+           MgtAssocResponseHeader assocResp;
+           packet->RemoveHeader (assocResp);
++          CapabilityInformation capabilities = assocResp.GetCapabilities ();
++          m_stationManager->AddSupportedPlcpPreamble (hdr->GetAddr2 (), capabilities.IsShortPreamble ());
+           if (m_assocRequestEvent.IsRunning ())
+             {
+               m_assocRequestEvent.Cancel ();
+@@ -655,6 +658,14 @@
+   return rates;
+ }
+ 
++CapabilityInformation
++StaWifiMac::GetCapabilities (void) const
++{
++  CapabilityInformation capabilities;
++  capabilities.SetShortPreamble (m_phy->GetShortPlcpPreamble ());
++  return capabilities;
++}
++
+ HtCapabilities
+ StaWifiMac::GetHtCapabilities (void) const
+ {
+diff -r cf9f06803ccb src/wifi/model/sta-wifi-mac.h
+--- a/src/wifi/model/sta-wifi-mac.h	Sun Sep 27 12:49:29 2015 -0700
++++ b/src/wifi/model/sta-wifi-mac.h	Sun Dec 27 16:46:11 2015 -0800
+@@ -28,6 +28,7 @@
+ #include "ns3/traced-callback.h"
+ #include "supported-rates.h"
+ #include "amsdu-subframe-header.h"
++#include "capability-information.h"
+ 
+ namespace ns3  {
+ 
+@@ -171,13 +172,19 @@
+    */
+   void SetState (enum MacState value);
+   /**
+-   * Return the HT capability of the current AP.
++   * Return the Capability information of the current STA.
++   *
++   * \return the Capability information that we support
++   */
++  CapabilityInformation GetCapabilities (void) const;
++  /**
++   * Return the HT capability of the current STA.
+    *
+    * \return the HT capability that we support
+    */
+   HtCapabilities GetHtCapabilities (void) const;
+   /**
+-   * Return the VHT capability of the current AP.
++   * Return the VHT capability of the current STA.
+    *
+    * \return the VHT capability that we support
+    */
+diff -r cf9f06803ccb src/wifi/model/uw-error-rate-lookup.cc
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/src/wifi/model/uw-error-rate-lookup.cc	Sun Dec 27 16:46:11 2015 -0800
+@@ -0,0 +1,919 @@
++/* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
++/*
++ * Copyright (c) 2015 University of Washington
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation;
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ *
++ * Author: 
++ */
++
++#include "ns3/log.h"
++#include "ns3/enum.h"
++#include <cmath>
++#include <iostream>
++#include <fstream>
++#include "uw-error-rate-lookup.h"
++
++namespace ns3
++{
++
++NS_LOG_COMPONENT_DEFINE ("UwErrorRateLookup");
++
++NS_OBJECT_ENSURE_REGISTERED (UwErrorRateLookup);
++
++
++// Data for error rates for corresponding snr (in dB) is read from text files in folder ErrorModel
++//MCS0
++const unsigned int g_mcsZeroSnrSerDatapoints = 28;
++double g_mcsZeroSnrs[g_mcsZeroSnrSerDatapoints];
++double g_mcsZeroSers[g_mcsZeroSnrSerDatapoints];
++static uint8_t g_mcsZeroNumSnrDecPlaces = 0;
++double g_mcsZeroSnrSpacing;
++double g_mcsZeroSnrMin;
++double g_mcsZeroSnrMax;
++
++//MCS1
++const unsigned int g_mcsOneSnrSerDatapoints = 28;
++double g_mcsOneSnrs[g_mcsOneSnrSerDatapoints];
++double g_mcsOneSers[g_mcsOneSnrSerDatapoints];
++static uint8_t g_mcsOneNumSnrDecPlaces = 0;
++double g_mcsOneSnrSpacing;
++double g_mcsOneSnrMin;
++double g_mcsOneSnrMax;
++
++//MCS2
++const unsigned int g_mcsTwoSnrSerDatapoints = 28;
++double g_mcsTwoSnrs[g_mcsTwoSnrSerDatapoints];
++double g_mcsTwoSers[g_mcsTwoSnrSerDatapoints];
++static uint8_t g_mcsTwoNumSnrDecPlaces = 0;
++double g_mcsTwoSnrSpacing;
++double g_mcsTwoSnrMin;
++double g_mcsTwoSnrMax;
++
++//MCS3
++const unsigned int g_mcsThreeSnrSerDatapoints = 28;
++double g_mcsThreeSnrs[g_mcsThreeSnrSerDatapoints];
++double g_mcsThreeSers[g_mcsThreeSnrSerDatapoints];
++static uint8_t g_mcsThreeNumSnrDecPlaces = 0;
++double g_mcsThreeSnrSpacing;
++double g_mcsThreeSnrMin;
++double g_mcsThreeSnrMax;
++
++//MCS4
++const unsigned int g_mcsFourSnrSerDatapoints = 28;
++double g_mcsFourSnrs[g_mcsFourSnrSerDatapoints];
++double g_mcsFourSers[g_mcsFourSnrSerDatapoints];
++static uint8_t g_mcsFourNumSnrDecPlaces = 0;
++double g_mcsFourSnrSpacing;
++double g_mcsFourSnrMin;
++double g_mcsFourSnrMax;
++
++//MCS5
++const unsigned int g_mcsFiveSnrSerDatapoints = 28;
++double g_mcsFiveSnrs[g_mcsFiveSnrSerDatapoints];
++double g_mcsFiveSers[g_mcsFiveSnrSerDatapoints];
++static uint8_t g_mcsFiveNumSnrDecPlaces = 0;
++double g_mcsFiveSnrSpacing;
++double g_mcsFiveSnrMin;
++double g_mcsFiveSnrMax;
++
++//MCS6
++const unsigned int g_mcsSixSnrSerDatapoints = 28;
++double g_mcsSixSnrs[g_mcsSixSnrSerDatapoints];
++double g_mcsSixSers[g_mcsSixSnrSerDatapoints];
++static uint8_t g_mcsSixNumSnrDecPlaces = 0;
++double g_mcsSixSnrSpacing;
++double g_mcsSixSnrMin;
++double g_mcsSixSnrMax;
++
++
++//MCS7
++const unsigned int g_mcsSevenSnrSerDatapoints = 28;
++double g_mcsSevenSnrs[g_mcsSevenSnrSerDatapoints];
++double g_mcsSevenSers[g_mcsSevenSnrSerDatapoints];
++static uint8_t g_mcsSevenNumSnrDecPlaces = 0;
++double g_mcsSevenSnrSpacing;
++double g_mcsSevenSnrMin;
++double g_mcsSevenSnrMax;
++
++TypeId
++UwErrorRateLookup::GetTypeId (void)
++{
++  static TypeId tid = TypeId("ns3::UwErrorRateLookup")
++    .SetParent<Object> ()
++    .AddConstructor<UwErrorRateLookup> ()
++  ;
++  return tid;
++}
++
++
++UwErrorRateLookup::UwErrorRateLookup ()
++  : m_errorRateTableIsLoaded (false),
++    m_errorModelIsRead (false),
++    m_numSnrDecPlaces (0),
++    m_numSnrDecPlacesIsSet (false),
++    m_snrSpacing (1),
++    m_snrSpacingIsSet (false),
++    m_snrMin (-10),
++    m_snrMax (17),
++    m_snrOffset (0),
++    m_snrOffsetIsSet (false)
++{
++  NS_LOG_FUNCTION (this);
++}
++
++
++UwErrorRateLookup::~UwErrorRateLookup ()
++{
++  NS_LOG_FUNCTION (this);
++}
++
++void
++UwErrorRateLookup::ReadErrorModel ()
++{
++  NS_LOG_FUNCTION (this);
++  //MCS0 Data
++  int data_size = g_mcsZeroSnrSerDatapoints; // define the number of data points
++  int position = 0; //this will be used incremently to fill data points 
++  std::ifstream fin("./src/wifi/model/ErrorModel/MCS0Snr.txt" , std::ios_base::in); //opening an input stream for file 
++	/*checking whether file could be opened or not. If file does not exist or don't have read permissions, file
++    stream could not be opened.*/
++  if(fin.is_open())
++    {
++     //file opened successfully so we are here
++     NS_LOG_INFO ("File opened successfully");
++     //this loop run until end of file (eof) does not occur
++     while(!fin.eof() && position < data_size)
++      {
++       fin >> g_mcsZeroSnrs[position];
++       position++;
++      }
++    }
++   else
++    { 
++     NS_LOG_INFO ("Can not read from file");
++    }
++  fin.close();
++  g_mcsZeroSnrMin = g_mcsZeroSnrs[0];
++  g_mcsZeroSnrMax = g_mcsZeroSnrs[position - 1];
++  g_mcsZeroSnrSpacing = g_mcsZeroSnrs[1] - g_mcsZeroSnrs[0];
++  //read SERs
++  fin.open("./src/wifi/model/ErrorModel/MCS0Ser.txt" , std::ios_base::in); //opening an input stream for file 
++	/*checking whether file could be opened or not. If file does not exist or don't have read permissions, file
++    stream could not be opened.*/
++  position = 0; 
++  if(fin.is_open())
++    {
++     //file opened successfully so we are here
++     NS_LOG_INFO ("File opened successfully");
++     //this loop run until end of file (eof) does not occur
++     while(!fin.eof() && position < data_size)
++      {
++       fin >> g_mcsZeroSers[position];
++       position++;
++      }
++    }
++   else
++     {
++     NS_LOG_INFO ("Can not read from file");
++     }
++  fin.close();
++  //MCS1 Data
++  data_size = g_mcsOneSnrSerDatapoints; // define the number of data points
++  position = 0; //this will be used incremently to fill data points 
++  fin.open("./src/wifi/model/ErrorModel/MCS1Snr.txt" , std::ios_base::in); //opening an input stream for file 
++	/*checking whether file could be opened or not. If file does not exist or don't have read permissions, file
++    stream could not be opened.*/
++  if(fin.is_open())
++    {
++     //file opened successfully so we are here
++     NS_LOG_INFO ("File opened successfully");
++     //this loop run until end of file (eof) does not occur
++     while(!fin.eof() && position < data_size)
++      {
++       fin >> g_mcsOneSnrs[position];
++       position++;
++      }
++    }
++   else
++    { 
++     NS_LOG_INFO ("Can not read from file");
++    }
++  fin.close();
++  g_mcsOneSnrMin = g_mcsOneSnrs[0];
++  g_mcsOneSnrMax = g_mcsOneSnrs[position - 1];
++  g_mcsOneSnrSpacing = g_mcsOneSnrs[1] - g_mcsOneSnrs[0];
++  //read SERs
++  fin.open("./src/wifi/model/ErrorModel/MCS1Ser.txt" , std::ios_base::in); //opening an input stream for file 
++	/*checking whether file could be opened or not. If file does not exist or don't have read permissions, file
++    stream could not be opened.*/
++  position = 0; 
++  if(fin.is_open())
++    {
++     //file opened successfully so we are here
++     NS_LOG_INFO ("File opened successfully");
++     //this loop run until end of file (eof) does not occur
++     while(!fin.eof() && position < data_size)
++      {
++       fin >> g_mcsOneSers[position];
++       position++;
++      }
++    }
++   else
++     {
++     NS_LOG_INFO ("Can not read from file");
++     }
++  fin.close();
++  //MCS2 Data
++  data_size = g_mcsTwoSnrSerDatapoints; // define the number of data points
++  position = 0; //this will be used incremently to fill data points 
++  fin.open("./src/wifi/model/ErrorModel/MCS2Snr.txt" , std::ios_base::in); //opening an input stream for file 
++	/*checking whether file could be opened or not. If file does not exist or don't have read permissions, file
++    stream could not be opened.*/
++  if(fin.is_open())
++    {
++     //file opened successfully so we are here
++     NS_LOG_INFO ("File opened successfully");
++     //this loop run until end of file (eof) does not occur
++     while(!fin.eof() && position < data_size)
++      {
++       fin >> g_mcsTwoSnrs[position];
++       position++;
++      }
++    }
++   else
++    { 
++     NS_LOG_INFO ("Can not read from file");
++    }
++  fin.close();
++  g_mcsTwoSnrMin = g_mcsTwoSnrs[0];
++  g_mcsTwoSnrMax = g_mcsTwoSnrs[position - 1];
++  g_mcsTwoSnrSpacing = g_mcsTwoSnrs[1] - g_mcsTwoSnrs[0];
++  //read SERs
++  fin.open("./src/wifi/model/ErrorModel/MCS2Ser.txt" , std::ios_base::in); //opening an input stream for file 
++	/*checking whether file could be opened or not. If file does not exist or don't have read permissions, file
++    stream could not be opened.*/
++  position = 0; 
++  if(fin.is_open())
++    {
++     //file opened successfully so we are here
++     NS_LOG_INFO ("File opened successfully");
++     //this loop run until end of file (eof) does not occur
++     while(!fin.eof() && position < data_size)
++      {
++       fin >> g_mcsTwoSers[position];
++       position++;
++      }
++    }
++   else
++     {
++     NS_LOG_INFO ("Can not read from file");
++     }
++  fin.close();
++  //MCS3 Data
++  data_size = g_mcsThreeSnrSerDatapoints; // define the number of data points
++  position = 0; //this will be used incremently to fill data points 
++  fin.open("./src/wifi/model/ErrorModel/MCS3Snr.txt" , std::ios_base::in); //opening an input stream for file 
++	/*checking whether file could be opened or not. If file does not exist or don't have read permissions, file
++    stream could not be opened.*/
++  if(fin.is_open())
++    {
++     //file opened successfully so we are here
++     NS_LOG_INFO ("File opened successfully");
++     //this loop run until end of file (eof) does not occur
++     while(!fin.eof() && position < data_size)
++      {
++       fin >> g_mcsThreeSnrs[position];
++       position++;
++      }
++    }
++   else
++    { 
++     NS_LOG_INFO ("Can not read from file");
++    }
++  fin.close();
++  g_mcsThreeSnrMin = g_mcsThreeSnrs[0];
++  g_mcsThreeSnrMax = g_mcsThreeSnrs[position - 1];
++  g_mcsThreeSnrSpacing = g_mcsThreeSnrs[1] - g_mcsThreeSnrs[0];
++  //read SERs
++  fin.open("./src/wifi/model/ErrorModel/MCS3Ser.txt" , std::ios_base::in); //opening an input stream for file 
++	/*checking whether file could be opened or not. If file does not exist or don't have read permissions, file
++    stream could not be opened.*/
++  position = 0; 
++  if(fin.is_open())
++    {
++     //file opened successfully so we are here
++     NS_LOG_INFO ("File opened successfully");
++     //this loop run until end of file (eof) does not occur
++     while(!fin.eof() && position < data_size)
++      {
++       fin >> g_mcsThreeSers[position];
++       position++;
++      }
++    }
++   else
++     {
++     NS_LOG_INFO ("Can not read from file");
++     }
++  fin.close();
++  //MCS4 Data
++  data_size = g_mcsFourSnrSerDatapoints; // define the number of data points
++  position = 0; //this will be used incremently to fill data points 
++  fin.open("./src/wifi/model/ErrorModel/MCS4Snr.txt" , std::ios_base::in); //opening an input stream for file 
++	/*checking whether file could be opened or not. If file does not exist or don't have read permissions, file
++    stream could not be opened.*/
++  if(fin.is_open())
++    {
++     //file opened successfully so we are here
++     NS_LOG_INFO ("File opened successfully");
++     //this loop run until end of file (eof) does not occur
++     while(!fin.eof() && position < data_size)
++      {
++       fin >> g_mcsFourSnrs[position];
++       position++;
++      }
++    }
++   else
++    { 
++     NS_LOG_INFO ("Can not read from file");
++    }
++  fin.close();
++  g_mcsFourSnrMin = g_mcsFourSnrs[0];
++  g_mcsFourSnrMax = g_mcsFourSnrs[position - 1];
++  g_mcsFourSnrSpacing = g_mcsFourSnrs[1] - g_mcsFourSnrs[0];
++  //read SERs
++  fin.open("./src/wifi/model/ErrorModel/MCS4Ser.txt" , std::ios_base::in); //opening an input stream for file 
++	/*checking whether file could be opened or not. If file does not exist or don't have read permissions, file
++    stream could not be opened.*/
++  position = 0; 
++  if(fin.is_open())
++    {
++     //file opened successfully so we are here
++     NS_LOG_INFO ("File opened successfully");
++     //this loop run until end of file (eof) does not occur
++     while(!fin.eof() && position < data_size)
++      {
++       fin >> g_mcsFourSers[position];
++       position++;
++      }
++    }
++   else
++     {
++     NS_LOG_INFO ("Can not read from file");
++     }
++  fin.close();
++  //MCS5 Data
++  data_size = g_mcsFiveSnrSerDatapoints; // define the number of data points
++  position = 0; //this will be used incremently to fill data points 
++  fin.open("./src/wifi/model/ErrorModel/MCS5Snr.txt" , std::ios_base::in); //opening an input stream for file 
++	/*checking whether file could be opened or not. If file does not exist or don't have read permissions, file
++    stream could not be opened.*/
++  if(fin.is_open())
++    {
++     //file opened successfully so we are here
++     NS_LOG_INFO ("File opened successfully");
++     //this loop run until end of file (eof) does not occur
++     while(!fin.eof() && position < data_size)
++      {
++       fin >> g_mcsFiveSnrs[position];
++       position++;
++      }
++    }
++   else
++    { 
++     NS_LOG_INFO ("Can not read from file");
++    }
++  fin.close();
++  g_mcsFiveSnrMin = g_mcsFiveSnrs[0];
++  g_mcsFiveSnrMax = g_mcsFiveSnrs[position - 1];
++  g_mcsFiveSnrSpacing = g_mcsFiveSnrs[1] - g_mcsFiveSnrs[0];
++
++  fin.open("./src/wifi/model/ErrorModel/MCS5Ser.txt" , std::ios_base::in); //opening an input stream for file 
++	/*checking whether file could be opened or not. If file does not exist or don't have read permissions, file
++    stream could not be opened.*/
++  position = 0; 
++  if(fin.is_open())
++    {
++     //file opened successfully so we are here
++     NS_LOG_INFO ("File opened successfully");
++     //this loop run until end of file (eof) does not occur
++     while(!fin.eof() && position < data_size)
++      {
++       fin >> g_mcsFiveSers[position];
++       position++;
++      }
++    }
++   else
++     {
++     NS_LOG_INFO ("Can not read from file");
++     }
++  fin.close();
++  //MCS6 Data
++  data_size = g_mcsSixSnrSerDatapoints; // define the number of data points
++  position = 0; //this will be used incremently to fill data points 
++  fin.open("./src/wifi/model/ErrorModel/MCS6Snr.txt" , std::ios_base::in); //opening an input stream for file 
++	/*checking whether file could be opened or not. If file does not exist or don't have read permissions, file
++    stream could not be opened.*/
++  if(fin.is_open())
++    {
++     //file opened successfully so we are here
++     NS_LOG_INFO ("File opened successfully");
++     //this loop run until end of file (eof) does not occur
++     while(!fin.eof() && position < data_size)
++      {
++       fin >> g_mcsSixSnrs[position];
++       position++;
++      }
++    }
++   else
++    { 
++     NS_LOG_INFO ("Can not read from file");
++    }
++  fin.close();
++  g_mcsSixSnrMin = g_mcsSixSnrs[0];
++  g_mcsSixSnrMax = g_mcsSixSnrs[position - 1];
++  g_mcsSixSnrSpacing = g_mcsSixSnrs[1] - g_mcsSixSnrs[0];
++  //read SERs
++  fin.open("./src/wifi/model/ErrorModel/MCS6Ser.txt" , std::ios_base::in); //opening an input stream for file 
++	/*checking whether file could be opened or not. If file does not exist or don't have read permissions, file
++    stream could not be opened.*/
++  position = 0; 
++  if(fin.is_open())
++    {
++     //file opened successfully so we are here
++     NS_LOG_INFO ("File opened successfully");
++     //this loop run until end of file (eof) does not occur
++     while(!fin.eof() && position < data_size)
++      {
++       fin >> g_mcsSixSers[position];
++       position++;
++      }
++    }
++   else
++     {
++     NS_LOG_INFO ("Can not read from file");
++     }
++  fin.close();
++  //MCS7 Data
++  data_size = g_mcsSevenSnrSerDatapoints; // define the number of data points
++  position = 0; //this will be used incremently to fill data points 
++  fin.open("./src/wifi/model/ErrorModel/MCS7Snr.txt" , std::ios_base::in); //opening an input stream for file 
++	/*checking whether file could be opened or not. If file does not exist or don't have read permissions, file
++    stream could not be opened.*/
++  if(fin.is_open())
++    {
++     //file opened successfully so we are here
++     NS_LOG_INFO ("File opened successfully");
++     //this loop run until end of file (eof) does not occur
++     while(!fin.eof() && position < data_size)
++      {
++       fin >> g_mcsSevenSnrs[position];
++       position++;
++      }
++    }
++   else
++    { 
++     NS_LOG_INFO ("Can not read from file");
++    }
++  fin.close();
++  g_mcsSevenSnrMin = g_mcsSevenSnrs[0];
++  g_mcsSevenSnrMax = g_mcsSevenSnrs[position - 1];
++  g_mcsSevenSnrSpacing = g_mcsSevenSnrs[1] - g_mcsSevenSnrs[0];
++  //read SERs
++  fin.open("./src/wifi/model/ErrorModel/MCS7Ser.txt" , std::ios_base::in); //opening an input stream for file 
++	/*checking whether file could be opened or not. If file does not exist or don't have read permissions, file
++    stream could not be opened.*/
++  position = 0; 
++  if(fin.is_open())
++    {
++     //file opened successfully so we are here
++     NS_LOG_INFO ("File opened successfully");
++     //this loop run until end of file (eof) does not occur
++     while(!fin.eof() && position < data_size)
++      {
++       fin >> g_mcsSevenSers[position];
++       position++;
++      }
++    }
++   else
++     {
++     NS_LOG_INFO ("Can not read from file");
++     }
++  fin.close();
++  m_errorModelIsRead = true;
++}
++
++
++void
++UwErrorRateLookup::SetNumSnrDatapointDecPlaces (double numDecimalPlaces)
++{
++  NS_LOG_FUNCTION (this << numDecimalPlaces);
++  m_numSnrDecPlaces = numDecimalPlaces;
++  m_numSnrDecPlacesIsSet = true;
++}
++
++
++void
++UwErrorRateLookup::SetSnrDatapointSpacing (double snrDatapointSpacing)
++{
++  NS_LOG_FUNCTION (this << snrDatapointSpacing);
++  m_snrSpacing = snrDatapointSpacing;
++  m_snrSpacingIsSet = true;
++}
++
++
++void
++UwErrorRateLookup::AddSnrSerDatapoint (double snr, double ser)
++{
++  NS_LOG_FUNCTION (this << snr << ser);
++  NS_ASSERT_MSG (m_numSnrDecPlacesIsSet, "number of decimal places of SNR"
++                                         " datapoints must be set before"
++                                         " manually adding datapoints");
++  if (m_frameSyncErrorRateTable.empty ())
++    {
++      m_snrMin = snr;
++      m_snrMax = snr;
++    }
++  else if (snr < m_snrMin)
++    {
++      m_snrMin = snr;
++    }
++  else if (snr > m_snrMax)
++    {
++      m_snrMax = snr;
++    }
++  std::pair<std::map<int, double>::iterator, bool> ret;
++  int snrInt = DoubleToHashKeyInt (snr); //SNR converted to an integer to use as hash key
++  ret = m_frameSyncErrorRateTable.insert (std::pair<int, double> (snrInt, ser)); //add datapoint to hash map
++  NS_ASSERT_MSG (ret.second, "element with snr hash of " << snrInt <<
++                             " already exists in frame sync error rate hash map with value of "
++                             << ret.first->second);
++  m_errorRateTableIsLoaded = true;
++}
++
++double
++UwErrorRateLookup::GetErrorRate (double snr, uint16_t identifier)
++{
++  NS_LOG_FUNCTION (this << snr);
++  ident = identifier; //identifier for MCS
++  snr = 10.0 * std::log10 (snr); //convert SNR from ratio to dB
++  if (!m_errorModelIsRead)
++    {
++      ReadErrorModel ();
++    }
++  if (!m_errorRateTableIsLoaded)
++    {
++      LoadErrorRateDataToTable (); //load error rates the first time this method is called
++    }
++  if (!m_snrOffsetIsSet)
++    {
++      DetermineSnrOffset ();
++    }
++  bool snrAtBound = false;
++  if (snr <= m_snrMin)
++    {
++      NS_LOG_DEBUG ("SNR is lower than minimum frame sync error rate datapoint;"
++                    " setting SNR to " << m_snrMin << " (min SNR)");
++      snr = m_snrMin;
++      snrAtBound = true;
++    }
++  else if (snr >= m_snrMax)
++    {
++      NS_LOG_DEBUG ("SNR is higher than maximum frame sync error rate datapoint;"
++                    " setting SNR to " << m_snrMax << " (max SNR)");
++      snr = m_snrMax;
++      snrAtBound = true;
++    }
++  InterpolParams iParams;
++  double ser; //sync error rate to return
++  iParams = FindDatapointBounds (snr, snrAtBound);
++  ser = InterpolateAndRetrieveData (snr, iParams.snrLoBound, iParams.snrHiBound);
++  return ser;
++}
++
++
++int
++UwErrorRateLookup::RoundDoubleToInt (double val)
++{
++  NS_LOG_FUNCTION (this << val);
++  if (val > 0.0)
++    {
++      return val + 0.5;
++    }
++  else
++    {
++      return val - 0.5;
++    }
++}
++
++
++int
++UwErrorRateLookup::DoubleToHashKeyInt (double val)
++{
++  NS_LOG_FUNCTION (this << val);
++  for (uint8_t i = 0; i < m_numSnrDecPlaces; i++)
++    {
++      val = val * 10;
++    }
++  return (int)(round (val));
++}
++
++
++void
++UwErrorRateLookup::LoadErrorRateDataToTable ()
++{
++  NS_LOG_FUNCTION (this);
++  NS_ASSERT_MSG (!m_errorRateTableIsLoaded, "frame sync error rate table has"
++                                            " already been loaded");
++  std::pair<std::map<int, double>::iterator, bool> ret;
++  int snrInt; //SNR converted to an integer to use as hash key
++  if (ident == 0)
++   {
++     m_numSnrDecPlaces = g_mcsZeroNumSnrDecPlaces;
++     m_numSnrDecPlacesIsSet = true;
++     m_snrSpacing = g_mcsZeroSnrSpacing;
++     m_snrSpacingIsSet = true;
++     m_snrMin = g_mcsZeroSnrMin;
++     m_snrMax = g_mcsZeroSnrMax;
++     for (unsigned int i = 0; i < g_mcsZeroSnrSerDatapoints; i++)
++      {
++        snrInt = DoubleToHashKeyInt (g_mcsZeroSnrs[i]);
++        ret = m_frameSyncErrorRateTable.insert (std::pair<int, double> (snrInt, g_mcsZeroSers[i])); //add datapoint to hash map
++        NS_ASSERT_MSG (ret.second, "element with snr hash of " << snrInt <<
++                                " already exists in frame sync error rate hash map with value of "
++                                << ret.first->second);
++      }
++   }
++  else if (ident == 1)
++   {
++     m_numSnrDecPlaces = g_mcsOneNumSnrDecPlaces;
++     m_numSnrDecPlacesIsSet = true;
++     m_snrSpacing = g_mcsOneSnrSpacing;
++     m_snrSpacingIsSet = true;
++     m_snrMin = g_mcsOneSnrMin;
++     m_snrMax = g_mcsOneSnrMax;
++     for (unsigned int i = 0; i < g_mcsOneSnrSerDatapoints; i++)
++      {
++        snrInt = DoubleToHashKeyInt (g_mcsOneSnrs[i]);
++        ret = m_frameSyncErrorRateTable.insert (std::pair<int, double> (snrInt, g_mcsOneSers[i])); //add datapoint to hash map
++        NS_ASSERT_MSG (ret.second, "element with snr hash of " << snrInt <<
++                                " already exists in frame sync error rate hash map with value of "
++                                << ret.first->second);
++      }
++   }
++  else if (ident == 2)
++   {
++     m_numSnrDecPlaces = g_mcsTwoNumSnrDecPlaces;
++     m_numSnrDecPlacesIsSet = true;
++     m_snrSpacing = g_mcsTwoSnrSpacing;
++     m_snrSpacingIsSet = true;
++     m_snrMin = g_mcsTwoSnrMin;
++     m_snrMax = g_mcsTwoSnrMax;
++     for (unsigned int i = 0; i < g_mcsTwoSnrSerDatapoints; i++)
++      {
++        snrInt = DoubleToHashKeyInt (g_mcsTwoSnrs[i]);
++        ret = m_frameSyncErrorRateTable.insert (std::pair<int, double> (snrInt, g_mcsTwoSers[i])); //add datapoint to hash map
++        NS_ASSERT_MSG (ret.second, "element with snr hash of " << snrInt <<
++                                " already exists in frame sync error rate hash map with value of "
++                                << ret.first->second);
++      }
++   }
++  else if (ident == 3)
++   {
++     m_numSnrDecPlaces = g_mcsThreeNumSnrDecPlaces;
++     m_numSnrDecPlacesIsSet = true;
++     m_snrSpacing = g_mcsThreeSnrSpacing;
++     m_snrSpacingIsSet = true;
++     m_snrMin = g_mcsThreeSnrMin;
++     m_snrMax = g_mcsThreeSnrMax;
++     for (unsigned int i = 0; i < g_mcsThreeSnrSerDatapoints; i++)
++      {
++        snrInt = DoubleToHashKeyInt (g_mcsThreeSnrs[i]);
++        ret = m_frameSyncErrorRateTable.insert (std::pair<int, double> (snrInt, g_mcsThreeSers[i])); //add datapoint to hash map
++        NS_ASSERT_MSG (ret.second, "element with snr hash of " << snrInt <<
++                                " already exists in frame sync error rate hash map with value of "
++                                << ret.first->second);
++      }
++   }
++  else if (ident == 4)
++   {
++     m_numSnrDecPlaces = g_mcsFourNumSnrDecPlaces;
++     m_numSnrDecPlacesIsSet = true;
++     m_snrSpacing = g_mcsFourSnrSpacing;
++     m_snrSpacingIsSet = true;
++     m_snrMin = g_mcsFourSnrMin;
++     m_snrMax = g_mcsFourSnrMax;
++     for (unsigned int i = 0; i < g_mcsFourSnrSerDatapoints; i++)
++      {
++        snrInt = DoubleToHashKeyInt (g_mcsFourSnrs[i]);
++        ret = m_frameSyncErrorRateTable.insert (std::pair<int, double> (snrInt, g_mcsFourSers[i])); //add datapoint to hash map
++        NS_ASSERT_MSG (ret.second, "element with snr hash of " << snrInt <<
++                                " already exists in frame sync error rate hash map with value of "
++                                << ret.first->second);
++      }
++   }
++  else if (ident == 5)
++   {
++     m_numSnrDecPlaces = g_mcsFiveNumSnrDecPlaces;
++     m_numSnrDecPlacesIsSet = true;
++     m_snrSpacing = g_mcsFiveSnrSpacing;
++     m_snrSpacingIsSet = true;
++     m_snrMin = g_mcsFiveSnrMin;
++     m_snrMax = g_mcsFiveSnrMax;
++     for (unsigned int i = 0; i < g_mcsFiveSnrSerDatapoints; i++)
++      {
++        snrInt = DoubleToHashKeyInt (g_mcsFiveSnrs[i]);
++        ret = m_frameSyncErrorRateTable.insert (std::pair<int, double> (snrInt, g_mcsFiveSers[i])); //add datapoint to hash map
++        NS_ASSERT_MSG (ret.second, "element with snr hash of " << snrInt <<
++                                " already exists in frame sync error rate hash map with value of "
++                                << ret.first->second);
++      }
++   }
++  else if (ident == 6)
++   {
++     m_numSnrDecPlaces = g_mcsSixNumSnrDecPlaces;
++     m_numSnrDecPlacesIsSet = true;
++     m_snrSpacing = g_mcsSixSnrSpacing;
++     m_snrSpacingIsSet = true;
++     m_snrMin = g_mcsSixSnrMin;
++     m_snrMax = g_mcsSixSnrMax;
++     for (unsigned int i = 0; i < g_mcsSixSnrSerDatapoints; i++)
++      {
++        snrInt = DoubleToHashKeyInt (g_mcsSixSnrs[i]);
++        ret = m_frameSyncErrorRateTable.insert (std::pair<int, double> (snrInt, g_mcsSixSers[i])); //add datapoint to hash map
++        NS_ASSERT_MSG (ret.second, "element with snr hash of " << snrInt <<
++                                " already exists in frame sync error rate hash map with value of "
++                                << ret.first->second);
++      }
++   }
++  else if (ident == 7)
++   {
++     m_numSnrDecPlaces = g_mcsSevenNumSnrDecPlaces;
++     m_numSnrDecPlacesIsSet = true;
++     m_snrSpacing = g_mcsSevenSnrSpacing;
++     m_snrSpacingIsSet = true;
++     m_snrMin = g_mcsSevenSnrMin;
++     m_snrMax = g_mcsSevenSnrMax;
++     for (unsigned int i = 0; i < g_mcsSevenSnrSerDatapoints; i++)
++      {
++        snrInt = DoubleToHashKeyInt (g_mcsSevenSnrs[i]);
++        ret = m_frameSyncErrorRateTable.insert (std::pair<int, double> (snrInt, g_mcsSevenSers[i])); //add datapoint to hash map
++        NS_ASSERT_MSG (ret.second, "element with snr hash of " << snrInt <<
++                                " already exists in frame sync error rate hash map with value of "
++                                << ret.first->second);
++      }
++   }
++  m_errorRateTableIsLoaded = true;
++}
++
++
++void
++UwErrorRateLookup::DetermineSnrOffset ()
++{
++  NS_LOG_FUNCTION (this);
++  double snr = m_snrMin;
++  double toleranceForAssumingZero = 0.0001;
++  for (int i = 0; i < m_numSnrDecPlaces; i++)
++    {
++      toleranceForAssumingZero /= 10;
++    }
++  if (m_snrMin < 0)
++    {
++      for (; snr <= 2 * m_snrSpacing; snr += m_snrSpacing)
++        {
++          if (snr >= 0)
++            {
++              m_snrOffset = snr;
++              break;
++            }
++        }
++      if (std::abs (snr) <= toleranceForAssumingZero) //if less than tolerance assume 0
++        {
++          m_snrOffset = 0;
++        }
++    }
++  else if (m_snrMin > 0)
++    {
++      for (; snr >= -2 * m_snrSpacing; snr -= m_snrSpacing)
++        {
++          if (snr <= 0)
++            {
++              m_snrOffset = snr;
++              break;
++            }
++        }
++      if (std::abs (snr) <= toleranceForAssumingZero) //if less than tolerance assume 0
++        {
++          m_snrOffset = 0;
++        }
++    }
++  else //if m_snrMin == 0
++    {
++      m_snrOffset = 0;
++    }
++  m_snrOffsetIsSet = true;
++}
++
++
++double
++UwErrorRateLookup::RoundToNearestDataMidpoint (double value, double dataSpacing, double offset)
++{
++  NS_LOG_FUNCTION (this << value << dataSpacing << offset);
++  double newOffset = (dataSpacing / 2) + offset;
++  return (RoundDoubleToInt ((value - newOffset) / dataSpacing) * dataSpacing) + newOffset;
++}
++
++
++UwErrorRateLookup::InterpolParams
++UwErrorRateLookup::FindDatapointBounds (double snr, bool snrAtBound)
++{
++  NS_LOG_FUNCTION (this << snr << snrAtBound);
++  InterpolParams iParams;
++  if (snrAtBound)
++    {
++      iParams.snrLoBound = snr;
++      iParams.snrHiBound = snr;
++    }
++  else
++    {
++      double snrRatio = snr / m_snrSpacing;
++      double snrLoBoundNoOffset = floor (snrRatio) * m_snrSpacing;
++      double snrHiBoundNoOffset = ceil (snrRatio) * m_snrSpacing;
++      double nearestMidSnrPoint = RoundToNearestDataMidpoint (snr, m_snrSpacing, m_snrOffset);
++      if (snr > nearestMidSnrPoint)
++        {
++          iParams.snrLoBound = snrLoBoundNoOffset - m_snrOffset;
++          iParams.snrHiBound = snrHiBoundNoOffset - m_snrOffset;
++        }
++      else
++        {
++          iParams.snrLoBound = snrLoBoundNoOffset + m_snrOffset;
++          iParams.snrHiBound = snrHiBoundNoOffset + m_snrOffset;
++        }
++    }
++  return iParams;
++}
++
++
++double
++UwErrorRateLookup::InterpolateAndRetrieveData (double xd, double x1d, double x2d)
++{
++  NS_LOG_FUNCTION (this << xd << x1d << x2d);
++  int x = DoubleToHashKeyInt (xd);
++  int x1 = DoubleToHashKeyInt (x1d);
++  int x2 = DoubleToHashKeyInt (x2d);
++  std::map<int, double>::iterator elemIter;
++  double fp; //retrieved value after any interpolation
++  if (x1 != x2) //1D linear interpolation (x)
++    {
++      NS_LOG_DEBUG ("performing linear interpolation on snr for frame sync error rate lookup");
++      double fq1;
++      double fq2;
++      elemIter = m_frameSyncErrorRateTable.find (x1);
++      if (elemIter == m_frameSyncErrorRateTable.end ())
++        {
++          NS_FATAL_ERROR ("No frame sync error rate data stored for snr key = " << x1);
++        }
++      else
++        {
++          fq1 = (*elemIter).second;
++        }
++      elemIter = m_frameSyncErrorRateTable.find (x2);
++      if (elemIter == m_frameSyncErrorRateTable.end ())
++        {
++          NS_FATAL_ERROR ("No frame sync error rate data stored for snr key = " << x2);
++        }
++      else
++        {
++          fq2 = (*elemIter).second;
++        }
++      fp = (((x2d - xd) / (x2d - x1d)) * fq1) + (((xd - x1d) / (x2d - x1d)) * fq2);
++    }
++  else //x1 == x2; no interpolation needed
++    {
++      NS_LOG_DEBUG ("no interpolation needed--direct table lookup for frame sync error rate");
++      elemIter = m_frameSyncErrorRateTable.find (x);
++      if (elemIter == m_frameSyncErrorRateTable.end ())
++        {
++          NS_FATAL_ERROR ("No frame sync error rate data stored for snr key = " << x);
++        }
++      else
++        {
++          fp = (*elemIter).second;
++        }
++    }
++  return fp;
++}
++
++} // namespace ns3
+diff -r cf9f06803ccb src/wifi/model/uw-error-rate-lookup.h
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/src/wifi/model/uw-error-rate-lookup.h	Sun Dec 27 16:46:11 2015 -0800
+@@ -0,0 +1,199 @@
++/* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
++/*
++ * Copyright (c) 2015 University of Washington
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation;
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ *
++ * Author: Benjamin Cizdziel <ben.cizdziel@gmail.com>
++ */
++
++#ifndef UW_ERROR_RATE_LOOKUP_H
++#define UW_ERROR_RATE_LOOKUP_H
++
++#include "wifi-phy.h"
++
++namespace ns3
++{
++
++/**
++ * \ingroup wifi
++ *
++ * \brief Provides lookup for SNR to frame synchronization error rate mapping.
++ *
++ * This class provides a lookup table to obtain the Wi-Fi frame synchronization
++ * error rate (SER) for a given signal to noise ratio (SNR) (in dB) using the
++ * specified channel model. Default channel models (from link simulation results)
++ * are included as options, as well as an API for users to add their own.
++ */
++class UwErrorRateLookup : public Object
++{
++public:
++  UwErrorRateLookup (); //!< Default constructor
++  virtual ~UwErrorRateLookup (); //!< Destructor
++
++  /**
++   * Register this type.
++   * \return The object TypeId.
++   */
++  static TypeId GetTypeId (void);
++
++  /** 
++   * Manually set the maximum number of decimal places needed to fully represent
++   * all the SNR datapoint values in the lookup table. For example, 1 decimal
++   * place is required to represent the set of SNRs {0, 0.5, 1, 1.5, and 2}.
++   * ChannelModel attribute must be set to 'user' before calling this method.
++   *
++   * @param numDecimalPlaces the number of decimal places for SNR values
++   */
++  void SetNumSnrDatapointDecPlaces (double numDecimalPlaces);
++
++  /*read error model from file*/
++  void ReadErrorModel ();
++
++  /** 
++   * Manually set the spacing (in dB) between SNR datapoints in the lookup table.
++   * For example, the SNR set {0, 2, 4, 6, 8,...} has an SNR spacing of 2.
++   * ChannelModel attribute must be set to 'user' before calling this method.
++   *
++   * @param snrDatapointSpacing the spacing (in dB) between SNR datapoints
++   */
++  void SetSnrDatapointSpacing (double snrDatapointSpacing);
++
++  /** 
++   * Manually add an (SNR, SER) datapoint to the lookup table. SNR stands for
++   * signal to noise ratio and SER stands for frame synchronization error rate.
++   * Duplicate SNR values cannot be added. ChannelModel attribute must be set to
++   * 'user' and SetNumSnrDatapointDecPlaces() must be called before calling this
++   * method.
++   *
++   * @param snr the signal to noise ratio (in dB) of the datapoint
++   * @param ser the frame synchronization error rate/probability of the datapoint
++   */
++  void AddSnrSerDatapoint (double snr, double ser);
++
++  /** 
++   * Returns the frame synchronization error rate (SER) for the given signal to
++   * noise ratio (SNR) input from the lookup table. If the input SNR lie in
++   * between SNR datapoints, linear interpolation is performed to calculate the
++   * SER value to be returned. If the input SNR falls below/above the
++   * minimum/maximum SNR of the datapoints, the SER corresponding to the
++   * minimum/maximum SNR datapoint is returned. If ChannelModel attribute is set
++   * to 'user', SetNumSnrDatapointDecPlaces() and SetSnrDatapointSpacing() must
++   * be called before calling this method, and AddSnrSerDatapoint() must have
++   * been called at least once.
++   *
++   * @param snr the signal to noise ratio (in dB) corresponding to the SER to
++   * look up
++   *
++   * @return the retrieved frame sync error rate corresponding to the input SNR
++   */
++  double GetErrorRate (double snr, uint16_t ident);
++
++private:
++  /**
++   * A struct containing the lower and upper SNR datapoint bounds used in linear
++   * interpolation.
++   */
++  struct InterpolParams
++  {
++    double snrLoBound;
++    double snrHiBound;
++  };
++
++  /** 
++   * Rounds input double value to the nearest integer.
++   *
++   * @param val the double value to round
++   *
++   * @return the input value rounded to the nearest integer
++   */
++  int RoundDoubleToInt (double val);
++
++  /** 
++   * Converts double value to integer key used for lookup table indexing.
++   *
++   * @param val the double value to convert to integer key
++   *
++   * @return the integer key corresponding to the input double value
++   */
++  int DoubleToHashKeyInt (double val);
++
++  /** 
++   * Loads one of the default frame sync error rate models to the lookup table
++   * based on ChannelModel attribute selected.
++   */
++  void LoadErrorRateDataToTable (void);
++
++  /** 
++   * Determines offset from zero of SNR datapoints in lookup table.
++   */
++  void DetermineSnrOffset (void);
++
++  /** 
++   * Rounds input value to the nearest data midpoint with given data spacing
++   * and offset from zero. For example, an SNR dataset with SNR datapoints at
++   * {-5, -2, 1, 4, 7, 10,...} has offset=1 and dataSpacing=3. The midpoints
++   * between these numbers would be {-3.5, -0.5, 2.5, 5.5, 8.5,...}. So for
++   * value=3.5 for this dataset, this method will return 2.5.
++   *
++   * @param value the input value to round
++   * @param dataSpacing the spacing between datapoints
++   * @param offset the offset from zero of the dataset
++   *
++   * @return the nearest data midpoint value
++   */
++  double RoundToNearestDataMidpoint (double value, double dataSpacing, double offset);
++
++  /** 
++   * Finds upper and lower SNR datapoint bounds around input SNR. If input SNR
++   * is at upper or lower bound, both bounds are set equal to input SNR.
++   *
++   * @param snr the input SNR (in dB)
++   * @param snrAtBound a flag set to true if input SNR is at upper or lower
++   * datapoint bound
++   *
++   * @return the struct containing the upper and lower SNR datapoint bounds
++   */
++  InterpolParams FindDatapointBounds (double snr, bool snrAtBound);
++
++  /** 
++   * Retrieves SER value from lookup table based on input SNR and its SNR
++   * datapoint bounds, performing linear interpolation if necessary.
++   *
++   * @param xd the SNR (in dB) corresponding to the SER to look up
++   * @param x1d the lower SNR datapoint bound (in dB) of xd
++   * @param x2d the upper SNR datapoint bound (in dB) of xd
++   *
++   * @return the retrieved SER
++   */
++  double InterpolateAndRetrieveData (double xd, double x1d, double x2d);
++
++ // enum WifiPhy::ChannelModel m_channelModel; //!< Channel model to use for frame sync error rate results
++  bool m_errorRateTableIsLoaded; //!< Indicates if frames sync error rate table has been loaded (true) or not (false)
++  bool m_errorModelIsRead; //indicates whether the erro models have been read from file
++  uint16_t ident; //MCS Identifier
++  uint8_t m_numSnrDecPlaces; //!< Number of decimal places in SNR datapoints
++  bool m_numSnrDecPlacesIsSet; //!< Indicates if number of SNR datapoint decimal places has been set (true) or not (false)
++  double m_snrSpacing; //!< Spacing (in dB) between SNR datapoints
++  bool m_snrSpacingIsSet; //!< Indicates if SNR datapoint spacing has been set (true) or not (false)
++  double m_snrMin; //!< Minimum (in dB) SNR datapoint value
++  double m_snrMax; //!< Maximum (in dB) SNR datapoint value
++  double m_snrOffset; //!< Offset from zero (in dB) of SNR datapoints
++  bool m_snrOffsetIsSet; //!< Indicates if SNR offset from zero has been set (true) or not (false)
++  std::map<int, double> m_frameSyncErrorRateTable; //!< Stores frame synchronization error rate values indexed by integer SNR key
++};
++
++} // namespace ns3
++
++#endif /* FRAME_SYNC_ERROR_RATE_LOOKUP_H */
+diff -r cf9f06803ccb src/wifi/model/uw-error-rate-model.cc
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/src/wifi/model/uw-error-rate-model.cc	Sun Dec 27 16:46:11 2015 -0800
+@@ -0,0 +1,132 @@
++/* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
++/*
++ * Copyright (c) 2010 The Boeing Company
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation;
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ *
++ * Authors:
++ */
++
++#include <cmath>
++#include "uw-error-rate-model.h"
++#include "wifi-phy.h"
++#include "ns3/log.h"
++
++namespace ns3 {
++
++NS_LOG_COMPONENT_DEFINE ("UwErrorRateModel");
++
++NS_OBJECT_ENSURE_REGISTERED (UwErrorRateModel);
++
++TypeId
++UwErrorRateModel::GetTypeId (void)
++{
++  static TypeId tid = TypeId ("ns3::UwErrorRateModel")
++    .SetParent<ErrorRateModel> ()
++    .SetGroupName ("Wifi")
++    .AddConstructor<UwErrorRateModel> ()
++  ;
++  return tid;
++}
++
++UwErrorRateModel::UwErrorRateModel ()
++{
++  m_uwErrorRateModel = CreateObject<UwErrorRateLookup> ();
++}
++
++UwErrorRateModel::~UwErrorRateModel ()
++{
++  NS_LOG_FUNCTION (this);
++}
++
++double UwErrorRateModel::GetSuccessRate (double snr, uint16_t ident, uint32_t nbits) const
++{
++  double cer = m_uwErrorRateModel->GetErrorRate (snr,ident);
++  return std::pow(1-cer,nbits);
++}
++
++double
++UwErrorRateModel::GetChunkSuccessRate (WifiMode mode, WifiTxVector txVector, double ratiosnr, uint32_t nbits) const
++{
++  double snr = ratiosnr; 
++  NS_LOG_FUNCTION (this << mode << snr << nbits);
++  NS_ASSERT (nbits > 0);
++  NS_ASSERT_MSG (txVector.GetChannelWidth () == 20 || txVector.GetChannelWidth () == 20000000, "only 20 MHz bandwidth channels currently supported");
++  NS_ASSERT_MSG (snr > 0, "SNR ratio must be greater than 0");
++  uint32_t ss = txVector.GetNss ();
++  //check the number of spatial streams
++  if (ss > 2)
++    {
++      NS_FATAL_ERROR ("No support for " << ss << " spatial streams");
++    }
++/*  if (ss == 2) Adjusting SNR for two spatial streams by a constant snr offset (3 dB, double ratio)
++   {    
++   }*/
++  if (mode.GetModulationClass () == WIFI_MOD_CLASS_ERP_OFDM
++      || mode.GetModulationClass () == WIFI_MOD_CLASS_OFDM
++      || mode.GetModulationClass () == WIFI_MOD_CLASS_HT)
++    {
++      if (mode.GetConstellationSize (1) == 2)
++        {
++          if (mode.GetCodeRate (1) == WIFI_CODE_RATE_1_2)//MCS0
++            {
++              return GetSuccessRate (snr, 0, nbits);
++            }
++        }
++      else if (mode.GetConstellationSize (1) == 4)
++        {
++          if (mode.GetCodeRate (1) == WIFI_CODE_RATE_1_2) //MCS1
++            {
++              return GetSuccessRate (snr, 1, nbits);
++            }
++          else //MCS2 code rate: 3_4
++            {
++              return GetSuccessRate (snr, 2, nbits);
++            }
++        }
++      else if (mode.GetConstellationSize (1) == 16)
++        {
++          if (mode.GetCodeRate (1) == WIFI_CODE_RATE_1_2) //MCS3
++            {
++              return GetSuccessRate (snr, 3, nbits);
++            }
++          else //MCS4 code rate: 3_4
++            {
++              return GetSuccessRate (snr, 4, nbits);
++            }
++        }
++      else if (mode.GetConstellationSize (1) == 64)
++        {
++          if (mode.GetCodeRate (1) == WIFI_CODE_RATE_2_3)//MCS5
++            {
++              return GetSuccessRate (snr, 5, nbits);
++            }
++          else if (mode.GetCodeRate (1) == WIFI_CODE_RATE_5_6) //MCS7
++            {
++              return GetSuccessRate (snr, 7, nbits);
++            }
++          else //MCS6 code rate: 3_4
++            {
++              return GetSuccessRate (snr, 6, nbits);
++            }
++        }
++    }
++  else 
++    {
++        NS_ASSERT ("unsupported modulation");     
++    }
++  return 0;
++}
++
++} //namespace ns3
+diff -r cf9f06803ccb src/wifi/model/uw-error-rate-model.h
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/src/wifi/model/uw-error-rate-model.h	Sun Dec 27 16:46:11 2015 -0800
+@@ -0,0 +1,57 @@
++/* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
++/*
++ * Copyright (c) 2010 The Boeing Company
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation;
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ *
++ * Author: 
++ */
++
++#ifndef UW_ERROR_RATE_MODEL_H
++#define UW_ERROR_RATE_MODEL_H
++
++#include <stdint.h>
++#include <map>
++#include "wifi-mode.h"
++#include "error-rate-model.h"
++#include "dsss-error-rate-model.h"
++#include "frame-sync-error-rate-lookup.h"
++#include "uw-error-rate-lookup.h"
++
++namespace ns3 {
++
++/**
++ * \ingroup wifi
++ *
++ * A model for the error rate for different OFDM MCSs. Results from MATLAB link layer simulator.
++ */
++class UwErrorRateModel : public ErrorRateModel
++{
++public:
++  static TypeId GetTypeId (void);
++
++  UwErrorRateModel ();
++  virtual ~UwErrorRateModel ();
++
++  virtual double GetChunkSuccessRate (WifiMode mode, WifiTxVector txVector, double snr, uint32_t nbits) const; 
++
++  double GetSuccessRate (double snr, uint16_t ident, uint32_t nbits) const;
++
++private:
++  Ptr<UwErrorRateLookup> m_uwErrorRateModel; // Pointer to UwErrorRateLookup
++};
++
++} //namespace ns3
++
++#endif /* UW_ERROR_RATE_MODEL_H */
+diff -r cf9f06803ccb src/wifi/model/wifi-phy-state-helper.cc
+--- a/src/wifi/model/wifi-phy-state-helper.cc	Sun Sep 27 12:49:29 2015 -0700
++++ b/src/wifi/model/wifi-phy-state-helper.cc	Sun Dec 27 16:46:11 2015 -0800
+@@ -58,11 +58,13 @@
+ 
+ WifiPhyStateHelper::WifiPhyStateHelper ()
+   : m_rxing (false),
++    m_syncing (false),
+     m_sleeping (false),
+     m_endTx (Seconds (0)),
+     m_endRx (Seconds (0)),
+     m_endCcaBusy (Seconds (0)),
+     m_endSwitching (Seconds (0)),
++    m_endSync (Seconds (0)),
+     m_startTx (Seconds (0)),
+     m_startRx (Seconds (0)),
+     m_startCcaBusy (Seconds (0)),
+@@ -108,6 +110,12 @@
+ }
+ 
+ bool
++WifiPhyStateHelper::IsSyncing (void)
++{
++  return (m_syncing == true && m_endSync >= Simulator::Now ());
++}
++
++bool
+ WifiPhyStateHelper::IsStateBusy (void)
+ {
+   return (GetState () != WifiPhy::IDLE);
+@@ -256,6 +264,15 @@
+ }
+ 
+ void
++WifiPhyStateHelper::NotifyRxPreambleStart (Time duration)
++{
++  for (Listeners::const_iterator i = m_listeners.begin (); i != m_listeners.end (); i++)
++    {
++      (*i)->NotifyRxPreambleStart (duration);
++    }
++}
++
++void
+ WifiPhyStateHelper::NotifyMaybeCcaBusyStart (Time duration)
+ {
+   for (Listeners::const_iterator i = m_listeners.begin (); i != m_listeners.end (); i++)
+@@ -347,6 +364,7 @@
+   m_previousStateChangeTime = now;
+   m_endTx = now + txDuration;
+   m_startTx = now;
++  m_syncing = false;
+   NotifyTxStart (txDuration, txPowerDbm);
+ }
+ 
+@@ -367,7 +385,8 @@
+         ccaStart = Max (ccaStart, m_startCcaBusy);
+         ccaStart = Max (ccaStart, m_endSwitching);
+         m_stateLogger (ccaStart, now - ccaStart, WifiPhy::CCA_BUSY);
+-      } break;
++      } 
++      break;
+     case WifiPhy::SWITCHING:
+     case WifiPhy::RX:
+     case WifiPhy::TX:
+@@ -377,6 +396,7 @@
+     }
+   m_previousStateChangeTime = now;
+   m_rxing = true;
++  m_syncing = false;
+   m_startRx = now;
+   m_endRx = now + rxDuration;
+   NotifyRxStart (rxDuration);
+@@ -384,6 +404,16 @@
+ }
+ 
+ void
++WifiPhyStateHelper::AttemptSync (Time syncDuration)
++{
++  NS_LOG_FUNCTION (this << syncDuration.As (Time::S));
++  NS_ASSERT (IsStateIdle () || IsStateCcaBusy ());
++  m_syncing = true;
++  m_endSync = Simulator::Now () + syncDuration;
++  NotifyRxPreambleStart (syncDuration);
++}
++
++void
+ WifiPhyStateHelper::SwitchToChannelSwitching (Time switchingDuration)
+ {
+   Time now = Simulator::Now ();
+@@ -425,6 +455,7 @@
+   m_startSwitching = now;
+   m_endSwitching = now + switchingDuration;
+   NotifySwitchingStart (switchingDuration);
++  m_syncing = false;
+   NS_ASSERT (IsStateSwitching ());
+ }
+ 
+@@ -446,7 +477,8 @@
+ {
+   m_rxErrorTrace (packet, snr);
+   NotifyRxEndError ();
+-  DoSwitchFromRx ();
++  if (IsStateRx ())
++    DoSwitchFromRx ();
+   if (!m_rxErrorCallback.IsNull ())
+     {
+       m_rxErrorCallback (packet, snr);
+@@ -520,6 +552,7 @@
+     }
+   m_previousStateChangeTime = now;
+   m_sleeping = true;
++  m_syncing = false;
+   m_startSleep = now;
+   NotifySleep ();
+   NS_ASSERT (IsStateSleep ());
+diff -r cf9f06803ccb src/wifi/model/wifi-phy-state-helper.h
+--- a/src/wifi/model/wifi-phy-state-helper.h	Sun Sep 27 12:49:29 2015 -0700
++++ b/src/wifi/model/wifi-phy-state-helper.h	Sun Dec 27 16:46:11 2015 -0800
+@@ -83,9 +83,15 @@
+    */
+   bool IsStateIdle (void);
+   /**
+-   * Check whether the current state is not IDLE.
++   * Check whether the Phy is trying to sync on a received frame
+    *
+-   * \return true if the current state is not IDLE, false otherwise
++   * \return true if the Phy is trying to sync on a received frame
++   */
++  bool IsSyncing (void);
++  /**
++   * Check whether the current state is not IDLE or SYNC.
++   *
++   * \return true if the current state is not IDLE or SYNC, false otherwise
+    */
+   bool IsStateBusy (void);
+   /**
+@@ -142,6 +148,20 @@
+    */
+   void SwitchToTx (Time txDuration, Ptr<const Packet> packet, double txPowerDbm, WifiTxVector txVector, WifiPreamble preamble);
+   /**
++   * When in IDLE or CCA_BUSY state, the Phy can also be in a substate
++   * (not visible to Phy listeners) in which it tries to synchronize on
++   * an incoming frame.  This method alerts the Phy state helper that 
++   * the Phy has already started to sync on a frame, so that future 
++   * attempts to do so can be suppressed by querying IsSyncing ().
++   *
++   * If this method is called when the Phy is not in IDLE or CCA_BUSY
++   * state, an assert will trigger.
++   *
++   * \param syncDuration the duration of the PLCP preamble for 
++   *        the transmission mode in use
++   */
++  void AttemptSync (Time syncDuration);
++  /**
+    * Switch state to RX for the given duration.
+    *
+    * \param rxDuration the duration of the RX
+@@ -267,6 +287,12 @@
+    */
+   void NotifyRxEndError (void);
+   /**
++   * Notify all WifiPhyListener that the preamble reception has started for the given duration.
++   *
++   * \param duration the duration of the preamble reception
++   */
++  void NotifyRxPreambleStart (Time duration);
++  /**
+    * Notify all WifiPhyListener that the CCA has started for the given duration.
+    *
+    * \param duration the duration of the CCA state
+@@ -293,11 +319,13 @@
+   void DoSwitchFromRx (void);
+ 
+   bool m_rxing;
++  bool m_syncing;
+   bool m_sleeping;
+   Time m_endTx;
+   Time m_endRx;
+   Time m_endCcaBusy;
+   Time m_endSwitching;
++  Time m_endSync;
+   Time m_startTx;
+   Time m_startRx;
+   Time m_startCcaBusy;
+diff -r cf9f06803ccb src/wifi/model/wifi-phy.cc
+--- a/src/wifi/model/wifi-phy.cc	Sun Sep 27 12:49:29 2015 -0700
++++ b/src/wifi/model/wifi-phy.cc	Sun Dec 27 16:46:11 2015 -0800
+@@ -234,6 +234,40 @@
+ }
+ 
+ WifiMode
++WifiPhy::GetPlcpPreambleMode (WifiMode payloadMode, WifiTxVector txVector)
++{
++  switch (payloadMode.GetModulationClass ())
++    {
++    case WIFI_MOD_CLASS_OFDM:
++    case WIFI_MOD_CLASS_HT:
++    case WIFI_MOD_CLASS_VHT:
++      switch (txVector.GetChannelWidth ())
++        {
++        case 5000000:
++          return WifiPhy::GetOfdmRate1_5MbpsBW5MHz ();
++        case 10000000:
++          return WifiPhy::GetOfdmRate3MbpsBW10MHz ();
++        case 20000000:
++        case 40000000:
++        case 80000000:
++        case 160000000:
++        default:
++          //6Mbps rate for OFDM
++          return WifiPhy::GetOfdmRate6Mbps ();
++        }
++    case WIFI_MOD_CLASS_ERP_OFDM:
++      return WifiPhy::GetErpOfdmRate6Mbps ();
++    case WIFI_MOD_CLASS_DSSS:
++    case WIFI_MOD_CLASS_HR_DSSS:
++      //Both short and long preamble sent at 1Mbps D-BPSK (Section 17.2.2.2 and 17.2.2.3; IEEE Std 802.11-2012)
++      return WifiPhy::GetDsssRate1Mbps ();      
++    default:
++      NS_FATAL_ERROR ("unsupported modulation class");
++      return WifiMode ();
++    }
++}
++
++WifiMode
+ WifiPhy::GetPlcpHeaderMode (WifiMode payloadMode, WifiPreamble preamble, WifiTxVector txVector)
+ {
+   switch (payloadMode.GetModulationClass ())
+@@ -262,7 +296,7 @@
+       return WifiPhy::GetErpOfdmRate6Mbps ();
+     case WIFI_MOD_CLASS_DSSS:
+     case WIFI_MOD_CLASS_HR_DSSS:
+-      if (preamble == WIFI_PREAMBLE_LONG)
++      if (preamble == WIFI_PREAMBLE_LONG || payloadMode == WifiPhy::GetDsssRate1Mbps ())
+         {
+           //(Section 16.2.3 "PLCP field definitions" and Section 17.2.2.2 "Long PPDU format"; IEEE Std 802.11-2012)
+           return WifiPhy::GetDsssRate1Mbps ();
+@@ -326,7 +360,7 @@
+       return MicroSeconds (4);
+     case WIFI_MOD_CLASS_DSSS:
+     case WIFI_MOD_CLASS_HR_DSSS:
+-      if (preamble == WIFI_PREAMBLE_SHORT)
++      if ((preamble == WIFI_PREAMBLE_SHORT) && (txVector.GetMode ().GetDataRate (22, 0, 1) > 1000000))
+         {
+           //(Section 17.2.2.3 "Short PPDU format" and Figure 17-2 "Short PPDU format"; IEEE Std 802.11-2012)
+           return MicroSeconds (24);
+@@ -378,7 +412,7 @@
+       return MicroSeconds (16);
+     case WIFI_MOD_CLASS_DSSS:
+     case WIFI_MOD_CLASS_HR_DSSS:
+-      if (preamble == WIFI_PREAMBLE_SHORT)
++      if ((preamble == WIFI_PREAMBLE_SHORT) && (txVector.GetMode ().GetDataRate (22, 0, 1) > 1000000))
+         {
+           //(Section 17.2.2.3 "Short PPDU format)" Figure 17-2 "Short PPDU format"; IEEE Std 802.11-2012)
+           return MicroSeconds (72);
+diff -r cf9f06803ccb src/wifi/model/wifi-phy.h
+--- a/src/wifi/model/wifi-phy.h	Sun Sep 27 12:49:29 2015 -0700
++++ b/src/wifi/model/wifi-phy.h	Sun Dec 27 16:46:11 2015 -0800
+@@ -85,6 +85,14 @@
+    */
+   virtual void NotifyRxEndError (void) = 0;
+   /**
++   * \param duration the expected duration of the preamble reception.
++   *
++   * We have received the first bit of a preamble.  We are trying
++   * to synchronize on this packet. It does not mean
++   * we will be able to successfully synchronize.
++   */
++  virtual void NotifyRxPreambleStart (Time duration) = 0;
++  /**
+    * \param duration the expected transmission duration.
+    * \param txPowerDbm the nominal tx power in dBm
+    *
+@@ -363,6 +371,13 @@
+   static Time GetPlcpVhtSigBDuration (WifiPreamble preamble);
+   /**
+    * \param payloadMode the WifiMode use for the transmission of the payload
++   * \param txVector the transmission parameters used for this packet
++   *
++   * \return the WifiMode used for the transmission of the PLCP preamble
++   */
++  static WifiMode GetPlcpPreambleMode (WifiMode payloadMode, WifiTxVector txVector);
++   /**
++   * \param payloadMode the WifiMode use for the transmission of the payload
+    * \param preamble the type of preamble
+    * \param txVector the transmission parameters used for this packet
+    *
+@@ -1220,6 +1235,14 @@
+    */
+   virtual bool GetGreenfield (void) const = 0;
+   /**
++   * \param shortPreamble Enable or disable short PLCP preamble
++   */
++  virtual void SetShortPlcpPreamble (bool shortPreamble) = 0;
++  /**
++   * \return true if short PLCP preamble is supported, false otherwise
++   */
++  virtual bool GetShortPlcpPreamble (void) const = 0;
++  /**
+    * \return the channel width
+    */
+   virtual uint32_t GetChannelWidth (void) const = 0;
+diff -r cf9f06803ccb src/wifi/model/wifi-radio-energy-model.cc
+--- a/src/wifi/model/wifi-radio-energy-model.cc	Sun Sep 27 12:49:29 2015 -0700
++++ b/src/wifi/model/wifi-radio-energy-model.cc	Sun Dec 27 16:46:11 2015 -0800
+@@ -485,6 +485,13 @@
+ }
+ 
+ void
++WifiRadioEnergyModelPhyListener::NotifyRxPreambleStart (Time duration)
++{
++  NS_LOG_FUNCTION (this << duration);
++  // Ignored by this model
++}
++
++void
+ WifiRadioEnergyModelPhyListener::NotifyTxStart (Time duration, double txPowerDbm)
+ {
+   NS_LOG_FUNCTION (this << duration << txPowerDbm);
+diff -r cf9f06803ccb src/wifi/model/wifi-radio-energy-model.h
+--- a/src/wifi/model/wifi-radio-energy-model.h	Sun Sep 27 12:49:29 2015 -0700
++++ b/src/wifi/model/wifi-radio-energy-model.h	Sun Dec 27 16:46:11 2015 -0800
+@@ -92,6 +92,15 @@
+   virtual void NotifyRxEndError (void);
+ 
+   /**
++   * \brief Ignored by this model; model considered to be idle
++   *
++   * \param duration the expected duration of the preamble reception
++   *
++   * Defined in ns3::WifiPhyListener
++   */
++  virtual void NotifyRxPreambleStart (Time duration);
++
++  /**
+    * \brief Switches the WifiRadioEnergyModel to TX state and switches back to
+    * IDLE after TX duration.
+    *
+diff -r cf9f06803ccb src/wifi/model/wifi-remote-station-manager.cc
+--- a/src/wifi/model/wifi-remote-station-manager.cc	Sun Sep 27 12:49:29 2015 -0700
++++ b/src/wifi/model/wifi-remote-station-manager.cc	Sun Dec 27 16:46:11 2015 -0800
+@@ -480,6 +480,15 @@
+ }
+ 
+ void
++WifiRemoteStationManager::AddSupportedPlcpPreamble (Mac48Address address, bool isShortPreambleSupported)
++{
++  NS_LOG_FUNCTION (this << address << isShortPreambleSupported);
++  NS_ASSERT (!address.IsGroup ());
++  WifiRemoteStationState *state = LookupState (address);
++  state->m_shortPreamble = isShortPreambleSupported;
++}
++
++void
+ WifiRemoteStationManager::AddSupportedMode (Mac48Address address, WifiMode mode)
+ {
+   NS_LOG_FUNCTION (this << address << mode);
+@@ -1305,6 +1314,7 @@
+   state->m_channelWidth = m_wifiPhy->GetChannelWidth ();
+   state->m_shortGuardInterval = m_wifiPhy->GetGuardInterval ();
+   state->m_greenfield = m_wifiPhy->GetGreenfield ();
++  state->m_shortPreamble = m_wifiPhy->GetShortPlcpPreamble ();
+   state->m_rx = 1;
+   state->m_tx = 1;
+   state->m_ness = 0;
+@@ -1401,6 +1411,12 @@
+   return LookupState (address)->m_greenfield;
+ }
+ 
++bool
++WifiRemoteStationManager::GetShortPreambleSupported (Mac48Address address) const
++{
++  return LookupState (address)->m_shortPreamble;
++}
++
+ WifiMode
+ WifiRemoteStationManager::GetDefaultMode (void) const
+ {
+@@ -1561,6 +1577,12 @@
+ }
+ 
+ bool
++WifiRemoteStationManager::GetShortPreamble (const WifiRemoteStation *station) const
++{
++  return station->m_state->m_shortPreamble;
++}
++
++bool
+ WifiRemoteStationManager::GetAggregation (const WifiRemoteStation *station) const
+ {
+   return station->m_state->m_aggregation;
+diff -r cf9f06803ccb src/wifi/model/wifi-remote-station-manager.h
+--- a/src/wifi/model/wifi-remote-station-manager.h	Sun Sep 27 12:49:29 2015 -0700
++++ b/src/wifi/model/wifi-remote-station-manager.h	Sun Dec 27 16:46:11 2015 -0800
+@@ -244,6 +244,15 @@
+    */
+   bool GetGreenfieldSupported (Mac48Address address) const;
+   /**
++   * Return whether the station supports short PLCP preamble or not.
++   *
++   * \param address the address of the station
++   *
++   * \return true if short PLCP preamble is supported by the station,
++   *         false otherwise
++   */
++  bool GetShortPreambleSupported (Mac48Address address) const;
++  /**
+    * Add a given Modulation and Coding Scheme (MCS) index to
+    * the set of basic MCS.
+    *
+@@ -285,7 +294,6 @@
+    */
+   WifiMode GetNonUnicastMode (void) const;
+ 
+-
+   /**
+    * Invoked in an AP upon disassociation of a
+    * specific STA.
+@@ -315,6 +323,14 @@
+   void AddAllSupportedModes (Mac48Address address);
+ 
+   /**
++   * Record whether the short PLCP preamble is supported by the station.
++   *
++   * \param address the address of the station
++   * \param isShortPreambleSupported whether or not short PLCP preamble is supported by the station
++   */
++  void AddSupportedPlcpPreamble (Mac48Address address, bool isShortPreambleSupported);
++
++  /**
+    * Return whether the station state is brand new.
+    *
+    * \param address the address of the station
+@@ -713,6 +729,15 @@
+    */
+   bool GetGreenfield (const WifiRemoteStation *station) const;
+   /**
++   * Return whether the station supports short PLCP preamble or not.
++   *
++   * \param station the station being queried
++   *
++   * \return true if short PLCP preamble is supported by the station,
++   *         false otherwise
++   */
++  bool GetShortPreamble (const WifiRemoteStation *station) const;
++  /**
+    * Return the number of receive antennas the station has.
+    *
+    * \param station the station being queried
+@@ -1114,7 +1139,8 @@
+   uint32_t m_ness;            //!< Number of streams in beamforming of the remote station
+   bool m_stbc;                //!< Flag if STBC is used by the remote station
+   bool m_aggregation;         //!< Flag if MPDU aggregation is used by the remote station
+-  bool m_greenfield;          //!< Flag if green field is used by the remote station
++  bool m_greenfield;          //!< Flag if greenfield is used by the remote station
++  bool m_shortPreamble;       //!< Flag if short PLCP preamble is used by the remote station
+ };
+ 
+ /**
+diff -r cf9f06803ccb src/wifi/model/yans-error-rate-model.h
+--- a/src/wifi/model/yans-error-rate-model.h	Sun Sep 27 12:49:29 2015 -0700
++++ b/src/wifi/model/yans-error-rate-model.h	Sun Dec 27 16:46:11 2015 -0800
+@@ -62,7 +62,6 @@
+ 
+   virtual double GetChunkSuccessRate (WifiMode mode, WifiTxVector txVector, double snr, uint32_t nbits) const;
+ 
+-
+ private:
+   /**
+    * Return the logarithm of the given value to base 2.
+diff -r cf9f06803ccb src/wifi/model/yans-wifi-channel.cc
+--- a/src/wifi/model/yans-wifi-channel.cc	Sun Sep 27 12:49:29 2015 -0700
++++ b/src/wifi/model/yans-wifi-channel.cc	Sun Dec 27 16:46:11 2015 -0800
+@@ -128,7 +128,7 @@
+ void
+ YansWifiChannel::Receive (uint32_t i, Ptr<Packet> packet, struct Parameters parameters) const
+ {
+-  m_phyList[i]->StartReceivePreambleAndHeader (packet, parameters.rxPowerDbm, parameters.txVector, parameters.preamble, parameters.aMpdu, parameters.duration);
++  m_phyList[i]->StartReceive (packet, parameters.rxPowerDbm, parameters.txVector, parameters.preamble, parameters.aMpdu, parameters.duration);
+ }
+ 
+ uint32_t
+diff -r cf9f06803ccb src/wifi/model/yans-wifi-phy.cc
+--- a/src/wifi/model/yans-wifi-phy.cc	Sun Sep 27 12:49:29 2015 -0700
++++ b/src/wifi/model/yans-wifi-phy.cc	Sun Dec 27 16:46:11 2015 -0800
+@@ -167,6 +167,12 @@
+                    MakeBooleanAccessor (&YansWifiPhy::GetGreenfield,
+                                         &YansWifiPhy::SetGreenfield),
+                    MakeBooleanChecker ())
++    .AddAttribute ("ShortPlcpPreambleEnabled",
++                   "Whether or not short PLCP preamble is enabled.",
++                   BooleanValue (false),
++                   MakeBooleanAccessor (&YansWifiPhy::GetShortPlcpPreamble,
++                                        &YansWifiPhy::SetShortPlcpPreamble),
++                   MakeBooleanChecker ())
+     .AddAttribute ("ChannelWidth",
+                    "Whether 5MHz, 10MHz, 20MHz, 22MHz, 40MHz, 80 MHz or 160 MHz.",
+                    UintegerValue (20),
+@@ -180,8 +186,9 @@
+ YansWifiPhy::YansWifiPhy ()
+   : m_initialized (false),
+     m_channelNumber (1),
++    m_endRxPlcpSyncEvent (),
++    m_endRxPlcpHeaderEvent (),
+     m_endRxEvent (),
+-    m_endPlcpRxEvent (),
+     m_channelStartingFrequency (0),
+     m_mpdusNum (0),
+     m_plcpSuccess (false)
+@@ -432,7 +439,7 @@
+     {
+     case YansWifiPhy::RX:
+       NS_LOG_DEBUG ("drop packet because of channel switching while reception");
+-      m_endPlcpRxEvent.Cancel ();
++      m_endRxPlcpSyncEvent.Cancel ();
+       m_endRxEvent.Cancel ();
+       goto switchChannel;
+       break;
+@@ -562,33 +569,129 @@
+ }
+ 
+ void
+-YansWifiPhy::StartReceivePreambleAndHeader (Ptr<Packet> packet,
+-                                            double rxPowerDbm,
+-                                            WifiTxVector txVector,
+-                                            enum WifiPreamble preamble,
+-                                            struct mpduInfo aMpdu, Time rxDuration)
++YansWifiPhy::StartReceive (Ptr<Packet> packet,
++                           double rxPowerDbm,
++                           WifiTxVector txVector,
++                           enum WifiPreamble preamble,
++                           struct mpduInfo aMpdu,
++                           Time rxDuration)
+ {
+-  //This function should be later split to check separately whether plcp preamble and plcp header can be successfully received.
+-  //Note: plcp preamble reception is not yet modeled.
+-  NS_LOG_FUNCTION (this << packet << rxPowerDbm << txVector.GetMode () << preamble << (uint32_t)aMpdu.packetType);
+-  AmpduTag ampduTag;
++  NS_LOG_FUNCTION (this << Simulator::Now () <<packet << rxPowerDbm << txVector.GetMode () << preamble << (uint32_t)aMpdu.packetType << rxDuration);
++  //Add receive antenna gain
+   rxPowerDbm += m_rxGainDb;
+   double rxPowerW = DbmToW (rxPowerDbm);
+-  Time endRx = Simulator::Now () + rxDuration;
+-  Time preambleAndHeaderDuration = CalculatePlcpPreambleAndHeaderDuration (txVector, preamble);
+-
++  //This frame can either be a candidate for reception or will contribute
++  //to the noise+interference.  In either case, let the interference helper
++  //know about the full duration of this signal.
+   Ptr<InterferenceHelper::Event> event;
+   event = m_interference.Add (packet->GetSize (),
+                               txVector,
+                               preamble,
+                               rxDuration,
+                               rxPowerW);
++  NS_LOG_DEBUG ("Adding received frame at power " << rxPowerW
++                                        << " W (" << WToDbm (rxPowerW)
++                                        << "dBm) starting at " << Simulator::Now ()
++                                        << " and ending at " << (Simulator::Now () + rxDuration)
++                                        << " to interference tracker");
++  //If the Phy is in IDLE or CCA_BUSY state, we set a flag in the Phy
++  //state helper to mention that it is syncing, so that future frames do
++  //not interfere with synchronization. Schedule event for end of PlcpPreamble
++  if ((m_state->GetState () == WifiPhy::IDLE || m_state->GetState () == WifiPhy::CCA_BUSY) && (m_state->IsSyncing () == false))
++    {
++      if (preamble != WIFI_PREAMBLE_NONE)
++        {
++          Time preambleDuration = WifiPhy::GetPlcpPreambleDuration (event->GetTxVector (), preamble);
++          m_state->AttemptSync (preambleDuration);
++          m_interference.NotifyRxPreambleStart ();
++          NS_LOG_DEBUG ("Attempting frame reception after " << preambleDuration  << " at time " << (Simulator::Now () + preambleDuration));
++          m_endRxPlcpSyncEvent = Simulator::Schedule (preambleDuration, &YansWifiPhy::EndReceivePlcpPreamble, this, packet, txVector, preamble, aMpdu, event);
++        }
++      else
++        {
++          if (m_plcpSuccess == false)
++            {
++              NS_LOG_DEBUG ("drop packet because no PLCP preamble received");
++              NotifyRxDrop (packet);
++              return;
++            }
++          else
++            {
++              NS_LOG_DEBUG ("sync to signal (power=" << event->GetRxPowerW () << "W)");
++              //sync to signal
++              m_state->SwitchToRx (rxDuration); 
++              NS_ASSERT (m_endRxPlcpSyncEvent.IsExpired ());
++              NotifyRxBegin (packet);
++              m_interference.NotifyRxStart ();
++            }
++        }
++      NS_ASSERT (m_endRxEvent.IsExpired ());
++      m_endRxEvent = Simulator::Schedule (rxDuration, &YansWifiPhy::EndReceive, this,
++                                          packet, preamble, aMpdu, event);
++    }
++  else
++    {
++      NS_LOG_DEBUG ("Not attempting frame reception: PHY is in " << m_state->GetState () << " state");
++    }
++}
++
++void
++YansWifiPhy::EndReceivePlcpPreamble (Ptr<Packet> packet,
++                                     WifiTxVector txVector,
++                                     enum WifiPreamble preamble,
++                                     struct mpduInfo aMpdu,
++                                     Ptr<InterferenceHelper::Event> event)
++{
++  NS_LOG_FUNCTION (this << Simulator::Now () << packet << txVector.GetMode () << preamble << (uint32_t)aMpdu.packetType);
++  NS_ASSERT (m_endRxPlcpSyncEvent.IsExpired ());
++  NS_ASSERT (preamble != WIFI_PREAMBLE_NONE);
++
++  //If the preamble succeeds, then set a flag for whether the PLCP
++  //preamble succeeded and call StartReceivePlcpHeader ().  If the
++  //preamble fails, then  the frame is still a candidate for
++  //triggering CCA_BUSY
++  bool preambleSuccess;
++  struct InterferenceHelper::SnrPer plcpSnrPer;
++  plcpSnrPer = m_interference.CalculatePlcpPreambleSnrPer (event);
++  double randomValue = m_random->GetValue ();
++  if (randomValue > plcpSnrPer.per) 
++    {
++      NS_LOG_DEBUG ("Random value " << randomValue << " greater than per of " << plcpSnrPer.per << " => PLCP preamble reception succeeded");
++      preambleSuccess = true;
++    }
++  else
++    {
++      NS_LOG_DEBUG ("Random value " << randomValue << " less than per of " << plcpSnrPer.per << " => PLCP preamble reception failed");
++      preambleSuccess = false;
++    }
++  
++  m_interference.NotifyRxPreambleEnd ();
++  StartReceivePlcpHeader (packet, txVector, preamble, aMpdu, event, preambleSuccess);
++}
++
++void
++YansWifiPhy::StartReceivePlcpHeader (Ptr<Packet> packet,
++                                     WifiTxVector txVector,
++                                     enum WifiPreamble preamble,
++                                     struct mpduInfo aMpdu,
++                                     Ptr<InterferenceHelper::Event> event,
++                                     bool plcpPreambleSuccess)
++{
++  NS_LOG_FUNCTION (this << Simulator::Now () << packet << txVector.GetMode () << preamble << (uint32_t)aMpdu.packetType);
++  AmpduTag ampduTag;
++  //Subtract off time already elapsed for preamble reception
++  Time rxDuration = event->GetDuration () - WifiPhy::GetPlcpPreambleDuration (event->GetTxVector (), preamble);
++  Time endRx = Simulator::Now () + rxDuration;
++  Time headerDuration = WifiPhy::GetPlcpHeaderDuration (txVector, preamble);
++  
++  NS_ASSERT (preamble != WIFI_PREAMBLE_NONE);
+ 
+   switch (m_state->GetState ())
+     {
+     case YansWifiPhy::SWITCHING:
+       NS_LOG_DEBUG ("drop packet because of channel switching");
+       NotifyRxDrop (packet);
++      m_endRxEvent.Cancel ();
+       m_plcpSuccess = false;
+       /*
+        * Packets received on the upcoming channel are added to the event list
+@@ -600,15 +703,16 @@
+        */
+       if (endRx > Simulator::Now () + m_state->GetDelayUntilIdle ())
+         {
+-          //that packet will be noise _after_ the completion of the
++          //That packet will be noise _after_ the completion of the
+           //channel switching.
+           goto maybeCcaBusy;
+         }
+       break;
+     case YansWifiPhy::RX:
+       NS_LOG_DEBUG ("drop packet because already in Rx (power=" <<
+-                    rxPowerW << "W)");
++                    event->GetRxPowerW () << "W)");
+       NotifyRxDrop (packet);
++      m_endRxEvent.Cancel ();
+       if (endRx > Simulator::Now () + m_state->GetDelayUntilIdle ())
+         {
+           //that packet will be noise _after_ the reception of the
+@@ -618,78 +722,64 @@
+       break;
+     case YansWifiPhy::TX:
+       NS_LOG_DEBUG ("drop packet because already in Tx (power=" <<
+-                    rxPowerW << "W)");
++                    event->GetRxPowerW () << "W)");
+       NotifyRxDrop (packet);
++      m_endRxEvent.Cancel ();
+       if (endRx > Simulator::Now () + m_state->GetDelayUntilIdle ())
+         {
+-          //that packet will be noise _after_ the transmission of the
++          //That packet will be noise _after_ the transmission of the
+           //currently-transmitted packet.
+           goto maybeCcaBusy;
+         }
+       break;
+     case YansWifiPhy::CCA_BUSY:
+     case YansWifiPhy::IDLE:
+-      if (rxPowerW > m_edThresholdW) //checked here, no need to check in the payload reception (current implementation assumes constant rx power over the packet duration)
++      if (!m_state->IsSyncing ())
+         {
+-          if (preamble == WIFI_PREAMBLE_NONE && m_mpdusNum == 0)
++          m_endRxEvent.Cancel ();
++          NS_FATAL_ERROR ("Trying to receive PLCP header without first syncing"); 
++        }
++      if (event->GetRxPowerW () > m_edThresholdW)
++        {
++          if (plcpPreambleSuccess == false)
+             {
+-              NS_LOG_DEBUG ("drop packet because no preamble has been received");
++              NS_LOG_DEBUG ("drop packet because PLCP preamble failed");
+               NotifyRxDrop (packet);
+-              goto maybeCcaBusy;
+-            }
+-          else if (preamble == WIFI_PREAMBLE_NONE && m_plcpSuccess == false) //A-MPDU reception fails
+-            {
+-              NS_LOG_DEBUG ("Drop MPDU because no plcp has been received");
+-              NotifyRxDrop (packet);
++              m_plcpSuccess = false;
++              m_endRxEvent.Cancel ();
+               goto maybeCcaBusy;
+             }
+           else if (preamble != WIFI_PREAMBLE_NONE && packet->PeekPacketTag (ampduTag) && m_mpdusNum == 0)
+             {
+-              //received the first MPDU in an MPDU
++              //Received the first MPDU in an MPDU
+               m_mpdusNum = ampduTag.GetNoOfMpdus () - 1;
+             }
+-          else if (preamble == WIFI_PREAMBLE_NONE && packet->PeekPacketTag (ampduTag) && m_mpdusNum > 0)
+-            {
+-              //received the other MPDUs that are part of the A-MPDU
+-              if (ampduTag.GetNoOfMpdus () < m_mpdusNum)
+-                {
+-                  NS_LOG_DEBUG ("Missing MPDU from the A-MPDU " << m_mpdusNum - ampduTag.GetNoOfMpdus ());
+-                  m_mpdusNum = ampduTag.GetNoOfMpdus ();
+-                }
+-              else
+-                {
+-                  m_mpdusNum--;
+-                }
+-            }
+           else if (preamble != WIFI_PREAMBLE_NONE && m_mpdusNum > 0 )
+             {
+               NS_LOG_DEBUG ("Didn't receive the last MPDUs from an A-MPDU " << m_mpdusNum);
+               m_mpdusNum = 0;
+             }
+ 
+-          NS_LOG_DEBUG ("sync to signal (power=" << rxPowerW << "W)");
++          NS_LOG_DEBUG ("sync to signal (power=" << event->GetRxPowerW () << "W)");
+           //sync to signal
+-          m_state->SwitchToRx (rxDuration);
+-          NS_ASSERT (m_endPlcpRxEvent.IsExpired ());
++          m_state->SwitchToRx (rxDuration); 
++          NS_ASSERT (m_endRxPlcpSyncEvent.IsExpired ());
+           NotifyRxBegin (packet);
+           m_interference.NotifyRxStart ();
+-
++	  
+           if (preamble != WIFI_PREAMBLE_NONE)
+             {
+-              NS_ASSERT (m_endPlcpRxEvent.IsExpired ());
+-              m_endPlcpRxEvent = Simulator::Schedule (preambleAndHeaderDuration, &YansWifiPhy::StartReceivePacket, this,
+-                                                      packet, txVector, preamble, aMpdu, event);
+-            }
+-
+-          NS_ASSERT (m_endRxEvent.IsExpired ());
+-          m_endRxEvent = Simulator::Schedule (rxDuration, &YansWifiPhy::EndReceive, this,
+-                                              packet, preamble, aMpdu, event);
++              NS_ASSERT (m_endRxPlcpSyncEvent.IsExpired ());
++	          m_endRxPlcpSyncEvent = Simulator::Schedule (headerDuration, &YansWifiPhy::StartReceivePlcpPayload, this,
++                                                          packet, txVector, preamble, aMpdu, event);
++	        }
+         }
+       else
+         {
+           NS_LOG_DEBUG ("drop packet because signal power too Small (" <<
+-                        rxPowerW << "<" << m_edThresholdW << ")");
++                        event->GetRxPowerW () << "<" << m_edThresholdW << ")");
+           NotifyRxDrop (packet);
++          m_endRxEvent.Cancel ();
+           m_plcpSuccess = false;
+           goto maybeCcaBusy;
+         }
+@@ -697,6 +787,7 @@
+     case YansWifiPhy::SLEEP:
+       NS_LOG_DEBUG ("drop packet because in sleep mode");
+       NotifyRxDrop (packet);
++      m_endRxEvent.Cancel ();
+       m_plcpSuccess = false;
+       break;
+     }
+@@ -708,7 +799,6 @@
+   //not going to be able to synchronize on it
+   //In this model, CCA becomes busy when the aggregation of all signals as
+   //tracked by the InterferenceHelper class is higher than the CcaBusyThreshold
+-
+   Time delayUntilCcaEnd = m_interference.GetEnergyDuration (m_ccaMode1ThresholdW);
+   if (!delayUntilCcaEnd.IsZero ())
+     {
+@@ -717,15 +807,15 @@
+ }
+ 
+ void
+-YansWifiPhy::StartReceivePacket (Ptr<Packet> packet,
+-                                 WifiTxVector txVector,
+-                                 enum WifiPreamble preamble,
+-                                 struct mpduInfo aMpdu,
+-                                 Ptr<InterferenceHelper::Event> event)
++YansWifiPhy::StartReceivePlcpPayload (Ptr<Packet> packet,
++                                      WifiTxVector txVector,
++                                      enum WifiPreamble preamble,
++                                      struct mpduInfo aMpdu,
++                                      Ptr<InterferenceHelper::Event> event)
+ {
+-  NS_LOG_FUNCTION (this << packet << txVector.GetMode () << preamble << (uint32_t)aMpdu.packetType);
++  NS_LOG_FUNCTION (this << Simulator::Now () << packet << txVector.GetMode () << preamble << (uint32_t)aMpdu.packetType);
+   NS_ASSERT (IsStateRx ());
+-  NS_ASSERT (m_endPlcpRxEvent.IsExpired ());
++  NS_ASSERT (m_endRxPlcpSyncEvent.IsExpired ());
+   AmpduTag ampduTag;
+   WifiMode txMode = txVector.GetMode ();
+ 
+@@ -734,12 +824,25 @@
+ 
+   NS_LOG_DEBUG ("snr(dB)=" << RatioToDb (snrPer.snr) << ", per=" << snrPer.per);
+ 
+-  if (m_random->GetValue () > snrPer.per) //plcp reception succeeded
++  if (m_random->GetValue () > snrPer.per) //plcp header reception succeeded
+     {
+       if (IsModeSupported (txMode) || IsMcsSupported (txMode))
+         {
+-          NS_LOG_DEBUG ("receiving plcp payload"); //endReceive is already scheduled
++          NS_LOG_DEBUG ("receiving PLCP payload"); //endReceive is already scheduled
+           m_plcpSuccess = true;
++          if (preamble == WIFI_PREAMBLE_NONE && packet->PeekPacketTag (ampduTag) && m_mpdusNum > 0)
++            {
++              //Received the other MPDUs that are part of the A-MPDU
++              if (ampduTag.GetNoOfMpdus () < m_mpdusNum)
++                {
++                  NS_LOG_DEBUG ("Missing MPDU from the A-MPDU " << m_mpdusNum - ampduTag.GetNoOfMpdus ());
++                  m_mpdusNum = ampduTag.GetNoOfMpdus ();
++                }
++              else
++                {
++                  m_mpdusNum--;
++                }
++            }
+         }
+       else //mode is not allowed
+         {
+@@ -750,7 +853,7 @@
+     }
+   else //plcp reception failed
+     {
+-      NS_LOG_DEBUG ("drop packet because plcp preamble/header reception failed");
++      NS_LOG_DEBUG ("drop packet because PLCP header reception failed");
+       NotifyRxDrop (packet);
+       m_plcpSuccess = false;
+     }
+@@ -759,7 +862,7 @@
+ void
+ YansWifiPhy::SendPacket (Ptr<const Packet> packet, WifiTxVector txVector, WifiPreamble preamble, uint8_t packetType, uint32_t mpduReferenceNumber)
+ {
+-  NS_LOG_FUNCTION (this << packet << txVector.GetMode () << txVector.GetMode ().GetDataRate (txVector.GetChannelWidth (), txVector.IsShortGuardInterval (), 1) << preamble << (uint32_t)txVector.GetTxPowerLevel () << (uint32_t)packetType);
++  NS_LOG_FUNCTION (this << Simulator::Now () << packet << txVector.GetMode () << txVector.GetMode ().GetDataRate (txVector.GetChannelWidth (), txVector.IsShortGuardInterval (), 1) << preamble << (uint32_t)txVector.GetTxPowerLevel () << (uint32_t)packetType);
+   /* Transmission can happen if:
+    *  - we are syncing on a packet. It is the responsability of the
+    *    MAC layer to avoid doing this but the PHY does nothing to
+@@ -780,10 +883,16 @@
+ 
+   if (m_state->IsStateRx ())
+     {
+-      m_endPlcpRxEvent.Cancel ();
+       m_endRxEvent.Cancel ();
+       m_interference.NotifyRxEnd ();
+     }
++  if (m_state->IsSyncing ())
++    {
++      m_endRxPlcpSyncEvent.Cancel ();
++      m_endRxEvent.Cancel ();
++      m_interference.NotifyRxPreambleEnd ();
++    }
++
+   NotifyTxBegin (packet);
+   uint32_t dataRate500KbpsUnits;
+   if (txVector.GetMode ().GetModulationClass () == WIFI_MOD_CLASS_HT || txVector.GetMode ().GetModulationClass () == WIFI_MOD_CLASS_VHT)
+@@ -1137,7 +1246,7 @@
+ void
+ YansWifiPhy::EndReceive (Ptr<Packet> packet, enum WifiPreamble preamble, struct mpduInfo aMpdu, Ptr<InterferenceHelper::Event> event)
+ {
+-  NS_LOG_FUNCTION (this << packet << event);
++  NS_LOG_FUNCTION (this << Simulator::Now () << packet << event);
+   NS_ASSERT (IsStateRx ());
+   NS_ASSERT (event->GetEndTime () == Simulator::Now ());
+ 
+@@ -1278,6 +1387,18 @@
+   return m_greenfield;
+ }
+ 
++bool
++YansWifiPhy::GetShortPlcpPreamble (void) const
++{
++  return m_plcpPreamble;
++}
++
++void
++YansWifiPhy::SetShortPlcpPreamble (bool preamble)
++{
++  m_plcpPreamble = preamble;
++}
++
+ void
+ YansWifiPhy::SetChannelWidth (uint32_t channelwidth)
+ {
+diff -r cf9f06803ccb src/wifi/model/yans-wifi-phy.h
+--- a/src/wifi/model/yans-wifi-phy.h	Sun Sep 27 12:49:29 2015 -0700
++++ b/src/wifi/model/yans-wifi-phy.h	Sun Dec 27 16:46:11 2015 -0800
+@@ -101,7 +101,7 @@
+   double GetChannelFrequencyMhz () const;
+ 
+   /**
+-   * Starting receiving the plcp of a packet (i.e. the first bit of the preamble has arrived).
++   * Start receiving the plcp preamble of a packet (i.e. the first symbol of the preamble has arrived) or the next MPDU if it is part of an A-MPDU.
+    *
+    * \param packet the arriving packet
+    * \param rxPowerDbm the receive power in dBm
+@@ -111,14 +111,15 @@
+    *        and the A-MPDU reference number (must be a different value for each A-MPDU but the same for each subframe within one A-MPDU)
+    * \param rxDuration the duration needed for the reception of the packet
+    */
+-  void StartReceivePreambleAndHeader (Ptr<Packet> packet,
+-                                      double rxPowerDbm,
+-                                      WifiTxVector txVector,
+-                                      WifiPreamble preamble,
+-                                      struct mpduInfo aMpdu,
+-                                      Time rxDuration);
++  void StartReceive (Ptr<Packet> packet,
++                     double rxPowerDbm,
++                     WifiTxVector txVector,
++                     WifiPreamble preamble,
++                     struct mpduInfo aMpdu,
++                     Time rxDuration);
+   /**
+-   * Starting receiving the payload of a packet (i.e. the first bit of the packet has arrived).
++   * Decide whether preamble was received, and if so, initiate Plcp header
++   * reception process
+    *
+    * \param packet the arriving packet
+    * \param txVector the TXVECTOR of the arriving packet
+@@ -127,13 +128,47 @@
+    *        and the A-MPDU reference number (must be a different value for each A-MPDU but the same for each subframe within one A-MPDU)
+    * \param event the corresponding event of the first time the packet arrives
+    */
+-  void StartReceivePacket (Ptr<Packet> packet,
+-                           WifiTxVector txVector,
+-                           WifiPreamble preamble,
+-                           struct mpduInfo aMpdu,
+-                           Ptr<InterferenceHelper::Event> event);
++  void EndReceivePlcpPreamble (Ptr<Packet> packet,
++                               WifiTxVector txVector,
++                               WifiPreamble preamble,
++                               struct mpduInfo aMpdu,
++                               Ptr<InterferenceHelper::Event> event);
+ 
+   /**
++   * Start receiving the plcp header of a packet 
++   *
++   * \param packet the arriving packet
++   * \param txVector the TXVECTOR of the arriving packet
++   * \param preamble the preamble of the arriving packet
++   * \param aMpdu the type of the packet (0 is not A-MPDU, 1 is a MPDU that is part of an A-MPDU and 2 is the last MPDU in an A-MPDU)
++   *        and the A-MPDU reference number (must be a different value for each A-MPDU but the same for each subframe within one A-MPDU)
++   * \param event the corresponding event of the first time the packet arrives
++   * \param plcpPreambleSuccess true if the preamble decode was successful
++   */
++  void StartReceivePlcpHeader (Ptr<Packet> packet,
++                               WifiTxVector txVector,
++                               WifiPreamble preamble,
++                               struct mpduInfo aMpdu,
++                               Ptr<InterferenceHelper::Event> event,
++                               bool plcpPreambleSuccess);
++
++  /**
++   * Start receiving the payload of a packet (i.e. after PLCP header)
++   *
++   * \param packet the arriving packet
++   * \param txVector the TXVECTOR of the arriving packet
++   * \param preamble the preamble of the arriving packet
++   * \param aMpdu the type of the packet (0 is not A-MPDU, 1 is a MPDU that is part of an A-MPDU and 2 is the last MPDU in an A-MPDU)
++   *        and the A-MPDU reference number (must be a different value for each A-MPDU but the same for each subframe within one A-MPDU)
++   * \param event the corresponding event of the first time the packet arrives
++   */
++  void StartReceivePlcpPayload (Ptr<Packet> packet,
++                                WifiTxVector txVector,
++                                WifiPreamble preamble,
++                                struct mpduInfo aMpdu,
++                                Ptr<InterferenceHelper::Event> event);
++  
++  /**
+    * Sets the RX loss (dB) in the Signal-to-Noise-Ratio due to non-idealities in the receiver.
+    *
+    * \param noiseFigureDb noise figure in dB
+@@ -387,6 +422,18 @@
+    */
+   virtual bool GetGreenfield (void) const;
+   /**
++   * Enable or disable short PLCP preamble.
++   *
++   * \param sets short PLCP preamble is supported or not
++   */
++  virtual void SetShortPlcpPreamble (bool preamble);
++  /**
++   * Return whether short PLCP preamble is supported.
++   *
++   * \returns if short PLCP preamble is supported or not
++   */
++  virtual bool GetShortPlcpPreamble (void) const;
++  /**
+    * Return channel width.
+    *
+    * \return channel width
+@@ -528,7 +575,7 @@
+   bool     m_greenfield;            //!< Flag if GreenField format is supported
+   bool     m_guardInterval;         //!< Flag if short guard interval is used
+   uint32_t m_channelWidth;          //!< Channel width
+-
++  bool     m_plcpPreamble;          //!< Flag if short PLCP preamble is used
+ 
+   /**
+    * This vector holds the set of transmission modes that this
+@@ -570,8 +617,9 @@
+   WifiModeList m_deviceMcsSet;
+ 
+   std::vector<uint32_t> m_bssMembershipSelectorSet;
+-  EventId m_endRxEvent;
+-  EventId m_endPlcpRxEvent;
++  EventId m_endRxPlcpSyncEvent;         //!< Event for PLCP sync reception
++  EventId m_endRxPlcpHeaderEvent;       //!< Event for PLCP header reception
++  EventId m_endRxEvent;                 //!< Event for PLCP payload reception
+ 
+   Ptr<UniformRandomVariable> m_random;  //!< Provides uniform random variables.
+   double m_channelStartingFrequency;    //!< Standard-dependent center frequency of 0-th channel in MHz
+diff -r cf9f06803ccb src/wifi/test/tx-duration-test.cc
+--- a/src/wifi/test/tx-duration-test.cc	Sun Sep 27 12:49:29 2015 -0700
++++ b/src/wifi/test/tx-duration-test.cc	Sun Dec 27 16:46:11 2015 -0800
+@@ -223,10 +223,10 @@
+     && CheckTxDuration (1024, WifiPhy::GetDsssRate2Mbps (), 22, false, WIFI_PREAMBLE_LONG, 4096 + 192)
+     && CheckTxDuration (1025, WifiPhy::GetDsssRate2Mbps (), 22, false, WIFI_PREAMBLE_LONG, 4100 + 192)
+     && CheckTxDuration (1026, WifiPhy::GetDsssRate2Mbps (), 22, false, WIFI_PREAMBLE_LONG, 4104 + 192)
+-    && CheckTxDuration (1023, WifiPhy::GetDsssRate1Mbps (), 22, false, WIFI_PREAMBLE_SHORT, 8184 + 96)
+-    && CheckTxDuration (1024, WifiPhy::GetDsssRate1Mbps (), 22, false, WIFI_PREAMBLE_SHORT, 8192 + 96)
+-    && CheckTxDuration (1025, WifiPhy::GetDsssRate1Mbps (), 22, false, WIFI_PREAMBLE_SHORT, 8200 + 96)
+-    && CheckTxDuration (1026, WifiPhy::GetDsssRate1Mbps (), 22, false, WIFI_PREAMBLE_SHORT, 8208 + 96)
++    && CheckTxDuration (1023, WifiPhy::GetDsssRate1Mbps (), 22, false, WIFI_PREAMBLE_SHORT, 8184 + 192)
++    && CheckTxDuration (1024, WifiPhy::GetDsssRate1Mbps (), 22, false, WIFI_PREAMBLE_SHORT, 8192 + 192)
++    && CheckTxDuration (1025, WifiPhy::GetDsssRate1Mbps (), 22, false, WIFI_PREAMBLE_SHORT, 8200 + 192)
++    && CheckTxDuration (1026, WifiPhy::GetDsssRate1Mbps (), 22, false, WIFI_PREAMBLE_SHORT, 8208 + 192)
+     && CheckTxDuration (1023, WifiPhy::GetDsssRate1Mbps (), 22, false, WIFI_PREAMBLE_LONG, 8184 + 192)
+     && CheckTxDuration (1024, WifiPhy::GetDsssRate1Mbps (), 22, false, WIFI_PREAMBLE_LONG, 8192 + 192)
+     && CheckTxDuration (1025, WifiPhy::GetDsssRate1Mbps (), 22, false, WIFI_PREAMBLE_LONG, 8200 + 192)
+diff -r cf9f06803ccb src/wifi/test/yans-wifi-preamble-test.cc
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/src/wifi/test/yans-wifi-preamble-test.cc	Sun Dec 27 16:46:11 2015 -0800
+@@ -0,0 +1,462 @@
++/* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
++/*
++ * Copyright (c) 2015 University of Washington
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation;
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ */
++
++#include "ns3/test.h"
++#include "ns3/packet.h"
++#include "ns3/yans-wifi-phy.h"
++#include "ns3/wifi-mode.h"
++#include "ns3/wifi-preamble.h"
++#include "ns3/wifi-phy-state-helper.h"
++#include "ns3/simulator.h"
++#include "ns3/assert.h"
++#include "ns3/log.h"
++#include "ns3/pointer.h"
++#include "ns3/ampdu-tag.h"
++#include "ns3/interference-helper.h"
++#include "ns3/nist-error-rate-model.h"
++#include "ns3/wifi-mac-header.h"
++#include "ns3/wifi-mac-trailer.h"
++#include "ns3/wifi-phy-standard.h"
++
++using namespace ns3;
++
++static double RX_NF = 92.0; // dB
++static const uint16_t CHANNEL_NUMBER = 36;
++static const uint32_t CHANNEL_WIDTH = 20;
++static const uint32_t FREQUENCY = 5000; // MHz
++
++struct YansWifiSignal
++{
++  Ptr<Packet> m_packet;
++  WifiTxVector m_txVector;
++  enum WifiPreamble m_preamble;
++  struct mpduInfo m_aMpdu;
++  Time m_rxDuration;
++};
++
++
++class YansWifiPhyPreambleBasicTest : public TestCase
++{
++public:
++  YansWifiPhyPreambleBasicTest ();
++  YansWifiPhyPreambleBasicTest (std::string name);
++  virtual ~YansWifiPhyPreambleBasicTest ();
++protected:
++  virtual void DoSetup (void);
++  Ptr<YansWifiPhy> m_phy;
++  struct YansWifiSignal MakeSignal (double txPowerWatts);
++  void SendSignal (double txPowerWatts);
++  void YansWifiPhyReceiver (Ptr<Packet> pkt, double snr, WifiTxVector txVector, enum WifiPreamble preamble);
++  uint32_t m_count;
++private:
++  virtual void DoRun (void);
++};
++
++YansWifiPhyPreambleBasicTest::YansWifiPhyPreambleBasicTest ()
++  : TestCase ("YansWifiPhy test case receives one packet"),
++    m_count (0)
++{
++}
++
++YansWifiPhyPreambleBasicTest::YansWifiPhyPreambleBasicTest (std::string name)
++  : TestCase (name),
++    m_count (0)
++{
++}
++
++// Make a Wi-Fi signal to inject directly to the StartRx() method
++struct YansWifiSignal
++YansWifiPhyPreambleBasicTest::MakeSignal (double txPowerWatts)
++{
++  struct YansWifiSignal wifiSignal;
++
++  WifiPreamble preamble;
++  preamble = WIFI_PREAMBLE_LONG;
++  WifiMode mode = WifiPhy::GetOfdmRate6Mbps ();
++  WifiTxVector txVector = WifiTxVector (mode, 0, 0, false, 1, 1, CHANNEL_WIDTH, false, false);
++
++  Ptr<Packet> pkt = Create<Packet> (1000);
++  WifiMacHeader hdr;
++  WifiMacTrailer trailer;
++
++  hdr.SetTypeData ();
++  uint32_t size = pkt->GetSize () + hdr.GetSize () + trailer.GetSerializedSize ();
++  Time txDuration = m_phy->CalculateTxDuration (size, txVector, preamble, m_phy->GetFrequency(), 0, 0);
++  hdr.SetDuration (txDuration);
++
++  pkt->AddHeader (hdr);
++  pkt->AddTrailer (trailer);
++
++  wifiSignal.m_preamble = preamble;
++  wifiSignal.m_txVector = txVector;
++  wifiSignal.m_packet = pkt;
++  wifiSignal.m_rxDuration = txDuration;
++  wifiSignal.m_aMpdu.packetType = 0;
++  wifiSignal.m_aMpdu.referenceNumber = 0;
++  return wifiSignal;
++}
++
++// Make a Wi-Fi signal to inject directly to the StartRx() method
++void
++YansWifiPhyPreambleBasicTest::SendSignal (double txPowerWatts)
++{
++  YansWifiSignal signal = MakeSignal (txPowerWatts);
++  double txPowerDbm = 10.0 * std::log10 (txPowerWatts * 1000.0);
++  m_phy->StartReceive (signal.m_packet, txPowerDbm, signal.m_txVector, signal.m_preamble, signal.m_aMpdu, signal.m_rxDuration);
++}
++
++void
++YansWifiPhyPreambleBasicTest::YansWifiPhyReceiver (Ptr<Packet> pkt, double snr, WifiTxVector txVector, enum WifiPreamble preamble)
++{
++  m_count++;
++}
++
++YansWifiPhyPreambleBasicTest::~YansWifiPhyPreambleBasicTest ()
++{
++}
++
++// Create necessary objects, and inject signals.  Test that the expected
++// number of packet receptions occur.
++void
++YansWifiPhyPreambleBasicTest::DoSetup (void)
++{
++  m_phy = CreateObject<YansWifiPhy> ();
++  m_phy->ConfigureStandard (WIFI_PHY_STANDARD_80211n_5GHZ);
++  Ptr<ErrorRateModel> error = CreateObject<NistErrorRateModel> ();
++  m_phy->SetErrorRateModel (error);
++  m_phy->SetRxNoiseFigure (RX_NF);
++  m_phy->SetChannelNumber (CHANNEL_NUMBER);
++  m_phy->SetFrequency (FREQUENCY);
++  m_phy->SetShortPlcpPreamble (false);
++  m_phy->SetReceiveOkCallback (MakeCallback (&YansWifiPhyPreambleBasicTest::YansWifiPhyReceiver, this));
++}
++
++// Test that the expected number of packet receptions occur.
++void
++YansWifiPhyPreambleBasicTest::DoRun (void)
++{
++  double txPowerWatts = 0.010;
++  // Send packets spaced 1 second apart; all should be received
++  Simulator::Schedule (Seconds (1), &YansWifiPhyPreambleBasicTest::SendSignal, this, txPowerWatts); 
++  Simulator::Schedule (Seconds (2), &YansWifiPhyPreambleBasicTest::SendSignal, this, txPowerWatts); 
++  Simulator::Schedule (Seconds (3), &YansWifiPhyPreambleBasicTest::SendSignal, this, txPowerWatts); 
++  // Send packets spaced 1 microsecond second apart; neither received (collision)
++  Simulator::Schedule (MicroSeconds (4000000), &YansWifiPhyPreambleBasicTest::SendSignal, this, txPowerWatts); 
++  Simulator::Schedule (MicroSeconds (4000001), &YansWifiPhyPreambleBasicTest::SendSignal, this, txPowerWatts); 
++  Simulator::Run ();
++  Simulator::Destroy ();
++
++  NS_TEST_ASSERT_MSG_EQ (3, m_count, "Didn't receive right number of packets");
++}
++
++class TestPhyListener : public ns3::WifiPhyListener
++{
++public:
++  /**
++   * Create a test PhyListener
++   *
++   */
++  TestPhyListener (void) :
++    m_notifyRxStart (0),
++    m_notifyRxEndOk (0),
++    m_notifyRxEndError (0),
++    m_notifyRxPreambleStart (0),
++    m_notifyMaybeCcaBusyStart (0)
++  {
++  }
++  virtual ~TestPhyListener ()
++  {
++  }
++  virtual void NotifyRxStart (Time duration)
++  {
++    ++m_notifyRxStart;
++  }
++  virtual void NotifyRxEndOk (void)
++  {
++    ++m_notifyRxEndOk;
++  }
++  virtual void NotifyRxEndError (void)
++  {
++    ++m_notifyRxEndError;
++  }
++  virtual void NotifyRxPreambleStart (Time duration)
++  {
++    ++m_notifyRxPreambleStart;
++  }
++  virtual void NotifyTxStart (Time duration, double txPowerDbm)
++  {
++  }
++  virtual void NotifyMaybeCcaBusyStart (Time duration)
++  {
++    ++m_notifyMaybeCcaBusyStart;
++  }
++  virtual void NotifySwitchingStart (Time duration)
++  {
++  }
++  virtual void NotifySleep (void)
++  {
++  }
++  virtual void NotifyWakeup (void)
++  {
++  }
++  uint32_t m_notifyRxStart;
++  uint32_t m_notifyRxEndOk;
++  uint32_t m_notifyRxEndError;
++  uint32_t m_notifyRxPreambleStart;
++  uint32_t m_notifyMaybeCcaBusyStart;
++private:
++};
++
++
++class YansWifiPhyPreamblePhyListenerTest : public YansWifiPhyPreambleBasicTest
++{
++public:
++  YansWifiPhyPreamblePhyListenerTest ();
++  virtual ~YansWifiPhyPreamblePhyListenerTest ();
++private:
++  virtual void DoSetup (void);
++  virtual void DoRun (void);
++  TestPhyListener* m_listener;
++  void CheckRxStart (uint32_t expected);
++  void CheckRxPreamble (uint32_t expected);
++};
++
++YansWifiPhyPreamblePhyListenerTest::YansWifiPhyPreamblePhyListenerTest ()
++  : YansWifiPhyPreambleBasicTest ("YansWifiPhy test operation of WifiPhyListener")
++{
++}
++
++YansWifiPhyPreamblePhyListenerTest::~YansWifiPhyPreamblePhyListenerTest ()
++{
++}
++
++void
++YansWifiPhyPreamblePhyListenerTest::DoSetup (void)
++{
++  YansWifiPhyPreambleBasicTest::DoSetup ();
++  m_listener = new TestPhyListener;
++  m_phy->RegisterListener (m_listener);
++}
++
++void
++YansWifiPhyPreamblePhyListenerTest::CheckRxStart (uint32_t expected)
++{
++  NS_TEST_ASSERT_MSG_EQ (m_listener->m_notifyRxStart, expected, "Didn't receive NotifyRxStart");
++}
++
++void
++YansWifiPhyPreamblePhyListenerTest::CheckRxPreamble (uint32_t expected)
++{
++  NS_TEST_ASSERT_MSG_EQ (m_listener->m_notifyRxPreambleStart, expected, "Didn't receive NotifyRxPreambleStart");
++}
++
++void
++YansWifiPhyPreamblePhyListenerTest::DoRun (void)
++{
++  double txPowerWatts = 0.010;
++  Simulator::Schedule (Seconds (1), &YansWifiPhyPreamblePhyListenerTest::SendSignal, this, txPowerWatts); 
++
++  // Check that we receive an RxPreambleStart notification by time 1.000001, 
++  // and a RxStart notification by time 1.000017 
++  Simulator::Schedule (MicroSeconds (1000001), &YansWifiPhyPreamblePhyListenerTest::CheckRxPreamble, this, 1);
++  Simulator::Schedule (MicroSeconds (10000017), &YansWifiPhyPreamblePhyListenerTest::CheckRxStart, this, 1);
++
++  Simulator::Run ();
++
++  NS_TEST_ASSERT_MSG_EQ (m_count, 1, "Didn't receive right number of packets");
++  NS_TEST_ASSERT_MSG_EQ (m_listener->m_notifyRxStart, 1, "Didn't receive NotifyRxStart");
++  NS_TEST_ASSERT_MSG_EQ (m_listener->m_notifyRxEndOk, 1, "Didn't receive NotifyRxEnd");
++  NS_TEST_ASSERT_MSG_EQ (m_listener->m_notifyMaybeCcaBusyStart, 0, "Received NotifyMaybeCcaBusyStart unexpectedly");
++
++  Simulator::Destroy ();
++}
++
++class YansWifiPhyPreambleDurationsTest : public YansWifiPhyPreambleBasicTest
++{
++public:
++  YansWifiPhyPreambleDurationsTest ();
++  virtual ~YansWifiPhyPreambleDurationsTest ();
++private:
++  virtual void DoSetup (void);
++  virtual void DoRun (void);
++  //TestPhyListener* m_listener;
++};
++
++YansWifiPhyPreambleDurationsTest::YansWifiPhyPreambleDurationsTest ()
++  : YansWifiPhyPreambleBasicTest ("YansWifiPhy test preamble durations")
++{
++}
++
++YansWifiPhyPreambleDurationsTest::~YansWifiPhyPreambleDurationsTest ()
++{
++}
++void
++YansWifiPhyPreambleDurationsTest::DoSetup (void)
++{
++}
++void
++YansWifiPhyPreambleDurationsTest::DoRun (void)
++{
++// Variants to test:
++//  WIFI_MOD_CLASS_OFDM
++//     WIFI_PREAMBLE_HT_MF
++//     WIFI_PREAMBLE_HT_GF
++//  WIFI_MOD_CLASS_VHT:
++//  WIFI_MOD_CLASS_ERP_OFDM:
++//  WIFI_MOD_CLASS_DSSS:
++//  WIFI_MOD_CLASS_HR_DSSS:
++//     WIFI_PREAMBLE_LONG
++//     WIFI_PREAMBLE_SHORT
++//
++   
++  WifiPreamble preamble;
++  WifiMode mode;
++  WifiTxVector txVector;
++  Time preambleTime;
++
++  // Initial test
++  preamble = WIFI_PREAMBLE_LONG;
++  mode = WifiPhy::GetOfdmRate6Mbps ();
++  txVector = WifiTxVector (mode, 0, 0, false, 1, 1, CHANNEL_WIDTH, false, false);
++  preambleTime = WifiPhy::GetPlcpPreambleDuration (txVector, preamble);
++  NS_TEST_ASSERT_MSG_EQ (preambleTime, MicroSeconds (16), "Invalid preamble duration");
++  
++  // Add other modes
++}
++
++class YansWifiPhyPreambleAmpduTest : public YansWifiPhyPreambleBasicTest
++{
++public:
++  YansWifiPhyPreambleAmpduTest ();
++private:
++  virtual void DoRun (void);
++  virtual void StartReceive (struct YansWifiSignal signal, double txPowerWatts);
++  virtual void SendSignal (struct YansWifiSignal signal, double txPowerWatts);
++  virtual void SendAmpdu (double txPowerWatts, uint32_t nMpdus, uint32_t mpduSize);
++};
++
++YansWifiPhyPreambleAmpduTest::YansWifiPhyPreambleAmpduTest ()
++  : YansWifiPhyPreambleBasicTest ("YansWifiPhy test case receives two A-MPDUs")
++{
++}
++
++// Send an A-MPDU frame
++void
++YansWifiPhyPreambleAmpduTest::SendAmpdu (double txPowerWatts, uint32_t nMpdus, uint32_t mpduSize)
++{
++  WifiPreamble preamble;
++  preamble = WIFI_PREAMBLE_LONG;
++  WifiMode mode = WifiPhy::GetOfdmRate6Mbps ();
++  WifiTxVector txVector = WifiTxVector (mode, 0, 0, false, 1, 1, CHANNEL_WIDTH, false, false);
++  Time delay = MicroSeconds (0);
++
++  for (uint32_t i = 1; i <= nMpdus; i++)
++  {
++    Ptr<Packet> pkt = Create<Packet> (mpduSize);
++    WifiMacHeader hdr;
++    hdr.SetTypeData ();
++    WifiMacTrailer trailer;
++
++    uint32_t size = pkt->GetSize () + hdr.GetSize ();
++    uint8_t type;
++    if (i == nMpdus)
++      {
++        type = 2;
++        size += trailer.GetSerializedSize ();
++      }
++    else
++      {
++        type = 1;
++      }
++
++    Time txDuration = m_phy->CalculateTxDuration (size, txVector, preamble, m_phy->GetFrequency(), type, 0);
++    
++    pkt->AddHeader (hdr);
++    if (i == nMpdus)
++      {
++        pkt->AddTrailer (trailer);
++      }
++
++    struct YansWifiSignal signal;
++    signal.m_preamble = preamble;
++    signal.m_txVector = txVector;
++    signal.m_packet = pkt;
++    signal.m_rxDuration = txDuration;
++    signal.m_aMpdu.packetType = type;
++    signal.m_aMpdu.referenceNumber = 0;
++
++    Simulator::Schedule (delay, &YansWifiPhyPreambleAmpduTest::SendSignal, this, signal, txPowerWatts); 
++
++    preamble = WIFI_PREAMBLE_NONE;
++    delay += txDuration;
++  }
++}
++
++void
++YansWifiPhyPreambleAmpduTest::SendSignal (struct YansWifiSignal signal, double txPowerWatts)
++{
++  //This is needed so that the YansWifiPhy::EndReceive event is handled before the YansWifiPhy::StartReceive event.
++  Simulator::Schedule (NanoSeconds (0), &YansWifiPhyPreambleAmpduTest::StartReceive, this, signal, txPowerWatts); 
++}
++
++void
++YansWifiPhyPreambleAmpduTest::StartReceive (struct YansWifiSignal signal, double txPowerWatts)
++{
++  double txPowerDbm = 10.0 * std::log10 (txPowerWatts * 1000.0);
++  m_phy->StartReceive (signal.m_packet, txPowerDbm, signal.m_txVector, signal.m_preamble, signal.m_aMpdu, signal.m_rxDuration);
++}
++
++// Test that the expected number of successfull MPDU receptions occur.
++void
++YansWifiPhyPreambleAmpduTest::DoRun (void)
++{
++  double txPowerWatts = 0.010;
++  uint32_t nMpdus = 4;
++  uint32_t mpduSize = 1000;
++
++  //The last MPDU of the first transmitted A-MPDU should be correctly received
++  Simulator::Schedule (MicroSeconds (0), &YansWifiPhyPreambleAmpduTest::SendAmpdu, this, txPowerWatts, nMpdus, mpduSize);
++  Simulator::Schedule (MicroSeconds (50), &YansWifiPhyPreambleAmpduTest::SendAmpdu, this, txPowerWatts, nMpdus - 2, mpduSize);
++  
++  //None of the MPDus should be received
++  Simulator::Schedule (MicroSeconds (1000000), &YansWifiPhyPreambleAmpduTest::SendAmpdu, this, txPowerWatts, nMpdus - 2, mpduSize);
++  Simulator::Schedule (MicroSeconds (1000050), &YansWifiPhyPreambleAmpduTest::SendAmpdu, this, txPowerWatts, nMpdus, mpduSize);
++
++  Simulator::Run ();
++  Simulator::Destroy ();
++
++  NS_TEST_ASSERT_MSG_EQ (1, m_count, "Didn't receive right number of MPDUs");
++}
++
++class YansWifiPhyPreambleReceptionTestSuite : public TestSuite
++{
++public:
++  YansWifiPhyPreambleReceptionTestSuite ();
++};
++
++YansWifiPhyPreambleReceptionTestSuite::YansWifiPhyPreambleReceptionTestSuite ()
++  : TestSuite ("yans-wifi-frame-reception", UNIT)
++{
++  AddTestCase (new YansWifiPhyPreambleBasicTest, TestCase::QUICK);
++  AddTestCase (new YansWifiPhyPreamblePhyListenerTest, TestCase::QUICK);
++  AddTestCase (new YansWifiPhyPreambleDurationsTest, TestCase::QUICK);
++  AddTestCase (new YansWifiPhyPreambleAmpduTest, TestCase::QUICK);
++}
++
++static YansWifiPhyPreambleReceptionTestSuite yansWifiPhyPreambleReceptionTestSuite;
++
+diff -r cf9f06803ccb src/wifi/wscript
+--- a/src/wifi/wscript	Sun Sep 27 12:49:29 2015 -0700
++++ b/src/wifi/wscript	Sun Dec 27 16:46:11 2015 -0800
+@@ -13,7 +13,10 @@
+         'model/error-rate-model.cc',
+         'model/yans-error-rate-model.cc',
+         'model/nist-error-rate-model.cc',
++        'model/uw-error-rate-model.cc',
+         'model/dsss-error-rate-model.cc',
++        'model/frame-sync-error-rate-lookup.cc',
++        'model/uw-error-rate-lookup.cc',
+         'model/interference-helper.cc',
+         'model/yans-wifi-phy.cc',
+         'model/yans-wifi-channel.cc',
+@@ -90,6 +93,7 @@
+         'test/power-rate-adaptation-test.cc',
+         'test/wifi-test.cc',
+         'test/wifi-aggregation-test.cc',
++        'test/yans-wifi-preamble-test.cc',
+         ]
+ 
+     headers = bld(features='ns3header')
+@@ -127,7 +131,10 @@
+         'model/error-rate-model.h',
+         'model/yans-error-rate-model.h',
+         'model/nist-error-rate-model.h',
++        'model/uw-error-rate-model.h',
+         'model/dsss-error-rate-model.h',
++        'model/frame-sync-error-rate-lookup.h',
++        'model/uw-error-rate-lookup.h',
+         'model/wifi-mac-queue.h',
+         'model/dca-txop.h',
+         'model/wifi-mac-header.h',
+diff -r cf9f06803ccb wscript
+--- a/wscript	Sun Sep 27 12:49:29 2015 -0700
++++ b/wscript	Sun Dec 27 16:46:11 2015 -0800
+@@ -30,10 +30,20 @@
+ examples_enabled = False
+ tests_enabled    = False
+ 
++# Compiler warning suppressions
++
+ # Bug 1868:  be conservative about -Wstrict-overflow for optimized builds
+ # on older compilers; it can generate spurious warnings.  
+ cc_version_warn_strict_overflow = ('4', '8', '2')
+ 
++# Bug 2181:  clang warnings about unused local typedefs and potentially
++# evaluated expressions affecting darwin clang/LLVM version 7.0.0 (Xcode 7)
++# or clang/LLVM version 3.6 or greater.  We must make this platform-specific.
++darwin_clang_version_warn_unused_local_typedefs = ('7', '0', '0')
++darwin_clang_version_warn_potentially_evaluated = ('7', '0', '0')
++clang_version_warn_unused_local_typedefs = ('3', '6', '0')
++clang_version_warn_potentially_evaluated = ('3', '6', '0')
++
+ # Get the information out of the NS-3 configuration file.
+ config_file_exists = False
+ (config_file_exists, modules_enabled, examples_enabled, tests_enabled) = read_config_file()
+@@ -374,6 +384,18 @@
+             if conf.check_compilation_flag('-Wl,--soname=foo'):
+                 env['WL_SONAME_SUPPORTED'] = True
+ 
++    # bug 2181 on clang warning suppressions
++    if conf.env['CXX_NAME'] in ['clang']:
++        if Options.platform == 'darwin':
++            if conf.env['CC_VERSION'] >= darwin_clang_version_warn_unused_local_typedefs:
++                env.append_value('CXXFLAGS', '-Wno-unused-local-typedefs')
++            if conf.env['CC_VERSION'] >= darwin_clang_version_warn_potentially_evaluated: 
++                env.append_value('CXXFLAGS', '-Wno-potentially-evaluated-expression')
++        else:
++            if conf.env['CC_VERSION'] >= clang_version_warn_unused_local_typedefs:
++                env.append_value('CXXFLAGS', '-Wno-unused-local-typedefs')
++            if conf.env['CC_VERSION'] >= clang_version_warn_potentially_evaluated: 
++                env.append_value('CXXFLAGS', '-Wno-potentially-evaluated-expression')
+     env['ENABLE_STATIC_NS3'] = False
+     if Options.options.enable_static:
+         if Options.platform == 'darwin':
