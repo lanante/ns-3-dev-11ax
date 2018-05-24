@@ -254,7 +254,7 @@ main (int argc, char *argv[])
   //uint32_t payloadSize = 1000; // bytes
   uint32_t payloadSize = 1500; // bytes
   uint32_t mcs = 0; // MCS value
-  Time interval = MicroSeconds (100);
+  Time interval = MicroSeconds (1000);
   bool enableObssPd = true;
   RngSeedManager::SetSeed (3);
   RngSeedManager::SetRun (7);
@@ -335,6 +335,7 @@ main (int argc, char *argv[])
   spectrumPhy.Set ("TxPowerEnd", DoubleValue (powSta1));
   spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrSta1));
   Config::SetDefault ("ns3::StaWifiMac::ObssPdThreshold", DoubleValue (-82.0));
+  Config::SetDefault ("ns3::StaWifiMac::MaxMissedBeacons", UintegerValue (10000));
 
   Config::SetDefault ("ns3::RegularWifiMac::VO_BlockAckThreshold", UintegerValue (0));
   Config::SetDefault ("ns3::RegularWifiMac::VI_BlockAckThreshold", UintegerValue (0));
@@ -368,7 +369,9 @@ main (int argc, char *argv[])
   spectrumPhy.Set ("TxPowerEnd", DoubleValue (powSta3));
   spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrSta3));
   spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-92.0));
-  Config::SetDefault ("ns3::StaWifiMac::ObssPdThreshold", DoubleValue (-82.0));
+  Config::SetDefault ("ns3::StaWifiMac::ObssPdThreslhold", DoubleValue (-82.0));
+  Config::SetDefault ("ns3::StaWifiMac::MaxMissedBeacons", UintegerValue (10000));
+
   Ssid ssidB = Ssid ("B");
   mac.SetType ("ns3::StaWifiMac",
                "Ssid", SsidValue (ssidB));
@@ -398,10 +401,11 @@ main (int argc, char *argv[])
   positionAlloc->Add (Vector (d1, 0, 0.0));        // AP1
   positionAlloc->Add (Vector (d1 + d3, d4, 0.0));  // STA3
   positionAlloc->Add (Vector (d1 + d3, 0, 0.0));   // AP2
-  positionAlloc->Add (Vector (d1+d3, 0.0, 0.0));       // STA2
+/*  positionAlloc->Add (Vector (d1+d3, 0.0, 0.0));       // STA2
   positionAlloc->Add (Vector (d1, -d2, 0.0));        // AP1
   positionAlloc->Add (Vector (d1, d2, 0.0));  // STA3
-  positionAlloc->Add (Vector (d1, d2+d4, 0.0));   // AP2*/
+  positionAlloc->Add (Vector (d1, d2+d4, 0.0));   // AP2
+*/
 
   mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
   mobility.SetPositionAllocator (positionAlloc);

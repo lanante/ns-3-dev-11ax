@@ -897,6 +897,10 @@ private:
   Time m_lastNavStart;     //!< The time when the latest NAV started
   Time m_lastNavDuration;  //!< The duration of the latest NAV
 
+  uint8_t m_bssColorPacket;        //!< BSS color of the current packet
+  Time m_lastIntraBssNavStart;     //!< The time when the latest intra-BSS NAV started
+  Time m_lastIntraBssNavDuration;  //!< The duration of the latest intra-BSS NAV
+
   bool m_promisc;  //!< Flag if the device is operating in promiscuous mode
   bool m_ampdu;    //!< Flag if the current transmission involves an A-MPDU
 

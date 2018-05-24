@@ -279,11 +279,8 @@ SpectrumWifiPhy::StartRx (Ptr<SpectrumSignalParameters> rxParams)
     }
   WifiTxVector txVector = tag.GetWifiTxVector ();
 
-//  std::cout << "RxPower: " << WToDbm (rxPowerW) << std::endl;
-//  std::cout << "Diff BSS Color: " << (unsigned)txVector.GetBssColor () << (unsigned)GetBssColor () << "rx Dur" << rxDuration << std::endl;
   if (txVector.GetBssColor () == GetBssColor () && rxPowerW < GetCcaCsThresholdW ())
     {
-//  std::cout << "RxPower Same BSS: " << WToDbm (rxPowerW) << std::endl;
 //  std::cout << "Same BSS Color: " << (unsigned)txVector.GetBssColor () << (unsigned)GetBssColor () << std::endl;
       NS_LOG_INFO ("Received Wi-Fi signal but below CCA-CS threshold");
       m_interference.AddForeignSignal (rxDuration, rxPowerW);
@@ -291,10 +288,11 @@ SpectrumWifiPhy::StartRx (Ptr<SpectrumSignalParameters> rxParams)
       return;
     }
 
+  // This part of the code should move after the L-sig decision based on the new proposed state
+  // machine. It should be set in wifi-phy. 
   double TempObssPdW = GetObssPdThresholdW () * GetChannelWidth ()/20;
   if (txVector.GetBssColor () != GetBssColor () && rxPowerW < TempObssPdW)
     {
-  //std::cout << "RxPower Diff BSS: " << WToDbm (rxPowerW) << std::endl;
       NS_LOG_INFO ("Received OBSS Wi-Fi signal but below OBSS-PD threshold");
       m_interference.AddForeignSignal (rxDuration, rxPowerW);
       SwitchMaybeToCcaBusy ();

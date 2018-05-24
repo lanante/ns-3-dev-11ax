@@ -27,19 +27,6 @@
 //
 //  STA1 sends to AP1 or vice versa; STA2 may or may not hear STA1 transmissions
 //
-//  For wifi standard 11ax, the geometry is as follows:
-//
-//          d1             d2     
-//  STA1 -------- AP1 --------- STA2 
-//                 |
-//                 | d3
-//                 | 
-//                 |       d4
-//                AP2 --------- STA3
-//
-//  STA1, STA2, and AP1 are in one BSS, while AP2 and STA3 are in another BSS.
-//  The distances are configurable (d1 through d4).
-//
 //  Use of RTS/CTS can be enabled or disabled
 //
 //  ./waf --run "test-nav-operation --help"
@@ -232,14 +219,14 @@ main (int argc, char *argv[])
   double ccaTrAp1 = -62; // dBm
   double ccaTrAp2 = -62; // dBm
   uint32_t payloadSize = 1500; // bytes
-  Time interval = MicroSeconds (10);
-  bool enableObssPd = true;
-  uint32_t maxPackets = 10;
+  Time interval = MicroSeconds (20);
+  uint32_t maxPackets = 20;
   std::string testCaseString = "11a";
+  RngSeedManager::SetSeed (3);
+  RngSeedManager::SetRun (7);
 
   CommandLine cmd;
   cmd.AddValue ("interval", "Per-packet interval (s)", interval);
-  cmd.AddValue ("enableObssPd", "Enable OBSS_PD", enableObssPd);
   cmd.AddValue ("d1", "Distance of STA1 to AP1", d1);
   cmd.AddValue ("d2", "Distance of STA2 to AP1", d2);
   cmd.AddValue ("d3", "Distance of AP1 to AP2", d3);
@@ -270,6 +257,7 @@ main (int argc, char *argv[])
   Time startTimeSta1 = Seconds (1);
   bool sta2Client = true;
   Time startTimeSta2 = Seconds (1);
+
   // Handle variable assignments for each test case
   switch (navTestCase)
     {
@@ -279,8 +267,8 @@ main (int argc, char *argv[])
       wifi.SetStandard (WIFI_PHY_STANDARD_80211a);
       wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager","DataMode", StringValue ("OfdmRate6Mbps"),
                                     "ControlMode", StringValue ("OfdmRate6Mbps"));
-      startTimeSta1 = MilliSeconds (300);
-      startTimeSta2 = MilliSeconds (300);
+      startTimeSta1 = MicroSeconds (300000);
+      startTimeSta2 = MicroSeconds (300000);
       duration = 0.5;
       if (verbose)
         {
@@ -291,10 +279,10 @@ main (int argc, char *argv[])
       Config::SetDefault ("ns3::WifiRemoteStationManager::RtsCtsThreshold", StringValue ("400"));
     case CASE_11ac:
       wifi.SetStandard (WIFI_PHY_STANDARD_80211ac);
-      wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager","DataMode", StringValue ("VhtMcs0"),
+      wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager","DataMode", StringValue ("VhtMcs2"),
                                     "ControlMode", StringValue ("VhtMcs0"));
-      startTimeSta1 = MilliSeconds (300);
-      startTimeSta2 = MilliSeconds (300);
+      startTimeSta1 = MicroSeconds (300000);
+      startTimeSta2 = MicroSeconds (300100);
       duration = 0.5;
       if (verbose)
         {
@@ -317,21 +305,14 @@ main (int argc, char *argv[])
   Ptr<Node> sta1 = CreateObject<Node> ();
   Ptr<Node> sta2 = CreateObject<Node> ();
   Ptr<Node> ap1 = CreateObject<Node> ();
-#if 0
-  Ptr<Node> sta3 = CreateObject<Node> ();
-  Ptr<Node> ap2 = CreateObject<Node> ();
-#endif
-  NodeContainer stasA, nodesA, nodesB, allNodes;
+
+  NodeContainer stasA, nodesA, allNodes;
   nodesA.Add (sta1);
   nodesA.Add (sta2);
   stasA = nodesA;
   nodesA.Add (ap1);
-#if 0
-  nodesB.Add (sta3);
-  nodesB.Add (ap2);
-#endif
 
-  allNodes = NodeContainer (nodesA, nodesB);
+  allNodes = NodeContainer (nodesA);
 
   SpectrumWifiPhyHelper spectrumPhy = SpectrumWifiPhyHelper::Default ();
   Ptr<MultiModelSpectrumChannel> spectrumChannel
@@ -352,15 +333,9 @@ main (int argc, char *argv[])
   spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrSta1));
   spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-82.0));
 
-/*  Config::SetDefault ("ns3::RegularWifiMac::VO_BlockAckThreshold", UintegerValue (0));
-  Config::SetDefault ("ns3::RegularWifiMac::VI_BlockAckThreshold", UintegerValue (0));
-  Config::SetDefault ("ns3::RegularWifiMac::BE_BlockAckThreshold", UintegerValue (0));
-  Config::SetDefault ("ns3::RegularWifiMac::BK_BlockAckThreshold", UintegerValue (0));*/
-
   WifiMacHelper mac;
   Ssid ssidA = Ssid ("A");
-  mac.SetType ("ns3::StaWifiMac",
-               "Ssid", SsidValue (ssidA));
+  mac.SetType ("ns3::StaWifiMac","Ssid", SsidValue (ssidA));
   NetDeviceContainer staDevicesA;
   staDevicesA = wifi.Install (spectrumPhy, mac, stasA);
 
@@ -368,17 +343,12 @@ main (int argc, char *argv[])
   spectrumPhy.Set ("TxPowerEnd", DoubleValue (powAp1));
   spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrAp1));
   spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-82.0));
-  mac.SetType ("ns3::ApWifiMac",
-               "Ssid", SsidValue (ssidA));
+  mac.SetType ("ns3::ApWifiMac","Ssid", SsidValue (ssidA));
 
   NetDeviceContainer apDeviceA;
   apDeviceA = wifi.Install (spectrumPhy, mac, ap1);
   Ptr<WifiNetDevice> apDevice = apDeviceA.Get (0)->GetObject<WifiNetDevice> ();
   Ptr<ApWifiMac> apWifiMac = apDevice->GetMac ()->GetObject<ApWifiMac> ();
-  if (enableObssPd)
-    {
-      apWifiMac->SetBssColor (1);
-    }
 
   Ptr<WifiNetDevice> nd0 = staDevicesA.Get (0)->GetObject<WifiNetDevice> ();
   Ptr<WifiNetDevice> nd1 = staDevicesA.Get (1)->GetObject<WifiNetDevice> ();
@@ -394,42 +364,11 @@ main (int argc, char *argv[])
       Config::SetDefault ("ns3::RegularWifiMac::BE_BlockAckThreshold", UintegerValue (1));
       Config::SetDefault ("ns3::RegularWifiMac::BK_BlockAckThreshold", UintegerValue (1));*/
 
-#if 0
-  spectrumPhy.Set ("TxPowerStart", DoubleValue (powSta3));
-  spectrumPhy.Set ("TxPowerEnd", DoubleValue (powSta3));
-  spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrSta3));
-  spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-92.0));
-  Config::SetDefault ("ns3::StaWifiMac::ObssPdThreshold", DoubleValue (-82.0));
-  Ssid ssidB = Ssid ("B");
-  mac.SetType ("ns3::StaWifiMac",
-               "Ssid", SsidValue (ssidB));
-  NetDeviceContainer staDevicesB;
-  staDevicesB = wifi.Install (spectrumPhy, mac, sta3);
-
-  spectrumPhy.Set ("TxPowerStart", DoubleValue (powAp2));
-  spectrumPhy.Set ("TxPowerEnd", DoubleValue (powAp2));
-  spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrAp2));
-  spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-92.0));
-  mac.SetType ("ns3::ApWifiMac",
-               "Ssid", SsidValue (ssidB));
-#endif
-
-#if 0
-  NetDeviceContainer apDeviceB;
-  apDeviceB = wifi.Install (spectrumPhy, mac, ap2);
-  Ptr<WifiNetDevice> ap2Device = apDeviceB.Get (0)->GetObject<WifiNetDevice> ();
-  apWifiMac = ap2Device->GetMac ()->GetObject<ApWifiMac> ();
-  if (enableObssPd)
-    {
-      apWifiMac->SetBssColor (2);
-    }
-#endif
-
   MobilityHelper mobility;
   Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator> ();
   positionAlloc->Add (Vector (0.0, 0.0, 0.0));     // STA1 at origin
-  positionAlloc->Add (Vector (d1 + d2, 0.0, 0.0));        // STA2
-  positionAlloc->Add (Vector (d1, 0.0, 0.0));       // AP1
+  positionAlloc->Add (Vector (d1, d2, 0.0));       // STA2
+  positionAlloc->Add (Vector (d1, 0, 0.0));        // AP1
 
   mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
   mobility.SetPositionAllocator (positionAlloc);
@@ -504,7 +443,7 @@ main (int argc, char *argv[])
 
   if (enableTracing)
     {
-      spectrumPhy.EnablePcap ("test-nav-operation", staDevicesA);
+      spectrumPhy.EnablePcap ("test-nav-operationA", staDevicesA);
     }
 
   Time durationTime = Seconds (duration);

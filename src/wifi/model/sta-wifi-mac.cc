@@ -634,10 +634,8 @@ StaWifiMac::Receive (Ptr<Packet> packet, const WifiMacHeader *hdr)
                       m_stationManager->AddSupportedMcs (hdr->GetAddr2 (), mcs);
                     }
                 }
-              // using the SSID of the beacon instead of BSS color (for now) to update OBSS_PD  
-//std::cout << "m-phy STA color: " << m_phy->GetBssColor () << std::endl;
-//std::cout << "beacon color: " << heOperation.GetBssColor () << std::endl;
-              if (heOperation.GetBssColor () == m_phy->GetBssColor ())//(beacon.GetSsid ().IsEqual (GetSsid ()))//
+              // using the BSS color to update OBSS_PD  
+              if (heOperation.GetBssColor () == m_phy->GetBssColor ())
                 {
                   double aveRxPower=0;
                   SnrTag tag;
@@ -914,7 +912,7 @@ StaWifiMac::Receive (Ptr<Packet> packet, const WifiMacHeader *hdr)
                   m_stationManager->AddStationHeCapabilities (hdr->GetAddr2 (), hecapabilities);
                   HeOperation heOperation = assocResp.GetHeOperation ();
                   m_phy->SetBssColor (heOperation.GetBssColor ());
-std::cout << "Assoc BSS color: " << (unsigned)heOperation.GetBssColor () << std::endl;
+                  std::cout << "Assoc BSS color: " << (unsigned)heOperation.GetBssColor () << std::endl;
                 }
               for (uint32_t i = 0; i < m_phy->GetNModes (); i++)
                 {

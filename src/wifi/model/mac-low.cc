@@ -104,6 +104,9 @@ MacLow::MacLow ()
     m_currentDca (0),
     m_lastNavStart (Seconds (0)),
     m_lastNavDuration (Seconds (0)),
+    m_bssColorPacket (0),
+    m_lastIntraBssNavStart (Seconds (0)),
+    m_lastIntraBssNavDuration (Seconds (0)),
     m_promisc (false),
     m_ampdu (false),
     m_phyMacLowListener (0),
@@ -614,6 +617,11 @@ MacLow::NotifySwitchingStartNow (Time duration)
     }
   m_lastNavStart = Simulator::Now ();
   m_lastNavDuration = Seconds (0);
+  if (m_bssColorPacket!=0 && m_bssColorPacket==m_phy->GetBssColor ())
+    {
+      m_lastIntraBssNavStart = Simulator::Now ();
+      m_lastIntraBssNavDuration = Seconds (0);
+    }
   m_currentPacket = 0;
   m_currentDca = 0;
 }
@@ -629,6 +637,11 @@ MacLow::NotifySleepNow (void)
     }
   m_lastNavStart = Simulator::Now ();
   m_lastNavDuration = Seconds (0);
+  if (m_bssColorPacket!=0 && m_bssColorPacket==m_phy->GetBssColor ())
+    {
+      m_lastIntraBssNavStart = Simulator::Now ();
+      m_lastIntraBssNavDuration = Seconds (0);
+    }
   m_currentPacket = 0;
   m_currentDca = 0;
 }
@@ -642,6 +655,10 @@ MacLow::ReceiveOk (Ptr<Packet> packet, double rxSnr, double rxPowerDbm, WifiTxVe
    * we handle any packet present in the
    * packet queue.
    */
+
+  std::cout << "color of frame=" << (unsigned)txVector.GetBssColor () << " color of STA=" << (unsigned)m_phy->GetBssColor () << std::endl;
+  m_bssColorPacket = txVector.GetBssColor ();
+
   WifiMacHeader hdr;
   packet->RemoveHeader (hdr);
   m_lastReceivedHdr = hdr;
@@ -1187,6 +1204,11 @@ MacLow::DoNavResetNow (Time duration)
     }
   m_lastNavStart = Simulator::Now ();
   m_lastNavDuration = duration;
+  if (m_bssColorPacket!=0 && m_bssColorPacket==m_phy->GetBssColor ())
+    {
+      m_lastIntraBssNavStart = Simulator::Now ();
+      m_lastIntraBssNavDuration = Seconds (0);
+    }
 }
 
 bool
@@ -1198,11 +1220,21 @@ MacLow::DoNavStartNow (Time duration)
     }
   Time newNavEnd = Simulator::Now () + duration;
   Time oldNavEnd = m_lastNavStart + m_lastNavDuration;
+  Time oldIntraBssNavEnd = m_lastIntraBssNavStart + m_lastIntraBssNavDuration;
   if (newNavEnd > oldNavEnd)
     {
       m_lastNavStart = Simulator::Now ();
       m_lastNavDuration = duration;
       return true;
+    }
+  if (m_bssColorPacket!=0 && m_bssColorPacket==m_phy->GetBssColor ())
+    {
+      if (newNavEnd > oldIntraBssNavEnd)
+        {
+          m_lastIntraBssNavStart = Simulator::Now ();
+          m_lastIntraBssNavDuration = duration;
+          return true;
+        }
     }
   return false;
 }
@@ -1636,7 +1668,7 @@ MacLow::SendDataPacket (void)
 bool
 MacLow::IsNavZero (void) const
 {
-  return (m_lastNavStart + m_lastNavDuration < Simulator::Now ());
+  return (m_lastNavStart + m_lastNavDuration < Simulator::Now () && m_lastIntraBssNavStart + m_lastIntraBssNavDuration < Simulator::Now () );
 }
 
 void
