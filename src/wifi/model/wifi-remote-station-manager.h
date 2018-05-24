@@ -22,22 +22,26 @@
 #define WIFI_REMOTE_STATION_MANAGER_H
 
 #include "ns3/traced-callback.h"
-#include "ns3/packet.h"
 #include "ns3/object.h"
 #include "ns3/nstime.h"
 #include "ns3/data-rate.h"
-#include "wifi-tx-vector.h"
-#include "ht-capabilities.h"
-#include "vht-capabilities.h"
-#include "he-capabilities.h"
+#include "ns3/mac48-address.h"
+#include "wifi-mode.h"
+#include "wifi-preamble.h"
 
 namespace ns3 {
 
 struct WifiRemoteStation;
 struct WifiRemoteStationState;
+
 class WifiPhy;
 class WifiMac;
 class WifiMacHeader;
+class Packet;
+class HtCapabilities;
+class VhtCapabilities;
+class HeCapabilities;
+class WifiTxVector;
 
 /**
  * \brief Tid independent remote station statistics
@@ -121,30 +125,6 @@ public:
   virtual void SetupMac (const Ptr<WifiMac> mac);
 
   /**
-   * Return the maximum STA short retry count (SSRC).
-   *
-   * \return the maximum SSRC
-   */
-  uint32_t GetMaxSsrc (void) const;
-  /**
-   * Return the maximum STA long retry count (SLRC).
-   *
-   * \return the maximum SLRC
-   */
-  uint32_t GetMaxSlrc (void) const;
-  /**
-   * Return the RTS threshold.
-   *
-   * \return the RTS threshold
-   */
-  uint32_t GetRtsCtsThreshold (void) const;
-  /**
-   * Return the fragmentation threshold.
-   *
-   * \return the fragmentation threshold
-   */
-  uint32_t GetFragmentationThreshold (void) const;
-  /**
    * Sets the maximum STA short retry count (SSRC).
    *
    * \param maxSsrc the maximum SSRC
@@ -162,6 +142,13 @@ public:
    * \param threshold the RTS threshold
    */
   void SetRtsCtsThreshold (uint32_t threshold);
+
+  /**
+   * Return the fragmentation threshold.
+   *
+   * \return the fragmentation threshold
+   */
+  uint32_t GetFragmentationThreshold (void) const;
   /**
    * Sets a fragmentation threshold. The method calls a private method
    * DoSetFragmentationThreshold that checks the validity of the value given.
@@ -174,6 +161,7 @@ public:
    * This avoid that the fragmentation threshold gets changed during a transmission (see bug 730).
    */
   void UpdateFragmentationThreshold (void);
+
   /**
    * Records QoS support of the remote station.
    *
@@ -202,18 +190,6 @@ public:
    * \param hecapabilities the HE capabilities of the station
    */
   void AddStationHeCapabilities (Mac48Address from, HeCapabilities hecapabilities);
-  /**
-   * Enable or disable QoS support.
-   *
-   * \param enable enable or disable QoS support
-   */
-  virtual void SetQosSupported (bool enable);
-  /**
-   * Return whether the device has QoS support enabled.
-   *
-   * \return true if QoS support is enabled, false otherwise
-   */
-  bool HasQosSupported (void) const;
   /**
    * Enable or disable HT capability support.
    *
@@ -250,30 +226,6 @@ public:
    * \return true if HE capability support is enabled, false otherwise
    */
   bool HasHeSupported (void) const;
-  /**
-   * Sets the ERP protection mode.
-   *
-   * \param mode the ERP protection mode
-   */
-  void SetErpProtectionMode (ProtectionMode mode);
-  /**
-   * Return the ERP protection mode.
-   *
-   * \return the ERP protection mode
-   */
-  ProtectionMode GetErpProtectionMode (void) const;
-  /**
-   * Sets the HT protection mode.
-   *
-   * \param mode the HT protection mode
-   */
-  void SetHtProtectionMode (ProtectionMode mode);
-  /**
-   * Return the HT protection mode.
-   *
-   * \return the HT protection mode
-   */
-  ProtectionMode GetHtProtectionMode (void) const;
   /**
    * Enable or disable protection for non-ERP stations.
    *
@@ -377,7 +329,7 @@ public:
    *
    * \return the number of basic modes we support
    */
-  uint32_t GetNBasicModes (void) const;
+  uint8_t GetNBasicModes (void) const;
   /**
    * Return a basic mode from the set of basic modes.
    *
@@ -385,7 +337,7 @@ public:
    *
    * \return the basic mode at the given index
    */
-  WifiMode GetBasicMode (uint32_t i) const;
+  WifiMode GetBasicMode (uint8_t i) const;
   /**
    * Return the number of non-ERP basic modes we support.
    *
@@ -399,7 +351,7 @@ public:
    *
    * \return the basic mode at the given index
    */
-  WifiMode GetNonErpBasicMode (uint32_t i) const;
+  WifiMode GetNonErpBasicMode (uint8_t i) const;
   /**
    * Return whether the station supports Greenfield or not.
    *
@@ -454,7 +406,7 @@ public:
    *
    * \return the number of basic MCS index
    */
-  uint32_t GetNBasicMcs (void) const;
+  uint8_t GetNBasicMcs (void) const;
   /**
    * Return the MCS at the given <i>list</i> index.
    *
@@ -462,7 +414,7 @@ public:
    *
    * \return the basic mcs at the given list index
    */
-  WifiMode GetBasicMcs (uint32_t i) const;
+  WifiMode GetBasicMcs (uint8_t i) const;
   /**
    * Record the MCS index supported by the station.
    *
@@ -477,11 +429,11 @@ public:
    *
    * \return the channel width supported by the station
    */
-  uint8_t GetChannelWidthSupported (Mac48Address address) const;
+  uint16_t GetChannelWidthSupported (Mac48Address address) const;
   /**
    * Return whether the station supports HT/VHT short guard interval.
    *
-   * \param station the station being queried
+   * \param address the address of the station
    *
    * \return true if the station supports HT/VHT short guard interval,
    *         false otherwise
@@ -920,7 +872,7 @@ protected:
    *
    * \return WifiMode at the given index of the specified station
    */
-  WifiMode GetSupported (const WifiRemoteStation *station, uint32_t i) const;
+  WifiMode GetSupported (const WifiRemoteStation *station, uint8_t i) const;
   /**
    * Return the number of modes supported by the given station.
    *
@@ -928,7 +880,7 @@ protected:
    *
    * \return the number of modes supported by the given station
    */
-  uint32_t GetNSupported (const WifiRemoteStation *station) const;
+  uint8_t GetNSupported (const WifiRemoteStation *station) const;
   /**
    * Return whether the given station is QoS capable.
    *
@@ -974,7 +926,7 @@ protected:
    * \return the WifiMode at the given index of the specified station
    */
 
-  WifiMode GetMcsSupported (const WifiRemoteStation *station, uint32_t i) const;
+  WifiMode GetMcsSupported (const WifiRemoteStation *station, uint8_t i) const;
   /**
    * Return the number of MCS supported by the given station.
    *
@@ -991,7 +943,7 @@ protected:
    *
    * \return WifiMode at the given index of the specified station
    */
-  WifiMode GetNonErpSupported (const WifiRemoteStation *station, uint32_t i) const;
+  WifiMode GetNonErpSupported (const WifiRemoteStation *station, uint8_t i) const;
   /**
    * Return the number of non-ERP modes supported by the given station.
    *
@@ -1015,7 +967,7 @@ protected:
    *
    * \return the channel width (in MHz) supported by the station
    */
-  uint8_t GetChannelWidth (const WifiRemoteStation *station) const;
+  uint16_t GetChannelWidth (const WifiRemoteStation *station) const;
   /**
    * Return whether the given station supports HT/VHT short guard interval.
    *
@@ -1069,22 +1021,6 @@ protected:
    */
   uint32_t GetNess (const WifiRemoteStation *station) const;
   /**
-   * Return the long retry limit of the given station.
-   *
-   * \param station the station being queried
-   *
-   * \return the long retry limit of the the station
-   */
-  uint32_t GetLongRetryCount (const WifiRemoteStation *station) const;
-  /**
-   * Return the short retry limit of the given station.
-   *
-   * \param station the station being queried
-   *
-   * \return the short retry limit of the the station
-   */
-  uint32_t GetShortRetryCount (const WifiRemoteStation *station) const;
-  /**
    * Return the preamble to be used for the transmission.
    *
    * \param mode the mode selected for the transmission
@@ -1093,6 +1029,16 @@ protected:
    * \return the preamble to be used for the transmission
    */
   WifiPreamble GetPreambleForTransmission (WifiMode mode, Mac48Address dest);
+  /**
+   * Return the channel width that corresponds to the selected mode (instead of
+   * letting the PHY's default channel width). This is especially useful when using
+   * non-HT modes with HT/VHT/HE capable stations (with default width above 20 MHz).
+   *
+   * \param mode selected WifiMode
+   * \param maxSupportedChannelWidth maximum channel width supported by the PHY layer
+   * \return channel width adapted to the selected mode
+   */
+  static uint16_t GetChannelWidthForTransmission (WifiMode mode, uint16_t maxSupportedChannelWidth);
 
   /**
    * Return the WifiPhy.
@@ -1219,7 +1165,7 @@ private:
    *
    * \return the CTS transmit channel width
    */
-  virtual uint8_t DoGetCtsTxChannelWidth (Mac48Address address, WifiMode ctsMode);
+  virtual uint16_t DoGetCtsTxChannelWidth (Mac48Address address, WifiMode ctsMode);
   /**
    * \param address the address of the recipient
    * \param ctsMode the mode to be used
@@ -1247,7 +1193,7 @@ private:
    *
    * \return the ack transmit channel width
    */
-  virtual uint8_t DoGetAckTxChannelWidth (Mac48Address address, WifiMode ctsMode);
+  virtual uint16_t DoGetAckTxChannelWidth (Mac48Address address, WifiMode ctsMode);
   /**
    * \param address the address of the recipient
    * \param ackMode the mode to be used
@@ -1275,7 +1221,7 @@ private:
    *
    * \return the block ack transmit channel width
    */
-  virtual uint8_t DoGetBlockAckTxChannelWidth (Mac48Address address, WifiMode ctsMode);
+  virtual uint16_t DoGetBlockAckTxChannelWidth (Mac48Address address, WifiMode ctsMode);
   /**
    * \param address the address of the recipient
    * \param blockAckMode the mode to be used
@@ -1490,7 +1436,6 @@ private:
   WifiMode m_defaultTxMode; //!< The default transmission mode
   WifiMode m_defaultTxMcs;   //!< The default transmission modulation-coding scheme (MCS)
 
-  bool m_qosSupported;  //!< Flag if HT capability is supported
   bool m_htSupported;  //!< Flag if HT capability is supported
   bool m_vhtSupported; //!< Flag if VHT capability is supported
   bool m_heSupported;  //!< Flag if HE capability is supported
@@ -1560,7 +1505,7 @@ struct WifiRemoteStationState
   Mac48Address m_address;  //!< Mac48Address of the remote station
   WifiRemoteStationInfo m_info; //!< remote station info
 
-  uint8_t m_channelWidth;     //!< Channel width (in MHz) supported by the remote station
+  uint16_t m_channelWidth;    //!< Channel width (in MHz) supported by the remote station
   bool m_shortGuardInterval;  //!< Flag if HT/VHT short guard interval is supported by the remote station
   uint16_t m_guardInterval;   //!< HE Guard interval duration (in nanoseconds) supported by the remote station
   uint8_t m_streams;          //!< Number of supported streams by the remote station

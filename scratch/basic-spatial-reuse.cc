@@ -117,27 +117,27 @@ double g_arrivalsDurationCounter = 0;
 std::ofstream g_stateFile;
 
 std::string
-StateToString (WifiPhy::State state)
+StateToString (WifiPhyState state)
 {
   std::string stateString;
   switch (state)
     {
-    case WifiPhy::IDLE:
+    case WifiPhyState::IDLE:
       stateString = "IDLE";
       break;
-    case WifiPhy::CCA_BUSY:
+    case WifiPhyState::CCA_BUSY:
       stateString = "CCA_BUSY";
       break;
-    case WifiPhy::TX:
+    case WifiPhyState::TX:
       stateString = "TX";
       break;
-    case WifiPhy::RX:
+    case WifiPhyState::RX:
       stateString = "RX";
       break;
-    case WifiPhy::SWITCHING:
+    case WifiPhyState::SWITCHING:
       stateString = "SWITCHING";
       break;
-    case WifiPhy::SLEEP:
+    case WifiPhyState::SLEEP:
       stateString = "SLEEP";
       break;
     default:
@@ -147,7 +147,7 @@ StateToString (WifiPhy::State state)
 }
 
 void
-StateCb (std::string context, Time start, Time duration, WifiPhy::State state)
+StateCb (std::string context, Time start, Time duration, WifiPhyState state)
 {
   g_stateFile << ContextToNodeId (context) << " " << start.GetSeconds () << " " << duration.GetSeconds () << " " << StateToString (state) << std::endl;
 

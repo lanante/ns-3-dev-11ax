@@ -25,9 +25,10 @@
 
 #include "ns3/header.h"
 #include "ns3/mac48-address.h"
-#include "ns3/nstime.h"
 
 namespace ns3 {
+
+class Time;
 
 /**
  * Combination of valid MAC header type/subtype.
@@ -452,7 +453,7 @@ public:
    *
    * \return the fragment number of the header
    */
-  uint16_t GetFragmentNumber (void) const;
+  uint8_t GetFragmentNumber (void) const;
   /**
    * Return if the Retry bit is set.
    *
@@ -502,12 +503,6 @@ public:
    * \return the Traffic ID of a QoS header
    */
   uint8_t GetQosTid (void) const;
-  /**
-   * Return the TXOP limit.
-   *
-   * \return the TXOP limit
-   */
-  uint8_t GetQosTxopLimit (void) const;
   /**
    * Return the size of the WifiMacHeader in octets.
    * GetSerializedSize calls this function.
@@ -588,7 +583,7 @@ private:
   uint8_t m_qosEosp; ///< QOS EOSP
   uint8_t m_qosAckPolicy; ///< QOS ack policy
   uint8_t m_amsduPresent; ///< AMSDU present
-  uint16_t m_qosStuff; ///< QOS stuff
+  uint8_t m_qosStuff; ///< QOS stuff
 };
 
 } //namespace ns3

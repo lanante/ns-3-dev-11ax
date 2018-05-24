@@ -18,12 +18,21 @@
  * Author: Sébastien Deronne <sebastien.deronne@gmail.com>
  */
 
-#include "ns3/core-module.h"
-#include "ns3/network-module.h"
-#include "ns3/applications-module.h"
-#include "ns3/wifi-module.h"
-#include "ns3/mobility-module.h"
-#include "ns3/internet-module.h"
+#include "ns3/command-line.h"
+#include "ns3/string.h"
+#include "ns3/pointer.h"
+#include "ns3/log.h"
+#include "ns3/yans-wifi-helper.h"
+#include "ns3/ssid.h"
+#include "ns3/mobility-helper.h"
+#include "ns3/internet-stack-helper.h"
+#include "ns3/ipv4-address-helper.h"
+#include "ns3/udp-client-server-helper.h"
+#include "ns3/on-off-helper.h"
+#include "ns3/yans-wifi-channel.h"
+#include "ns3/wifi-net-device.h"
+#include "ns3/edca-txop-n.h"
+#include "ns3/wifi-mac.h"
 
 // This is an example that illustrates 802.11 QoS for different Access Categories.
 // It defines 4 independant Wi-Fi networks (working on different logical channels
@@ -46,7 +55,7 @@
 //
 // The user can select the distance between the stations and the APs, can enable/disable the RTS/CTS mechanism
 // and can choose the payload size and the simulation duration.
-// Example: ./waf --run "80211e-txop --distance=10 --enableRts=0 --simulationTime=20 --payloadSize=1000"
+// Example: ./waf --run "80211e-txop --distance=10 --simulationTime=20 --payloadSize=1000"
 //
 // The output prints the throughput measured for the 4 cases/networks decribed above. When TXOP is enabled, results show
 // increased throughput since the channel is granted for a longer duration. TXOP is enabled by default for AC_VI and AC_VO,
@@ -59,7 +68,7 @@ NS_LOG_COMPONENT_DEFINE ("80211eTxop");
 int main (int argc, char *argv[])
 {
   uint32_t payloadSize = 1472; //bytes
-  uint64_t simulationTime = 10; //seconds
+  double simulationTime = 10; //seconds
   double distance = 5; //meters
   bool enablePcap = 0;
   bool verifyResults = 0; //used for regression
@@ -309,7 +318,7 @@ int main (int argc, char *argv[])
   Simulator::Destroy ();
 
   /* Show results */
-  uint32_t totalPacketsThrough = DynamicCast<UdpServer> (serverAppA.Get (0))->GetReceived ();
+  uint64_t totalPacketsThrough = DynamicCast<UdpServer> (serverAppA.Get (0))->GetReceived ();
   double throughput = totalPacketsThrough * payloadSize * 8 / (simulationTime * 1000000.0);
   std::cout << "Throughput for AC_BE with default TXOP limit (0ms): " << throughput << " Mbit/s" << '\n';
   if (verifyResults && (throughput < 28 || throughput > 29))
