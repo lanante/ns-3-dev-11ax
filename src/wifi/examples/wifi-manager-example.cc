@@ -37,13 +37,23 @@
 // --broadcast instead of unicast (default is unicast)
 // --rtsThreshold (by default, value of 99999 disables it)
 
-#include "ns3/core-module.h"
-#include "ns3/network-module.h"
-#include "ns3/wifi-module.h"
-#include "ns3/stats-module.h"
-#include "ns3/mobility-module.h"
-#include "ns3/propagation-module.h"
+#include "ns3/log.h"
+#include "ns3/config.h"
+#include "ns3/uinteger.h"
+#include "ns3/boolean.h"
+#include "ns3/double.h"
+#include "ns3/gnuplot.h"
+#include "ns3/command-line.h"
+#include "ns3/yans-wifi-helper.h"
+#include "ns3/ssid.h"
+#include "ns3/propagation-loss-model.h"
+#include "ns3/propagation-delay-model.h"
 #include "ns3/rng-seed-manager.h"
+#include "ns3/mobility-helper.h"
+#include "ns3/wifi-net-device.h"
+#include "ns3/packet-socket-helper.h"
+#include "ns3/packet-socket-client.h"
+#include "ns3/packet-socket-server.h"
 
 using namespace ns3;
 
@@ -317,7 +327,7 @@ int main (int argc, char *argv[])
   NS_ABORT_IF (clientSelectedStandard.m_name == "none");
   std::cout << "Testing " << serverSelectedStandard.m_name << " with " << wifiManager << " ..." << std::endl;
   NS_ABORT_MSG_IF (clientSelectedStandard.m_snrLow >= clientSelectedStandard.m_snrHigh, "SNR values in wrong order");
-  steps = static_cast<uint32_t> (std::abs<double> ((clientSelectedStandard.m_snrHigh - clientSelectedStandard.m_snrLow ) / stepSize) + 1);
+  steps = static_cast<uint32_t> (std::abs (static_cast<double> (clientSelectedStandard.m_snrHigh - clientSelectedStandard.m_snrLow ) / stepSize) + 1);
   NS_LOG_DEBUG ("Using " << steps << " steps for SNR range " << clientSelectedStandard.m_snrLow << ":" << clientSelectedStandard.m_snrHigh);
   Ptr<Node> clientNode = CreateObject<Node> ();
   Ptr<Node> serverNode = CreateObject<Node> ();
@@ -409,12 +419,14 @@ int main (int argc, char *argv[])
   Ptr<WifiNetDevice> wndServer = ndServer->GetObject<WifiNetDevice> ();
   Ptr<WifiPhy> wifiPhyPtrClient = wndClient->GetPhy ();
   Ptr<WifiPhy> wifiPhyPtrServer = wndServer->GetPhy ();
-  wifiPhyPtrClient->SetNumberOfAntennas (clientNss);
-  wifiPhyPtrClient->SetMaxSupportedTxSpatialStreams (clientNss);
-  wifiPhyPtrClient->SetMaxSupportedRxSpatialStreams (clientNss);
-  wifiPhyPtrServer->SetNumberOfAntennas (serverNss);
-  wifiPhyPtrServer->SetMaxSupportedTxSpatialStreams (serverNss);
-  wifiPhyPtrServer->SetMaxSupportedRxSpatialStreams (serverNss);
+  uint8_t t_clientNss = static_cast<uint8_t> (clientNss);
+  uint8_t t_serverNss = static_cast<uint8_t> (serverNss);
+  wifiPhyPtrClient->SetNumberOfAntennas (t_clientNss);
+  wifiPhyPtrClient->SetMaxSupportedTxSpatialStreams (t_clientNss);
+  wifiPhyPtrClient->SetMaxSupportedRxSpatialStreams (t_clientNss);
+  wifiPhyPtrServer->SetNumberOfAntennas (t_serverNss);
+  wifiPhyPtrServer->SetMaxSupportedTxSpatialStreams (t_serverNss);
+  wifiPhyPtrServer->SetMaxSupportedRxSpatialStreams (t_serverNss);
   // Only set the channel width and guard interval for HT and VHT modes
   if (serverSelectedStandard.m_name == "802.11n-5GHz"
       || serverSelectedStandard.m_name == "802.11n-2.4GHz"

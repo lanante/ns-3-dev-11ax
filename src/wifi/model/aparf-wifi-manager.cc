@@ -49,7 +49,7 @@ AparfWifiRemoteStation : public WifiRemoteStation
   uint8_t m_critRateIndex;              //!< Critical rate.
   uint8_t m_prevPowerLevel;             //!< Power level of the previous transmission.
   uint8_t m_powerLevel;                 //!< Current power level.
-  uint32_t m_nSupported;                //!< Number of supported rates by the remote station.
+  uint8_t m_nSupported;                 //!< Number of supported rates by the remote station.
   bool m_initialized;                   //!< For initializing variables.
   AparfWifiManager::State m_aparfState; //!< The estimated state of the channel.
 };
@@ -129,8 +129,8 @@ void
 AparfWifiManager::SetupPhy (const Ptr<WifiPhy> phy)
 {
   NS_LOG_FUNCTION (this << phy);
-  m_minPower = phy->GetTxPowerStart ();
-  m_maxPower = phy->GetTxPowerEnd ();
+  m_minPower = 0;
+  m_maxPower = phy->GetNTxPower () - 1;
   WifiRemoteStationManager::SetupPhy (phy);
 }
 

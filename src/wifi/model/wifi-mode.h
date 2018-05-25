@@ -237,6 +237,7 @@ private:
 
 /// equality operator
 bool operator == (const WifiMode &a, const WifiMode &b);
+bool operator < (const WifiMode &a, const WifiMode &b);
 std::ostream & operator << (std::ostream & os, const WifiMode &mode);
 std::istream & operator >> (std::istream &is, WifiMode &mode);
 
@@ -265,7 +266,7 @@ class WifiModeFactory
 public:
   /**
    * \param uniqueName the name of the associated WifiMode. This name
-   *        must be unique accross _all_ instances.
+   *        must be unique across _all_ instances.
    * \param modClass the class of modulation
    * \param isMandatory true if this WifiMode is mandatory, false otherwise.
    * \param codingRate if convolutional coding is used for this rate
@@ -287,7 +288,7 @@ public:
 
   /**
    * \param uniqueName the name of the associated WifiMode. This name
-   *        must be unique accross _all_ instances.
+   *        must be unique across _all_ instances.
    * \param mcsValue the mcs value
    * \param modClass the class of modulation
    *

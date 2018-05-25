@@ -28,11 +28,15 @@ New user-visible features
 - (buildings) A new position allocator has been added to the buildings module.
   The allocator places nodes randomly but in a manner that rejects positions
   that are located within buildings defined in the scenario.
+- (tcp) Added PRR as recovery algorithm
 
 Bugs fixed
 ----------
+- Bug 2911 - aodv:  Binary exponential backoff can become unlimited
 - Bug 2901 - Add CommandLine::Parse (const std::vector<std::string>> args)
 - Bug 2461 - CommandLine should handle non-option arguments
+- Bug 2801 - FdNetDevice device MTU is not set correctly
+- Bug 2819 - FqCoDel handling of non-IP packets
 
 Known issues
 ------------

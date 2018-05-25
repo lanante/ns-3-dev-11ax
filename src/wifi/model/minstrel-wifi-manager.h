@@ -25,6 +25,7 @@
 #include "ns3/traced-value.h"
 #include "wifi-remote-station-manager.h"
 #include <fstream>
+#include <map>
 
 namespace ns3 {
 
@@ -69,9 +70,9 @@ struct RateInfo
 typedef std::vector<RateInfo> MinstrelRate;
 /**
  * Data structure for a Sample Rate table
- * A vector of a vector uint32_t
+ * A vector of a vector uint8_t
  */
-typedef std::vector<std::vector<uint32_t> > SampleRate;
+typedef std::vector<std::vector<uint8_t> > SampleRate;
 
 /**
  * \brief hold per-remote-station state for Minstrel Wifi manager.
@@ -91,20 +92,20 @@ struct MinstrelWifiRemoteStation : public WifiRemoteStation
    */
   uint8_t m_col;                 ///< vector index
   uint8_t m_index;               ///< vector index
-  uint32_t m_maxTpRate;          ///< the current throughput rate
-  uint32_t m_maxTpRate2;         ///< second highest throughput rate
-  uint32_t m_maxProbRate;        ///< rate with highest prob of success
+  uint8_t m_maxTpRate;           ///< the current throughput rate
+  uint8_t m_maxTpRate2;          ///< second highest throughput rate
+  uint8_t m_maxProbRate;         ///< rate with highest prob of success
   uint8_t m_nModes;              ///< number of modes supported
   int m_totalPacketsCount;       ///< total number of packets as of now
   int m_samplePacketsCount;      ///< how many packets we have sample so far
   int m_numSamplesDeferred;      ///< number samles deferred
   bool m_isSampling;             ///< a flag to indicate we are currently sampling
-  uint32_t m_sampleRate;         ///< current sample rate
-  bool  m_sampleDeferred;        ///< a flag to indicate sample rate is on the second stage
+  uint8_t m_sampleRate;          ///< current sample rate
+  bool m_sampleDeferred;         ///< a flag to indicate sample rate is on the second stage
   uint32_t m_shortRetry;         ///< short retries such as control packts
   uint32_t m_longRetry;          ///< long retries such as data packets
   uint32_t m_retry;              ///< total retries short + long
-  uint32_t m_txrate;             ///< current transmit rate
+  uint8_t m_txrate;              ///< current transmit rate
   bool m_initialized;            ///< for initializing tables
   MinstrelRate m_minstrelTable;  ///< minstrel table
   SampleRate m_sampleTable;      ///< sample table
@@ -202,7 +203,7 @@ public:
    * \param station the station object
    * \returns the rate
    */
-  uint32_t FindRate (MinstrelWifiRemoteStation *station);
+  uint8_t FindRate (MinstrelWifiRemoteStation *station);
 
   /**
    * Get data transmit vector
@@ -305,7 +306,7 @@ private:
    * \param station the station object
    * \returns the next sample
    */
-  uint32_t GetNextSample (MinstrelWifiRemoteStation *station);
+  uint8_t GetNextSample (MinstrelWifiRemoteStation *station);
 
   /**
    * Estimate the time to transmit the given packet with the given number of retries.
@@ -346,16 +347,16 @@ private:
 
   /**
    * typedef for a vector of a pair of Time, WifiMode.
-   * (Essentially a list for WifiMode and its corresponding transmission time
+   * Essentially a map from WifiMode to its corresponding transmission time
    * to transmit a reference packet.
    */
-  typedef std::vector<std::pair<Time,WifiMode> > TxTime;
+  typedef std::map<WifiMode,Time> TxTime;
 
   TxTime m_calcTxTime;      ///< to hold all the calculated TxTime for all modes
   Time m_updateStats;       ///< how frequent do we calculate the stats (1/10 seconds)
-  double m_lookAroundRate;  ///< the % to try other rates than our current rate
-  double m_ewmaLevel;       ///< exponential weighted moving average
-  uint32_t m_sampleCol;     ///< number of sample columns
+  uint8_t m_lookAroundRate; ///< the % to try other rates than our current rate
+  uint8_t m_ewmaLevel;      ///< exponential weighted moving average
+  uint8_t m_sampleCol;      ///< number of sample columns
   uint32_t m_pktLen;        ///< packet length used for calculate mode TxTime
   bool m_printStats;        ///< whether statistics table should be printed.
   bool m_printSamples;      ///< whether samples table should be printed.

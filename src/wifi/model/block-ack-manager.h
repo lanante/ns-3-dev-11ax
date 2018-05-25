@@ -187,7 +187,7 @@ public:
    * \param dataSnr data SNR reported by remote station
    *
    * Invoked upon receipt of a block ack frame. Typically, this function, is called
-   * by ns3::EdcaTxopN object. Performs a check on which MPDUs, previously sent
+   * by ns3::QosTxop object. Performs a check on which MPDUs, previously sent
    * with ack policy set to Block Ack, were correctly received by the recipient.
    * An acknowledged MPDU is removed from the buffer, retransmitted otherwise.
    */
@@ -233,10 +233,10 @@ public:
   /**
    * \param recipient Address of peer station involved in block ack mechanism.
    * \param tid Traffic ID of transmitted packet.
-   * \param nextSeqNumber Sequence number of the next packet that would be trasmitted by EdcaTxopN.
+   * \param nextSeqNumber Sequence number of the next packet that would be trasmitted by QosTxop.
    * \param policy ack policy of the transmitted packet.
    *
-   * This method is typically invoked by ns3::EdcaTxopN object every time that a MPDU
+   * This method is typically invoked by ns3::QosTxop object every time that a MPDU
    * with ack policy subfield in Qos Control field set to Block Ack is transmitted.
    * The <i>nextSeqNumber</i> parameter is used to block transmission of packets that are out of bitmap.
    */
@@ -344,13 +344,12 @@ public:
    * This method doesn't remove the packet from this queue.
    *
    * \param hdr wifi mac header
-   * \param recipient mac address
    * \param tid Traffic ID
    * \param timestamp timestamp
    *
    * \returns Ptr<const Packet>
    */
-  Ptr<const Packet> PeekNextPacketByTidAndAddress (WifiMacHeader &hdr, Mac48Address recipient, uint8_t tid, Time *timestamp);
+  Ptr<const Packet> PeekNextPacketByTidAndAddress (WifiMacHeader &hdr, uint8_t tid, Time *timestamp);
   /**
    * This function returns true if the lifetime of the packets a BAR refers to didn't expire yet else it returns false.
    * If it return false then the BAR will be discarded (i.e. will not be re-transmitted)

@@ -293,8 +293,8 @@ WifiPhy::GetTypeId (void)
                    MakeBooleanChecker ())
     .AddAttribute ("FrameCaptureModel",
                    "Ptr to an object that implements the frame capture model",
-                   PointerValue (0),
-                   MakePointerAccessor (&WifiPhy::SetFrameCaptureModel),
+                   PointerValue (),
+                   MakePointerAccessor (&WifiPhy::m_frameCaptureModel),
                    MakePointerChecker <FrameCaptureModel> ())
     .AddTraceSource ("PhyTxBegin",
                      "Trace source indicating a packet "
@@ -1030,9 +1030,9 @@ WifiPhy::DefineChannelNumber (uint8_t channelNumber, WifiPhyStandard standard, u
 }
 
 uint8_t
-WifiPhy::FindChannelNumberForFrequencyWidth (uint16_t frequency, uint8_t width) const
+WifiPhy::FindChannelNumberForFrequencyWidth (uint16_t frequency, uint16_t width) const
 {
-  NS_LOG_FUNCTION (this << frequency << +width);
+  NS_LOG_FUNCTION (this << frequency << width);
   bool found = false;
   FrequencyWidthPair f = std::make_pair (frequency, width);
   ChannelToFrequencyWidthMap::const_iterator it = m_channelToFrequencyWidth.begin ();
@@ -1311,7 +1311,7 @@ WifiPhy::GetMaxSupportedRxSpatialStreams (void) const
 uint8_t
 WifiPhy::GetNBssMembershipSelectors (void) const
 {
-  return m_bssMembershipSelectorSet.size ();
+  return static_cast<uint8_t> (m_bssMembershipSelectorSet.size ());
 }
 
 uint8_t
@@ -2157,11 +2157,11 @@ WifiPhy::GetPayloadDuration (uint32_t size, WifiTxVector txVector, uint16_t freq
         //Add signal extension for ERP PHY
         if (payloadMode.GetModulationClass () == WIFI_MOD_CLASS_ERP_OFDM)
           {
-            return FemtoSeconds (numSymbols * symbolDuration.GetFemtoSeconds ()) + MicroSeconds (6);
+            return FemtoSeconds (static_cast<uint64_t> (numSymbols * symbolDuration.GetFemtoSeconds ())) + MicroSeconds (6);
           }
         else
           {
-            return FemtoSeconds (numSymbols * symbolDuration.GetFemtoSeconds ());
+            return FemtoSeconds (static_cast<uint64_t> (numSymbols * symbolDuration.GetFemtoSeconds ()));
           }
       }
     case WIFI_MOD_CLASS_HT:
@@ -2171,11 +2171,11 @@ WifiPhy::GetPayloadDuration (uint32_t size, WifiTxVector txVector, uint16_t freq
             && ((mpdutype == NORMAL_MPDU && preamble != WIFI_PREAMBLE_NONE)
                 || (mpdutype == LAST_MPDU_IN_AGGREGATE && preamble == WIFI_PREAMBLE_NONE))) //at 2.4 GHz
           {
-            return FemtoSeconds (numSymbols * symbolDuration.GetFemtoSeconds ()) + MicroSeconds (6);
+            return FemtoSeconds (static_cast<uint64_t> (numSymbols * symbolDuration.GetFemtoSeconds ())) + MicroSeconds (6);
           }
         else //at 5 GHz
           {
-            return FemtoSeconds (numSymbols * symbolDuration.GetFemtoSeconds ());
+            return FemtoSeconds (static_cast<uint64_t> (numSymbols * symbolDuration.GetFemtoSeconds ()));
           }
       }
     case WIFI_MOD_CLASS_HE:
@@ -2184,11 +2184,11 @@ WifiPhy::GetPayloadDuration (uint32_t size, WifiTxVector txVector, uint16_t freq
             && ((mpdutype == NORMAL_MPDU && preamble != WIFI_PREAMBLE_NONE)
                 || (mpdutype == LAST_MPDU_IN_AGGREGATE && preamble == WIFI_PREAMBLE_NONE))) //at 2.4 GHz
           {
-            return FemtoSeconds (numSymbols * symbolDuration.GetFemtoSeconds ()) + MicroSeconds (6);
+            return FemtoSeconds (static_cast<uint64_t> (numSymbols * symbolDuration.GetFemtoSeconds ())) + MicroSeconds (6);
           }
         else //at 5 GHz
           {
-            return FemtoSeconds (numSymbols * symbolDuration.GetFemtoSeconds ());
+            return FemtoSeconds (static_cast<uint64_t> (numSymbols * symbolDuration.GetFemtoSeconds ()));
           }
       }
     case WIFI_MOD_CLASS_DSSS:
@@ -3494,7 +3494,7 @@ WifiPhy::IsMcsSupported (WifiMode mcs) const
 uint8_t
 WifiPhy::GetNModes (void) const
 {
-  return m_deviceRateSet.size ();
+  return static_cast<uint8_t> (m_deviceRateSet.size ());
 }
 
 WifiMode
@@ -3506,7 +3506,7 @@ WifiPhy::GetMode (uint8_t mode) const
 uint8_t
 WifiPhy::GetNMcs (void) const
 {
-  return m_deviceMcsSet.size ();
+  return static_cast<uint8_t> (m_deviceMcsSet.size ());
 }
 
 WifiMode
