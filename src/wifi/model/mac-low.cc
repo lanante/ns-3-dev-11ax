@@ -116,7 +116,6 @@ MacLow::MacLow ()
     m_currentDca (0),
     m_lastNavStart (Seconds (0)),
     m_lastNavDuration (Seconds (0)),
-    m_bssColorPacket (0),
     m_lastIntraBssNavStart (Seconds (0)),
     m_lastIntraBssNavDuration (Seconds (0)),
     m_promisc (false),
@@ -609,13 +608,13 @@ MacLow::NotifySwitchingStartNow (Time duration)
     {
       m_navCounterResetCtsMissed.Cancel ();
     }
+
   m_lastNavStart = Simulator::Now ();
   m_lastNavDuration = Seconds (0);
-  if (m_bssColorPacket!=0 && m_bssColorPacket==m_phy->GetBssColor ())
-    {
-      m_lastIntraBssNavStart = Simulator::Now ();
-      m_lastIntraBssNavDuration = Seconds (0);
-    }
+
+  m_lastIntraBssNavStart = Simulator::Now ();
+  m_lastIntraBssNavDuration = Seconds (0);
+  
   m_currentPacket = 0;
   m_currentDca = 0;
 }
@@ -629,13 +628,13 @@ MacLow::NotifySleepNow (void)
     {
       m_navCounterResetCtsMissed.Cancel ();
     }
+
   m_lastNavStart = Simulator::Now ();
   m_lastNavDuration = Seconds (0);
-  if (m_bssColorPacket!=0 && m_bssColorPacket==m_phy->GetBssColor ())
-    {
-      m_lastIntraBssNavStart = Simulator::Now ();
-      m_lastIntraBssNavDuration = Seconds (0);
-    }
+
+  m_lastIntraBssNavStart = Simulator::Now ();
+  m_lastIntraBssNavDuration = Seconds (0);
+
   m_currentPacket = 0;
   m_currentDca = 0;
 }
@@ -649,8 +648,13 @@ MacLow::NotifyOffNow (void)
     {
       m_navCounterResetCtsMissed.Cancel ();
     }
+    
   m_lastNavStart = Simulator::Now ();
   m_lastNavDuration = Seconds (0);
+
+  m_lastIntraBssNavStart = Simulator::Now ();
+  m_lastIntraBssNavDuration = Seconds (0);
+  
   m_currentPacket = 0;
   m_currentDca = 0;
 }
@@ -666,7 +670,6 @@ MacLow::ReceiveOk (Ptr<Packet> packet, double rxSnr, double rxPowerDbm, WifiTxVe
    */
 
   std::cout << "color of frame=" << (unsigned)txVector.GetBssColor () << " color of STA=" << (unsigned)m_phy->GetBssColor () << std::endl;
-  m_bssColorPacket = txVector.GetBssColor ();
 
   WifiMacHeader hdr;
   packet->RemoveHeader (hdr);
@@ -674,7 +677,7 @@ MacLow::ReceiveOk (Ptr<Packet> packet, double rxSnr, double rxPowerDbm, WifiTxVe
 
   bool isPrevNavZero = IsNavZero ();
   NS_LOG_DEBUG ("duration/id=" << hdr.GetDuration ());
-  NotifyNav (packet, hdr);
+  NotifyNav (packet, hdr, txVector);
   if (hdr.IsRts ())
     {
       /* see section 9.2.5.7 802.11-1999
@@ -1128,7 +1131,7 @@ MacLow::CalculateTransmissionTime (Ptr<const Packet> packet,
 }
 
 void
-MacLow::NotifyNav (Ptr<const Packet> packet, const WifiMacHeader &hdr)
+MacLow::NotifyNav (Ptr<const Packet> packet, const WifiMacHeader &hdr, WifiTxVector txVector)
 {
   NS_ASSERT (m_lastNavStart <= Simulator::Now ());
   Time duration = hdr.GetDuration ();
@@ -1137,7 +1140,7 @@ MacLow::NotifyNav (Ptr<const Packet> packet, const WifiMacHeader &hdr)
       && hdr.GetAddr2 () == m_bssid)
     {
       //see section 9.3.2.2 802.11-1999
-      DoNavResetNow (duration);
+      DoNavResetNow (duration,txVector);
       return;
     }
   /// \todo We should also handle CF_END specially here
@@ -1145,7 +1148,7 @@ MacLow::NotifyNav (Ptr<const Packet> packet, const WifiMacHeader &hdr)
   else if (hdr.GetAddr1 () != m_self)
     {
       // see section 9.2.5.4 802.11-1999
-      bool navUpdated = DoNavStartNow (duration);
+      bool navUpdated = DoNavStartNow (duration,txVector);
       if (hdr.IsRts () && navUpdated)
         {
           /**
@@ -1164,38 +1167,41 @@ MacLow::NotifyNav (Ptr<const Packet> packet, const WifiMacHeader &hdr)
             Time (2 * GetSifs ()) + Time (2 * GetSlotTime ());
           m_navCounterResetCtsMissed = Simulator::Schedule (navCounterResetCtsMissedDelay,
                                                             &MacLow::NavCounterResetCtsMissed, this,
-                                                            Simulator::Now ());
+                                                            Simulator::Now (),txVector);
         }
     }
 }
 
 void
-MacLow::NavCounterResetCtsMissed (Time rtsEndRxTime)
+MacLow::NavCounterResetCtsMissed (Time rtsEndRxTime,WifiTxVector txVector)
 {
   if (m_phy->GetLastRxStartTime () < rtsEndRxTime)
     {
-      DoNavResetNow (Seconds (0.0));
+      DoNavResetNow (Seconds (0.0),txVector);
     }
 }
 
 void
-MacLow::DoNavResetNow (Time duration)
+MacLow::DoNavResetNow (Time duration, WifiTxVector txVector)
 {
   for (DcfManagersCI i = m_dcfManagers.begin (); i != m_dcfManagers.end (); i++)
     {
       (*i)->NotifyNavResetNow (duration);
     }
-  m_lastNavStart = Simulator::Now ();
-  m_lastNavDuration = duration;
-  if (m_bssColorPacket!=0 && m_bssColorPacket==m_phy->GetBssColor ())
+  if (txVector.GetBssColor ()==0 || txVector.GetBssColor ()!=m_phy->GetBssColor ())
+    {
+      m_lastNavStart = Simulator::Now ();
+      m_lastNavDuration = duration;
+    }
+  if (txVector.GetBssColor ()!=0 && txVector.GetBssColor ()==m_phy->GetBssColor ())
     {
       m_lastIntraBssNavStart = Simulator::Now ();
-      m_lastIntraBssNavDuration = Seconds (0);
+      m_lastIntraBssNavDuration = duration;
     }
 }
 
 bool
-MacLow::DoNavStartNow (Time duration)
+MacLow::DoNavStartNow (Time duration, WifiTxVector txVector)
 {
   for (DcfManagersCI i = m_dcfManagers.begin (); i != m_dcfManagers.end (); i++)
     {
@@ -1204,13 +1210,17 @@ MacLow::DoNavStartNow (Time duration)
   Time newNavEnd = Simulator::Now () + duration;
   Time oldNavEnd = m_lastNavStart + m_lastNavDuration;
   Time oldIntraBssNavEnd = m_lastIntraBssNavStart + m_lastIntraBssNavDuration;
-  if (newNavEnd > oldNavEnd)
+  
+  if (txVector.GetBssColor ()==0 || txVector.GetBssColor ()!=m_phy->GetBssColor ())
     {
-      m_lastNavStart = Simulator::Now ();
-      m_lastNavDuration = duration;
-      return true;
+      if (newNavEnd > oldNavEnd)
+        {
+          m_lastNavStart = Simulator::Now ();
+          m_lastNavDuration = duration;
+          return true;
+        }
     }
-  if (m_bssColorPacket!=0 && m_bssColorPacket==m_phy->GetBssColor ())
+  if (txVector.GetBssColor ()!=0 && txVector.GetBssColor ()==m_phy->GetBssColor ())
     {
       if (newNavEnd > oldIntraBssNavEnd)
         {
@@ -2260,7 +2270,7 @@ MacLow::DeaggregateAmpduAndReceive (Ptr<Packet> aggregatedPacket, double rxSnr, 
       WifiMacHeader firsthdr;
       (*n).first->PeekHeader (firsthdr);
       NS_LOG_DEBUG ("duration/id=" << firsthdr.GetDuration ());
-      NotifyNav ((*n).first, firsthdr);
+      NotifyNav ((*n).first, firsthdr,txVector);
 
       if (firsthdr.GetAddr1 () == m_self)
         {

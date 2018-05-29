@@ -566,20 +566,20 @@ private:
    * \param packet the packet
    * \param hdr the header
    */
-  void NotifyNav (Ptr<const Packet> packet,const WifiMacHeader &hdr);
+  void NotifyNav (Ptr<const Packet> packet,const WifiMacHeader &hdr,WifiTxVector txVector);
   /**
    * Reset NAV with the given duration.
    *
    * \param duration
    */
-  void DoNavResetNow (Time duration);
+  void DoNavResetNow (Time duration, WifiTxVector txVector);
   /**
    * Start NAV with the given duration.
    *
    * \param duration the duration
    * \return true if NAV is resetted
    */
-  bool DoNavStartNow (Time duration);
+  bool DoNavStartNow (Time duration, WifiTxVector txVector);
   /**
    * Check if NAV is zero.
    *
@@ -613,7 +613,7 @@ private:
    *
    * \param rtsEndRxTime
    */
-  void NavCounterResetCtsMissed (Time rtsEndRxTime);
+  void NavCounterResetCtsMissed (Time rtsEndRxTime,WifiTxVector txVector);
   /* Event handlers */
   /**
    * Event handler when normal ACK timeout occurs.
@@ -875,7 +875,6 @@ private:
   Time m_lastNavStart;     //!< The time when the latest NAV started
   Time m_lastNavDuration;  //!< The duration of the latest NAV
 
-  uint8_t m_bssColorPacket;        //!< BSS color of the current packet
   Time m_lastIntraBssNavStart;     //!< The time when the latest intra-BSS NAV started
   Time m_lastIntraBssNavDuration;  //!< The duration of the latest intra-BSS NAV
 
