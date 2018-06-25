@@ -369,7 +369,7 @@ main (int argc, char *argv[])
   spectrumPhy.Set ("TxPowerEnd", DoubleValue (powSta3));
   spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrSta3));
   spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-92.0));
-  Config::SetDefault ("ns3::StaWifiMac::ObssPdThreshhold", DoubleValue (-82.0));
+  Config::SetDefault ("ns3::StaWifiMac::ObssPdThreshold", DoubleValue (-82.0));
   Config::SetDefault ("ns3::StaWifiMac::MaxMissedBeacons", UintegerValue (10000));
 
   Ssid ssidB = Ssid ("B");
