@@ -669,7 +669,7 @@ MacLow::ReceiveOk (Ptr<Packet> packet, double rxSnr, double rxPowerDbm, WifiTxVe
    * packet queue.
    */
 
-  std::cout << "color of frame=" << (unsigned)txVector.GetBssColor () << " color of STA=" << (unsigned)m_phy->GetBssColor () << std::endl;
+  // std::cout << "color of frame=" << (unsigned)txVector.GetBssColor () << " color of STA=" << (unsigned)m_phy->GetBssColor () << std::endl;
 
   WifiMacHeader hdr;
   packet->RemoveHeader (hdr);
