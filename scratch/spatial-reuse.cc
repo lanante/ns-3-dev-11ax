@@ -85,26 +85,31 @@ struct SignalArrival
   uint32_t m_senderNodeId;
   double m_power;
 };
-std::vector<uint32_t> packetsReceived (100);
-std::vector<uint32_t> bytesReceived (100);
-double packetCount[4];
+
+// for tracking packets and bytes received. will be reallocated once we finalize number of nodes
+std::vector<uint32_t> packetsReceived(0);
+std::vector<uint32_t> bytesReceived(0);
+std::vector<uint32_t> packetCount(0);
 
 // Parse context strings of the form "/NodeList/3/DeviceList/1/Mac/Assoc"
 // to extract the NodeId
 uint32_t
 ContextToNodeId (std::string context)
 {
+  //std::cout << "Context=" << context << std::endl;
   std::string sub = context.substr (10);  // skip "/NodeList/"
   uint32_t pos = sub.find ("/Device");
-  NS_LOG_DEBUG ("Found NodeId " << atoi (sub.substr (0, pos).c_str ()));
-  return atoi (sub.substr (0,pos).c_str ());
+  uint32_t nodeId = atoi (sub.substr (0, pos).c_str());
+  NS_LOG_DEBUG ("Found NodeId " << nodeId);
+  //std::cout << "and nodeId=" << nodeId << std::endl;
+  return nodeId;
 }
 
 void
 SocketRecvStats (std::string context, Ptr<const Packet> p, const Address &addr)
 {
   uint32_t nodeId = ContextToNodeId (context);
-  //std::cout<<"Node ID: "<<nodeId<<"\n";
+  // std::cout << "Node ID: " << nodeId << " RX addr=" << addr << std::endl;
   bytesReceived[nodeId] += p->GetSize ();
   packetsReceived[nodeId]++;
 }
@@ -148,22 +153,12 @@ StateCb (std::string context, Time start, Time duration, WifiPhyState state)
 {
   g_stateFile << ContextToNodeId (context) << " " << start.GetSeconds () << " " << duration.GetSeconds () << " " << StateToString (state) << std::endl;
 
-  if ( ContextToNodeId (context) == 0 && StateToString (state) == "TX" )
-    {
-      packetCount[0] = packetCount[0] + 1;
-    }
-  else if ( ContextToNodeId (context) == 1 && StateToString (state) == "TX" )
-    {
-      packetCount[1] = packetCount[1] + 1;
-    }
-  else if ( ContextToNodeId (context) == 3 && StateToString (state) == "TX" )
-    {
-      packetCount[2] = packetCount[2] + 1;
-    }
-  else if ( ContextToNodeId (context) == 4 && StateToString (state) == "TX" )
-      {
-        packetCount[3] = packetCount[3] + 1;
-      }
+  uint32_t nodeId = ContextToNodeId (context);
+  std::string stateStr = StateToString (state);
+  if ( stateStr == "TX" )
+  {
+    packetCount[nodeId] = packetCount[nodeId] + 1;
+  }
 }
 
 void
@@ -255,15 +250,6 @@ main (int argc, char *argv[])
   Time interval = MicroSeconds (1000);
   bool enableObssPd = true;
 
-  // initialize random number generator
-  RngSeedManager::SetSeed (3);
-  RngSeedManager::SetRun (7);
-
-  packetCount[0] = 0;
-  packetCount[1] = 0;
-  packetCount[2] = 0;
-  packetCount[3] = 0;
-
   CommandLine cmd;
   cmd.AddValue ("duration", "Duration of simulation (s)", duration);
   cmd.AddValue ("interval", "Per-packet interval (s)", interval);
@@ -276,6 +262,19 @@ main (int argc, char *argv[])
   cmd.AddValue ("n", "Number of STAs to scatter around each AP", n);
   cmd.AddValue ("r", "Radius of circle around each AP in which to scatter STAs (m)", r);
   cmd.Parse (argc, argv);
+
+  // total expected nodes.  n STAs for each AP
+  uint32_t totalExpectedNodes = 2 * (n + 1);
+  packetsReceived = std::vector<uint32_t> (totalExpectedNodes);
+  bytesReceived = std::vector<uint32_t> (totalExpectedNodes);
+  packetCount = std::vector<uint32_t> (totalExpectedNodes); 
+
+  for (uint32_t nodeId = 0; nodeId < totalExpectedNodes; nodeId++)
+  {
+    packetsReceived[nodeId] = 0;
+    bytesReceived[nodeId] = 0;
+    packetCount[nodeId] = 0;
+  }
 
   // When logging, use prefixes
   LogComponentEnableAll (LOG_PREFIX_TIME);
@@ -378,7 +377,6 @@ main (int argc, char *argv[])
   if (enableObssPd)
     {
       // Network "A" BSS color = 1
-      // @TODO missing from this branch
       apWifiMac->SetBssColor (1);
     }
 
@@ -412,7 +410,6 @@ main (int argc, char *argv[])
   if (enableObssPd)
     {
       // Network "B" BSS color = 2
-      // @TODO missing from this branch???
       apWifiMac->SetBssColor (2);
     }
 
@@ -511,11 +508,12 @@ main (int argc, char *argv[])
   TypeId tid = TypeId::LookupByName ("ns3::UdpSocketFactory");
 
   //BSS 1
-  for (uint32_t i = 0; i < 2; i++)
+  for (uint32_t i = 0; i < n; i++)
     {
       PacketSocketAddress socketAddr;
       socketAddr.SetSingleDevice (staDevicesA.Get (i)->GetIfIndex ());
       socketAddr.SetPhysicalAddress (apDeviceA.Get (0)->GetAddress ());
+      //socketAddr.SetPhysicalAddress (staDevicesA.Get (i)->GetAddress ());
       std::cout<<"Address1: "<<apDeviceA.Get (0)->GetAddress ()<<"\n";
       socketAddr.SetProtocol (1);
       Ptr<PacketSocketClient> client = CreateObject<PacketSocketClient> ();
@@ -530,7 +528,7 @@ main (int argc, char *argv[])
     }
 
   // BSS 2
-  for (uint32_t i = 0; i < 2; i++)
+  for (uint32_t i = 0; i < n; i++)
     {
       PacketSocketAddress socketAddr;
       socketAddr.SetSingleDevice (staDevicesB.Get (i)->GetIfIndex ());
@@ -588,16 +586,16 @@ main (int argc, char *argv[])
 
   Simulator::Destroy ();
 
-  double throughputpernode[6];
-  for (uint32_t k = 0; k < 6; k++)
+  double throughputpernode[totalExpectedNodes];
+  for (uint32_t k = 0; k < totalExpectedNodes; k++)
     {
 	  std::cout << "Node " << k << "; Packets Received = " << packetsReceived[k] << std::endl;
 	  throughputpernode[k] = (double)packetsReceived[k]* payloadSize *8 / 1000 / 1000 / duration; // for 100 seconds
       std::cout << "Node " << k << "; throughput Received = " << throughputpernode[k] << std::endl;
     }
 
-  double throughputpernode1[4];
-  for (uint32_t k = 0; k < 4; k++)
+  double throughputpernode1[totalExpectedNodes];
+  for (uint32_t k = 0; k < totalExpectedNodes; k++)
     {
 	  std::cout << "Node " << k << "; Packets Transmitted = " << packetCount[k] << std::endl;
 	  throughputpernode1[k] = (double)packetCount[k] * payloadSize * 8 / 1000 / 1000 / duration; // for 100 seconds
