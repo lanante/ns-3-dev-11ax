@@ -632,14 +632,15 @@ TapBridge::CreateTap (void)
           NS_FATAL_ERROR ("Did not get the raw socket from the socket creator");
         }
 
-      if (m_mode == USE_LOCAL || m_mode == USE_BRIDGE)
+      if (m_mode == USE_BRIDGE)
         {
           //
           // Set the ns-3 device's mac address to the overlying container's
           // mac address
           //
           struct ifreq s;
-          strncpy (s.ifr_name, m_tapDeviceName.c_str (), sizeof (s.ifr_name));
+          memset (&s, 0, sizeof(struct ifreq));
+          strncpy (s.ifr_name, m_tapDeviceName.c_str (), IFNAMSIZ - 1);
 
           NS_LOG_INFO ("Trying to get MacAddr of " << m_tapDeviceName);
           int ioctlResult = ioctl (sock, SIOCGIFHWADDR, &s);

@@ -102,6 +102,7 @@ Txop::DoDispose (void)
   m_stationManager = 0;
   m_rng = 0;
   m_txMiddle = 0;
+  m_channelAccessManager = 0;
 }
 
 void
@@ -352,14 +353,14 @@ bool
 Txop::NeedRtsRetransmission (Ptr<const Packet> packet, const WifiMacHeader &hdr)
 {
   NS_LOG_FUNCTION (this);
-  return m_stationManager->NeedRtsRetransmission (hdr.GetAddr1 (), &hdr, packet);
+  return m_stationManager->NeedRetransmission (hdr.GetAddr1 (), &hdr, packet);
 }
 
 bool
 Txop::NeedDataRetransmission (Ptr<const Packet> packet, const WifiMacHeader &hdr)
 {
   NS_LOG_FUNCTION (this);
-  return m_stationManager->NeedDataRetransmission (hdr.GetAddr1 (), &hdr, packet);
+  return m_stationManager->NeedRetransmission (hdr.GetAddr1 (), &hdr, packet);
 }
 
 bool
@@ -742,7 +743,7 @@ Txop::SendCfFrame (WifiMacType frameType, Mac48Address addr)
           m_currentHdr.SetRetry ();
         }
     }
-  else if ((m_queue->GetNPacketsByAddress (WifiMacHeader::ADDR1, addr) > 0) && (frameType != WIFI_MAC_CTL_END)) //if no packet for that dest, send to another dest?
+  else if ((m_queue->GetNPacketsByAddress (addr) > 0) && (frameType != WIFI_MAC_CTL_END)) //if no packet for that dest, send to another dest?
     {
       Ptr<WifiMacQueueItem> item = m_queue->DequeueByAddress (WifiMacHeader::ADDR1, addr);
       NS_ASSERT (item != 0);

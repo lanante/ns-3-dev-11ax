@@ -454,18 +454,12 @@ To support the Spectrum channel, the ``YansWifiPhy`` transmit and receive method
 were adapted to use the Spectrum channel API.  This required developing
 a few ``SpectrumModel``-related classes.  The class
 ``WifiSpectrumValueHelper`` is used to create Wi-Fi signals with the
-spectrum framework and spread their energy across the bands.  The 
-spectrum is sub-divided into 312.5 kHz sub-bands (the width of an OFDM
-subcarrier).  The power allocated to a particular channel
+spectrum framework and spread their energy across the bands. The
+spectrum is sub-divided into sub-bands (the width of an OFDM
+subcarrier, which depends on the technology). The power allocated to a particular channel
 is spread across the sub-bands roughly according to how power would 
-be allocated to sub-carriers using an even distribution of power and
-assuming perfect transmit filters.  This could be extended in the 
-future to place power outside of the
-channel according to the real spectral mask.  This should be
-done for future adjacent channel models but is not presently implemented.
-Similarly, on the receive side, a receiver filter mask can be defined; 
-for this initial implementation, we implemented a perfect brick wall 
-filter that is centered on the channel center frequency.
+be allocated to sub-carriers. Adjacent channels are models by the use of
+OFDM transmit spectrum masks as defined in the standards.
 
 To support an easier user configuration experience, the existing
 YansWifi helper classes (in ``src/wifi/helper``) were copied and
@@ -478,6 +472,46 @@ Spectrum channel.
 
 The MAC model
 =============
+
+Infrastructure association
+##########################
+
+Association in infrastructure (IBSS) mode is a high-level MAC function.
+Either active probing or passive scanning is used (default is passive scan).
+At the start of the simulation, Wi-Fi network devices configured as
+STA will attempt to scan the channel. Depends on whether passive or active
+scanning is selected, STA will attempt to gather beacons, or send a probe
+request and gather probe responses until the respective timeout occurs. The
+end result will be a list of candidate AP to associate to. STA will then try
+to associate to the best AP (i.e., best SNR).
+
+If association is rejected by the AP for some reason, the STA will try to
+associate to the next best AP until the candidate list is exhausted which
+then sends STA to 'REFUSED' state. If this occurs, the simulation user will
+need to force reassociation retry in some way, perhaps by changing
+configuration (i.e. the STA will not persistently try to associate upon a
+refusal).
+
+When associated, if the configuration is changed by the simulation user,
+the STA will try to reassociate with the existing AP.
+
+If the number of missed beacons exceeds the threshold, the STA will notify
+the rest of the device that the link is down (association is lost) and
+restart the scanning process. Note that this can also happen when an
+association request fails without explicit refusal (i.e., the AP fails to
+respond to association request).
+
+Roaming
+#######
+
+Roaming at layer-2 (i.e. a STA migrates its association from one AP to
+another) is not presently supported. Because of that, the Min/Max channel
+dwelling time implementation as described by the IEEE 802.11 standard
+[ieee80211]_ is also omitted, since it is only meaningful on the context
+of channel roaming.
+
+Channel access
+##############
 
 The 802.11 Distributed Coordination Function is used to calculate when to grant
 access to the transmission medium. While implementing the DCF would have been
@@ -632,7 +666,7 @@ Depending on your goal, the common tasks are (in no particular order):
   ``MacLow::ReceiveOk``.
 * MAC high modification. For example, handling new management frames (think beacon/probe), 
   beacon/probe generation.  Users usually make changes to ``regular-wifi-mac.*``, 
-  ``sta-wifi-mac.*``, ``ap-wifi-mac.*``, or ``adhoc-wifi-mac.*`` to accomplish this.
+  ``infrastructure-wifi-mac.*``,``sta-wifi-mac.*``, ``ap-wifi-mac.*``, or ``adhoc-wifi-mac.*`` to accomplish this.
 * Wi-Fi queue management.  The files ``txop.*`` and ``qos-txop.*`` are of interested for this task.
 * Channel access management.  Users should modify the files ``channel-access-manager.*``, which grant access to
   ``Txop`` and ``QosTxop``.

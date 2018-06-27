@@ -183,7 +183,9 @@ Furthermore, 802.11n provides an optional mode (GreenField mode) to reduce pream
 
   WifiHelper wifi;
   wifi.SetStandard (WIFI_PHY_STANDARD_80211ac);
-  wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode", StringValue("VhtMcs9"), "ControlMode", StringValue("VhtMcs0"));
+  wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", 
+                                "DataMode", StringValue ("VhtMcs9"), 
+                                "ControlMode", StringValue ("VhtMcs0"));
 
   //Install PHY and MAC
   Ssid ssid = Ssid ("ns3-wifi");
@@ -240,7 +242,8 @@ in a number of ways:
 
 ::
 
-  Config::Set ("/NodeList/0/DeviceList/*/$ns3::WifiNetDevice/Phy/$ns3::WifiPhy/ChannelNumber", UintegerValue (3));
+  Config::Set ("/NodeList/0/DeviceList/*/$ns3::WifiNetDevice/Phy/$ns3::WifiPhy/ChannelNumber",
+               UintegerValue (3));
 
 This section provides guidance on how to configure these settings in
 a coherent manner, and what happens if non-standard values are chosen.
@@ -544,13 +547,22 @@ The following code shows how to create an AP with QoS enabled::
 
 To create ad-hoc MAC instances, simply use ``ns3::AdhocWifiMac`` instead of ``ns3::StaWifiMac`` or ``ns3::ApWifiMac``.
 
-In infrastructure mode with QoS not enabled, it is also possible to enable PCF support.
-The following code shows how to create an AP with PCF enabled::
+In infrastructure mode without QoS enabled, it is also possible to enable PCF support.
+The following code shows how to create a CF-pollable station::
+
+  WifiMacHelper wifiMacHelper;
+  wifiMacHelper.SetType ("ns3::StaWifiMac",
+                         "Ssid", SsidValue (ssid),
+                         "PcfSupported", BooleanValue (true));
+
+PCF also supports an option to change the maximum duration of the contention-free period (which must be a multiple of 1024 microseconds).
+The following code shows how to create an AP with a custom PCF configuration::
 
   WifiMacHelper wifiMacHelper;
   wifiMacHelper.SetType ("ns3::ApWifiMac",
                          "Ssid", SsidValue (ssid),
-                         "PcfSupported", BooleanValue (true));
+                         "PcfSupported", BooleanValue (true),
+                         "CfpMaxDuration", TimeValue (MicroSeconds (20480)));
 
 With QoS-enabled MAC models it is possible to work with traffic belonging to
 four different Access Categories (ACs): **AC_VO** for voice traffic,

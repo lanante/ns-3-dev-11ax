@@ -32,11 +32,19 @@ New user-visible features
 
 Bugs fixed
 ----------
+- Bug 2914 - Adv Win resilience to SequenceNumber wrap-around
+- Bug 2921 - tcp: Add min_cwnd variable to LEDBAT
 - Bug 2911 - aodv:  Binary exponential backoff can become unlimited
 - Bug 2901 - Add CommandLine::Parse (const std::vector<std::string>> args)
+- Bug 2891 - netanim:  dumbbell-animation breaks when RightCount > LeftCount
 - Bug 2461 - CommandLine should handle non-option arguments
 - Bug 2801 - FdNetDevice device MTU is not set correctly
 - Bug 2819 - FqCoDel handling of non-IP packets
+- Bug 2920 - wifi: Default MaxSlrc and fragmentation threshold values differ from standard
+- Bug 2924 - documentation about Peek/Dequeue usage
+- Bug 2925 - wifi: MinstrelHt provides strange results at low SNR with A-MPDU enabled
+- Bug 2926 - wifi: SSRC and SLRC mechanism not fully aligned to the standard
+- Bug 2931 - Queue Disc drops the CE marked packets
 
 Known issues
 ------------

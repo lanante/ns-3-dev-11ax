@@ -584,16 +584,16 @@ QueueDisc::AddInternalQueue (Ptr<InternalQueue> queue)
 }
 
 Ptr<QueueDisc::InternalQueue>
-QueueDisc::GetInternalQueue (uint32_t i) const
+QueueDisc::GetInternalQueue (std::size_t i) const
 {
   NS_ASSERT (i < m_queues.size ());
   return m_queues[i];
 }
 
-uint32_t
+std::size_t
 QueueDisc::GetNInternalQueues (void) const
 {
-  return static_cast<uint32_t>(m_queues.size ());
+  return m_queues.size ();
 }
 
 void
@@ -604,16 +604,16 @@ QueueDisc::AddPacketFilter (Ptr<PacketFilter> filter)
 }
 
 Ptr<PacketFilter>
-QueueDisc::GetPacketFilter (uint32_t i) const
+QueueDisc::GetPacketFilter (std::size_t i) const
 {
   NS_ASSERT (i < m_filters.size ());
   return m_filters[i];
 }
 
-uint32_t
+std::size_t
 QueueDisc::GetNPacketFilters (void) const
 {
-  return static_cast<uint32_t>(m_filters.size ());
+  return m_filters.size ();
 }
 
 void
@@ -642,16 +642,16 @@ QueueDisc::AddQueueDiscClass (Ptr<QueueDiscClass> qdClass)
 }
 
 Ptr<QueueDiscClass>
-QueueDisc::GetQueueDiscClass (uint32_t i) const
+QueueDisc::GetQueueDiscClass (std::size_t i) const
 {
   NS_ASSERT (i < m_classes.size ());
   return m_classes[i];
 }
 
-uint32_t
+std::size_t
 QueueDisc::GetNQueueDiscClasses (void) const
 {
-  return static_cast<uint32_t>(m_classes.size ());
+  return m_classes.size ();
 }
 
 int32_t
@@ -861,7 +861,19 @@ QueueDisc::Dequeue (void)
 {
   NS_LOG_FUNCTION (this);
 
-  Ptr<QueueDiscItem> item = DoDequeue ();
+  // The QueueDisc::DoPeek method dequeues a packet and keeps it as a requeued
+  // packet. Thus, first check whether a peeked packet exists. Otherwise, call
+  // the private DoDequeue method.
+  Ptr<QueueDiscItem> item = m_requeued;
+
+  if (item)
+    {
+      m_requeued = 0;
+    }
+  else
+    {
+      item = DoDequeue ();
+    }
 
   NS_ASSERT (m_nPackets == m_stats.nTotalEnqueuedPackets - m_stats.nTotalDequeuedPackets);
   NS_ASSERT (m_nBytes == m_stats.nTotalEnqueuedBytes - m_stats.nTotalDequeuedBytes);
@@ -877,7 +889,7 @@ QueueDisc::Peek (void)
 }
 
 Ptr<const QueueDiscItem>
-QueueDisc::PeekDequeued (void)
+QueueDisc::DoPeek (void)
 {
   NS_LOG_FUNCTION (this);
 
@@ -886,25 +898,6 @@ QueueDisc::PeekDequeued (void)
       m_requeued = Dequeue ();
     }
   return m_requeued;
-}
-
-Ptr<QueueDiscItem>
-QueueDisc::DequeuePeeked (void)
-{
-  NS_LOG_FUNCTION (this);
-
-  Ptr<QueueDiscItem> item = m_requeued;
-
-  if (item)
-    {
-      m_requeued = 0;
-    }
-  else
-    {
-      item = Dequeue ();
-    }
-
-  return item;
 }
 
 void

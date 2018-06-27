@@ -241,7 +241,7 @@ private:
                               uint8_t nSuccessfulMpdus, uint8_t nFailedMpdus,
                               double rxSnr, double dataSnr);
   bool IsLowLatency (void) const;
-  bool DoNeedDataRetransmission (WifiRemoteStation *st, Ptr<const Packet> packet, bool normally);
+  bool DoNeedRetransmission (WifiRemoteStation *st, Ptr<const Packet> packet, bool normally);
 
   /**
    * Check the validity of a combination of number of streams, chWidth and mode.
@@ -602,10 +602,7 @@ private:
 
   Ptr<UniformRandomVariable> m_uniformRandomVariable; //!< Provides uniform random variables.
 
-  /**
-   * The trace source fired when the transmission rate change.
-   */
-  TracedCallback<uint64_t, Mac48Address> m_rateChange;
+  TracedValue<uint64_t> m_currentRate; //!< Trace rate changes
 };
 
 } // namespace ns3
