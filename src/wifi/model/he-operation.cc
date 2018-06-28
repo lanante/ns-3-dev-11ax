@@ -100,20 +100,6 @@ HeOperation::GetBasicHeMcsAndNssSet (void) const
   return m_basicHeMcsAndNssSet;
 }
 
-void
-HeOperation::SetBssColor (uint8_t bssColor)
-{
-  NS_ASSERT (bssColor < 64); // 6 bits
-  m_bssColor = bssColor;
-  m_bssColorDisabled = 0;
-}
-
-uint8_t
-HeOperation::GetBssColor (void) const
-{
-  return m_bssColor; 
-}
-
 Buffer::Iterator
 HeOperation::Serialize (Buffer::Iterator i) const
 {

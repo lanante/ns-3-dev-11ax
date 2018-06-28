@@ -53,21 +53,59 @@ us a note on ns-developers mailing list.</p>
 <hr>
 <h1>Changes from ns-3.28 to ns-3-dev</h1>
 <h2>New API:</h2>
+<ul>
   <li> CommandLine can now handle non-option (positional) arguments. </li>
   <li> Added CommandLine::Parse (const std::vector<std::string>> args) </li>
   <li> NS_LOG_FUNCTION can now log the contents of vectors </li>
   <li> A new position allocator has been added to the buildings module, allowing
 nodes to be placed outside of buildings defined in the scenario.</li>
-<ul>
+  <li> The Hash() method has been added to the QueueDiscItem class to compute the
+    hash of various fields of the packet header (depending on the packet type).</li>
+  <li> Added a priority queue disc (PrioQueueDisc).</li>
 </ul>
 <h2>Changes to existing API:</h2>
 <ul>
+  <li>TrafficControlHelper::Install now only includes root queue discs in the returned
+    QueueDiscContainer.</li>
+  <li>Recovery algorithms are now in a different class, instead of being tied to TcpSocketBase.
+    Take a look to TcpRecoveryOps for more information.</li>
+  <li>The Mode, MaxPackets and MaxBytes attributes of the Queue class, that had been deprecated in favor of the MaxSize attribute in ns-3.28, have now been removed and cannot be used anymore. Likewise, the methods to get/set the old attributes have been removed as well.  Commands such as:
+<pre>
+  Config::SetDefault ("ns3::QueueBase::MaxPackets", UintegerValue (4));
+</pre>
+should now be written as:
+<pre>
+  Config::SetDefault ("ns3::QueueBase::MaxSize", QueueSizeValue (QueueSize (QueueSizeUnit::PACKETS, 4)));
+</pre>
+or with a string value with 'b' (bytes) or 'p' (packets) suffix, such as:
+<pre>
+  Config::SetDefault ("ns3::QueueBase::MaxSize", StringValue ("4p"));
+</pre>
+  </li>
+  <li>The Limit attribute of the PfifoFastQueueDisc class, that had been deprecated in favor of the MaxSize attribute in ns-3.28, has now been removed and cannot be used anymore. Likewise, the methods to get/set the old Limit attribute have been removed as well. The GetMaxSize/SetMaxSize methods of the base QueueDisc class must be used instead.</li>
+  <li>The Mode, MaxPackets and MaxBytes attributes of the CoDelQueueDisc class, that had been deprecated in favor of the MaxSize attribute in ns-3.28, have now been removed and cannot be used anymore. Likewise, the methods to get/set the old attributes have been removed as well. The GetMaxSize/SetMaxSize methods of the base QueueDisc class must be used instead.</li>
+  <li>The PacketLimit attribute of the FqCoDelQueueDisc class, that had been deprecated in favor of the MaxSize attribute in ns-3.28, has now been removed and cannot be used anymore. Likewise, the methods to get/set the old PacketLimit attribute have been removed as well. The GetMaxSize/SetMaxSize methods of the base QueueDisc class must be used instead.</li>
+  <li>The Mode and QueueLimit attributes of the PieQueueDisc class, that had been deprecated in favor of the MaxSize attribute in ns-3.28, have now been removed and cannot be used anymore. Likewise, the methods to get/set the old attributes have been removed as well. The GetMaxSize/SetMaxSize methods of the base QueueDisc class must be used instead.</li>
+  <li>The Mode and QueueLimit attributes of the RedQueueDisc class, that had been deprecated in favor of the MaxSize attribute in ns-3.28, have now been removed and cannot be used anymore. Likewise, the methods to get/set the old attributes have been removed as well. The GetMaxSize/SetMaxSize methods of the base QueueDisc class must be used instead.</li>
+  <li> Several traffic generating applications have additional trace sources that export not only the transmitted or received packet but also the source and destination addresses.</li>
+  <li>The returned type of <b>GetNDevices</b> methods in <b>Channel</b> and subclasses derived from it were changed from uint32_t to std::size_t. Likewise, the input parameter type of <b>GetDevice</b> in <b>Channel</b> and its subclasses were changed from uint32_t to std::size_t.</li>
+  <li>Wifi classes <b>DcfManager</b>, <b>DcaTxop</b> and <b>EdcaTxopN</b> were renamed to <b>ChannelAccessManager</b>, <b>Txop</b> and <b>QosTxop</b>, respectively.</li>
+  <li>QueueDisc::DequeuePeeked has been merged into QueueDisc::Dequeue and hence no longer exists.</li>
+  <li>The QueueDisc base class now provides a default implementation of the DoPeek private method
+  based on the QueueDisc::PeekDequeue method, which is now no longer available.</li>
 </ul>
 <h2>Changes to build system:</h2>
 <ul>
 </ul>
 <h2>Changed behavior:</h2>
 <ul>
+  <li>FqCoDelQueueDisc now computes the hash of the packet's 5-tuple to determine
+    the flow the packet belongs to, unless a packet filter has been configured.
+    The previous behavior is simply obtained by not configuring any packet filter.
+    Consequently, the FqCoDelIpv{4,6}PacketFilter classes have been removed.</li>
+  <li> ARP packets now pass through the traffic control layer, as in Linux. </li>
+  <li> The maximum size UDP packet of the UdpClient application is no longer limited to 1500 bytes.</li>
+  <li> The default values of the <b>MaxSlrc</b> and <b>FragmentationThreshold</b> attributes in WifiRemoteStationManager were changed from 7 to 4 and from 2346 to 65535, respectively.
 </ul>
 
 <hr>
@@ -86,6 +124,9 @@ nodes to be placed outside of buildings defined in the scenario.</li>
   <li> Class <b>LrWpanMac</b> now supports extended addressing mode. Both <b>McpsDataRequest</b> and <b>PdDataIndication</b> methods will now use extended addressing if <b>McpsDataRequestParams::m_srcAddrMode</b> or <b>McpsDataRequestParams::m_dstAddrMode</b> are set to <b>EXT_ADDR</b>.</li>
   <li> Class <b>LteUeNetDevice</b> MAC address is now a 64-bit address and can be set during construction.</li>
   <li> Class <b>TcpSocketBase</b> trace source <i>CongestionWindow</i> shows the values without the in-recovery inflation and the post-recovery deflation; the old behavior has been moved to the new trace source <i>CongestionWindowInflated</i>.
+  <li>The Mode, MaxPackets and MaxBytes attributes of the Queue class have been deprecated in favor of the MaxSize attribute. Old attributes can still be used, but using them will be no longer possible in one of the next releases. The methods to get/set the old attributes will be removed as well.</li>
+  <li>The attributes of the QueueDisc subclasses that separately determine the mode and the limit of the QueueDisc have been deprecated in favor of the single MaxSize attribute.</li>
+  <li>The GetQueueSize method of some QueueDisc subclasses (e.g., RED) has been removed and replaced by the GetCurrentSize method of the QueueDisc base class.</li>
 </ul>
 <h2>Changes to build system:</h2>
 <ul>
@@ -93,9 +134,6 @@ nodes to be placed outside of buildings defined in the scenario.</li>
 </ul>
 <h2>Changed behavior:</h2>
 <ul>
-  <li>The Mode, MaxPackets and MaxBytes attributes of the Queue class have been deprecated in favor of the MaxSize attribute. Old attributes can still be used, but using them will be no longer possible in one of the next releases. The methods to get/set the old attributes will be removed as well.</li>
-  <li>The attributes of the QueueDisc subclasses that separately determine the mode and the limit of the QueueDisc have been deprecated in favor of the single MaxSize attribute.</li>
-  <li>The GetQueueSize method of some QueueDisc subclasses (e.g., RED) has been removed and replaced by the GetCurrentSize method of the QueueDisc base class.</li>
   <li>All Wi-Fi management frames are now transmitted using the lowest basic rate.</li>
   <li>The Wi-Fi spectrum model now takes into account adjacent channels through OFDM transmit spectrum masks.</li>
   <li> The CsmaNetDevice::PhyTxBeginTrace will trace all attempts to transmit, even those that result in drops. Previously, eventual channel drops were excluded from this trace.</l>

@@ -336,11 +336,12 @@ BlockAckManager::GetNextPacket (WifiMacHeader &hdr, bool removePacket)
 }
 
 Ptr<const Packet>
-BlockAckManager::PeekNextPacketByTidAndAddress (WifiMacHeader &hdr, Mac48Address recipient, uint8_t tid, Time *tstamp)
+BlockAckManager::PeekNextPacketByTidAndAddress (WifiMacHeader &hdr, uint8_t tid, Time *tstamp)
 {
   NS_LOG_FUNCTION (this);
   Ptr<const Packet> packet = 0;
   CleanupBuffers ();
+  Mac48Address recipient = hdr.GetAddr1 ();
   AgreementsI agreement = m_agreements.find (std::make_pair (recipient, tid));
   NS_ASSERT (agreement != m_agreements.end ());
   std::list<PacketQueueI>::const_iterator it = m_retryPackets.begin ();
@@ -370,7 +371,6 @@ BlockAckManager::PeekNextPacketByTidAndAddress (WifiMacHeader &hdr, Mac48Address
           hdr.SetRetry ();
           *tstamp = (*it)->timestamp;
           NS_LOG_INFO ("Retry packet seq = " << hdr.GetSequenceNumber ());
-          Mac48Address recipient = hdr.GetAddr1 ();
           if (!agreement->second.first.IsHtSupported ()
               && (ExistsAgreementInState (recipient, tid, OriginatorBlockAckAgreement::ESTABLISHED)
                   || SwitchToBlockAckIfNeeded (recipient, tid, hdr.GetSequenceNumber ())))
@@ -409,12 +409,8 @@ BlockAckManager::RemovePacket (uint8_t tid, Mac48Address recipient, uint16_t seq
       if ((*it)->hdr.GetAddr1 () == recipient && (*it)->hdr.GetQosTid () == tid && (*it)->hdr.GetSequenceNumber () == seqnumber)
         {
           WifiMacHeader hdr = (*it)->hdr;
-          uint8_t tid = hdr.GetQosTid ();
-          Mac48Address recipient = hdr.GetAddr1 ();
-
           AgreementsI i = m_agreements.find (std::make_pair (recipient, tid));
           i->second.second.erase ((*it));
-
           m_retryPackets.erase (it);
           NS_LOG_DEBUG ("Removed Packet from retry queue = " << hdr.GetSequenceNumber () << " " << +tid << " " << recipient << " Buffer Size = " << m_retryPackets.size ());
           return true;
@@ -670,7 +666,7 @@ BlockAckManager::ScheduleBlockAckReqIfNeeded (Mac48Address recipient, uint8_t ti
 
   if ((*it).second.first.IsBlockAckRequestNeeded ()
       || (GetNRetryNeededPackets (recipient, tid) == 0
-          && m_queue->GetNPacketsByTidAndAddress (tid, WifiMacHeader::ADDR1, recipient) == 0))
+          && m_queue->GetNPacketsByTidAndAddress (tid, recipient) == 0))
     {
       OriginatorBlockAckAgreement &agreement = (*it).second.first;
       agreement.CompleteExchange ();
@@ -768,7 +764,7 @@ BlockAckManager::SwitchToBlockAckIfNeeded (Mac48Address recipient, uint8_t tid, 
   NS_ASSERT (!ExistsAgreementInState (recipient, tid, OriginatorBlockAckAgreement::PENDING));
   if (!ExistsAgreementInState (recipient, tid, OriginatorBlockAckAgreement::UNSUCCESSFUL) && ExistsAgreement (recipient, tid))
     {
-      uint32_t packets = m_queue->GetNPacketsByTidAndAddress (tid, WifiMacHeader::ADDR1, recipient) +
+      uint32_t packets = m_queue->GetNPacketsByTidAndAddress (tid, recipient) +
         GetNBufferedPackets (recipient, tid);
       if (packets >= m_blockAckThreshold)
         {
@@ -787,6 +783,20 @@ bool BlockAckManager::NeedBarRetransmission (uint8_t tid, uint16_t seqNumber, Ma
   CleanupBuffers ();
   if ((seqNumber + 63) < it->second.first.GetStartingSequence ())
     {
+      return false;
+    }
+  else if (it->second.first.GetTimeout () > 0 && it->second.first.m_inactivityEvent.IsExpired ())
+    {
+      /*
+       * According to "11.5.4 Error recovery upon a peer failure",
+       * DELBA should be issued after inactivity timeout,
+       * so block ack request should not be retransmitted anymore.
+       *
+       * Otherwise we risk retransmitting BAR forever if condition
+       * above is never met and the STA is not available.
+       *
+       * See https://www.nsnam.org/bugzilla/show_bug.cgi?id=2928 for details.
+       */
       return false;
     }
   else

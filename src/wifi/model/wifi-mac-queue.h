@@ -98,9 +98,22 @@ public:
   Ptr<WifiMacQueueItem> Dequeue (void);
   /**
    * Search and return, if present in the queue, the first packet having the
+   * address indicated by <i>type</i> equal to <i>addr</i>.
+   * This method removes the packet from the queue.
+   * It is typically used by ns3::Txop during the CF period.
+   *
+   * \param type the given address type
+   * \param dest the given destination
+   *
+   * \return the packet
+   */
+  Ptr<WifiMacQueueItem> DequeueByAddress (WifiMacHeader::AddressType type,
+                                          Mac48Address dest);
+  /**
+   * Search and return, if present in the queue, the first packet having the
    * address indicated by <i>type</i> equal to <i>addr</i>, and tid
    * equal to <i>tid</i>. This method removes the packet from the queue.
-   * It is typically used by ns3::EdcaTxopN in order to perform correct MSDU
+   * It is typically used by ns3::QosTxop in order to perform correct MSDU
    * aggregation (A-MSDU).
    *
    * \param tid the given TID
@@ -134,7 +147,7 @@ public:
    * Search and return, if present in the queue, the first packet having the
    * address indicated by <i>type</i> equal to <i>addr</i>, and tid
    * equal to <i>tid</i>. This method does not remove the packet from the queue.
-   * It is typically used by ns3::EdcaTxopN in order to perform correct MSDU
+   * It is typically used by ns3::QosTxop in order to perform correct MSDU
    * aggregation (A-MSDU).
    *
    * \param tid the given TID
@@ -171,18 +184,24 @@ public:
    */
   bool Remove (Ptr<const Packet> packet);
   /**
-   * Return the number of QoS packets having tid equal to <i>tid</i> and address
-   * specified by <i>type</i> equal to <i>addr</i>.
+   * Return the number of packets having destination address specified by
+   * <i>dest</i>.
+   *
+   * \param dest the given destination
+   *
+   * \return the number of packets
+   */
+  uint32_t GetNPacketsByAddress (Mac48Address dest);
+  /**
+   * Return the number of QoS packets having tid equal to <i>tid</i> and
+   * destination address equal to <i>dest</i>.
    *
    * \param tid the given TID
-   * \param type the given address type
    * \param dest the given destination
    *
    * \return the number of QoS packets
    */
-  uint32_t GetNPacketsByTidAndAddress (uint8_t tid,
-                                       WifiMacHeader::AddressType type,
-                                       Mac48Address dest);
+  uint32_t GetNPacketsByTidAndAddress (uint8_t tid, Mac48Address dest);
 
   /**
    * \return true if the queue is empty; false otherwise

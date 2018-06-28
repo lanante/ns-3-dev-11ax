@@ -458,7 +458,7 @@ WifiPhyStateHelper::SwitchToChannelSwitching (Time switchingDuration)
 }
 
 void
-WifiPhyStateHelper::SwitchFromRxEndOk (Ptr<Packet> packet, double snr, double rxPowerDbm, WifiTxVector txVector)
+WifiPhyStateHelper::SwitchFromRxEndOk (Ptr<Packet> packet, double snr, WifiTxVector txVector)
 {
   NS_LOG_FUNCTION (this << packet << snr << txVector);
   m_rxOkTrace (packet, snr, txVector.GetMode (), txVector.GetPreambleType ());
@@ -466,7 +466,7 @@ WifiPhyStateHelper::SwitchFromRxEndOk (Ptr<Packet> packet, double snr, double rx
   DoSwitchFromRx ();
   if (!m_rxOkCallback.IsNull ())
     {
-      m_rxOkCallback (packet, snr, rxPowerDbm, txVector);
+      m_rxOkCallback (packet, snr, txVector);
     }
 
 }

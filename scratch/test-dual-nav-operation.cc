@@ -275,7 +275,7 @@ main (int argc, char *argv[])
       duration = 0.5;
       if (verbose)
         {
-          LogComponentEnable ("DcfManager", LOG_LEVEL_ALL);
+          LogComponentEnable ("ChannelAccessManager", LOG_LEVEL_ALL);
         }
       break;
     default:
@@ -342,19 +342,23 @@ main (int argc, char *argv[])
   apDeviceA = wifi.Install (spectrumPhy, mac, ap1);
   Ptr<WifiNetDevice> apDevice = apDeviceA.Get (0)->GetObject<WifiNetDevice> ();
   Ptr<ApWifiMac> apWifiMac = apDevice->GetMac ()->GetObject<ApWifiMac> ();
+#ifdef NOTYET
   if (enableObssPd)
     {
       apWifiMac->SetBssColor (1);
     }
+#endif
 
   Ptr<WifiNetDevice> nd0 = staDevicesA.Get (0)->GetObject<WifiNetDevice> ();
   Ptr<WifiNetDevice> nd1 = staDevicesA.Get (1)->GetObject<WifiNetDevice> ();
   Ptr<RegularWifiMac> mac0 = nd0->GetMac ()->GetObject<RegularWifiMac> ();
   Ptr<RegularWifiMac> mac1 = nd1->GetMac ()->GetObject<RegularWifiMac> ();
+#ifdef NOTYET
   Ptr<DcfManager> dcf0 = mac0->GetDcfManager ();
   dcf0->TraceConnect ("NavState", std::to_string (nd0->GetNode ()->GetId ()), MakeCallback (&NavStateTrace));
   Ptr<DcfManager> dcf1 = mac1->GetDcfManager ();
   dcf1->TraceConnect ("NavState", std::to_string (nd1->GetNode ()->GetId ()), MakeCallback (&NavStateTrace));
+#endif
   
   NetDeviceContainer staDevicesB;
   NetDeviceContainer apDeviceB;
@@ -362,7 +366,9 @@ main (int argc, char *argv[])
   spectrumPhy.Set ("TxPowerEnd", DoubleValue (powSta3));
   spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrSta3));
   spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-92.0));
+#ifdef NOTYET
   Config::SetDefault ("ns3::StaWifiMac::ObssPdThreshold", DoubleValue (-82.0));
+#endif
   Ssid ssidB = Ssid ("B");
   mac.SetType ("ns3::StaWifiMac","Ssid", SsidValue (ssidB));
   staDevicesB = wifi.Install (spectrumPhy, mac, sta3);
@@ -376,15 +382,19 @@ main (int argc, char *argv[])
   apDeviceB = wifi.Install (spectrumPhy, mac, ap2);
   Ptr<WifiNetDevice> ap2Device = apDeviceB.Get (0)->GetObject<WifiNetDevice> ();
   apWifiMac = ap2Device->GetMac ()->GetObject<ApWifiMac> ();
+#ifdef NOTYET
   if (enableObssPd)
     {
       apWifiMac->SetBssColor (2);
     }
+#endif
 
   Ptr<WifiNetDevice> nd3 = staDevicesB.Get (0)->GetObject<WifiNetDevice> ();
   Ptr<RegularWifiMac> mac3 = nd3->GetMac ()->GetObject<RegularWifiMac> ();
+#ifdef NOTYET
   Ptr<DcfManager> dcf3 = mac3->GetDcfManager ();
   dcf3->TraceConnect ("NavState", std::to_string (nd3->GetNode ()->GetId ()), MakeCallback (&NavStateTrace));
+#endif
 
   MobilityHelper mobility;
   Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator> ();

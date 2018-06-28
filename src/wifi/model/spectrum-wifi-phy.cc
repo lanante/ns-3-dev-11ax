@@ -32,7 +32,6 @@
 #include "wifi-spectrum-signal-parameters.h"
 #include "wifi-spectrum-phy-interface.h"
 #include "wifi-utils.h"
-#include "wifi-phy-tag.h"
 
 namespace ns3 {
 
@@ -257,55 +256,9 @@ SpectrumWifiPhy::StartRx (Ptr<SpectrumSignalParameters> rxParams)
       SwitchMaybeToCcaBusy ();
       return;
     }
-  // Ideally we check this after the preamble and header are received
-  // but we need to insert a receive event for that (TBD)
-/*  Tag tag; 
-  Ptr<Packet> packet = wifiRxParams->packet->Copy ();
-  PacketTagIterator i = packet->GetPacketTagIterator ();
-  PacketTagIterator::Item item = i.Next(); 
-  item.GetTag (tag);        
-  WifiPhyTag wifitag =dynamic_cast<WifiPhyTag&>(tag);*/
 
-/*  Ptr<Packet> packet = wifiRxParams->packet->Copy ();
-  WifiPhyTag tag;
-  bool found = packet->PeekPacketTag (tag);
-  if (!found)
-    {
-      NS_FATAL_ERROR ("Received Wi-Fi Signal with no WifiPhyTag");
-      return;
-    }
-  WifiTxVector txVector = tag.GetWifiTxVector ();*/
-
-  Ptr<Packet> packet = wifiRxParams->packet->Copy ();
-  WifiPhyTag tag;
-  bool found = packet->PeekPacketTag (tag);
-  if (!found)
-    {
-      NS_FATAL_ERROR ("Received Wi-Fi Signal with no WifiPhyTag");
-      return;
-    }
-  WifiTxVector txVector = tag.GetWifiTxVector ();
-
-  if (txVector.GetBssColor () == GetBssColor () && rxPowerW < GetCcaCsThresholdW ())
-    {
-//  std::cout << "Same BSS Color: " << (unsigned)txVector.GetBssColor () << (unsigned)GetBssColor () << std::endl;
-      NS_LOG_INFO ("Received Wi-Fi signal but below CCA-CS threshold");
-      m_interference.AddForeignSignal (rxDuration, rxPowerW);
-      SwitchMaybeToCcaBusy ();
-      return;
-    }
-
-  // This part of the code should move after the L-sig decision based on the new proposed state
-  // machine. It should be set in wifi-phy. 
-  double TempObssPdW = GetObssPdThresholdW () * GetChannelWidth ()/20;
-  if (txVector.GetBssColor () != GetBssColor () && rxPowerW < TempObssPdW)
-    {
-      NS_LOG_INFO ("Received OBSS Wi-Fi signal but below OBSS-PD threshold");
-      m_interference.AddForeignSignal (rxDuration, rxPowerW);
-      SwitchMaybeToCcaBusy ();
-      return;
-    }
   NS_LOG_INFO ("Received Wi-Fi signal");
+  Ptr<Packet> packet = wifiRxParams->packet->Copy ();
   StartReceivePreambleAndHeader (packet, rxPowerW, rxDuration);
 }
 
@@ -361,17 +314,17 @@ SpectrumWifiPhy::GetTxPowerSpectralDensity (uint16_t centerFrequency, uint16_t c
   return v;
 }
 
-uint32_t
+uint16_t
 SpectrumWifiPhy::GetCenterFrequencyForChannelWidth (WifiTxVector txVector) const
 {
   NS_LOG_FUNCTION (this << txVector);
-  uint32_t centerFrequencyForSupportedWidth = GetFrequency ();
+  uint16_t centerFrequencyForSupportedWidth = GetFrequency ();
   uint16_t supportedWidth = GetChannelWidth ();
   uint16_t currentWidth = txVector.GetChannelWidth ();
   if (currentWidth != supportedWidth)
     {
-      uint32_t startingFrequency = centerFrequencyForSupportedWidth - static_cast<uint32_t> (supportedWidth / 2);
-      return startingFrequency + static_cast<uint32_t> (currentWidth / 2); // primary channel is in the lower part (for the time being)
+      uint16_t startingFrequency = centerFrequencyForSupportedWidth - (supportedWidth / 2);
+      return startingFrequency + (currentWidth / 2); // primary channel is in the lower part (for the time being)
     }
   return centerFrequencyForSupportedWidth;
 }

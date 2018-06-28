@@ -334,7 +334,9 @@ main (int argc, char *argv[])
   spectrumPhy.Set ("TxPowerStart", DoubleValue (powSta1));
   spectrumPhy.Set ("TxPowerEnd", DoubleValue (powSta1));
   spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrSta1));
+#ifdef NOTYET
   Config::SetDefault ("ns3::StaWifiMac::ObssPdThreshold", DoubleValue (-82.0));
+#endif
   Config::SetDefault ("ns3::StaWifiMac::MaxMissedBeacons", UintegerValue (10000));
 
   Config::SetDefault ("ns3::RegularWifiMac::VO_BlockAckThreshold", UintegerValue (0));
@@ -360,16 +362,20 @@ main (int argc, char *argv[])
   apDeviceA = wifi.Install (spectrumPhy, mac, ap1);
   Ptr<WifiNetDevice> apDevice = apDeviceA.Get (0)->GetObject<WifiNetDevice> ();
   Ptr<ApWifiMac> apWifiMac = apDevice->GetMac ()->GetObject<ApWifiMac> ();
+#ifdef NOTYET
   if (enableObssPd)
     {
       apWifiMac->SetBssColor (1);
     }
+#endif
 
   spectrumPhy.Set ("TxPowerStart", DoubleValue (powSta3));
   spectrumPhy.Set ("TxPowerEnd", DoubleValue (powSta3));
   spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrSta3));
   spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-92.0));
+#ifdef NOTYET
   Config::SetDefault ("ns3::StaWifiMac::ObssPdThreshold", DoubleValue (-82.0));
+#endif
   Config::SetDefault ("ns3::StaWifiMac::MaxMissedBeacons", UintegerValue (10000));
 
   Ssid ssidB = Ssid ("B");
@@ -389,10 +395,12 @@ main (int argc, char *argv[])
   apDeviceB = wifi.Install (spectrumPhy, mac, ap2);
   Ptr<WifiNetDevice> ap2Device = apDeviceB.Get (0)->GetObject<WifiNetDevice> ();
   apWifiMac = ap2Device->GetMac ()->GetObject<ApWifiMac> ();
+#ifdef NOTYET
   if (enableObssPd)
     {
       apWifiMac->SetBssColor (2);
     }
+#endif
 
   MobilityHelper mobility;
   Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator> ();

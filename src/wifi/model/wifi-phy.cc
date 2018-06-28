@@ -176,16 +176,9 @@ WifiPhy::GetTypeId (void)
     .AddAttribute ("CcaMode1Threshold",
                    "The energy of a received signal should be higher than "
                    "this threshold (dbm) to allow the PHY layer to declare CCA BUSY state.",
-                   DoubleValue (-62.0),
+                   DoubleValue (-99.0),
                    MakeDoubleAccessor (&WifiPhy::SetCcaMode1Threshold,
                                        &WifiPhy::GetCcaMode1Threshold),
-                   MakeDoubleChecker<double> ())
-    .AddAttribute ("CcaCsThreshold",
-                   "CCA-CS (carrier sense) threshold (dBm); the minimum modulation and coding "
-                   "rate sensitivity to cause CCA to detect medium busy.",
-                   DoubleValue (-82.0),
-                   MakeDoubleAccessor (&WifiPhy::SetCcaCsThreshold,
-                                       &WifiPhy::GetCcaCsThreshold),
                    MakeDoubleChecker<double> ())
     .AddAttribute ("TxGain",
                    "Transmission gain (dB).",
@@ -372,8 +365,6 @@ WifiPhy::WifiPhy ()
     m_totalAmpduSize (0),
     m_totalAmpduNumSymbols (0),
     m_currentEvent (0),
-    m_obssPdThresholdW (0),
-    m_bssColor (0),
     m_wifiRadioEnergyModel (0)
 {
   NS_LOG_FUNCTION (this);
@@ -480,51 +471,6 @@ double
 WifiPhy::GetEdThreshold (void) const
 {
   return WToDbm (m_edThresholdW);
-}
-
-void
-WifiPhy::SetCcaCsThreshold (double threshold)
-{
-  NS_LOG_FUNCTION (this << threshold);
-  m_ccaCsThresholdW = DbmToW (threshold);
-}
-
-double
-WifiPhy::GetCcaCsThreshold (void) const
-{
-  return WToDbm (m_ccaCsThresholdW);
-}
-
-double
-WifiPhy::GetCcaCsThresholdW (void) const
-{
-  return m_ccaCsThresholdW;
-}
-
-void
-WifiPhy::SetObssPdThreshold (double threshold)
-{
-  NS_LOG_FUNCTION (this << threshold);
-  m_obssPdThresholdW = DbmToW (threshold);
-  NS_LOG_DEBUG ("Value" << m_obssPdThresholdW << "W");
-}
-
-double
-WifiPhy::GetObssPdThresholdW (void) const
-{
-  return m_obssPdThresholdW;
-}
-
-void
-WifiPhy::SetBssColor (uint8_t color)
-{
-  m_bssColor = color;
-}
-
-uint8_t
-WifiPhy::GetBssColor (void) const
-{
-  return m_bssColor;
 }
 
 void
@@ -952,7 +898,7 @@ WifiPhy::ConfigureHtDeviceMcsSet (void)
   if (htFound)
     {
       // erase all HtMcs modes from deviceMcsSet
-      size_t index = m_deviceMcsSet.size () - 1;
+      std::size_t index = m_deviceMcsSet.size () - 1;
       for (std::vector<WifiMode>::reverse_iterator rit = m_deviceMcsSet.rbegin (); rit != m_deviceMcsSet.rend (); ++rit, --index)
         {
           if (m_deviceMcsSet[index].GetModulationClass () == WIFI_MOD_CLASS_HT)
@@ -1084,9 +1030,9 @@ WifiPhy::DefineChannelNumber (uint8_t channelNumber, WifiPhyStandard standard, u
 }
 
 uint8_t
-WifiPhy::FindChannelNumberForFrequencyWidth (uint16_t frequency, uint8_t width) const
+WifiPhy::FindChannelNumberForFrequencyWidth (uint16_t frequency, uint16_t width) const
 {
-  NS_LOG_FUNCTION (this << frequency << +width);
+  NS_LOG_FUNCTION (this << frequency << width);
   bool found = false;
   FrequencyWidthPair f = std::make_pair (frequency, width);
   ChannelToFrequencyWidthMap::const_iterator it = m_channelToFrequencyWidth.begin ();
@@ -1365,7 +1311,7 @@ WifiPhy::GetMaxSupportedRxSpatialStreams (void) const
 uint8_t
 WifiPhy::GetNBssMembershipSelectors (void) const
 {
-  return m_bssMembershipSelectorSet.size ();
+  return static_cast<uint8_t> (m_bssMembershipSelectorSet.size ());
 }
 
 uint8_t
@@ -2211,11 +2157,11 @@ WifiPhy::GetPayloadDuration (uint32_t size, WifiTxVector txVector, uint16_t freq
         //Add signal extension for ERP PHY
         if (payloadMode.GetModulationClass () == WIFI_MOD_CLASS_ERP_OFDM)
           {
-            return FemtoSeconds (numSymbols * symbolDuration.GetFemtoSeconds ()) + MicroSeconds (6);
+            return FemtoSeconds (static_cast<uint64_t> (numSymbols * symbolDuration.GetFemtoSeconds ())) + MicroSeconds (6);
           }
         else
           {
-            return FemtoSeconds (numSymbols * symbolDuration.GetFemtoSeconds ());
+            return FemtoSeconds (static_cast<uint64_t> (numSymbols * symbolDuration.GetFemtoSeconds ()));
           }
       }
     case WIFI_MOD_CLASS_HT:
@@ -2225,11 +2171,11 @@ WifiPhy::GetPayloadDuration (uint32_t size, WifiTxVector txVector, uint16_t freq
             && ((mpdutype == NORMAL_MPDU && preamble != WIFI_PREAMBLE_NONE)
                 || (mpdutype == LAST_MPDU_IN_AGGREGATE && preamble == WIFI_PREAMBLE_NONE))) //at 2.4 GHz
           {
-            return FemtoSeconds (numSymbols * symbolDuration.GetFemtoSeconds ()) + MicroSeconds (6);
+            return FemtoSeconds (static_cast<uint64_t> (numSymbols * symbolDuration.GetFemtoSeconds ())) + MicroSeconds (6);
           }
         else //at 5 GHz
           {
-            return FemtoSeconds (numSymbols * symbolDuration.GetFemtoSeconds ());
+            return FemtoSeconds (static_cast<uint64_t> (numSymbols * symbolDuration.GetFemtoSeconds ()));
           }
       }
     case WIFI_MOD_CLASS_HE:
@@ -2238,11 +2184,11 @@ WifiPhy::GetPayloadDuration (uint32_t size, WifiTxVector txVector, uint16_t freq
             && ((mpdutype == NORMAL_MPDU && preamble != WIFI_PREAMBLE_NONE)
                 || (mpdutype == LAST_MPDU_IN_AGGREGATE && preamble == WIFI_PREAMBLE_NONE))) //at 2.4 GHz
           {
-            return FemtoSeconds (numSymbols * symbolDuration.GetFemtoSeconds ()) + MicroSeconds (6);
+            return FemtoSeconds (static_cast<uint64_t> (numSymbols * symbolDuration.GetFemtoSeconds ())) + MicroSeconds (6);
           }
         else //at 5 GHz
           {
-            return FemtoSeconds (numSymbols * symbolDuration.GetFemtoSeconds ());
+            return FemtoSeconds (static_cast<uint64_t> (numSymbols * symbolDuration.GetFemtoSeconds ()));
           }
       }
     case WIFI_MOD_CLASS_DSSS:
@@ -2382,7 +2328,6 @@ WifiPhy::SendPacket (Ptr<const Packet> packet, WifiTxVector txVector, MpduType m
   Ptr<Packet> newPacket = packet->Copy (); // obtain non-const Packet
   WifiPhyTag oldtag;
   newPacket->RemovePacketTag (oldtag);
-  txVector.SetBssColor (GetBssColor ());
   if (m_state->GetState () == WifiPhyState::OFF)
     {
       NS_LOG_DEBUG ("Transmission canceled because device is OFF");
@@ -2402,10 +2347,6 @@ WifiPhy::SendPacket (Ptr<const Packet> packet, WifiTxVector txVector, MpduType m
 void
 WifiPhy::StartReceivePreambleAndHeader (Ptr<Packet> packet, double rxPowerW, Time rxDuration)
 {
-  //This function should be later split to check separately whether plcp preamble and plcp header can be successfully received.
-  //Note: plcp preamble reception is not yet modeled.
-  Time endRx = Simulator::Now () + rxDuration;
-  NS_LOG_FUNCTION (this << packet << WToDbm (rxPowerW) << rxDuration);
   WifiPhyTag tag;
   bool found = packet->RemovePacketTag (tag);
   if (!found)
@@ -2445,6 +2386,7 @@ WifiPhy::StartReceivePreambleAndHeader (Ptr<Packet> packet, double rxPowerW, Tim
       NS_FATAL_ERROR ("MCS value does not match NSS value: MCS = " << +txVector.GetMode ().GetMcsValue () << ", NSS = " << +txVector.GetNss ());
     }
 
+  Time endRx = Simulator::Now () + rxDuration;
   if (txVector.GetNss () > GetMaxSupportedRxSpatialStreams ())
     {
       NS_LOG_DEBUG ("drop packet because not enough RX antennas");
@@ -2541,7 +2483,6 @@ WifiPhy::MaybeCcaBusyDuration ()
   //tracked by the InterferenceHelper class is higher than the CcaBusyThreshold
 
   Time delayUntilCcaEnd = m_interference.GetEnergyDuration (DbmToW (GetCcaMode1Threshold ()));
-  //std::cout << "WifiPhy::MaybeCcaBusyDuration (), new cca threshold" << GetCcaMode1Threshold () << std::endl;
   if (!delayUntilCcaEnd.IsZero ())
     {
       m_state->SwitchMaybeToCcaBusy (delayUntilCcaEnd);
@@ -2613,7 +2554,7 @@ WifiPhy::EndReceive (Ptr<Packet> packet, WifiPreamble preamble, MpduType mpdutyp
           aMpdu.type = mpdutype;
           aMpdu.mpduRefNumber = m_rxMpduReferenceNumber;
           NotifyMonitorSniffRx (packet, GetFrequency (), event->GetTxVector (), aMpdu, signalNoise);
-          m_state->SwitchFromRxEndOk (packet, snrPer.snr, WToDbm (event->GetRxPowerW ()), event->GetTxVector ());
+          m_state->SwitchFromRxEndOk (packet, snrPer.snr, event->GetTxVector ());
         }
       else
         {
@@ -3553,7 +3494,7 @@ WifiPhy::IsMcsSupported (WifiMode mcs) const
 uint8_t
 WifiPhy::GetNModes (void) const
 {
-  return m_deviceRateSet.size ();
+  return static_cast<uint8_t> (m_deviceRateSet.size ());
 }
 
 WifiMode
@@ -3565,7 +3506,7 @@ WifiPhy::GetMode (uint8_t mode) const
 uint8_t
 WifiPhy::GetNMcs (void) const
 {
-  return m_deviceMcsSet.size ();
+  return static_cast<uint8_t> (m_deviceMcsSet.size ());
 }
 
 WifiMode

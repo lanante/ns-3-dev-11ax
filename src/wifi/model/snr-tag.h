@@ -63,23 +63,10 @@ public:
    * \return the SNR value
    */
   double Get (void) const;
-  /**
-   * Set the RxPowerDbm to the given value.
-   *
-   * \param rxPowerDbm the value of the power to set
-   */
-  void SetRxPowerDbm (double rxPowerDbm);
-  /**
-   * Return the Rx Power (dBm) value.
-   *
-   * \return the Rx Power (dBm) value
-   */
-  double GetRxPowerDbm (void) const;
 
 
 private:
   double m_snr;  //!< SNR value
-  double m_rxPowerDbm;  //!< Rx power value
 };
 
 }

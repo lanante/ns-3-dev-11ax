@@ -64,7 +64,6 @@ struct MpduInfo
 class WifiPhy : public Object
 {
 public:
-
   /**
    * \brief Get the type ID.
    * \return the object TypeId
@@ -497,7 +496,7 @@ public:
   /**
    * A pair of a center Frequency and a ChannelWidth
    */
-  typedef std::pair<uint16_t, uint8_t> FrequencyWidthPair;
+  typedef std::pair<uint16_t, uint16_t> FrequencyWidthPair;
 
   /**
    * Return the Channel this WifiPhy is connected to.
@@ -1198,39 +1197,6 @@ public:
    * \return the energy detection threshold in dBm
    */
   double GetEdThreshold (void) const;
-
-  /**
-   * Set the CCA-CS threshold (dBm).
-   *
-   * \param threshold the CCA-CS threshold in dBm
-   */
-  void SetCcaCsThreshold (double threshold);
-  /**
-   * Return the CCA-CS threshold (W).
-   *
-   * \return the CCA-CS threshold in W
-   */
-  double GetCcaCsThresholdW (void) const;
-  /**
-   * Return the CCA-CS threshold (dBm).
-   *
-   * \return the CCA-CS threshold in dBm
-   */
-  double GetCcaCsThreshold (void) const;
-  /**
-   * Sets the obss pd threshold (dBm).
-   * The energy of a received signal of a BSS with different Color should be higher than
-   * this threshold (dbm) to allow the PHY layer to detect the signal.
-   *
-   * \param threshold the obss pd threshold in dBm
-   */
-  void SetObssPdThreshold (double threshold);
-  /**
-   * Return the obss pd threshold (dBm).
-   *
-   * \return the obss pd threshold in dBm
-   */
-  double GetObssPdThresholdW (void) const;
   /**
    * Sets the CCA threshold (dBm). The energy of a received signal
    * should be higher than this threshold to allow the PHY
@@ -1314,16 +1280,6 @@ public:
    */
   double GetRxGain (void) const;
 
-  /**
-   * Set the BSS color
-   * \param color the value to set
-   */
-  void SetBssColor (uint8_t color);
-  /**
-   * Get the BSS color
-   * \return the color value
-   */
-  uint8_t GetBssColor (void) const;
   /**
    * Sets the device this PHY is associated with.
    *
@@ -1637,7 +1593,7 @@ private:
    * \param width The channel width to use
    * \return the channel number if found, zero if not
    */
-  uint8_t FindChannelNumberForFrequencyWidth (uint16_t frequency, uint8_t width) const;
+  uint8_t FindChannelNumberForFrequencyWidth (uint16_t frequency, uint16_t width) const;
   /**
    * Lookup frequency/width pair for channelNumber/standard pair
    * \param channelNumber The channel number to check
@@ -1799,7 +1755,6 @@ private:
 
   double   m_edThresholdW;        //!< Energy detection threshold in watts
   double   m_ccaMode1ThresholdW;  //!< Clear channel assessment (CCA) threshold in watts
-  double   m_ccaCsThresholdW;     //!< CCA-CS threshold in watts
   double   m_txGainDb;            //!< Transmission gain (dB)
   double   m_rxGainDb;            //!< Reception gain (dB)
   double   m_txPowerBaseDbm;      //!< Minimum transmission power (dBm)
@@ -1834,11 +1789,6 @@ private:
 
   Ptr<Event> m_currentEvent; //!< Hold the current event
   Ptr<FrameCaptureModel> m_frameCaptureModel; //!< Frame capture model
-
-  // The following HE configuration can be moved to a separate object
-  double   m_obssPdThresholdW;    //!< Obss Pd threshold in watts
-  uint8_t  m_bssColor;            //!< BSS color
-
   Ptr<WifiRadioEnergyModel> m_wifiRadioEnergyModel; //!< Wifi radio energy model
 
   Callback<void> m_capabilitiesChangedCallback; //!< Callback when PHY capabilities changed

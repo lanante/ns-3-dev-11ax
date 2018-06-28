@@ -74,17 +74,6 @@ public:
   uint32_t GetBasicHeMcsAndNssSet (void) const;
 
   /**
-   * Set the BSS color
-   * \param bssColor the BSS color value
-   */
-  void SetBssColor (uint8_t bssColor);
-  /**
-   * Get the BSS color
-   * \return the BSS color value
-   */
-  uint8_t GetBssColor (void) const;
-
-  /**
    * Return the element ID.
    *
    * \returns the element ID

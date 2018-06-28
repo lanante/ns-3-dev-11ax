@@ -190,6 +190,7 @@ ScheduleStateLogDisconnect (void)
   Config::Disconnect ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Phy/State/State", MakeCallback (&StateCb));
 }
 
+#ifdef NOTYET
 void
 NavStateTrace (std::string context, Time start, Time duration)
 {
@@ -197,6 +198,7 @@ NavStateTrace (std::string context, Time start, Time duration)
                   << start.GetSeconds () << " " << (start + duration).GetSeconds () 
                   << " " << std::setprecision (1) << duration.As (Time::US) << std::endl; 
 }
+#endif
 
 int
 main (int argc, char *argv[])
@@ -272,7 +274,7 @@ main (int argc, char *argv[])
       duration = 0.5;
       if (verbose)
         {
-          LogComponentEnable ("DcfManager", LOG_LEVEL_ALL);
+          LogComponentEnable ("ChannelAccessManager", LOG_LEVEL_ALL);
         }
       break;
     case CASE_11ac_RTS:
@@ -286,7 +288,7 @@ main (int argc, char *argv[])
       duration = 0.5;
       if (verbose)
         {
-          LogComponentEnable ("DcfManager", LOG_LEVEL_ALL);
+          LogComponentEnable ("ChannelAccessManager", LOG_LEVEL_ALL);
         }
       break;
     default:
@@ -354,10 +356,12 @@ main (int argc, char *argv[])
   Ptr<WifiNetDevice> nd1 = staDevicesA.Get (1)->GetObject<WifiNetDevice> ();
   Ptr<RegularWifiMac> mac0 = nd0->GetMac ()->GetObject<RegularWifiMac> ();
   Ptr<RegularWifiMac> mac1 = nd1->GetMac ()->GetObject<RegularWifiMac> ();
+#ifdef NOTYET
   Ptr<DcfManager> dcf0 = mac0->GetDcfManager ();
   dcf0->TraceConnect ("NavState", std::to_string (nd0->GetNode ()->GetId ()), MakeCallback (&NavStateTrace));
   Ptr<DcfManager> dcf1 = mac1->GetDcfManager ();
   dcf1->TraceConnect ("NavState", std::to_string (nd1->GetNode ()->GetId ()), MakeCallback (&NavStateTrace));
+#endif
   
 /*      Config::SetDefault ("ns3::RegularWifiMac::VO_BlockAckThreshold", UintegerValue (1));
       Config::SetDefault ("ns3::RegularWifiMac::VI_BlockAckThreshold", UintegerValue (1));

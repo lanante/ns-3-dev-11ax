@@ -200,16 +200,6 @@ public:
    */
    bool IsValid (void) const;
 
-  /**
-   * Set the BSS color
-   * \param color the BSS color
-   */
-  void SetBssColor (uint8_t color);
-  /**
-   * Get the BSS color
-   * \return the BSS color
-   */
-  uint8_t GetBssColor (void) const;
 
 private:
   WifiMode m_mode;               /**< The DATARATE parameter in Table 15-4.
@@ -229,7 +219,6 @@ private:
 
   bool     m_modeInitialized;         /**< Internal initialization flag */
   bool     m_txPowerLevelInitialized; /**< Internal initialization flag */
-  uint8_t  m_bssColor;           /**< BSS color */
 };
 
 /**

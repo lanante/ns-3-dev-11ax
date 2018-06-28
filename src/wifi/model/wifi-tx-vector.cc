@@ -33,8 +33,7 @@ WifiTxVector::WifiTxVector ()
     m_aggregation (false),
     m_stbc (false),
     m_modeInitialized (false),
-    m_txPowerLevelInitialized (false),
-    m_bssColor (0)
+    m_txPowerLevelInitialized (false)
 {
 }
 
@@ -59,8 +58,7 @@ WifiTxVector::WifiTxVector (WifiMode mode,
     m_aggregation (aggregation),
     m_stbc (stbc),
     m_modeInitialized (true),
-    m_txPowerLevelInitialized (true),
-    m_bssColor (0)
+    m_txPowerLevelInitialized (true)
 {
 }
 
@@ -194,18 +192,6 @@ WifiTxVector::SetStbc (bool stbc)
   m_stbc = stbc;
 }
 
-void
-WifiTxVector::SetBssColor (uint8_t color)
-{
-  m_bssColor = color;
-}
-
-uint8_t
-WifiTxVector::GetBssColor (void) const
-{
-  return m_bssColor;
-}
-
 bool
 WifiTxVector::IsValid (void) const
 {
@@ -249,8 +235,7 @@ std::ostream & operator << ( std::ostream &os, const WifiTxVector &v)
     " Nss: " << +v.GetNss () <<
     " Ness: " << +v.GetNess () <<
     " MPDU aggregation: " << v.IsAggregation () <<
-    " STBC: " << v.IsStbc () <<
-    " BSS color: " << (uint16_t)v.GetBssColor ();
+    " STBC: " << v.IsStbc ();
   return os;
 }
 

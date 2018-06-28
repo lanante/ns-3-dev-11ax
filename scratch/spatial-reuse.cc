@@ -359,7 +359,9 @@ main (int argc, char *argv[])
   spectrumPhy.Set ("TxPowerStart", DoubleValue (powSta));
   spectrumPhy.Set ("TxPowerEnd", DoubleValue (powSta));
   spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrSta));
+#ifdef NOTYET
   Config::SetDefault ("ns3::StaWifiMac::ObssPdThreshold", DoubleValue (-82.0));
+#endif
 
   Config::SetDefault ("ns3::RegularWifiMac::VO_BlockAckThreshold", UintegerValue (0));
   Config::SetDefault ("ns3::RegularWifiMac::VI_BlockAckThreshold", UintegerValue (0));
@@ -389,11 +391,13 @@ main (int argc, char *argv[])
   apDeviceA = wifi.Install (spectrumPhy, mac, ap1);
   Ptr<WifiNetDevice> apDevice = apDeviceA.Get (0)->GetObject<WifiNetDevice> ();
   Ptr<ApWifiMac> apWifiMac = apDevice->GetMac ()->GetObject<ApWifiMac> ();
+#ifdef NOTYET
   if (enableObssPd)
     {
       // Network "A" BSS color = 1
       apWifiMac->SetBssColor (1);
     }
+#endif
 
   // Set PHY power and CCA threshold for STAs
   spectrumPhy.Set ("TxPowerStart", DoubleValue (powSta));
@@ -422,11 +426,13 @@ main (int argc, char *argv[])
   apDeviceB = wifi.Install (spectrumPhy, mac, ap2);
   Ptr<WifiNetDevice> ap2Device = apDeviceB.Get (0)->GetObject<WifiNetDevice> ();
   apWifiMac = ap2Device->GetMac ()->GetObject<ApWifiMac> ();
+#ifdef NOTYET
   if (enableObssPd)
     {
       // Network "B" BSS color = 2
       apWifiMac->SetBssColor (2);
     }
+#endif
 
   // Assign positions to all nodes using position allocator
   MobilityHelper mobility;

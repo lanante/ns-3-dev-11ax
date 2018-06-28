@@ -227,6 +227,18 @@ public:
    */
   bool HasHeSupported (void) const;
   /**
+   * Enable or disable PCF capability support.
+   *
+   * \param enable enable or disable PCF capability support
+   */
+  virtual void SetPcfSupported (bool enable);
+  /**
+   * Return whether the device has PCF capability support enabled.
+   *
+   * \return true if PCF capability support is enabled, false otherwise
+   */
+  bool HasPcfSupported (void) const;
+  /**
    * Enable or disable protection for non-ERP stations.
    *
    * \param enable enable or disable protection for non-ERP stations
@@ -676,7 +688,7 @@ public:
                      double ackSnr, WifiMode ackMode, double dataSnr);
   /**
    * Should be invoked after calling ReportRtsFailed if
-   * NeedRtsRetransmission returns false
+   * NeedRetransmission returns false
    *
    * \param address the address of the receiver
    * \param header MAC header of the DATA packet
@@ -684,7 +696,7 @@ public:
   void ReportFinalRtsFailed (Mac48Address address, const WifiMacHeader *header);
   /**
    * Should be invoked after calling ReportDataFailed if
-   * NeedDataRetransmission returns false
+   * NeedRetransmission returns false
    *
    * \param address the address of the receiver
    * \param header MAC header of the DATA packet
@@ -741,21 +753,11 @@ public:
    * \param header MAC header
    * \param packet the packet to send
    *
-   * \return true if we want to restart a failed RTS/CTS handshake,
-   *         false otherwise.
-   */
-  bool NeedRtsRetransmission (Mac48Address address, const WifiMacHeader *header,
-                              Ptr<const Packet> packet);
-  /**
-   * \param address remote address
-   * \param header MAC header
-   * \param packet the packet to send
-   *
    * \return true if we want to resend a packet after a failed transmission attempt,
    *         false otherwise.
    */
-  bool NeedDataRetransmission (Mac48Address address, const WifiMacHeader *header,
-                               Ptr<const Packet> packet);
+  bool NeedRetransmission (Mac48Address address, const WifiMacHeader *header,
+                           Ptr<const Packet> packet);
   /**
    * \param address remote address
    * \param header MAC header
@@ -1019,7 +1021,7 @@ protected:
    *
    * \return the number of Ness the station has
    */
-  uint32_t GetNess (const WifiRemoteStation *station) const;
+  uint8_t GetNess (const WifiRemoteStation *station) const;
   /**
    * Return the preamble to be used for the transmission.
    *
@@ -1071,29 +1073,15 @@ private:
   /**
    * \param station the station that we need to communicate
    * \param packet the packet to send
-   * \param normally indicates whether the normal 802.11 rts enable mechanism would
-   *        request that the rts is retransmitted or not.
-   *
-   * \return true if we want to restart a failed RTS/CTS handshake,
-   *         false otherwise.
-   *
-   * Note: This method is called after an rts/cts handshake has been attempted
-   *       and has failed.
-   */
-  virtual bool DoNeedRtsRetransmission (WifiRemoteStation *station,
-                                        Ptr<const Packet> packet, bool normally);
-  /**
-   * \param station the station that we need to communicate
-   * \param packet the packet to send
    * \param normally indicates whether the normal 802.11 data retransmission mechanism
    *        would request that the data is retransmitted or not.
    * \return true if we want to resend a packet after a failed transmission attempt,
    *         false otherwise.
    *
-   * Note: This method is called after a unicast packet transmission has been attempted
-   *       and has failed.
+   * Note: This method is called after any unicast packet transmission (control, management,
+   *       or data) has been attempted and has failed.
    */
-  virtual bool DoNeedDataRetransmission (WifiRemoteStation *station,
+  virtual bool DoNeedRetransmission (WifiRemoteStation *station,
                                          Ptr<const Packet> packet, bool normally);
   /**
    * \param station the station that we need to communicate
@@ -1439,6 +1427,7 @@ private:
   bool m_htSupported;  //!< Flag if HT capability is supported
   bool m_vhtSupported; //!< Flag if VHT capability is supported
   bool m_heSupported;  //!< Flag if HE capability is supported
+  bool m_pcfSupported; //!< Flag if PCF capability is supported
   uint32_t m_maxSsrc;  //!< Maximum STA short retry count (SSRC)
   uint32_t m_maxSlrc;  //!< Maximum STA long retry count (SLRC)
   uint32_t m_rtsCtsThreshold;  //!< Threshold for RTS/CTS
@@ -1509,14 +1498,14 @@ struct WifiRemoteStationState
   bool m_shortGuardInterval;  //!< Flag if HT/VHT short guard interval is supported by the remote station
   uint16_t m_guardInterval;   //!< HE Guard interval duration (in nanoseconds) supported by the remote station
   uint8_t m_streams;          //!< Number of supported streams by the remote station
-  uint32_t m_ness;            //!< Number of streams in beamforming of the remote station
+  uint8_t m_ness;             //!< Number of streams in beamforming of the remote station
   bool m_stbc;                //!< Flag if STBC is supported by the remote station
   bool m_ldpc;                //!< Flag if LDPC is supported by the remote station
   bool m_aggregation;         //!< Flag if MPDU aggregation is used by the remote station
   bool m_greenfield;          //!< Flag if greenfield is supported by the remote station
   bool m_shortPreamble;       //!< Flag if short PLCP preamble is supported by the remote station
   bool m_shortSlotTime;       //!< Flag if short ERP slot time is supported by the remote station
-  bool m_qosSupported;         //!< Flag if HT is supported by the station
+  bool m_qosSupported;        //!< Flag if HT is supported by the station
   bool m_htSupported;         //!< Flag if HT is supported by the station
   bool m_vhtSupported;        //!< Flag if VHT is supported by the station
   bool m_heSupported;         //!< Flag if HE is supported by the station

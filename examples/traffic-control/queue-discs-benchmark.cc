@@ -99,7 +99,7 @@ int main (int argc, char *argv[])
   std::string delay = "5ms";
   std::string queueDiscType = "PfifoFast";
   uint32_t queueDiscSize = 1000;
-  uint32_t netdevicesQueueSize = 100;
+  uint32_t netdevicesQueueSize = 50;
   bool bql = false;
 
   std::string flowsDatarate = "20Mbps";
@@ -112,7 +112,7 @@ int main (int argc, char *argv[])
   CommandLine cmd;
   cmd.AddValue ("bandwidth", "Bottleneck bandwidth", bandwidth);
   cmd.AddValue ("delay", "Bottleneck delay", delay);
-  cmd.AddValue ("queueDiscType", "Bottleneck queue disc type in {PfifoFast, ARED, CoDel, FqCoDel, PIE}", queueDiscType);
+  cmd.AddValue ("queueDiscType", "Bottleneck queue disc type in {PfifoFast, ARED, CoDel, FqCoDel, PIE, prio}", queueDiscType);
   cmd.AddValue ("queueDiscSize", "Bottleneck queue disc size in packets", queueDiscSize);
   cmd.AddValue ("netdevicesQueueSize", "Bottleneck netdevices queue size in packets", netdevicesQueueSize);
   cmd.AddValue ("bql", "Enable byte queue limits on bottleneck netdevices", bql);
@@ -170,17 +170,23 @@ int main (int argc, char *argv[])
     }
   else if (queueDiscType.compare ("FqCoDel") == 0)
     {
-      uint32_t handle = tchBottleneck.SetRootQueueDisc ("ns3::FqCoDelQueueDisc");
+      tchBottleneck.SetRootQueueDisc ("ns3::FqCoDelQueueDisc");
       Config::SetDefault ("ns3::FqCoDelQueueDisc::MaxSize",
                           QueueSizeValue (QueueSize (QueueSizeUnit::PACKETS, queueDiscSize)));
-      tchBottleneck.AddPacketFilter (handle, "ns3::FqCoDelIpv4PacketFilter");
-      tchBottleneck.AddPacketFilter (handle, "ns3::FqCoDelIpv6PacketFilter");
     }
   else if (queueDiscType.compare ("PIE") == 0)
     {
       tchBottleneck.SetRootQueueDisc ("ns3::PieQueueDisc");
       Config::SetDefault ("ns3::PieQueueDisc::MaxSize",
                           QueueSizeValue (QueueSize (QueueSizeUnit::PACKETS, queueDiscSize)));
+    }
+  else if (queueDiscType.compare ("prio") == 0)
+    {
+      uint16_t handle = tchBottleneck.SetRootQueueDisc ("ns3::PrioQueueDisc", "Priomap",
+                                                        StringValue ("0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1"));
+      TrafficControlHelper::ClassIdList cid = tchBottleneck.AddQueueDiscClasses (handle, 2, "ns3::QueueDiscClass");
+      tchBottleneck.AddChildQueueDisc (handle, cid[0], "ns3::FifoQueueDisc");
+      tchBottleneck.AddChildQueueDisc (handle, cid[1], "ns3::RedQueueDisc");
     }
   else
     {
