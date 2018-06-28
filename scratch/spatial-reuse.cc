@@ -227,6 +227,26 @@ ScheduleStateLogDisconnect (void)
   Config::Disconnect ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Phy/State/State", MakeCallback (&StateCb));
 }
 
+void
+AddTraffic (Ptr<NetDevice> apDevice, Ptr<NetDevice> staDevice, Ptr<Node> apNode, Ptr<Node> staNode, uint32_t payloadSize, uint32_t maxPackets, Time interval)
+{
+  PacketSocketAddress socketAddr;
+  socketAddr.SetSingleDevice (staDevice->GetIfIndex ());
+  socketAddr.SetPhysicalAddress (apDevice->GetAddress ());
+  //socketAddr.SetPhysicalAddress (staDevicesA.Get (i)->GetAddress ());
+  std::cout<<"Address1: "<<apDevice->GetAddress ()<<"\n";
+  socketAddr.SetProtocol (1);
+  Ptr<PacketSocketClient> client = CreateObject<PacketSocketClient> ();
+  client->SetRemote (socketAddr);
+  staNode->AddApplication (client);
+  client->SetAttribute ("PacketSize", UintegerValue (payloadSize));
+  client->SetAttribute ("MaxPackets", UintegerValue (maxPackets));
+  client->SetAttribute ("Interval", TimeValue (interval));
+  Ptr<PacketSocketServer> server = CreateObject<PacketSocketServer> ();
+  server->SetLocal (socketAddr);
+  apNode->AddApplication (server);
+}
+
 // main script
 int
 main (int argc, char *argv[])
@@ -242,6 +262,8 @@ main (int argc, char *argv[])
   double d = 100.0; // distance between AP1 and AP2, m
   uint32_t n = 2; // number of STAs to scatter around each AP;
   double r = 50.0; // radius of circle around each AP in which to scatter the STAs
+  double aggregateUplinkMbps = 1.0;
+  double aggregateDownlinkMbps = 1.0;
 
   // local variables
   std::string outputFilePrefix = "spatial-reuse";
@@ -261,6 +283,8 @@ main (int argc, char *argv[])
   cmd.AddValue ("d", "Distance between AP1 and AP2 (m)", d);
   cmd.AddValue ("n", "Number of STAs to scatter around each AP", n);
   cmd.AddValue ("r", "Radius of circle around each AP in which to scatter STAs (m)", r);
+  cmd.AddValue ("uplink", "Aggregate uplink load, STAs-AP (Mbps)", aggregateUplinkMbps);
+  cmd.AddValue ("downlink", "Aggregate downlink load, AP-STAs (Mbps)", aggregateDownlinkMbps);
   cmd.Parse (argc, argv);
 
   // total expected nodes.  n STAs for each AP
@@ -507,43 +531,28 @@ main (int argc, char *argv[])
   ApplicationContainer apps;
   TypeId tid = TypeId::LookupByName ("ns3::UdpSocketFactory");
 
+  double perNodeUplinkMbps = aggregateUplinkMbps / n;
+  double perNodeDownlinkMbps = aggregateDownlinkMbps / n;
+  Time intervalUplink = MicroSeconds (payloadSize * 8 / perNodeUplinkMbps);
+  Time intervalDownlink = MicroSeconds (payloadSize * 8 / perNodeDownlinkMbps); 
+  std::cout << "Uplink interval:" << intervalUplink << " Downlink interval:" << intervalDownlink << std::endl;
+
   //BSS 1
   for (uint32_t i = 0; i < n; i++)
     {
-      PacketSocketAddress socketAddr;
-      socketAddr.SetSingleDevice (staDevicesA.Get (i)->GetIfIndex ());
-      socketAddr.SetPhysicalAddress (apDeviceA.Get (0)->GetAddress ());
-      //socketAddr.SetPhysicalAddress (staDevicesA.Get (i)->GetAddress ());
-      std::cout<<"Address1: "<<apDeviceA.Get (0)->GetAddress ()<<"\n";
-      socketAddr.SetProtocol (1);
-      Ptr<PacketSocketClient> client = CreateObject<PacketSocketClient> ();
-      client->SetRemote (socketAddr);
-      allNodes.Get ((i+1))->AddApplication (client);
-      client->SetAttribute ("PacketSize", UintegerValue (payloadSize));
-      client->SetAttribute ("MaxPackets", UintegerValue (0));
-      client->SetAttribute ("Interval", TimeValue (interval));
-      Ptr<PacketSocketServer> server = CreateObject<PacketSocketServer> ();
-      server->SetLocal (socketAddr);
-      allNodes.Get (0)->AddApplication (server);
+      // uplink traffic - each STA to AP
+      AddTraffic (apDeviceA.Get (0), staDevicesA.Get (i), allNodes.Get (0), allNodes.Get (i + 1), payloadSize, 0, intervalUplink);
+      // downlink traffic - AP to each STA
+      AddTraffic (staDevicesA.Get (i), apDeviceA.Get (0), allNodes.Get (i + 1), allNodes.Get (0), payloadSize, 0, intervalDownlink);
     }
 
   // BSS 2
   for (uint32_t i = 0; i < n; i++)
     {
-      PacketSocketAddress socketAddr;
-      socketAddr.SetSingleDevice (staDevicesB.Get (i)->GetIfIndex ());
-      socketAddr.SetPhysicalAddress (apDeviceB.Get (0)->GetAddress ());
-      std::cout<<"Address2: "<<apDeviceB.Get (0)->GetAddress ()<<"\n";
-      socketAddr.SetProtocol (1);
-      Ptr<PacketSocketClient> client = CreateObject<PacketSocketClient> ();
-      client->SetRemote (socketAddr);
-      allNodes.Get (n + 1 + i + 1)->AddApplication (client);
-      client->SetAttribute ("PacketSize", UintegerValue (payloadSize));
-      client->SetAttribute ("MaxPackets", UintegerValue (0));
-      client->SetAttribute ("Interval", TimeValue (interval));
-      Ptr<PacketSocketServer> server = CreateObject<PacketSocketServer> ();
-      server->SetLocal (socketAddr);
-      allNodes.Get (n + 1)->AddApplication (server);
+      // uplink traffic - each STA to AP
+      AddTraffic (apDeviceB.Get (0), staDevicesB.Get (i), allNodes.Get (n + 1), allNodes.Get (n + 1 + i + 1), payloadSize, 0, intervalUplink);
+      // downlink traffic - AP to each STA
+      AddTraffic (staDevicesB.Get (i), apDeviceB.Get (0), allNodes.Get (n + 1 + i + 1), allNodes.Get (n + 1), payloadSize, 0, intervalDownlink);
     }
 
   // Log packet receptions
