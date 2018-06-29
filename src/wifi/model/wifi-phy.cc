@@ -2554,7 +2554,7 @@ WifiPhy::EndReceive (Ptr<Packet> packet, WifiPreamble preamble, MpduType mpdutyp
           aMpdu.type = mpdutype;
           aMpdu.mpduRefNumber = m_rxMpduReferenceNumber;
           NotifyMonitorSniffRx (packet, GetFrequency (), event->GetTxVector (), aMpdu, signalNoise);
-          m_state->SwitchFromRxEndOk (packet, snrPer.snr, event->GetTxVector ());
+          m_state->SwitchFromRxEndOk (packet, snrPer.snr, event->GetRxPowerW (), event->GetTxVector ());
         }
       else
         {

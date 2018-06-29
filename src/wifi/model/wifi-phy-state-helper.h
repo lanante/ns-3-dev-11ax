@@ -38,10 +38,11 @@ class Packet;
 /**
  * arg1: packet received successfully
  * arg2: snr of packet
- * arg3: TXVECTOR of packet
- * arg4: type of preamble used for packet.
+ * arg3: rx power (dBm) of packet
+ * arg4: TXVECTOR of packet
+ * arg5: type of preamble used for packet.
  */
-typedef Callback<void, Ptr<Packet>, double, WifiTxVector> RxOkCallback;
+typedef Callback<void, Ptr<Packet>, double, double, WifiTxVector> RxOkCallback;
 /**
  * arg1: packet received unsuccessfully
  * arg2: snr of packet
@@ -175,9 +176,10 @@ public:
    *
    * \param packet the successfully received packet
    * \param snr the SNR of the received packet
+   * \param rxPower the rx power (W) of the received packet
    * \param txVector TXVECTOR of the packet
    */
-  void SwitchFromRxEndOk (Ptr<Packet> packet, double snr, WifiTxVector txVector);
+  void SwitchFromRxEndOk (Ptr<Packet> packet, double snr, double rxPower, WifiTxVector txVector);
   /**
    * Switch from RX after the reception failed.
    *

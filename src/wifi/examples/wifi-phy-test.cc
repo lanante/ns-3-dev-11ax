@@ -66,9 +66,10 @@ private:
    * Send receive function
    * \param p the packet
    * \param snr the SNR
+   * \param rxPower the rx power (W)
    * \param txVector the wifi transmit vector
    */
-  void Receive (Ptr<Packet> p, double snr, WifiTxVector txVector);
+  void Receive (Ptr<Packet> p, double snr, double rxPower, WifiTxVector txVector);
   Ptr<WifiPhy> m_tx; ///< transmit
   struct Input m_input; ///< input
   struct Output m_output; ///< output
@@ -87,7 +88,7 @@ PsrExperiment::Send (void)
 }
 
 void
-PsrExperiment::Receive (Ptr<Packet> p, double snr, WifiTxVector txVector)
+PsrExperiment::Receive (Ptr<Packet> p, double snr, double rxPower, WifiTxVector txVector)
 {
   m_output.received++;
 }
@@ -187,9 +188,10 @@ private:
    * Receive function
    * \param p the packet
    * \param snr the SNR
+   * \param rxPower the rx power (W)
    * \param txVector the wifi transmit vector
    */
-  void Receive (Ptr<Packet> p, double snr, WifiTxVector txVector);
+  void Receive (Ptr<Packet> p, double snr, double rxPower, WifiTxVector txVector);
   Ptr<WifiPhy> m_txA; ///< transmit A
   Ptr<WifiPhy> m_txB; ///< transmit B
   uint32_t m_flowIdA; ///< flow ID A
@@ -223,7 +225,7 @@ CollisionExperiment::SendB (void) const
 }
 
 void
-CollisionExperiment::Receive (Ptr<Packet> p, double snr, WifiTxVector txVector)
+CollisionExperiment::Receive (Ptr<Packet> p, double snr, double rxPower, WifiTxVector txVector)
 {
   FlowIdTag tag;
   if (p->FindFirstMatchingByteTag (tag))
