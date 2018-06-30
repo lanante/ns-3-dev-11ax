@@ -28,6 +28,7 @@
 #include "mac-low.h"
 #include "mgt-headers.h"
 #include "snr-tag.h"
+#include "wifi-rx-tag.h"
 
 namespace ns3 {
 
@@ -613,14 +614,14 @@ StaWifiMac::Receive (Ptr<Packet> packet, const WifiMacHeader *hdr)
       if (goodBeacon && m_state == WAIT_BEACON)
         {
           NS_LOG_DEBUG ("Beacon received while scanning from " << hdr->GetAddr2 ());
-          SnrTag snrTag;
-          bool removed = packet->RemovePacketTag (snrTag);
+          WifiRxTag wifiRxTag;
+          bool removed = packet->RemovePacketTag (wifiRxTag);
           NS_ASSERT (removed);
           ApInfo apInfo;
           apInfo.m_apAddr = hdr->GetAddr2 ();
           apInfo.m_bssid = hdr->GetAddr3 ();
           apInfo.m_activeProbing = false;
-          apInfo.m_snr = snrTag.Get ();
+          apInfo.m_snr = wifiRxTag.GetSnr ();
           apInfo.m_beacon = beacon;
           UpdateCandidateApList (apInfo);
         }
@@ -638,14 +639,14 @@ StaWifiMac::Receive (Ptr<Packet> packet, const WifiMacHeader *hdr)
               NS_LOG_DEBUG ("Probe response is not for our SSID");
               return;
             }
-          SnrTag snrTag;
-          bool removed = packet->RemovePacketTag (snrTag);
+          WifiRxTag wifiRxTag;
+          bool removed = packet->RemovePacketTag (wifiRxTag);
           NS_ASSERT (removed);
           ApInfo apInfo;
           apInfo.m_apAddr = hdr->GetAddr2 ();
           apInfo.m_bssid = hdr->GetAddr3 ();
           apInfo.m_activeProbing = true;
-          apInfo.m_snr = snrTag.Get ();
+          apInfo.m_snr = wifiRxTag.GetSnr ();
           apInfo.m_probeResp = probeResp;
           UpdateCandidateApList (apInfo);
         }

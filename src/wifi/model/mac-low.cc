@@ -26,6 +26,7 @@
 #include "mac-low.h"
 #include "qos-txop.h"
 #include "snr-tag.h"
+#include "wifi-rx-tag.h"
 #include "ampdu-tag.h"
 #include "wifi-mac-queue.h"
 #include "wifi-utils.h"
@@ -993,8 +994,9 @@ MacLow::ReceiveOk (Ptr<Packet> packet, double rxSnr, double rxPower, WifiTxVecto
           if (hdr.IsProbeResp ())
             {
               // Apply SNR tag for probe response quality measurements
-              SnrTag tag;
-              tag.Set (rxSnr);
+              WifiRxTag tag;
+              tag.SetSnr (rxSnr);
+              tag.SetRxPower (rxPower);
               packet->AddPacketTag (tag);
             }
           if (hdr.IsMgt () && ampduSubframe)
@@ -1040,8 +1042,9 @@ MacLow::ReceiveOk (Ptr<Packet> packet, double rxSnr, double rxPower, WifiTxVecto
               if (hdr.IsBeacon ())
                 {
                   // Apply SNR tag for beacon quality measurements
-                  SnrTag tag;
-                  tag.Set (rxSnr);
+                  WifiRxTag tag;
+                  tag.SetSnr (rxSnr);
+                  tag.SetRxPower (rxPower);
                   packet->AddPacketTag (tag);
                 }
               goto rxPacket;
