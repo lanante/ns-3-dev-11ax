@@ -31,6 +31,21 @@
 //  Each AP and STA have configurable traffic loads (traffic generators).
 //  A simple Friis path loss model is used.
 //
+//  Key confirmation parameters available through command line options, include:
+//  --duration             Duration of simulation, in seconds
+//  --powSta               Power of STA (dBm)
+//  --powAp                Power of AP (dBm)
+//  --ccaTrSta             CCA threshold of STA (dBm)
+//  --ccaTrAp              CCA threshold of AP (dBm)
+//  --d                    Distance between AP1 and AP2, in meters
+//  --n                    Number of STAs to scatter around each AP
+//  --r                    Radius of circle around each AP in which to scatter STAS, in meters
+//  --uplink               Total aggregate uplink load, STAs->AP (Mbps).  Allocated pro rata to each link.
+//  --downlink             Total aggregate downlink load,  AP->STAs (Mbps).  Allocated pro rata to each link.
+//  --standard             802.11 standard.  E.g., "11ax_5GHZ"
+//  --bw                   Bandwidth (consistent with standard), in MHz
+//  --enableObssPd         Enable OBSS_PD.  Default is True for 11ax only, false for others
+//
 //  The basic data to be collected is:
 //
 //    - Average RSSI (signal strength of beacons)
@@ -280,8 +295,6 @@ main (int argc, char *argv[])
 
   CommandLine cmd;
   cmd.AddValue ("duration", "Duration of simulation (s)", duration);
-  cmd.AddValue ("interval", "Per-packet interval (s)", interval);
-  cmd.AddValue ("enableObssPd", "Enable OBSS_PD", enableObssPd);
   cmd.AddValue ("powSta", "Power of STA (dBm)", powSta);
   cmd.AddValue ("powAp", "Power of AP (dBm)", powAp);
   cmd.AddValue ("ccaTrSta", "CCA Threshold of STA (dBm)", ccaTrSta);
@@ -293,6 +306,7 @@ main (int argc, char *argv[])
   cmd.AddValue ("downlink", "Aggregate downlink load, AP-STAs (Mbps)", aggregateDownlinkMbps);
   cmd.AddValue ("standard", "Set standard (802.11a, 802.11b, 802.11g, 802.11n-5GHz, 802.11n-2.4GHz, 802.11ac, 802.11-holland, 802.11-10MHz, 802.11-5MHz, 802.11ax-5GHz, 802.11ax-2.4GHz)", standard);
   cmd.AddValue ("bw", "Bandwidth (consistent with standard, in MHz)", bw);
+  cmd.AddValue ("enableObssPd", "Enable OBSS_PD", enableObssPd);
   cmd.Parse (argc, argv);
 
   WifiHelper wifi;
@@ -399,7 +413,7 @@ main (int argc, char *argv[])
     {
       wifi.SetStandard (WIFI_PHY_STANDARD_80211ax_5GHZ);
       // ssid = Ssid ("ns380211ax_5GHZ");
-      dataRate = "HeMcs7";  // TODO MCS 0 or 7 ???
+      dataRate = "HeMcs0";  // TODO MCS 0 or 7 ???
       freq = 5170 + (bw / 2); //so as to have 5180/5190/5210/5250 for 20/40/80/160
       dataStartTime = MicroSeconds (1200);
       dataDuration += MicroSeconds (500); //account for ADDBA procedure
