@@ -391,13 +391,13 @@ main (int argc, char *argv[])
   apDeviceA = wifi.Install (spectrumPhy, mac, ap1);
   Ptr<WifiNetDevice> apDevice = apDeviceA.Get (0)->GetObject<WifiNetDevice> ();
   Ptr<ApWifiMac> apWifiMac = apDevice->GetMac ()->GetObject<ApWifiMac> ();
-#ifdef NOTYET
+  // The below statements may be simplified in a future HeConfigurationHelper
+  Ptr<HeConfiguration> heConfiguration = CreateObject<HeConfiguration> ();
   if (enableObssPd)
     {
-      // Network "A" BSS color = 1
-      apWifiMac->SetBssColor (1);
+      heConfiguration->SetAttribute ("BssColor", UintegerValue (1));
     }
-#endif
+  apWifiMac->SetHeConfiguration (heConfiguration);
 
   // Set PHY power and CCA threshold for STAs
   spectrumPhy.Set ("TxPowerStart", DoubleValue (powSta));
@@ -426,13 +426,12 @@ main (int argc, char *argv[])
   apDeviceB = wifi.Install (spectrumPhy, mac, ap2);
   Ptr<WifiNetDevice> ap2Device = apDeviceB.Get (0)->GetObject<WifiNetDevice> ();
   apWifiMac = ap2Device->GetMac ()->GetObject<ApWifiMac> ();
-#ifdef NOTYET
+  heConfiguration = CreateObject<HeConfiguration> ();
   if (enableObssPd)
     {
-      // Network "B" BSS color = 2
-      apWifiMac->SetBssColor (2);
+      heConfiguration->SetAttribute ("BssColor", UintegerValue (2));
     }
-#endif
+  apWifiMac->SetHeConfiguration (heConfiguration);
 
   // Assign positions to all nodes using position allocator
   MobilityHelper mobility;

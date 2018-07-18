@@ -362,12 +362,13 @@ main (int argc, char *argv[])
   apDeviceA = wifi.Install (spectrumPhy, mac, ap1);
   Ptr<WifiNetDevice> apDevice = apDeviceA.Get (0)->GetObject<WifiNetDevice> ();
   Ptr<ApWifiMac> apWifiMac = apDevice->GetMac ()->GetObject<ApWifiMac> ();
-#ifdef NOTYET
+  // The below statements may be simplified in a future HeConfigurationHelper
+  Ptr<HeConfiguration> heConfiguration = CreateObject<HeConfiguration> ();
   if (enableObssPd)
     {
-      apWifiMac->SetBssColor (1);
+      heConfiguration->SetAttribute ("BssColor", UintegerValue (1));
     }
-#endif
+  apWifiMac->SetHeConfiguration (heConfiguration);
 
   spectrumPhy.Set ("TxPowerStart", DoubleValue (powSta3));
   spectrumPhy.Set ("TxPowerEnd", DoubleValue (powSta3));
@@ -395,12 +396,12 @@ main (int argc, char *argv[])
   apDeviceB = wifi.Install (spectrumPhy, mac, ap2);
   Ptr<WifiNetDevice> ap2Device = apDeviceB.Get (0)->GetObject<WifiNetDevice> ();
   apWifiMac = ap2Device->GetMac ()->GetObject<ApWifiMac> ();
-#ifdef NOTYET
+  heConfiguration = CreateObject<HeConfiguration> ();
   if (enableObssPd)
     {
-      apWifiMac->SetBssColor (2);
+      heConfiguration->SetAttribute ("BssColor", UintegerValue (2));
     }
-#endif
+  apWifiMac->SetHeConfiguration (heConfiguration);
 
   MobilityHelper mobility;
   Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator> ();
