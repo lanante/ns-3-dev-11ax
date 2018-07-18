@@ -31,6 +31,7 @@
 #include "wifi-utils.h"
 #include "mgt-headers.h"
 #include "amsdu-subframe-header.h"
+#include "he-configuration.h"
 
 namespace ns3 {
 
@@ -880,6 +881,18 @@ RegularWifiMac::GetRifsSupported (void) const
 }
 
 void
+RegularWifiMac::SetHeConfiguration (Ptr<HeConfiguration> heConfiguration)
+{
+  m_heConfiguration = heConfiguration;
+}
+
+Ptr<HeConfiguration>
+RegularWifiMac::GetHeConfiguration (void) const
+{
+  return m_heConfiguration;
+}
+
+void
 RegularWifiMac::Enqueue (Ptr<const Packet> packet,
                          Mac48Address to, Mac48Address from)
 {
@@ -1228,6 +1241,11 @@ RegularWifiMac::GetTypeId (void)
                    MakeBooleanAccessor (&RegularWifiMac::SetRifsSupported,
                                         &RegularWifiMac::GetRifsSupported),
                    MakeBooleanChecker ())
+    .AddAttribute ("HeConfiguration",
+                   "The HeConfiguration object.",
+                   PointerValue (),
+                   MakePointerAccessor (&RegularWifiMac::GetHeConfiguration),
+                   MakePointerChecker<HeConfiguration> ())
     .AddAttribute ("Txop",
                    "The Txop object.",
                    PointerValue (),

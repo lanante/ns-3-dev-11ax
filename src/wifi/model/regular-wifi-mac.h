@@ -32,6 +32,7 @@ class MacRxMiddle;
 class MacTxMiddle;
 class ChannelAccessManager;
 class ExtendedCapabilities;
+class HeConfiguration;
 
 /**
  * \brief base class for all MAC-level wifi objects.
@@ -147,7 +148,14 @@ public:
    *         false otherwise.
    */
   bool GetRifsSupported (void) const;
-
+  /**
+   * \param heConfiguration pointer to HeConfiguration
+   */
+  void SetHeConfiguration (Ptr<HeConfiguration> heConfiguration);
+  /**
+   * \return pointer to HeConfiguration if it exists
+   */
+  Ptr<HeConfiguration> GetHeConfiguration (void) const;
   /**
    * \return the MAC address associated to this MAC layer.
    */
@@ -704,6 +712,7 @@ private:
 
   bool m_shortSlotTimeSupported; ///< flag whether short slot time is supported
   bool m_rifsSupported; ///< flag whether RIFS is supported
+  Ptr<HeConfiguration> m_heConfiguration; ///< Ptr to HeConfiguration
 };
 
 } //namespace ns3
