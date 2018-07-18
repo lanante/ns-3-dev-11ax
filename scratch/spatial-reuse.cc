@@ -244,6 +244,11 @@ AddTraffic (Ptr<NetDevice> apDevice, Ptr<NetDevice> staDevice, Ptr<Node> apNode,
 int
 main (int argc, char *argv[])
 {
+  Config::SetDefault ("ns3::HeConfiguration::ObssPdThreshold", DoubleValue (-82.0));
+  Config::SetDefault ("ns3::RegularWifiMac::VO_BlockAckThreshold", UintegerValue (0));
+  Config::SetDefault ("ns3::RegularWifiMac::VI_BlockAckThreshold", UintegerValue (0));
+  Config::SetDefault ("ns3::RegularWifiMac::BE_BlockAckThreshold", UintegerValue (0));
+  Config::SetDefault ("ns3::RegularWifiMac::BK_BlockAckThreshold", UintegerValue (0));
   // command line configurable parameters
   bool tracing = true;
   bool enableTracing = true;
@@ -359,14 +364,6 @@ main (int argc, char *argv[])
   spectrumPhy.Set ("TxPowerStart", DoubleValue (powSta));
   spectrumPhy.Set ("TxPowerEnd", DoubleValue (powSta));
   spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrSta));
-#ifdef NOTYET
-  Config::SetDefault ("ns3::StaWifiMac::ObssPdThreshold", DoubleValue (-82.0));
-#endif
-
-  Config::SetDefault ("ns3::RegularWifiMac::VO_BlockAckThreshold", UintegerValue (0));
-  Config::SetDefault ("ns3::RegularWifiMac::VI_BlockAckThreshold", UintegerValue (0));
-  Config::SetDefault ("ns3::RegularWifiMac::BE_BlockAckThreshold", UintegerValue (0));
-  Config::SetDefault ("ns3::RegularWifiMac::BK_BlockAckThreshold", UintegerValue (0));
 
   //PHY energy threshold -92 dBm
   spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-92.0));
@@ -404,7 +401,6 @@ main (int argc, char *argv[])
   spectrumPhy.Set ("TxPowerEnd", DoubleValue (powSta));
   spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrSta));
   spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-92.0));
-  Config::SetDefault ("ns3::StaWifiMac::ObssPdThreshold", DoubleValue (-82.0));
 
   // Network "B"
   Ssid ssidB = Ssid ("B");
