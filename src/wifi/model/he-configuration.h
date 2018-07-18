@@ -39,6 +39,7 @@ public:
   static TypeId GetTypeId (void);
 private:
   uint8_t m_bssColor; //!< BSS color
+  double m_obssPdThreshold;  //!< OBSS_PD threshold (dBm)
 };
 
 } //namespace ns3

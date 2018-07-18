@@ -19,6 +19,7 @@
 
 #include "he-configuration.h"
 #include "ns3/uinteger.h"
+#include "ns3/double.h"
 #include "ns3/log.h"
 
 namespace ns3 {
@@ -42,6 +43,12 @@ HeConfiguration::GetTypeId (void)
                    UintegerValue (0),
                    MakeUintegerAccessor (&HeConfiguration::m_bssColor),
                    MakeUintegerChecker<uint8_t> ())
+    .AddAttribute ("ObssPdThreshold",
+                   "Energy threshold (dBm) of received signal below which "
+                   "the PHY layer can avoid declaring CCA BUSY for inter-BSS frames.",
+                   DoubleValue (-99.0),
+                   MakeDoubleAccessor (&HeConfiguration::m_obssPdThreshold),
+                   MakeDoubleChecker<double> ())
     ;
     return tid;
 }
