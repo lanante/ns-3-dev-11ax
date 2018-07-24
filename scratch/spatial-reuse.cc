@@ -31,6 +31,21 @@
 //  Each AP and STA have configurable traffic loads (traffic generators).
 //  A simple Friis path loss model is used.
 //
+//  Key confirmation parameters available through command line options, include:
+//  --duration             Duration of simulation, in seconds
+//  --powSta               Power of STA (dBm)
+//  --powAp                Power of AP (dBm)
+//  --ccaTrSta             CCA threshold of STA (dBm)
+//  --ccaTrAp              CCA threshold of AP (dBm)
+//  --d                    Distance between AP1 and AP2, in meters
+//  --n                    Number of STAs to scatter around each AP
+//  --r                    Radius of circle around each AP in which to scatter STAS, in meters
+//  --uplink               Total aggregate uplink load, STAs->AP (Mbps).  Allocated pro rata to each link.
+//  --downlink             Total aggregate downlink load,  AP->STAs (Mbps).  Allocated pro rata to each link.
+//  --standard             802.11 standard.  E.g., "11ax_5GHZ"
+//  --bw                   Bandwidth (consistent with standard), in MHz
+//  --enableObssPd         Enable OBSS_PD.  Default is True for 11ax only, false for others
+//
 //  The basic data to be collected is:
 //
 //    - Average RSSI (signal strength of beacons)
@@ -90,6 +105,9 @@ struct SignalArrival
 std::vector<uint32_t> packetsReceived (0);
 std::vector<uint32_t> bytesReceived (0);
 
+std::vector<std::vector<uint32_t>> packetsReceivedPerNode;
+std::vector<std::vector<double>> rssiPerNode;
+
 // Parse context strings of the form "/NodeList/3/DeviceList/1/Mac/Assoc"
 // to extract the NodeId
 uint32_t
@@ -108,8 +126,9 @@ void
 SocketRecvStats (std::string context, Ptr<const Packet> p, const Address &addr)
 {
   uint32_t nodeId = ContextToNodeId (context);
-  // std::cout << "Node ID: " << nodeId << " RX addr=" << addr << std::endl;
-  bytesReceived[nodeId] += p->GetSize ();
+  uint32_t pktSize = p->GetSize ();
+  //  std::cout << "Node ID: " << nodeId << " RX addr=" << addr << " size=" << pktSize << std::endl;
+  bytesReceived[nodeId] += pktSize;
   packetsReceived[nodeId]++;
 }
 
@@ -151,7 +170,9 @@ void
 StateCb (std::string context, Time start, Time duration, WifiPhyState state)
 {
   g_stateFile << ContextToNodeId (context) << " " << start.GetSeconds () << " " << duration.GetSeconds () << " " << StateToString (state) << std::endl;
-  std::string stateStr = StateToString (state);
+
+  //uint32_t nodeId = ContextToNodeId (context);
+  //std::string stateStr = StateToString (state);
 }
 
 void
@@ -168,6 +189,9 @@ SignalCb (std::string context, bool wifi, uint32_t senderNodeId, double rxPowerD
   g_arrivalsDurationCounter += rxDuration.GetSeconds ();
 
   NS_LOG_DEBUG (context << " " << wifi << " " << senderNodeId << " " << rxPowerDbm << " " << rxDuration.GetSeconds () / 1000.0);
+  uint32_t nodeId = ContextToNodeId (context);
+  packetsReceivedPerNode[nodeId][senderNodeId] += 1;
+  rssiPerNode[nodeId][senderNodeId] += rxPowerDbm;
 }
 
 void
@@ -221,34 +245,145 @@ ScheduleStateLogDisconnect (void)
 }
 
 void
-AddTraffic (Ptr<NetDevice> apDevice, Ptr<NetDevice> staDevice, Ptr<Node> apNode, Ptr<Node> staNode, uint32_t payloadSize, uint32_t maxPackets, Time interval)
+AddClient (Ptr<NetDevice> rxDevice, Ptr<NetDevice> txDevice, Ptr<Node> txNode, uint32_t payloadSize, uint32_t maxPackets, Time interval)
 {
   PacketSocketAddress socketAddr;
-  socketAddr.SetSingleDevice (staDevice->GetIfIndex ());
-  socketAddr.SetPhysicalAddress (apDevice->GetAddress ());
-  //socketAddr.SetPhysicalAddress (staDevicesA.Get (i)->GetAddress ());
-  std::cout<<"Address1: "<<apDevice->GetAddress ()<<"\n";
+  socketAddr.SetSingleDevice (txDevice->GetIfIndex ());
+  socketAddr.SetPhysicalAddress (rxDevice->GetAddress ());
   socketAddr.SetProtocol (1);
   Ptr<PacketSocketClient> client = CreateObject<PacketSocketClient> ();
   client->SetRemote (socketAddr);
-  staNode->AddApplication (client);
+  txNode->AddApplication (client);
   client->SetAttribute ("PacketSize", UintegerValue (payloadSize));
   client->SetAttribute ("MaxPackets", UintegerValue (maxPackets));
   client->SetAttribute ("Interval", TimeValue (interval));
+}
+
+void
+AddServer (Ptr<NetDevice> rxDevice, Ptr<NetDevice> txDevice, Ptr<Node> rxNode)
+{
+  PacketSocketAddress socketAddr;
+  socketAddr.SetSingleDevice (txDevice->GetIfIndex ());
+  socketAddr.SetPhysicalAddress (rxDevice->GetAddress ());
+  socketAddr.SetProtocol (1);
+  Ptr<PacketSocketClient> client = CreateObject<PacketSocketClient> ();
   Ptr<PacketSocketServer> server = CreateObject<PacketSocketServer> ();
   server->SetLocal (socketAddr);
-  apNode->AddApplication (server);
+  rxNode->AddApplication (server);
+}
+
+void
+SaveSpatialReuseStats (std::string filename, 
+  const std::vector<uint32_t> &packetsReceived, 
+  const std::vector<uint32_t> &bytesReceived, 
+  const double duration,
+  const double d,
+  const double r,
+  int freqHz)
+{
+  std::ofstream outFile;
+  outFile.open (filename.c_str (), std::ofstream::out | std::ofstream::trunc);
+  outFile.setf (std::ios_base::fixed);
+  outFile.flush ();
+
+  if (!outFile.is_open ())
+    {
+      NS_LOG_ERROR ("Can't open file " << filename);
+      return;
+    }
+
+  uint32_t numNodes = packetsReceived.size();
+  uint32_t n = (numNodes / 2) - 1;
+
+  outFile << "Spatial Reuse Statistics" << std::endl;
+  outFile << "APs: " << "2" << std::endl;
+  outFile << "Nodes per AP: " << n << std::endl;
+  outFile << "Distance between APs [m]: " << d << std::endl;
+  outFile << "Radius [m]: " << r << std::endl;
+
+  uint32_t bytesReceivedAp1Uplink = 0.0;
+  uint32_t bytesReceivedAp1Downlink = 0.0;
+  uint32_t bytesReceivedAp2Uplink = 0.0;
+  uint32_t bytesReceivedAp2Downlink = 0.0;
+
+  double rxThroughputPerNode[numNodes];
+  for (uint32_t k = 0; k < numNodes; k++)
+    {
+      if (k == 0)
+        {
+          bytesReceivedAp1Uplink += bytesReceived[k];
+        }
+      else if (k == 1)
+        {
+          bytesReceivedAp2Uplink += bytesReceived[k];
+        }
+      else if (k < n)
+        {
+          bytesReceivedAp1Downlink += bytesReceived[k];
+        }
+      else
+        {
+          bytesReceivedAp2Downlink += bytesReceived[k];
+        }
+      double bitsReceived = bytesReceived[k] * 8;
+      // rxThroughputPerNode[k] = static_cast<double> (packetsReceived[k] * payloadSize * 8) / 1e6 / duration; 
+      rxThroughputPerNode[k] = static_cast<double> (bitsReceived) / 1e6 / duration; 
+      outFile << "Node " << k << ", pkts " << packetsReceived[k] << ", bytes " << bytesReceived[k] << ", throughput [MMb/s] " << rxThroughputPerNode[k] << std::endl;
+    }
+
+  double tputAp1Uplink = bytesReceivedAp1Uplink * 8 / 1e6 / duration;
+  double tputAp1Downlink = bytesReceivedAp1Downlink * 8 / 1e6 / duration;
+  double tputAp2Uplink = bytesReceivedAp2Uplink * 8 / 1e6 / duration;
+  double tputAp2Downlink = bytesReceivedAp2Downlink * 8 /1e6 / duration;
+
+  // TODO: debug to print out t-put, can remove
+  std::cout << "Throughput,  AP1 Uplink   [Mbps] : " << tputAp1Uplink << std::endl;
+  std::cout << "Throughput,  AP1 Downlink [Mbps] : " << tputAp1Downlink << std::endl;
+  std::cout << "Throughput,  AP2 Uplink   [Mbps] : " << tputAp2Uplink << std::endl;
+  std::cout << "Throughput,  AP1 Downlink [Mbps] : " << tputAp2Downlink << std::endl;
+
+  outFile << "Throughput,  AP1 Uplink   [Mbps] : " << tputAp1Uplink << std::endl;
+  outFile << "Throughput,  AP1 Downlink [Mbps] : " << tputAp1Downlink << std::endl;
+  outFile << "Throughput,  AP2 Uplink   [Mbps] : " << tputAp2Uplink << std::endl;
+  outFile << "Throughput,  AP1 Downlink [Mbps] : " << tputAp2Downlink << std::endl;
+
+  double area = M_PI * r * r;
+  outFile << "Area Capacity, AP1 Uplink   [Mbps/m^2] : " << tputAp1Uplink / area << std::endl;
+  outFile << "Area Capacity, AP1 Downlink [Mbps/m^2] : " << tputAp1Downlink / area << std::endl;
+  outFile << "Area Capacity, AP2 Uplink   [Mbps/m^2] : " << tputAp2Uplink / area << std::endl;
+  outFile << "Area Capacity, AP2 Downlink [Mbps/m^2] : " << tputAp2Downlink / area << std::endl;
+
+  outFile << "Spectrum Efficiency, AP1 Uplink   [Mbps/Hz] : " << tputAp1Uplink / freqHz << std::endl;
+  outFile << "Spectrum Efficiency, AP1 Downlink [Mbps/Hz] : " << tputAp1Downlink / freqHz << std::endl;
+  outFile << "Spectrum Efficiency, AP2 Uplink   [Mbps/Hz] : " << tputAp2Uplink / freqHz << std::endl;
+  outFile << "Spectrum Efficiency, AP2 Downlink [Mbps/Hz] : " << tputAp2Downlink / freqHz << std::endl;
+
+  outFile << "Avg. RSSI:" << std::endl;
+  for (uint32_t rxNodeId = 0; rxNodeId < numNodes; rxNodeId++)
+    {
+      for (uint32_t txNodeId = 0; txNodeId < numNodes; txNodeId++)
+        {
+          uint32_t pkts = packetsReceivedPerNode[rxNodeId][txNodeId];
+          double rssi = rssiPerNode[rxNodeId][txNodeId];
+          double avgRssi = 0.0;
+          if (pkts > 0)
+            {
+              avgRssi = rssi / pkts;
+            }
+          outFile << avgRssi << "  ";
+        }
+      outFile << std::endl;
+    }
+
+  outFile.close ();
+
+  std::cout << "Spatial Reuse Stats written to: " << filename << std::endl;
 }
 
 // main script
 int
 main (int argc, char *argv[])
 {
-  Config::SetDefault ("ns3::HeConfiguration::ObssPdThreshold", DoubleValue (-82.0));
-  Config::SetDefault ("ns3::RegularWifiMac::VO_BlockAckThreshold", UintegerValue (0));
-  Config::SetDefault ("ns3::RegularWifiMac::VI_BlockAckThreshold", UintegerValue (0));
-  Config::SetDefault ("ns3::RegularWifiMac::BE_BlockAckThreshold", UintegerValue (0));
-  Config::SetDefault ("ns3::RegularWifiMac::BK_BlockAckThreshold", UintegerValue (0));
   // command line configurable parameters
   bool tracing = true;
   bool enableTracing = true;
@@ -262,18 +397,18 @@ main (int argc, char *argv[])
   double r = 50.0; // radius of circle around each AP in which to scatter the STAs
   double aggregateUplinkMbps = 1.0;
   double aggregateDownlinkMbps = 1.0;
+  int bw = 20;
+  std::string standard ("11ax_5GHZ");
 
   // local variables
   std::string outputFilePrefix = "spatial-reuse";
   uint32_t payloadSize = 1500; // bytes
   uint32_t mcs = 7; // MCS value
   Time interval = MicroSeconds (1000);
-  bool enableObssPd = true;
+  bool enableObssPd = false;
 
   CommandLine cmd;
   cmd.AddValue ("duration", "Duration of simulation (s)", duration);
-  cmd.AddValue ("interval", "Per-packet interval (s)", interval);
-  cmd.AddValue ("enableObssPd", "Enable OBSS_PD", enableObssPd);
   cmd.AddValue ("powSta", "Power of STA (dBm)", powSta);
   cmd.AddValue ("powAp", "Power of AP (dBm)", powAp);
   cmd.AddValue ("ccaTrSta", "CCA Threshold of STA (dBm)", ccaTrSta);
@@ -283,12 +418,142 @@ main (int argc, char *argv[])
   cmd.AddValue ("r", "Radius of circle around each AP in which to scatter STAs (m)", r);
   cmd.AddValue ("uplink", "Aggregate uplink load, STAs-AP (Mbps)", aggregateUplinkMbps);
   cmd.AddValue ("downlink", "Aggregate downlink load, AP-STAs (Mbps)", aggregateDownlinkMbps);
+  cmd.AddValue ("standard", "Set standard (802.11a, 802.11b, 802.11g, 802.11n-5GHz, 802.11n-2.4GHz, 802.11ac, 802.11-holland, 802.11-10MHz, 802.11-5MHz, 802.11ax-5GHz, 802.11ax-2.4GHz)", standard);
+  cmd.AddValue ("bw", "Bandwidth (consistent with standard, in MHz)", bw);
+  cmd.AddValue ("enableObssPd", "Enable OBSS_PD", enableObssPd);
   cmd.Parse (argc, argv);
+
+  WifiHelper wifi;
+  std::string dataRate;
+  int freq;
+  Time dataStartTime = MicroSeconds (800); // leaving enough time for beacon and association procedure
+  Time dataDuration = MicroSeconds (300); // leaving enough time for data transfer (+ acknowledgment)
+  if (standard == "11a")
+    {
+      wifi.SetStandard (WIFI_PHY_STANDARD_80211a);
+      // ssid = Ssid ("ns380211a");
+      dataRate = "OfdmRate6Mbps";
+      freq = 5180;
+      if (bw != 20)
+        {
+          std::cout << "Bandwidth is not compatible with standard" << std::endl;
+          return 1;
+        }
+    }
+  else if (standard == "11_10MHZ")
+    {
+      wifi.SetStandard (WIFI_PHY_STANDARD_80211_10MHZ);
+      // ssid = Ssid ("ns380211_10MHZ");
+      dataRate = "OfdmRate3MbpsBW10MHz";
+      freq = 5860;
+      dataStartTime = MicroSeconds (1400);
+      dataDuration = MicroSeconds (600);
+      if (bw != 10)
+        {
+          std::cout << "Bandwidth is not compatible with standard" << std::endl;
+          return 1;
+        }
+    }
+  else if (standard == "11_5MHZ")
+    {
+      wifi.SetStandard (WIFI_PHY_STANDARD_80211_5MHZ);
+      // ssid = Ssid ("ns380211_5MHZ");
+      dataRate = "OfdmRate1_5MbpsBW5MHz";
+      freq = 5860;
+      dataStartTime = MicroSeconds (2500);
+      dataDuration = MicroSeconds (1200);
+      if (bw != 5)
+        {
+          std::cout << "Bandwidth is not compatible with standard" << std::endl;
+          return 1;
+        }
+    }
+  else if (standard == "11n_2_4GHZ")
+    {
+      wifi.SetStandard (WIFI_PHY_STANDARD_80211n_2_4GHZ);
+      // ssid = Ssid ("ns380211n_2_4GHZ");
+      dataRate = "HtMcs0";
+      freq = 2402 + (bw / 2); //so as to have 2412/2422 for 20/40
+      dataStartTime = MicroSeconds (4700);
+      dataDuration = MicroSeconds (400);
+      if (bw != 20 && bw != 40)
+        {
+          std::cout << "Bandwidth is not compatible with standard" << std::endl;
+          return 1;
+        }
+    }
+  else if (standard == "11n_5GHZ")
+    {
+      wifi.SetStandard (WIFI_PHY_STANDARD_80211n_5GHZ);
+      // ssid = Ssid ("ns380211n_5GHZ");
+      dataRate = "HtMcs0";
+      freq = 5170 + (bw / 2); //so as to have 5180/5190 for 20/40
+      dataStartTime = MicroSeconds (1000);
+      if (bw != 20 && bw != 40)
+        {
+          std::cout << "Bandwidth is not compatible with standard" << std::endl;
+          return 1;
+        }
+    }
+  else if (standard == "11ac")
+    {
+      wifi.SetStandard (WIFI_PHY_STANDARD_80211ac);
+      // ssid = Ssid ("ns380211ac");
+      dataRate = "VhtMcs0";
+      freq = 5170 + (bw / 2); //so as to have 5180/5190/5210/5250 for 20/40/80/160
+      dataStartTime = MicroSeconds (1100);
+      dataDuration += MicroSeconds (400); //account for ADDBA procedure
+      if (bw != 20 && bw != 40 && bw != 80 && bw != 160)
+        {
+          std::cout << "Bandwidth is not compatible with standard" << std::endl;
+          return 1;
+        }
+    }
+  else if (standard == "11ax_2_4GHZ")
+    {
+      wifi.SetStandard (WIFI_PHY_STANDARD_80211ax_2_4GHZ);
+      // ssid = Ssid ("ns380211ax_2_4GHZ");
+      dataRate = "HeMcs0";
+      freq = 2402 + (bw / 2); //so as to have 2412/2422/2442 for 20/40/80
+      dataStartTime = MicroSeconds (5500);
+      dataDuration += MicroSeconds (2000); //account for ADDBA procedure
+      if (bw != 20 && bw != 40 && bw != 80)
+        {
+          std::cout << "Bandwidth is not compatible with standard" << std::endl;
+          return 1;
+        }
+    }
+  else if (standard == "11ax_5GHZ")
+    {
+      wifi.SetStandard (WIFI_PHY_STANDARD_80211ax_5GHZ);
+      // ssid = Ssid ("ns380211ax_5GHZ");
+      dataRate = "HeMcs0";  // TODO MCS 0 or 7 ???
+      freq = 5170 + (bw / 2); //so as to have 5180/5190/5210/5250 for 20/40/80/160
+      dataStartTime = MicroSeconds (1200);
+      dataDuration += MicroSeconds (500); //account for ADDBA procedure
+      if (bw != 20 && bw != 40 && bw != 80 && bw != 160)
+        {
+          std::cout << "Bandwidth is not compatible with standard" << std::endl;
+          return 1;
+        }
+
+      // enable OSBB_PD
+      enableObssPd = true;
+    }
+  else
+    {
+      std::cout << "Unknown OFDM standard (please refer to the listed possible values)" << std::endl;
+      return 1;
+    }
+
 
   // total expected nodes.  n STAs for each AP
   uint32_t numNodes = 2 * (n + 1);
   packetsReceived = std::vector<uint32_t> (numNodes);
   bytesReceived = std::vector<uint32_t> (numNodes);
+
+  packetsReceivedPerNode.resize (numNodes, std::vector<uint32_t> (numNodes, 0));
+  rssiPerNode.resize (numNodes, std::vector<double> (numNodes, 0.0));
 
   for (uint32_t nodeId = 0; nodeId < numNodes; nodeId++)
     {
@@ -348,22 +613,27 @@ main (int argc, char *argv[])
 
   spectrumPhy.SetChannel (spectrumChannel);
   spectrumPhy.SetErrorRateModel ("ns3::YansErrorRateModel");
-  spectrumPhy.Set ("Frequency", UintegerValue (5180)); // channel 36 at 20 MHz
+  spectrumPhy.Set ("Frequency", UintegerValue (freq)); // channel 36 at 20 MHz
+  spectrumPhy.Set ("ChannelWidth", UintegerValue (bw));
 
   // WiFi setup / helpers
-  WifiHelper wifi;
-  wifi.SetStandard (WIFI_PHY_STANDARD_80211ax_5GHZ);
   WifiMacHelper mac;
 
   std::ostringstream oss;
   oss << "HeMcs" << mcs;
-  wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager","DataMode", StringValue (oss.str ()),
-                                "ControlMode", StringValue (oss.str ()));
+  wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager","DataMode", StringValue (dataRate),
+                                "ControlMode", StringValue (dataRate));
 
   // Set PHY power and CCA threshold for STAs
   spectrumPhy.Set ("TxPowerStart", DoubleValue (powSta));
   spectrumPhy.Set ("TxPowerEnd", DoubleValue (powSta));
   spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrSta));
+  Config::SetDefault ("ns3::StaWifiMac::ObssPdThreshold", DoubleValue (-82.0));
+
+  Config::SetDefault ("ns3::RegularWifiMac::VO_BlockAckThreshold", UintegerValue (0));
+  Config::SetDefault ("ns3::RegularWifiMac::VI_BlockAckThreshold", UintegerValue (0));
+  Config::SetDefault ("ns3::RegularWifiMac::BE_BlockAckThreshold", UintegerValue (0));
+  Config::SetDefault ("ns3::RegularWifiMac::BK_BlockAckThreshold", UintegerValue (0));
 
   //PHY energy threshold -92 dBm
   spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-92.0));
@@ -380,32 +650,30 @@ main (int argc, char *argv[])
   spectrumPhy.Set ("TxPowerEnd", DoubleValue (powAp));
   spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrAp));
   spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-92.0));
-  mac.SetType ("ns3::ApWifiMac",
-               "Ssid", SsidValue (ssidA));
+  mac.SetType ("ns3::ApWifiMac", "Ssid", SsidValue (ssidA));
 
   // AP1
   NetDeviceContainer apDeviceA;
   apDeviceA = wifi.Install (spectrumPhy, mac, ap1);
   Ptr<WifiNetDevice> apDevice = apDeviceA.Get (0)->GetObject<WifiNetDevice> ();
   Ptr<ApWifiMac> apWifiMac = apDevice->GetMac ()->GetObject<ApWifiMac> ();
-  // The below statements may be simplified in a future HeConfigurationHelper
-  Ptr<HeConfiguration> heConfiguration = CreateObject<HeConfiguration> ();
   if (enableObssPd)
     {
-      heConfiguration->SetAttribute ("BssColor", UintegerValue (1));
+      // Network "A" BSS color = 1
+      std::cout << "Setting BSS1 color 1" << std::endl;
+      apWifiMac->SetBssColor (1);
     }
-  apWifiMac->SetHeConfiguration (heConfiguration);
 
   // Set PHY power and CCA threshold for STAs
   spectrumPhy.Set ("TxPowerStart", DoubleValue (powSta));
   spectrumPhy.Set ("TxPowerEnd", DoubleValue (powSta));
   spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrSta));
   spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-92.0));
+  Config::SetDefault ("ns3::StaWifiMac::ObssPdThreshold", DoubleValue (-82.0));
 
   // Network "B"
   Ssid ssidB = Ssid ("B");
-  mac.SetType ("ns3::StaWifiMac",
-               "Ssid", SsidValue (ssidB));
+  mac.SetType ("ns3::StaWifiMac", "Ssid", SsidValue (ssidB));
   NetDeviceContainer staDevicesB;
   staDevicesB = wifi.Install (spectrumPhy, mac, stasB);
 
@@ -414,20 +682,19 @@ main (int argc, char *argv[])
   spectrumPhy.Set ("TxPowerEnd", DoubleValue (powAp));
   spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrAp));
   spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-92.0));
-  mac.SetType ("ns3::ApWifiMac",
-               "Ssid", SsidValue (ssidB));
+  mac.SetType ("ns3::ApWifiMac", "Ssid", SsidValue (ssidB));
 
   // AP2
   NetDeviceContainer apDeviceB;
   apDeviceB = wifi.Install (spectrumPhy, mac, ap2);
   Ptr<WifiNetDevice> ap2Device = apDeviceB.Get (0)->GetObject<WifiNetDevice> ();
   apWifiMac = ap2Device->GetMac ()->GetObject<ApWifiMac> ();
-  heConfiguration = CreateObject<HeConfiguration> ();
   if (enableObssPd)
     {
-      heConfiguration->SetAttribute ("BssColor", UintegerValue (2));
+      // Network "B" BSS color = 2
+      std::cout << "Setting BSS2 color 2" << std::endl;
+      apWifiMac->SetBssColor (2);
     }
-  apWifiMac->SetHeConfiguration (heConfiguration);
 
   // Assign positions to all nodes using position allocator
   MobilityHelper mobility;
@@ -519,30 +786,81 @@ main (int argc, char *argv[])
   PacketSocketHelper packetSocket;
   packetSocket.Install (allNodes);
 
-  ApplicationContainer apps;
+  //uint32_t nNodes = allNodes.GetN ();
+  // ApplicationContainer apps;
+  //  TypeId tid = TypeId::LookupByName ("ns3::UdpSocketFactory");
 
   double perNodeUplinkMbps = aggregateUplinkMbps / n;
   double perNodeDownlinkMbps = aggregateDownlinkMbps / n;
   Time intervalUplink = MicroSeconds (payloadSize * 8 / perNodeUplinkMbps);
-  Time intervalDownlink = MicroSeconds (payloadSize * 8 / perNodeDownlinkMbps); 
+  Time intervalDownlink = MicroSeconds (payloadSize * 8 / perNodeDownlinkMbps);
   std::cout << "Uplink interval:" << intervalUplink << " Downlink interval:" << intervalDownlink << std::endl;
 
-  //BSS 1
-  for (uint32_t i = 0; i < n; i++)
+  Ptr<UniformRandomVariable> urv = CreateObject<UniformRandomVariable> ();
+  urv->SetAttribute ("Min", DoubleValue (-5.0));
+  urv->SetAttribute ("Max", DoubleValue (5.0));
+  double next_rng = 0;
+
+  if (payloadSize > 0)
     {
-      // uplink traffic - each STA to AP
-      AddTraffic (apDeviceA.Get (0), staDevicesA.Get (i), allNodes.Get (0), allNodes.Get (i + 1), payloadSize, 0, intervalUplink);
-      // downlink traffic - AP to each STA
-      AddTraffic (staDevicesA.Get (i), apDeviceA.Get (0), allNodes.Get (i + 1), allNodes.Get (0), payloadSize, 0, intervalDownlink);
+      //BSS 1
+      // if there is uplilnk traffic from STA to AP, then create server to receive pkts, at the AP
+      if (aggregateUplinkMbps)
+      {
+        Ptr<Node> rxNode = allNodes.Get (0);
+        AddServer (apDeviceA.Get (0), staDevicesA.Get (0), rxNode);
+      }
+      for (uint32_t i = 0; i < n; i++)
+        {
+          // uplink traffic - each STA to AP
+          if (aggregateUplinkMbps > 0)
+            {
+              // each STA needs a client to generate traffic
+              // random offset so that all transmissions do not occur at the same time
+              next_rng = urv->GetValue();
+              AddClient (apDeviceA.Get (0), staDevicesA.Get (i), allNodes.Get (i + 1), payloadSize, 0, intervalUplink + NanoSeconds(next_rng));
+            }
+          // downlink traffic - AP to each STA
+          if (aggregateDownlinkMbps > 0)
+            {
+              // for downlink, need to create client at AP to generate traffic to the server at the STA
+              // random offset so that all transmissions do not occur at the same time
+              next_rng = urv->GetValue();
+              AddClient (staDevicesA.Get (i), apDeviceA.Get (0), allNodes.Get (0), payloadSize, 0, intervalDownlink + NanoSeconds(next_rng));
+              AddServer (staDevicesA.Get (i), apDeviceA.Get (0), allNodes.Get (i + 1));
+            }
+        }
     }
 
-  // BSS 2
-  for (uint32_t i = 0; i < n; i++)
+  if (payloadSize > 0)
     {
-      // uplink traffic - each STA to AP
-      AddTraffic (apDeviceB.Get (0), staDevicesB.Get (i), allNodes.Get (n + 1), allNodes.Get (n + 1 + i + 1), payloadSize, 0, intervalUplink);
-      // downlink traffic - AP to each STA
-      AddTraffic (staDevicesB.Get (i), apDeviceB.Get (0), allNodes.Get (n + 1 + i + 1), allNodes.Get (n + 1), payloadSize, 0, intervalDownlink);
+      // BSS 2
+      // if there is uplilnk traffic from STA to AP, then create server to receive pkts, at the AP
+      if (aggregateUplinkMbps)
+      {
+        Ptr<Node> rxNode = allNodes.Get (n + 1);
+        AddServer (apDeviceB.Get (0), staDevicesB.Get (0), rxNode);
+      }
+      for (uint32_t i = 0; i < n; i++)
+        {
+          // uplink traffic - each STA to AP
+          if (aggregateUplinkMbps > 0)
+            {
+              // each STA needs a client to generate traffic
+              // random offset so that all transmissions do not occur at the same time
+              next_rng = urv->GetValue();
+              AddClient (apDeviceB.Get (0), staDevicesB.Get (i), allNodes.Get (n + 1 + i + 1), payloadSize, 0, intervalUplink + NanoSeconds(next_rng));
+            }
+          // downlink traffic - AP to each STA
+          if (aggregateDownlinkMbps > 0)
+            {
+              next_rng = urv->GetValue();
+              // for downlink, need to create client at AP to generate traffic to the server at the STA
+              // random offset so that all transmissions do not occur at the same time
+              AddClient (staDevicesB.Get (i), apDeviceB.Get (0), allNodes.Get (n + 1), payloadSize, 0, intervalDownlink + NanoSeconds(next_rng));
+              AddServer (staDevicesB.Get (i), apDeviceB.Get (0), allNodes.Get (n + 1 + i + 1));
+            }
+        }
     }
 
   // Log packet receptions
@@ -552,6 +870,7 @@ main (int argc, char *argv[])
     {
       AsciiTraceHelper ascii;
       spectrumPhy.EnableAsciiAll (ascii.CreateFileStream (outputFilePrefix + ".tr"));
+      //spectrumPhy.EnablePcapAll("trycap");
     }
 
   // This enabling function could be scheduled later in simulation if desired
@@ -584,13 +903,8 @@ main (int argc, char *argv[])
 
   Simulator::Destroy ();
 
-  double rxThroughputPerNode[numNodes];
-  for (uint32_t k = 0; k < numNodes; k++)
-    {
-      std::cout << "Node " << k << "; packets received = " << packetsReceived[k] << std::endl;
-      rxThroughputPerNode[k] = static_cast<double> (packetsReceived[k] * payloadSize * 8) / 1e6 / duration; 
-      std::cout << "Node " << k << "; throughput received (Mb/s) = " << rxThroughputPerNode[k] << std::endl;
-    }
+  // Save spatial reuse statistics to an output file
+  SaveSpatialReuseStats (outputFilePrefix + "-SR-stats.dat", packetsReceived, bytesReceived, duration, d,  r, freq);
 
   return 0;
 }
