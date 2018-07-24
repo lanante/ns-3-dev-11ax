@@ -105,6 +105,9 @@ struct SignalArrival
 std::vector<uint32_t> packetsReceived (0);
 std::vector<uint32_t> bytesReceived (0);
 
+std::vector<std::vector<uint32_t>> packetsReceivedPerNode;
+std::vector<std::vector<double>> rssiPerNode;
+
 // Parse context strings of the form "/NodeList/3/DeviceList/1/Mac/Assoc"
 // to extract the NodeId
 uint32_t
@@ -186,6 +189,9 @@ SignalCb (std::string context, bool wifi, uint32_t senderNodeId, double rxPowerD
   g_arrivalsDurationCounter += rxDuration.GetSeconds ();
 
   NS_LOG_DEBUG (context << " " << wifi << " " << senderNodeId << " " << rxPowerDbm << " " << rxDuration.GetSeconds () / 1000.0);
+  uint32_t nodeId = ContextToNodeId (context);
+  packetsReceivedPerNode[nodeId][senderNodeId] += 1;
+  rssiPerNode[nodeId][senderNodeId] += rxPowerDbm;
 }
 
 void
@@ -264,6 +270,114 @@ AddServer (Ptr<NetDevice> rxDevice, Ptr<NetDevice> txDevice, Ptr<Node> rxNode)
   Ptr<PacketSocketServer> server = CreateObject<PacketSocketServer> ();
   server->SetLocal (socketAddr);
   rxNode->AddApplication (server);
+}
+
+void
+SaveSpatialReuseStats (std::string filename, 
+  const std::vector<uint32_t> &packetsReceived, 
+  const std::vector<uint32_t> &bytesReceived, 
+  const double duration,
+  const double d,
+  const double r,
+  int freqHz)
+{
+  std::ofstream outFile;
+  outFile.open (filename.c_str (), std::ofstream::out | std::ofstream::trunc);
+  outFile.setf (std::ios_base::fixed);
+  outFile.flush ();
+
+  if (!outFile.is_open ())
+    {
+      NS_LOG_ERROR ("Can't open file " << filename);
+      return;
+    }
+
+  uint32_t numNodes = packetsReceived.size();
+  uint32_t n = (numNodes / 2) - 1;
+
+  outFile << "Spatial Reuse Statistics" << std::endl;
+  outFile << "APs: " << "2" << std::endl;
+  outFile << "Nodes per AP: " << n << std::endl;
+  outFile << "Distance between APs [m]: " << d << std::endl;
+  outFile << "Radius [m]: " << r << std::endl;
+
+  uint32_t bytesReceivedAp1Uplink = 0.0;
+  uint32_t bytesReceivedAp1Downlink = 0.0;
+  uint32_t bytesReceivedAp2Uplink = 0.0;
+  uint32_t bytesReceivedAp2Downlink = 0.0;
+
+  double rxThroughputPerNode[numNodes];
+  for (uint32_t k = 0; k < numNodes; k++)
+    {
+      if (k == 0)
+        {
+          bytesReceivedAp1Uplink += bytesReceived[k];
+        }
+      else if (k == 1)
+        {
+          bytesReceivedAp2Uplink += bytesReceived[k];
+        }
+      else if (k < n)
+        {
+          bytesReceivedAp1Downlink += bytesReceived[k];
+        }
+      else
+        {
+          bytesReceivedAp2Downlink += bytesReceived[k];
+        }
+      double bitsReceived = bytesReceived[k] * 8;
+      // rxThroughputPerNode[k] = static_cast<double> (packetsReceived[k] * payloadSize * 8) / 1e6 / duration; 
+      rxThroughputPerNode[k] = static_cast<double> (bitsReceived) / 1e6 / duration; 
+      outFile << "Node " << k << ", pkts " << packetsReceived[k] << ", bytes " << bytesReceived[k] << ", throughput [MMb/s] " << rxThroughputPerNode[k] << std::endl;
+    }
+
+  double tputAp1Uplink = bytesReceivedAp1Uplink * 8 / 1e6 / duration;
+  double tputAp1Downlink = bytesReceivedAp1Downlink * 8 / 1e6 / duration;
+  double tputAp2Uplink = bytesReceivedAp2Uplink * 8 / 1e6 / duration;
+  double tputAp2Downlink = bytesReceivedAp2Downlink * 8 /1e6 / duration;
+
+  // TODO: debug to print out t-put, can remove
+  std::cout << "Throughput,  AP1 Uplink   [Mbps] : " << tputAp1Uplink << std::endl;
+  std::cout << "Throughput,  AP1 Downlink [Mbps] : " << tputAp1Downlink << std::endl;
+  std::cout << "Throughput,  AP2 Uplink   [Mbps] : " << tputAp2Uplink << std::endl;
+  std::cout << "Throughput,  AP1 Downlink [Mbps] : " << tputAp2Downlink << std::endl;
+
+  outFile << "Throughput,  AP1 Uplink   [Mbps] : " << tputAp1Uplink << std::endl;
+  outFile << "Throughput,  AP1 Downlink [Mbps] : " << tputAp1Downlink << std::endl;
+  outFile << "Throughput,  AP2 Uplink   [Mbps] : " << tputAp2Uplink << std::endl;
+  outFile << "Throughput,  AP1 Downlink [Mbps] : " << tputAp2Downlink << std::endl;
+
+  double area = M_PI * r * r;
+  outFile << "Area Capacity, AP1 Uplink   [Mbps/m^2] : " << tputAp1Uplink / area << std::endl;
+  outFile << "Area Capacity, AP1 Downlink [Mbps/m^2] : " << tputAp1Downlink / area << std::endl;
+  outFile << "Area Capacity, AP2 Uplink   [Mbps/m^2] : " << tputAp2Uplink / area << std::endl;
+  outFile << "Area Capacity, AP2 Downlink [Mbps/m^2] : " << tputAp2Downlink / area << std::endl;
+
+  outFile << "Spectrum Efficiency, AP1 Uplink   [Mbps/Hz] : " << tputAp1Uplink / freqHz << std::endl;
+  outFile << "Spectrum Efficiency, AP1 Downlink [Mbps/Hz] : " << tputAp1Downlink / freqHz << std::endl;
+  outFile << "Spectrum Efficiency, AP2 Uplink   [Mbps/Hz] : " << tputAp2Uplink / freqHz << std::endl;
+  outFile << "Spectrum Efficiency, AP2 Downlink [Mbps/Hz] : " << tputAp2Downlink / freqHz << std::endl;
+
+  outFile << "Avg. RSSI:" << std::endl;
+  for (uint32_t rxNodeId = 0; rxNodeId < numNodes; rxNodeId++)
+    {
+      for (uint32_t txNodeId = 0; txNodeId < numNodes; txNodeId++)
+        {
+          uint32_t pkts = packetsReceivedPerNode[rxNodeId][txNodeId];
+          double rssi = rssiPerNode[rxNodeId][txNodeId];
+          double avgRssi = 0.0;
+          if (pkts > 0)
+            {
+              avgRssi = rssi / pkts;
+            }
+          outFile << avgRssi << "  ";
+        }
+      outFile << std::endl;
+    }
+
+  outFile.close ();
+
+  std::cout << "Spatial Reuse Stats written to: " << filename << std::endl;
 }
 
 // main script
@@ -437,6 +551,9 @@ main (int argc, char *argv[])
   uint32_t numNodes = 2 * (n + 1);
   packetsReceived = std::vector<uint32_t> (numNodes);
   bytesReceived = std::vector<uint32_t> (numNodes);
+
+  packetsReceivedPerNode.resize (numNodes, std::vector<uint32_t> (numNodes, 0));
+  rssiPerNode.resize (numNodes, std::vector<double> (numNodes, 0.0));
 
   for (uint32_t nodeId = 0; nodeId < numNodes; nodeId++)
     {
@@ -786,15 +903,8 @@ main (int argc, char *argv[])
 
   Simulator::Destroy ();
 
-  double rxThroughputPerNode[numNodes];
-  for (uint32_t k = 0; k < numNodes; k++)
-    {
-      std::cout << "Node " << k << "; packets received = " << packetsReceived[k] << "; bytes received = " << bytesReceived[k] << std::endl;
-      double bitsReceived = bytesReceived[k] * 8;
-      // rxThroughputPerNode[k] = static_cast<double> (packetsReceived[k] * payloadSize * 8) / 1e6 / duration; 
-      rxThroughputPerNode[k] = static_cast<double> (bitsReceived) / 1e6 / duration; 
-      std::cout << "Node " << k << "; throughput received (Mb/s) = " << rxThroughputPerNode[k] << std::endl;
-    }
+  // Save spatial reuse statistics to an output file
+  SaveSpatialReuseStats (outputFilePrefix + "-SR-stats.dat", packetsReceived, bytesReceived, duration, d,  r, freq);
 
   return 0;
 }
