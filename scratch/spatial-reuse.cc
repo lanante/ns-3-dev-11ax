@@ -384,6 +384,12 @@ SaveSpatialReuseStats (std::string filename,
 int
 main (int argc, char *argv[])
 {
+  Config::SetDefault ("ns3::RegularWifiMac::VO_BlockAckThreshold", UintegerValue (0));
+  Config::SetDefault ("ns3::RegularWifiMac::VI_BlockAckThreshold", UintegerValue (0));
+  Config::SetDefault ("ns3::RegularWifiMac::BE_BlockAckThreshold", UintegerValue (0));
+  Config::SetDefault ("ns3::RegularWifiMac::BK_BlockAckThreshold", UintegerValue (0));
+  Config::SetDefault ("ns3::HeConfiguration::ObssPdThreshold", DoubleValue (-82.0));
+
   // command line configurable parameters
   bool tracing = true;
   bool enableTracing = true;
@@ -628,13 +634,6 @@ main (int argc, char *argv[])
   spectrumPhy.Set ("TxPowerStart", DoubleValue (powSta));
   spectrumPhy.Set ("TxPowerEnd", DoubleValue (powSta));
   spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrSta));
-  Config::SetDefault ("ns3::StaWifiMac::ObssPdThreshold", DoubleValue (-82.0));
-
-  Config::SetDefault ("ns3::RegularWifiMac::VO_BlockAckThreshold", UintegerValue (0));
-  Config::SetDefault ("ns3::RegularWifiMac::VI_BlockAckThreshold", UintegerValue (0));
-  Config::SetDefault ("ns3::RegularWifiMac::BE_BlockAckThreshold", UintegerValue (0));
-  Config::SetDefault ("ns3::RegularWifiMac::BK_BlockAckThreshold", UintegerValue (0));
-
   //PHY energy threshold -92 dBm
   spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-92.0));
 
@@ -657,19 +656,19 @@ main (int argc, char *argv[])
   apDeviceA = wifi.Install (spectrumPhy, mac, ap1);
   Ptr<WifiNetDevice> apDevice = apDeviceA.Get (0)->GetObject<WifiNetDevice> ();
   Ptr<ApWifiMac> apWifiMac = apDevice->GetMac ()->GetObject<ApWifiMac> ();
+  // The below statements may be simplified in a future HeConfigurationHelper
+  Ptr<HeConfiguration> heConfiguration = CreateObject<HeConfiguration> ();
   if (enableObssPd)
     {
-      // Network "A" BSS color = 1
-      std::cout << "Setting BSS1 color 1" << std::endl;
-      apWifiMac->SetBssColor (1);
+      heConfiguration->SetAttribute ("BssColor", UintegerValue (1));
     }
+  apWifiMac->SetHeConfiguration (heConfiguration);
 
   // Set PHY power and CCA threshold for STAs
   spectrumPhy.Set ("TxPowerStart", DoubleValue (powSta));
   spectrumPhy.Set ("TxPowerEnd", DoubleValue (powSta));
   spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrSta));
   spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-92.0));
-  Config::SetDefault ("ns3::StaWifiMac::ObssPdThreshold", DoubleValue (-82.0));
 
   // Network "B"
   Ssid ssidB = Ssid ("B");
@@ -689,12 +688,12 @@ main (int argc, char *argv[])
   apDeviceB = wifi.Install (spectrumPhy, mac, ap2);
   Ptr<WifiNetDevice> ap2Device = apDeviceB.Get (0)->GetObject<WifiNetDevice> ();
   apWifiMac = ap2Device->GetMac ()->GetObject<ApWifiMac> ();
+  heConfiguration = CreateObject<HeConfiguration> ();
   if (enableObssPd)
     {
-      // Network "B" BSS color = 2
-      std::cout << "Setting BSS2 color 2" << std::endl;
-      apWifiMac->SetBssColor (2);
+      heConfiguration->SetAttribute ("BssColor", UintegerValue (2));
     }
+  apWifiMac->SetHeConfiguration (heConfiguration);
 
   // Assign positions to all nodes using position allocator
   MobilityHelper mobility;
