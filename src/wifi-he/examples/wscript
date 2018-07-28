@@ -1,0 +1,15 @@
+# -*- Mode: python; py-indent-offset: 4; indent-tabs-mode: nil; coding: utf-8; -*-
+
+def build(bld):
+    obj = bld.create_ns3_program('basic-spatial-reuse', ['wifi-he', 'wifi', 'core', 'config-store', 'network', 'mobility', 'internet', 'spectrum', 'applications', 'propagation'])
+    obj.source = 'basic-spatial-reuse.cc'
+
+    obj = bld.create_ns3_program('spatial-reuse', ['wifi-he', 'wifi', 'core', 'config-store', 'network', 'mobility', 'internet', 'spectrum', 'applications', 'propagation'])
+    obj.source = 'spatial-reuse.cc'
+
+    obj = bld.create_ns3_program('test-nav-operation', ['wifi-he', 'wifi', 'core', 'config-store', 'network', 'mobility', 'internet', 'spectrum', 'applications', 'propagation'])
+    obj.source = 'test-nav-operation.cc'
+
+    obj = bld.create_ns3_program('test-dual-nav-operation', ['wifi-he', 'wifi', 'core', 'config-store', 'network', 'mobility', 'internet', 'spectrum', 'applications', 'propagation'])
+    obj.source = 'test-dual-nav-operation.cc'
+
