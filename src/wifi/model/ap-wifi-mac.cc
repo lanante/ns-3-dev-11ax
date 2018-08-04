@@ -701,6 +701,9 @@ ApWifiMac::GetHeOperation (void) const
         {
           operation.SetMaxHeMcsPerNss (nss, 11); //TBD: hardcode to 11 for now since we assume all MCS values are supported
         }
+      UintegerValue bssColor;
+      GetHeConfiguration ()->GetAttribute ("BssColor", bssColor);
+      operation.SetBssColor (bssColor.Get ());
     }
   return operation;
 }

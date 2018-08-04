@@ -29,6 +29,7 @@
 #include "mgt-headers.h"
 #include "snr-tag.h"
 #include "wifi-rx-tag.h"
+#include "he-configuration.h"
 
 namespace ns3 {
 
@@ -1025,6 +1026,13 @@ StaWifiMac::UpdateApInfoFromAssocResp (MgtAssocResponseHeader assocResp, Mac48Ad
       //todo: once we support non constant rate managers, we should add checks here whether HE is supported by the peer
       m_stationManager->AddStationHeCapabilities (apAddr, hecapabilities);
       HeOperation heOperation = assocResp.GetHeOperation ();
+      if (GetHeConfiguration () == 0)
+        {
+          NS_LOG_DEBUG ("Creating HeConfiguration object on STA");
+          Ptr<HeConfiguration> heConfiguration = CreateObject<HeConfiguration> ();
+          SetHeConfiguration (heConfiguration);
+        }
+      GetHeConfiguration ()->SetAttribute ("BssColor", UintegerValue (heOperation.GetBssColor ()));
     }
   for (uint8_t i = 0; i < m_phy->GetNModes (); i++)
     {
