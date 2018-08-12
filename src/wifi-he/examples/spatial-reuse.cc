@@ -270,7 +270,11 @@ AddServer (Ptr<NetDevice> rxDevice, Ptr<NetDevice> txDevice, Ptr<Node> rxNode)
   Ptr<PacketSocketServer> server = CreateObject<PacketSocketServer> ();
   server->SetLocal (socketAddr);
   rxNode->AddApplication (server);
+
 }
+
+std::vector<uint32_t> signals (100);
+std::vector<uint32_t> noises (100);
 
 void
 SaveSpatialReuseStats (std::string filename, 
@@ -279,7 +283,8 @@ SaveSpatialReuseStats (std::string filename,
   const double duration,
   const double d,
   const double r,
-  int freqHz)
+  const int freqHz,
+  const double csr)
 {
   std::ofstream outFile;
   outFile.open (filename.c_str (), std::ofstream::out | std::ofstream::trunc);
@@ -375,9 +380,165 @@ SaveSpatialReuseStats (std::string filename,
       outFile << std::endl;
     }
 
+  outFile << "CDF (dBm, signal, noise)" << std::endl;
+  uint32_t signals_total = 0;
+  uint32_t noises_total = 0;
+  for (uint32_t idx = 0; idx < 100; idx++)
+    {
+      signals_total += signals[idx];
+      noises_total += noises[idx];
+    }
+
+  uint32_t sum_signal = 0;
+  uint32_t sum_noise = 0;
+  // for dBm from -100 to -30
+  for (uint32_t idx = 0; idx < 71; idx++)
+    {
+      sum_signal += signals[idx];
+      sum_noise += noises[idx];
+      outFile << ((double) idx - 100.0) << " " << (double) sum_signal / (double) signals_total << " " << (double) sum_noise / (double) noises_total << std::endl;
+    }
+
   outFile.close ();
 
   std::cout << "Spatial Reuse Stats written to: " << filename << std::endl;
+
+}
+
+NodeContainer allNodes;
+
+// Find nodeId given a MacAddress
+int
+MacAddressToNodeId (Mac48Address macAddress)
+{
+  int nodeId = -1;
+  Mac48Address inAddress = macAddress;
+  uint32_t nNodes = allNodes.GetN ();
+  for (uint32_t n = 0; n < nNodes; n++)
+    {
+      Mac48Address nodeAddress = Mac48Address::ConvertFrom (allNodes.Get (n)->GetDevice(0)->GetAddress());
+      if (inAddress == nodeAddress)
+        {
+          nodeId = n;
+          break;
+        }
+    }
+  if (nodeId == -1)
+    {
+      // not found
+      //std::cout << "No node with addr " << macAddress << std::endl;
+    }
+  return nodeId;
+}
+
+// Global variables for use in callbacks.
+double g_signalDbmAvg;
+double g_noiseDbmAvg;
+uint32_t g_samples;
+std::ofstream g_rxSniffFile;
+
+double g_min_signal = 1000.0;
+double g_max_signal = -1000.0;
+double g_min_noise = 1000.0;
+double g_max_noise = -1000.0;
+
+void ProcessPacket (std::string context,
+                    Ptr<const Packet> packet,
+                    uint16_t channelFreqMhz,
+                    WifiTxVector txVector,
+                    MpduInfo aMpdu,
+                    SignalNoiseDbm signalNoise)
+{
+  uint32_t rxNodeId = ContextToNodeId (context);
+  int dstNodeId = -1;
+  int srcNodeId = -1;
+  Mac48Address addr1;
+  Mac48Address addr2;
+  if (packet)
+    {
+      WifiMacHeader hdr;
+      packet->PeekHeader (hdr);
+      addr1 = hdr.GetAddr1 ();
+      addr2 = hdr.GetAddr2 ();
+      Mac48Address whatsThis = Mac48Address("00:00:00:00:00:00");
+      if (!addr1.IsBroadcast () && (addr2 != whatsThis))
+        {
+          dstNodeId = MacAddressToNodeId (addr1);
+          srcNodeId = MacAddressToNodeId (addr2);
+          // std::cout << "RX " << rxNodeId << " dst " << dstNodeId << " context " << context << " addr1 " << addr1 << " addr2 " << addr2 << std::endl;
+
+          g_samples++;
+          g_signalDbmAvg += ((signalNoise.signal - g_signalDbmAvg) / g_samples);
+          g_noiseDbmAvg += ((signalNoise.noise - g_noiseDbmAvg) / g_samples);
+          Address rxNodeAddress = allNodes.Get (rxNodeId)->GetDevice (0)->GetAddress ();
+          uint32_t pktSize = packet->GetSize ();
+          if (pktSize >= 1500)
+            {
+              // std::cout << context << " " << rxNodeId << ", " << dstNodeId << ", " << srcNodeId << ", " << rxNodeAddress << ", " << addr1 << ", " << addr2 << ", " << signalNoise.noise << ", " << signalNoise.signal << ", " << pktSize << std::endl;
+            }
+          g_rxSniffFile << rxNodeId << ", " << dstNodeId << ", " << srcNodeId << ", " << rxNodeAddress << ", " << addr1 << ", " << addr2 << ", " << signalNoise.noise << ", " << signalNoise.signal << ", " << pktSize << std::endl;
+          if (signalNoise.signal < g_min_signal)
+            {
+              g_min_signal = signalNoise.signal;
+            }
+          if (signalNoise.signal > g_max_signal)
+            {
+              g_max_signal = signalNoise.signal;
+            }
+          if (signalNoise.noise < g_min_noise)
+            {
+              g_min_noise = signalNoise.noise;
+            }
+          if (signalNoise.noise > g_max_noise)
+            {
+              g_max_noise = signalNoise.noise;
+            }
+          // std::cout << "sigbal min " << g_min_signal << " max " << g_max_signal << " Noise min " << g_min_noise << " max " << g_max_noise << std::endl;
+          uint32_t idx = floor (signalNoise.signal) + 100;
+          signals[idx]++;
+          idx = floor (signalNoise.noise) + 100;
+          noises[idx]++;
+        }
+    }
+}
+
+void MonitorSniffRx (std::string context,
+                     Ptr<const Packet> packet,
+                     uint16_t channelFreqMhz,
+                     WifiTxVector txVector,
+                     MpduInfo aMpdu,
+                     SignalNoiseDbm signalNoise)
+{
+  if (packet)
+    {
+      Ptr <Packet> packetCopy = new Packet (*packet);
+      AmpduTag ampdu;
+      if (packetCopy->RemovePacketTag (ampdu))
+        {
+          // A-MPDU frame
+          MpduAggregator::DeaggregatedMpdus packets = MpduAggregator::Deaggregate (packetCopy);
+          for (MpduAggregator::DeaggregatedMpdusCI n = packets.begin(); n != packets.end(); ++n)
+            {
+              std::pair<Ptr<Packet>, AmpduSubframeHeader> deAggPair = (std::pair<Ptr<Packet>, AmpduSubframeHeader>) *n;
+              Ptr<Packet> aggregatedPacket = deAggPair.first;
+              ProcessPacket (context,
+                             aggregatedPacket,
+                             channelFreqMhz,
+                             txVector,
+                             aMpdu,
+                             signalNoise);
+            }
+        }
+      else
+        {
+          ProcessPacket (context,
+                         packet,
+                         channelFreqMhz,
+                         txVector,
+                         aMpdu,
+                         signalNoise);
+        }
+    }
 }
 
 // main script
@@ -389,6 +550,8 @@ main (int argc, char *argv[])
   Config::SetDefault ("ns3::RegularWifiMac::BE_BlockAckThreshold", UintegerValue (0));
   Config::SetDefault ("ns3::RegularWifiMac::BK_BlockAckThreshold", UintegerValue (0));
   Config::SetDefault ("ns3::HeConfiguration::ObssPdThreshold", DoubleValue (-82.0));
+
+  int maxSlrc = 7;
 
   // command line configurable parameters
   bool tracing = true;
@@ -403,8 +566,11 @@ main (int argc, char *argv[])
   double r = 50.0; // radius of circle around each AP in which to scatter the STAs
   double aggregateUplinkMbps = 1.0;
   double aggregateDownlinkMbps = 1.0;
+  bool enableRts = 0;
+  double txRange = 54.0; // [m]
   int bw = 20;
   std::string standard ("11ax_5GHZ");
+  double csr = 1000.0;  // carrier sense range
 
   // local variables
   std::string outputFilePrefix = "spatial-reuse";
@@ -427,7 +593,57 @@ main (int argc, char *argv[])
   cmd.AddValue ("standard", "Set standard (802.11a, 802.11b, 802.11g, 802.11n-5GHz, 802.11n-2.4GHz, 802.11ac, 802.11-holland, 802.11-10MHz, 802.11-5MHz, 802.11ax-5GHz, 802.11ax-2.4GHz)", standard);
   cmd.AddValue ("bw", "Bandwidth (consistent with standard, in MHz)", bw);
   cmd.AddValue ("enableObssPd", "Enable OBSS_PD", enableObssPd);
+  cmd.AddValue ("csr", "Carrier Sense Range (CSR) [m]", csr);
+  cmd.AddValue ("enableRts", "Enable or disable RTS/CTS", enableRts);
+  cmd.AddValue ("maxSlrc", "MaxSlrc", maxSlrc);
+  cmd.AddValue ("txRange", "Max TX range [m]", txRange);
   cmd.Parse (argc, argv);
+
+  if (enableRts)
+    {
+      Config::SetDefault ("ns3::WifiRemoteStationManager::RtsCtsThreshold", StringValue ("0"));
+    }
+
+  if (maxSlrc < 0)
+    {
+      maxSlrc = std::numeric_limits<uint32_t>::max();
+    }
+  Config::SetDefault ("ns3::WifiRemoteStationManager::MaxSlrc", UintegerValue (maxSlrc));
+
+  // carrier sense range (csr) is a calculated value that is used for displaying the 
+  // estimated range in which an AP can successfully receive from STAs.
+  // first, let us calculate the max distance, txRange, that a transmitting STA's signal
+  // can be received above the CcaMode1Threshold.
+  // for simple calculation, we assume Friis propagation loss, CcaMode1Threshold = -102dBm,
+  // freq = 5.9GHz, no antenna gains, txPower = 10 dBm. the resulting value is:
+  // calculation of Carrier Sense Range (CSR).
+  // see: https://onlinelibrary.wiley.com/doi/pdf/10.1002/wcm.264
+  // In (8), the optimum CSR = D x S0 ^ (1 / gamma)
+  // S0 (the  min. SNR value for decoding a particular rate MCS) is calculated for several MCS values.
+  // For reference, please see the  802.11ax Evaluation Methodology document (Appendix 3).
+  // https://mentor.ieee.org/802.11/dcn/14/11-14-0571-12-00ax-evaluation-methodology.do
+  //For the following conditions:
+  // AWGN Channel
+  // BCC with 1482 bytes Packet Length
+  // PER=0.1 
+  // the minimum SINR values (S0) are
+  //
+  // [MCS S0 ]
+  // [0 0.7dB]
+  // [1 3.7dB]
+  // [2  6.2dB]
+  // [3 9.3dB]
+  // [4 12.6dB]
+  // [5 16.8dB]
+  // [6 18.2dB]
+  // [7 19.4dB]
+  // [8 23.5dB]
+  // [9 25.1dB]
+  // Caclculating CSR for MCS0, assuming gamma = 3, we get
+  double s0 = 0.7;
+  double gamma = 3.0;
+  csr = txRange * pow(s0, 1.0 / gamma);
+  std::cout << "S0 " << s0 << " gamma " << gamma << " txRange " << txRange << " csr " << csr << std::endl;
 
   WifiHelper wifi;
   std::string dataRate;
@@ -578,7 +794,7 @@ main (int argc, char *argv[])
   Ptr<Node> ap1 = CreateObject<Node> ();
   Ptr<Node> ap2 = CreateObject<Node> ();
   // node containers for two APs and their STAs
-  NodeContainer stasA, stasB,nodesA, nodesB, allNodes;
+  NodeContainer stasA, stasB,nodesA, nodesB;
 
   // network "A"
   for (uint32_t i = 0; i < n; i++)
@@ -723,12 +939,12 @@ main (int argc, char *argv[])
   positionOutFile << std::endl;
 
   // "A" - APs
-  positionOutFile << 0.0 << ", " << 0.0 << ", " << r << std::endl;
+  positionOutFile << 0.0 << ", " << 0.0 << ", " << r << ", " << csr << std::endl;
   positionOutFile << std::endl;
   positionOutFile << std::endl;
 
   // "B" - APs
-  positionOutFile << d << ", " << 0.0 << ", " << r << std::endl;
+  positionOutFile << d << ", " << 0.0 << ", " << r << ", " << csr << std::endl;
   positionOutFile << std::endl;
   positionOutFile << std::endl;
 
@@ -864,6 +1080,7 @@ main (int argc, char *argv[])
 
   // Log packet receptions
   Config::Connect ("/NodeList/*/ApplicationList/*/$ns3::PacketSocketServer/Rx", MakeCallback (&SocketRecvStats));
+  Config::Connect ("/NodeList/*/DeviceList/*/Phy/MonitorSnifferRx", MakeCallback (&MonitorSniffRx));
 
   if (enableTracing)
     {
@@ -878,6 +1095,10 @@ main (int argc, char *argv[])
   g_stateFile.setf (std::ios_base::fixed);
   ScheduleStateLogConnect ();
 
+  g_rxSniffFile.open (outputFilePrefix + "-rx-sniff.dat", std::ofstream::out | std::ofstream::trunc);
+  g_rxSniffFile.setf (std::ios_base::fixed);
+  g_rxSniffFile << "RxNodeId, DstNodeId, SrcNodeId, RxNodeAddr, DA, SA, Noise, Signal " << std::endl;
+
   // Save attribute configuration
   Config::SetDefault ("ns3::ConfigStore::Filename", StringValue (outputFilePrefix + ".config"));
   Config::SetDefault ("ns3::ConfigStore::FileFormat", StringValue ("RawText"));
@@ -889,6 +1110,19 @@ main (int argc, char *argv[])
     {
       spectrumPhy.EnablePcap ("pcapforPackets", staDevicesA);
     }
+
+  // uint32_t nNodes = allNodes.GetN ();
+  // std::cout << "Node Address" << std::endl;
+  // for (uint32_t n = 0; n < nNodes; n++)
+  //   {
+  //
+  //     Address address = allNodes.Get (n)->GetDevice(0)->GetAddress();
+  //     Mac48Address mac48address = Mac48Address::ConvertFrom(address);
+  //     Ptr<NetDevice> dev = allNodes.Get (n)->GetDevice(0);
+  //     Ptr<WifiNetDevice> wifi_dev = DynamicCast<WifiNetDevice>(dev);
+  //     Mac48Address addrm = wifi_dev->GetMac ()->GetAddress ();
+  //     std::cout << n << " " << address << " Mac48Address " << mac48address << " addrm " << addrm << std::endl;
+  //   }
 
   Time durationTime = Seconds (duration);
   Simulator::Stop (durationTime);
@@ -903,7 +1137,7 @@ main (int argc, char *argv[])
   Simulator::Destroy ();
 
   // Save spatial reuse statistics to an output file
-  SaveSpatialReuseStats (outputFilePrefix + "-SR-stats.dat", packetsReceived, bytesReceived, duration, d,  r, freq);
+  SaveSpatialReuseStats (outputFilePrefix + "-SR-stats.dat", packetsReceived, bytesReceived, duration, d,  r, freq, csr);
 
   return 0;
 }
