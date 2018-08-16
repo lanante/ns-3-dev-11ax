@@ -1212,6 +1212,24 @@ public:
    */
   double GetCcaMode1Threshold (void) const;
   /**
+   * Set the CCA-CS threshold (dBm).
+   *
+   * \param threshold the CCA-CS threshold in dBm
+   */
+  void SetCcaCsThreshold (double threshold);
+  /**
+   * Return the CCA-CS threshold (W).
+   *
+   * \return the CCA-CS threshold in W
+   */
+  double GetCcaCsThresholdW (void) const;
+  /**
+   * Return the CCA-CS threshold (dBm).
+   *
+   * \return the CCA-CS threshold in dBm
+   */
+  double GetCcaCsThreshold (void) const;
+  /**
    * Sets the RX loss (dB) in the Signal-to-Noise-Ratio due to non-idealities in the receiver.
    *
    * \param noiseFigureDb noise figure in dB
@@ -1755,6 +1773,7 @@ private:
 
   double   m_edThresholdW;        //!< Energy detection threshold in watts
   double   m_ccaMode1ThresholdW;  //!< Clear channel assessment (CCA) threshold in watts
+  double   m_ccaCsThresholdW;     //!< CCA-CS threshold in watts
   double   m_txGainDb;            //!< Transmission gain (dB)
   double   m_rxGainDb;            //!< Reception gain (dB)
   double   m_txPowerBaseDbm;      //!< Minimum transmission power (dBm)
