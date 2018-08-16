@@ -40,6 +40,8 @@ public:
 private:
   uint8_t m_bssColor; //!< BSS color
   double m_obssPdThreshold;  //!< OBSS_PD threshold (dBm)
+  double m_obssPdThresholdMin; //!< OBSS_PD threshold minimum (dBm)
+  double m_obssPdThresholdMax; //!< OBSS_PD threshold maximum (dBm)
 };
 
 } //namespace ns3
