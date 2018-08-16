@@ -23,6 +23,7 @@
 #include "ns3/log.h"
 #include "ns3/pointer.h"
 #include "ns3/mobility-model.h"
+#include "ns3/uinteger.h"
 #include "ns3/random-variable-stream.h"
 #include "wifi-phy.h"
 #include "wifi-phy-tag.h"
@@ -31,6 +32,9 @@
 #include "frame-capture-model.h"
 #include "wifi-radio-energy-model.h"
 #include "error-rate-model.h"
+#include "wifi-net-device.h"
+#include "regular-wifi-mac.h"
+#include "he-configuration.h"
 
 namespace ns3 {
 
@@ -2328,6 +2332,21 @@ WifiPhy::SendPacket (Ptr<const Packet> packet, WifiTxVector txVector, MpduType m
   Ptr<Packet> newPacket = packet->Copy (); // obtain non-const Packet
   WifiPhyTag oldtag;
   newPacket->RemovePacketTag (oldtag);
+  // TODO:  In ns-3-dev, find more convenient place to store HeConfiguration
+  Ptr<WifiNetDevice> wifiNetDevice = DynamicCast<WifiNetDevice> (m_device);
+  Ptr<RegularWifiMac> regularWifiMac = DynamicCast<RegularWifiMac> (wifiNetDevice->GetMac ());
+  Ptr<HeConfiguration> heConfiguration = regularWifiMac->GetHeConfiguration ();
+  
+  if (heConfiguration)
+    {
+      UintegerValue bssColor;
+      heConfiguration->GetAttribute ("BssColor", bssColor);
+      if (bssColor.Get ())
+        {
+          NS_LOG_DEBUG ("Setting BSS color to " << bssColor.Get ());
+          txVector.SetBssColor (bssColor.Get ());
+        }
+    }
   if (m_state->GetState () == WifiPhyState::OFF)
     {
       NS_LOG_DEBUG ("Transmission canceled because device is OFF");
