@@ -433,9 +433,14 @@ main (int argc, char *argv[])
       client->SetAttribute ("PacketSize", UintegerValue (payloadSize));
       client->SetAttribute ("MaxPackets", UintegerValue (0));
       client->SetAttribute ("Interval", TimeValue (interval));
-      Ptr<PacketSocketServer> server = CreateObject<PacketSocketServer> ();
-      server->SetLocal (socketAddr);
-      allNodes.Get (2)->AddApplication (server);
+      // only need to add the server application to the AP once, since
+      // all client STAs will uplink to the same AP
+      if (i == 0)
+        {
+          Ptr<PacketSocketServer> server = CreateObject<PacketSocketServer> ();
+          server->SetLocal (socketAddr);
+          allNodes.Get (2)->AddApplication (server);
+        }
     }
 
   // BSS 2
@@ -451,9 +456,14 @@ main (int argc, char *argv[])
       client->SetAttribute ("PacketSize", UintegerValue (payloadSize));
       client->SetAttribute ("MaxPackets", UintegerValue (0));
       client->SetAttribute ("Interval", TimeValue (interval));
-      Ptr<PacketSocketServer> server = CreateObject<PacketSocketServer> ();
-      server->SetLocal (socketAddr);
-      allNodes.Get (4)->AddApplication (server);
+      // only need to add the server application to the AP once, since
+      // all client STAs will uplink to the same AP
+      if (i == 0)
+        {
+          Ptr<PacketSocketServer> server = CreateObject<PacketSocketServer> ();
+          server->SetLocal (socketAddr);
+          allNodes.Get (4)->AddApplication (server);
+        }
     }
 
   // Log packet receptions
