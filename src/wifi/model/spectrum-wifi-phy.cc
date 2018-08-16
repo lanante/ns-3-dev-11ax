@@ -29,6 +29,7 @@
 #include "ns3/net-device.h"
 #include "ns3/node.h"
 #include "ns3/uinteger.h"
+#include "ns3/double.h"
 #include "spectrum-wifi-phy.h"
 #include "wifi-spectrum-signal-parameters.h"
 #include "wifi-spectrum-phy-interface.h"
@@ -281,6 +282,16 @@ SpectrumWifiPhy::StartRx (Ptr<SpectrumSignalParameters> rxParams)
       if (txVector.GetBssColor () == bssColor.Get () && rxPowerW < GetCcaCsThresholdW ())
         {
           NS_LOG_INFO ("Received Wi-Fi signal but below CCA-CS threshold");
+          m_interference.AddForeignSignal (rxDuration, rxPowerW);
+          SwitchMaybeToCcaBusy ();
+          return;
+        }
+      DoubleValue obssPdThreshold;
+      heConfiguration->GetAttribute ("ObssPdThreshold", obssPdThreshold);
+      double obssPdThresholdW = obssPdThreshold.Get () * GetChannelWidth ()/20;
+      if (txVector.GetBssColor () != bssColor.Get () && rxPowerW < obssPdThresholdW)
+        {
+          NS_LOG_INFO ("Received OBSS Wi-Fi signal but below OBSS-PD threshold");
           m_interference.AddForeignSignal (rxDuration, rxPowerW);
           SwitchMaybeToCcaBusy ();
           return;
