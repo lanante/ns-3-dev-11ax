@@ -51,7 +51,7 @@ HeConfiguration::GetTypeId (void)
                    MakeDoubleChecker<double> ())
     .AddAttribute ("ObssPdThresholdMin",
                    "Minimum value (dBm) of OBSS_PD threshold",
-                   DoubleValue (-99.0),
+                   DoubleValue (-82.0),
                    MakeDoubleAccessor (&HeConfiguration::m_obssPdThresholdMin),
                    MakeDoubleChecker<double> ())
     .AddAttribute ("ObssPdThresholdMax",
