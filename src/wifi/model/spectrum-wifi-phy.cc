@@ -28,10 +28,16 @@
 #include "ns3/boolean.h"
 #include "ns3/net-device.h"
 #include "ns3/node.h"
+#include "ns3/uinteger.h"
+#include "ns3/double.h"
 #include "spectrum-wifi-phy.h"
 #include "wifi-spectrum-signal-parameters.h"
 #include "wifi-spectrum-phy-interface.h"
 #include "wifi-utils.h"
+#include "wifi-net-device.h"
+#include "regular-wifi-mac.h"
+#include "he-configuration.h"
+#include "wifi-phy-tag.h"
 
 namespace ns3 {
 
@@ -256,9 +262,52 @@ SpectrumWifiPhy::StartRx (Ptr<SpectrumSignalParameters> rxParams)
       SwitchMaybeToCcaBusy ();
       return;
     }
-
-  NS_LOG_INFO ("Received Wi-Fi signal");
   Ptr<Packet> packet = wifiRxParams->packet->Copy ();
+  WifiPhyTag tag;
+  bool found = packet->PeekPacketTag (tag);
+  if (!found)
+    {
+      NS_FATAL_ERROR ("Received Wi-Fi Signal with no WifiPhyTag");
+      return;
+    }
+  WifiTxVector txVector = tag.GetWifiTxVector ();
+  // TODO:  In ns-3-dev, find more convenient place to store HeConfiguration
+  Ptr<WifiNetDevice> wifiNetDevice = DynamicCast<WifiNetDevice> (GetDevice ());
+  Ptr<RegularWifiMac> regularWifiMac = DynamicCast<RegularWifiMac> (wifiNetDevice->GetMac ());
+  Ptr<HeConfiguration> heConfiguration = regularWifiMac->GetHeConfiguration ();
+  if (heConfiguration)
+    {
+      UintegerValue bssColor;
+      heConfiguration->GetAttribute ("BssColor", bssColor);
+      if (txVector.GetBssColor () == bssColor.Get () && rxPowerW < GetCcaCsThresholdW ())
+        {
+          NS_LOG_INFO ("Received Wi-Fi signal but below CCA-CS threshold");
+          m_interference.AddForeignSignal (rxDuration, rxPowerW);
+          SwitchMaybeToCcaBusy ();
+          return;
+        }
+      DoubleValue obssPdThreshold;
+      heConfiguration->GetAttribute ("ObssPdThreshold", obssPdThreshold);
+      double obssPdThresholdW = obssPdThreshold.Get () * GetChannelWidth ()/20;
+      if (txVector.GetBssColor () != bssColor.Get () && rxPowerW < obssPdThresholdW)
+        {
+          NS_LOG_INFO ("Received OBSS Wi-Fi signal but below OBSS-PD threshold");
+          m_interference.AddForeignSignal (rxDuration, rxPowerW);
+          SwitchMaybeToCcaBusy ();
+          return;
+        }
+    }
+  else // not 11ax
+    {
+      if (rxPowerW < GetCcaCsThresholdW ())
+        {
+          NS_LOG_INFO ("Received Wi-Fi signal but below CCA-CS threshold");
+          m_interference.AddForeignSignal (rxDuration, rxPowerW);
+          SwitchMaybeToCcaBusy ();
+          return;
+        }
+    }
+  NS_LOG_INFO ("Received Wi-Fi signal");
   StartReceivePreambleAndHeader (packet, rxPowerW, rxDuration);
 }
 
