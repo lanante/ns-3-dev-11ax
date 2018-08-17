@@ -4,9 +4,10 @@
 function run_one () {
   echo Running $1
   # run the test
-  ../../../waf --run "spatial-reuse –-RngRun=$2 --powSta=$3 –-powAp=$4 --duration=$5 --d=$6 --r=$7 --n=$8 --uplink=$9 --downlink=${10} –-enableRts=${11} --standard=${12} –-bw=${13} –txRange=${14}"
+  ../../../waf --run "spatial-reuse –-RngRun=$2 --powSta=$3 –-powAp=$4 --duration=$5 --d=$6 --r=$7 --n=$8 --uplink=$9 --downlink=${10} –-enableRts=${11} --standard=${12} --bw=${13} --txRange=${14} --MCS=${15} --payloadSize=${16} --txStartOffset=${17}"
 
   # copy results files
+  cd ../scripts
   cp ../../../spatial-reuse-positions.csv "results/spatial-reuse-positions-$1.csv"
   cp ../../../spatial-reuse-rx-sniff.dat  "results/spatial-reuse-rx-sniff-$1.dat"
   cp ../../../spatial-reuse-SR-stats.dat  "results/spatial-reuse-SR-stats-$1.dat"

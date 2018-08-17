@@ -2,7 +2,7 @@
 
 source spatial-reuse-functions.sh
 
-# Run the test(s) for TGax Simulation Scenarios
+# Run the test(s) for Scenarios for calibration of MAC simulator
 # common parameters
 RngRun=1
 powSta=15
@@ -10,52 +10,76 @@ powAp=20
 duration=10.0
 enableRts=0
 standard=11ax_5GHZ
+bw=20
 MCS=0
 payloadSize=1500
 txStartOffset=5
 
 cd ../examples
 
-# Test: 1 - Resideential Scenario
-test=TGax-test1
-d=10
-r=5
-n=10
+# @TODO 
+# MSDU length:[0:500:2000Bytes]
+# MCS [0,8]
+# Time traces
+# make 0 offset on Tx, so that all nodes send at same time.
+# specific location of APs, STAs ??? (Deferral Tests, NAV Test
+# PER = 0%
+
+# Test 1a - MAC overhead w/o RTS/CTS
+test=calibration-test1a
+d=1000
+r=50
+n=1
 uplink=10.0
 downlink=0.0
-bw=80
 txRange=54
 run_one "$test" "$RngRun" "$powSta" "$powAP" "$duration" "$d" "$r" "$n" "$uplink" "$downlink" "$enableRts" "$standard" "$bw" "$txRange" "$MCS" "$payloadSize" "$txStartOffset"
 
-# Test: 2 - Enterprise Scenario
-test=TGax-test2
+# Test 1b - MAC overhead w/o RTS/CTS
+test=calibration-test1b
+d=1000
+r=50
+n=1
+uplink=10.0
+downlink=0.0
+enableRts=1
+txRange=54
+run_one "$test" "$RngRun" "$powSta" "$powAP" "$duration" "$d" "$r" "$n" "$uplink" "$downlink" "$enableRts" "$standard" "$bw" "$txRange" "$MCS" "$payloadSize" "$txStartOffset"
+
+# Test 2a - Deferral Test 1
+test=calibration-test2a
 d=10
-r=5
-n=100
-uplink=10.0
-downlink=0.0
-bw=80
-txRange=68
-run_one "$test" "$RngRun" "$powSta" "$powAP" "$duration" "$d" "$r" "$n" "$uplink" "$downlink" "$enableRts" "$standard" "$bw" "$txRange" "$MCS" "$payloadSize" "$txStartOffset"
-
-# Test: 3 - Indoor Small BSS Scenario
-test=TGax-test3
-d=17.32
 r=10
-n=30
+n=1
 uplink=10.0
 downlink=0.0
-bw=80
-txRange=107
+# RTS=[OFF, ON]
+enableRts=0
+txRange=54
 run_one "$test" "$RngRun" "$powSta" "$powAP" "$duration" "$d" "$r" "$n" "$uplink" "$downlink" "$enableRts" "$standard" "$bw" "$txRange" "$MCS" "$payloadSize" "$txStartOffset"
 
-# Test: 4 - Outdoor Large BSS Hotspot Scenario
-test=TGax-test4
-d=130
-r=70
-n=50
+# Test 2b - Deferral Test 2
+test=calibration-test2b
+d=20
+r=10
+n=1
 uplink=10.0
 downlink=0.0
-bw=80
-txRange=50
+# RTS=OFF for this test
+enableRts=0
+txRange=54
 run_one "$test" "$RngRun" "$powSta" "$powAP" "$duration" "$d" "$r" "$n" "$uplink" "$downlink" "$enableRts" "$standard" "$bw" "$txRange" "$MCS" "$payloadSize" "$txStartOffset"
+
+# Test 3 - NAV Deferral
+# same as Test 2b, but with RTS/CTS ON
+test=calibration-test3
+d=20
+r=10
+n=1
+uplink=10.0
+downlink=0.0
+# RTS=ON for this test
+enableRts=1
+txRange=54
+run_one "$test" "$RngRun" "$powSta" "$powAP" "$duration" "$d" "$r" "$n" "$uplink" "$downlink" "$enableRts" "$standard" "$bw" "$txRange" "$MCS" "$payloadSize" "$txStartOffset"
+

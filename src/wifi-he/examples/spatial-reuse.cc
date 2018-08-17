@@ -570,12 +570,13 @@ main (int argc, char *argv[])
   double txRange = 54.0; // [m]
   int bw = 20;
   std::string standard ("11ax_5GHZ");
-  double csr = 1000.0;  // carrier sense range
+  double csr = 1000.0; // carrier sense range
+  double txStartOffset = 5.0; // [ns]
 
   // local variables
   std::string outputFilePrefix = "spatial-reuse";
   uint32_t payloadSize = 1500; // bytes
-  uint32_t mcs = 7; // MCS value
+  uint32_t mcs = 0; // MCS value
   Time interval = MicroSeconds (1000);
   bool enableObssPd = false;
 
@@ -597,6 +598,9 @@ main (int argc, char *argv[])
   cmd.AddValue ("enableRts", "Enable or disable RTS/CTS", enableRts);
   cmd.AddValue ("maxSlrc", "MaxSlrc", maxSlrc);
   cmd.AddValue ("txRange", "Max TX range [m]", txRange);
+  cmd.AddValue ("payloadSize", "Payload size of 1 packet [bytes]", payloadSize);
+  cmd.AddValue ("MCS", "Modulation and Coding Scheme (MCS) index (default=0)", mcs);
+  cmd.AddValue ("txStartOffset", "N(0, mu) offset for each node's start of packet transmission.  Default mu=5 [ns]", txStartOffset);
   cmd.Parse (argc, argv);
 
   if (enableRts)
@@ -609,6 +613,9 @@ main (int argc, char *argv[])
       maxSlrc = std::numeric_limits<uint32_t>::max();
     }
   Config::SetDefault ("ns3::WifiRemoteStationManager::MaxSlrc", UintegerValue (maxSlrc));
+
+  std::ostringstream ossMcs;
+  ossMcs << mcs;
 
   // carrier sense range (csr) is a calculated value that is used for displaying the 
   // estimated range in which an AP can successfully receive from STAs.
@@ -694,7 +701,7 @@ main (int argc, char *argv[])
     {
       wifi.SetStandard (WIFI_PHY_STANDARD_80211n_2_4GHZ);
       // ssid = Ssid ("ns380211n_2_4GHZ");
-      dataRate = "HtMcs0";
+      dataRate = "HtMcs" + ossMcs.str ();
       freq = 2402 + (bw / 2); //so as to have 2412/2422 for 20/40
       dataStartTime = MicroSeconds (4700);
       dataDuration = MicroSeconds (400);
@@ -708,7 +715,7 @@ main (int argc, char *argv[])
     {
       wifi.SetStandard (WIFI_PHY_STANDARD_80211n_5GHZ);
       // ssid = Ssid ("ns380211n_5GHZ");
-      dataRate = "HtMcs0";
+      dataRate = "HtMcs" + ossMcs.str ();
       freq = 5170 + (bw / 2); //so as to have 5180/5190 for 20/40
       dataStartTime = MicroSeconds (1000);
       if (bw != 20 && bw != 40)
@@ -721,7 +728,7 @@ main (int argc, char *argv[])
     {
       wifi.SetStandard (WIFI_PHY_STANDARD_80211ac);
       // ssid = Ssid ("ns380211ac");
-      dataRate = "VhtMcs0";
+      dataRate = "VhtMcs" + ossMcs.str ();
       freq = 5170 + (bw / 2); //so as to have 5180/5190/5210/5250 for 20/40/80/160
       dataStartTime = MicroSeconds (1100);
       dataDuration += MicroSeconds (400); //account for ADDBA procedure
@@ -735,7 +742,7 @@ main (int argc, char *argv[])
     {
       wifi.SetStandard (WIFI_PHY_STANDARD_80211ax_2_4GHZ);
       // ssid = Ssid ("ns380211ax_2_4GHZ");
-      dataRate = "HeMcs0";
+      dataRate = "HeMcs" + ossMcs.str ();
       freq = 2402 + (bw / 2); //so as to have 2412/2422/2442 for 20/40/80
       dataStartTime = MicroSeconds (5500);
       dataDuration += MicroSeconds (2000); //account for ADDBA procedure
@@ -749,7 +756,7 @@ main (int argc, char *argv[])
     {
       wifi.SetStandard (WIFI_PHY_STANDARD_80211ax_5GHZ);
       // ssid = Ssid ("ns380211ax_5GHZ");
-      dataRate = "HeMcs0";  // TODO MCS 0 or 7 ???
+      dataRate = "HeMcs" + ossMcs.str ();
       freq = 5170 + (bw / 2); //so as to have 5180/5190/5210/5250 for 20/40/80/160
       dataStartTime = MicroSeconds (1200);
       dataDuration += MicroSeconds (500); //account for ADDBA procedure
@@ -841,8 +848,6 @@ main (int argc, char *argv[])
   // WiFi setup / helpers
   WifiMacHelper mac;
 
-  std::ostringstream oss;
-  oss << "HeMcs" << mcs;
   wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager","DataMode", StringValue (dataRate),
                                 "ControlMode", StringValue (dataRate));
 
@@ -1012,8 +1017,8 @@ main (int argc, char *argv[])
   std::cout << "Uplink interval:" << intervalUplink << " Downlink interval:" << intervalDownlink << std::endl;
 
   Ptr<UniformRandomVariable> urv = CreateObject<UniformRandomVariable> ();
-  urv->SetAttribute ("Min", DoubleValue (-5.0));
-  urv->SetAttribute ("Max", DoubleValue (5.0));
+  urv->SetAttribute ("Min", DoubleValue (-txStartOffset));
+  urv->SetAttribute ("Max", DoubleValue (txStartOffset));
   double next_rng = 0;
 
   if (payloadSize > 0)
@@ -1032,7 +1037,10 @@ main (int argc, char *argv[])
             {
               // each STA needs a client to generate traffic
               // random offset so that all transmissions do not occur at the same time
-              next_rng = urv->GetValue();
+              if (txStartOffset > 0)
+                {
+                  next_rng = urv->GetValue();
+                }
               AddClient (apDeviceA.Get (0), staDevicesA.Get (i), allNodes.Get (i + 1), payloadSize, 0, intervalUplink + NanoSeconds(next_rng));
             }
           // downlink traffic - AP to each STA
@@ -1040,7 +1048,10 @@ main (int argc, char *argv[])
             {
               // for downlink, need to create client at AP to generate traffic to the server at the STA
               // random offset so that all transmissions do not occur at the same time
-              next_rng = urv->GetValue();
+              if (txStartOffset > 0)
+                {
+                  next_rng = urv->GetValue();
+                }
               AddClient (staDevicesA.Get (i), apDeviceA.Get (0), allNodes.Get (0), payloadSize, 0, intervalDownlink + NanoSeconds(next_rng));
               AddServer (staDevicesA.Get (i), apDeviceA.Get (0), allNodes.Get (i + 1));
             }
@@ -1063,13 +1074,19 @@ main (int argc, char *argv[])
             {
               // each STA needs a client to generate traffic
               // random offset so that all transmissions do not occur at the same time
-              next_rng = urv->GetValue();
+              if (txStartOffset > 0)
+                {
+                  next_rng = urv->GetValue();
+                }
               AddClient (apDeviceB.Get (0), staDevicesB.Get (i), allNodes.Get (n + 1 + i + 1), payloadSize, 0, intervalUplink + NanoSeconds(next_rng));
             }
           // downlink traffic - AP to each STA
           if (aggregateDownlinkMbps > 0)
             {
-              next_rng = urv->GetValue();
+              if (txStartOffset > 0)
+                {
+                  next_rng = urv->GetValue();
+                }
               // for downlink, need to create client at AP to generate traffic to the server at the STA
               // random offset so that all transmissions do not occur at the same time
               AddClient (staDevicesB.Get (i), apDeviceB.Get (0), allNodes.Get (n + 1), payloadSize, 0, intervalDownlink + NanoSeconds(next_rng));
