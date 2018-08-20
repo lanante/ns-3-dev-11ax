@@ -13,6 +13,7 @@ standard=11ax_5GHZ
 MCS=0
 payloadSize=1500
 txStartOffset=5
+enableObssPd=1
 
 cd ../examples
 
@@ -25,7 +26,7 @@ uplink=10.0
 downlink=0.0
 bw=80
 txRange=54
-run_one "$test" "$RngRun" "$powSta" "$powAP" "$duration" "$d" "$r" "$n" "$uplink" "$downlink" "$enableRts" "$standard" "$bw" "$txRange" "$MCS" "$payloadSize" "$txStartOffset"
+run_one "$test" "$RngRun" "$powSta" "$powAp" "$duration" "$d" "$r" "$n" "$uplink" "$downlink" "$enableRts" "$standard" "$bw" "$txRange" "$MCS" "$payloadSize" "$txStartOffset" "$enableObssPd"
 
 # Test: 2 - Enterprise Scenario
 test=TGax-test2
@@ -36,7 +37,7 @@ uplink=10.0
 downlink=0.0
 bw=80
 txRange=68
-run_one "$test" "$RngRun" "$powSta" "$powAP" "$duration" "$d" "$r" "$n" "$uplink" "$downlink" "$enableRts" "$standard" "$bw" "$txRange" "$MCS" "$payloadSize" "$txStartOffset"
+run_one "$test" "$RngRun" "$powSta" "$powAp" "$duration" "$d" "$r" "$n" "$uplink" "$downlink" "$enableRts" "$standard" "$bw" "$txRange" "$MCS" "$payloadSize" "$txStartOffset" "$enableObssPd"
 
 # Test: 3 - Indoor Small BSS Scenario
 test=TGax-test3
@@ -47,7 +48,7 @@ uplink=10.0
 downlink=0.0
 bw=80
 txRange=107
-run_one "$test" "$RngRun" "$powSta" "$powAP" "$duration" "$d" "$r" "$n" "$uplink" "$downlink" "$enableRts" "$standard" "$bw" "$txRange" "$MCS" "$payloadSize" "$txStartOffset"
+run_one "$test" "$RngRun" "$powSta" "$powAp" "$duration" "$d" "$r" "$n" "$uplink" "$downlink" "$enableRts" "$standard" "$bw" "$txRange" "$MCS" "$payloadSize" "$txStartOffset" "$enableObssPd"
 
 # Test: 4 - Outdoor Large BSS Hotspot Scenario
 test=TGax-test4
@@ -58,4 +59,4 @@ uplink=10.0
 downlink=0.0
 bw=80
 txRange=50
-run_one "$test" "$RngRun" "$powSta" "$powAP" "$duration" "$d" "$r" "$n" "$uplink" "$downlink" "$enableRts" "$standard" "$bw" "$txRange" "$MCS" "$payloadSize" "$txStartOffset"
+run_one "$test" "$RngRun" "$powSta" "$powAp" "$duration" "$d" "$r" "$n" "$uplink" "$downlink" "$enableRts" "$standard" "$bw" "$txRange" "$MCS" "$payloadSize" "$txStartOffset" "$enableObssPd"

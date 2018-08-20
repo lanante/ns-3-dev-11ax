@@ -25,7 +25,7 @@ import sys, os
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.imgmath']
+# extensions = ['sphinx.ext.imgmath']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -181,9 +181,9 @@ latex_documents = [
   ('wifi-he', 'wifi-he-module.tex', u'ns-3 Wi-Fi HE module', u'University of Washington', 'manual'),
 ]
 
-latex_elements = {
-  'classoptions': ',openany,oneside'
-}
+# latex_elements = {
+#   'classoptions': ',openany,oneside'
+# }
 
 # The name of an image file (relative to this directory) to place at the top of
 # the title page.

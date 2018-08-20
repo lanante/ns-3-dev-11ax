@@ -4,7 +4,7 @@
 function run_one () {
   echo Running $1
   # run the test
-  ../../../waf --run "spatial-reuse –-RngRun=$2 --powSta=$3 –-powAp=$4 --duration=$5 --d=$6 --r=$7 --n=$8 --uplink=$9 --downlink=${10} –-enableRts=${11} --standard=${12} --bw=${13} --txRange=${14} --MCS=${15} --payloadSize=${16} --txStartOffset=${17}"
+  ../../../waf --run "spatial-reuse --RngRun=$2 --powSta=$3 --powAp=$4 --duration=$5 --d=$6 --r=$7 --n=$8 --uplink=$9 --downlink=${10} --enableRts=${11} --standard=${12} --bw=${13} --txRange=${14} --MCS=${15} --payloadSize=${16} --txStartOffset=${17} --enableObssPd=${18}"
 
   # copy results files
   cd ../scripts

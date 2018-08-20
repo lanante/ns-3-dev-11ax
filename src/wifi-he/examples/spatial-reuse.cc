@@ -571,6 +571,9 @@ main (int argc, char *argv[])
   std::string standard ("11ax_5GHZ");
   double csr = 1000.0; // carrier sense range
   double txStartOffset = 5.0; // [ns]
+  double obssPdThreshold = -99.0;
+  double obssPdThresholdMin = -82.0;
+  double obssPdThresholdMax = -62.0;
 
   // local variables
   std::string outputFilePrefix = "spatial-reuse";
@@ -600,6 +603,9 @@ main (int argc, char *argv[])
   cmd.AddValue ("payloadSize", "Payload size of 1 packet [bytes]", payloadSize);
   cmd.AddValue ("MCS", "Modulation and Coding Scheme (MCS) index (default=0)", mcs);
   cmd.AddValue ("txStartOffset", "N(0, mu) offset for each node's start of packet transmission.  Default mu=5 [ns]", txStartOffset);
+  cmd.AddValue ("obssPdThreshold", "Engery threshold (dBm) of received signal below which the PHY layer can avoid declaring CCA BUSY for inter-BSS frames.", obssPdThreshold);
+  cmd.AddValue ("obssPdThresholdMin", "Minimum value (dBm) of OBSS_PD threshold.", obssPdThresholdMin);
+  cmd.AddValue ("obssPdThresholdMax", "Maximum value (dBm) of OBSS_PD threshold.", obssPdThresholdMax);
   cmd.Parse (argc, argv);
 
   if (enableRts)
@@ -881,6 +887,9 @@ main (int argc, char *argv[])
   if (enableObssPd)
     {
       heConfiguration->SetAttribute ("BssColor", UintegerValue (1));
+      heConfiguration->SetAttribute ("ObssPdThreshold", DoubleValue(obssPdThreshold));
+      heConfiguration->SetAttribute ("ObssPdThresholdMin", DoubleValue(obssPdThresholdMin));
+      heConfiguration->SetAttribute ("ObssPdThresholdMax", DoubleValue(obssPdThresholdMax));
     }
   apWifiMac->SetHeConfiguration (heConfiguration);
 
@@ -912,6 +921,9 @@ main (int argc, char *argv[])
   if (enableObssPd)
     {
       heConfiguration->SetAttribute ("BssColor", UintegerValue (2));
+      heConfiguration->SetAttribute ("ObssPdThreshold", DoubleValue(obssPdThreshold));
+      heConfiguration->SetAttribute ("ObssPdThresholdMin", DoubleValue(obssPdThresholdMin));
+      heConfiguration->SetAttribute ("ObssPdThresholdMax", DoubleValue(obssPdThresholdMax));
     }
   apWifiMac->SetHeConfiguration (heConfiguration);
 
