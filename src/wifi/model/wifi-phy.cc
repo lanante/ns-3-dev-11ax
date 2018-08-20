@@ -2534,6 +2534,15 @@ WifiPhy::MaybeCcaBusyDuration ()
     }
 }
 
+bool
+WifiPhy::PreambleDetected (double snr,
+			   double channelWidth)
+{
+  bool preambleDetected = 1;
+
+  return preambleDetected;
+}
+
 void
 WifiPhy::StartReceivePacket (Ptr<Packet> packet,
                              WifiTxVector txVector,
@@ -2548,28 +2557,39 @@ WifiPhy::StartReceivePacket (Ptr<Packet> packet,
   InterferenceHelper::SnrPer snrPer;
   snrPer = m_interference.CalculatePlcpHeaderSnrPer (event);
 
-  NS_LOG_DEBUG ("snr(dB)=" << RatioToDb (snrPer.snr) << ", per=" << snrPer.per);
+  // ensure preamble is successfully detected
+  double snr = snrPer.snr;
+  if (PreambleDetected(snr, m_channelWidth))
+  {
+    NS_LOG_DEBUG ("snr(dB)=" << RatioToDb (snrPer.snr) << ", per=" << snrPer.per);
 
-  if (m_random->GetValue () > snrPer.per) //plcp reception succeeded
-    {
-      if (IsModeSupported (txMode) || IsMcsSupported (txMode))
-        {
-          NS_LOG_DEBUG ("receiving plcp payload"); //endReceive is already scheduled
-          m_plcpSuccess = true;
-        }
-      else //mode is not allowed
-        {
-          NS_LOG_DEBUG ("drop packet because it was sent using an unsupported mode (" << txMode << ")");
-          NotifyRxDrop (packet);
-          m_plcpSuccess = false;
-        }
-    }
-  else //plcp reception failed
-    {
-      NS_LOG_DEBUG ("drop packet because plcp preamble/header reception failed");
-      NotifyRxDrop (packet);
-      m_plcpSuccess = false;
-    }
+    if (m_random->GetValue () > snrPer.per) //plcp reception succeeded
+      {
+        if (IsModeSupported (txMode) || IsMcsSupported (txMode))
+          {
+            NS_LOG_DEBUG ("receiving plcp payload"); //endReceive is already scheduled
+            m_plcpSuccess = true;
+          }
+        else //mode is not allowed
+          {
+            NS_LOG_DEBUG ("drop packet because it was sent using an unsupported mode (" << txMode << ")");
+            NotifyRxDrop (packet);
+            m_plcpSuccess = false;
+          }
+      }
+    else //plcp reception failed
+      {
+        NS_LOG_DEBUG ("drop packet because plcp preamble/header reception failed");
+        NotifyRxDrop (packet);
+        m_plcpSuccess = false;
+      }
+  }
+  else
+  {
+    NS_LOG_DEBUG ("drop packet because plcp preamble/header detection failed");
+    NotifyRxDrop (packet);
+    m_plcpSuccess = false;
+  }
 }
 
 void

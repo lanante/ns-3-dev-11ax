@@ -129,6 +129,15 @@ public:
                            Ptr<Event> event);
 
   /**
+   * Check if the preamble is successfully detected.  Should be done after L-SIG received.
+   *
+   * \param snr the signal-to-noise ratio
+   * \param channelWidth the width of the channel (MHz), e.g., 5/10/20/80.
+   */
+  bool PreambleDetected (double snr,
+			 double channelWidth);
+
+  /**
    * The last bit of the packet has arrived.
    *
    * \param packet the packet that the last bit has arrived
