@@ -16,7 +16,6 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
-
 //
 //  This example program can be used to experiment with spatial
 //  reuse mechanisms of 802.11ax.
@@ -164,6 +163,11 @@ StateToString (WifiPhyState state)
       NS_FATAL_ERROR ("Unknown state");
     }
   return stateString;
+}
+
+void TgaxCalibrationCallback (std::string context, uint32_t id, Time start, Time duration)
+{
+  std::cout << "spatial-reuse TgaxCalibrationCallback called" << std::endl;
 }
 
 void
@@ -1109,6 +1113,9 @@ main (int argc, char *argv[])
   // Log packet receptions
   Config::Connect ("/NodeList/*/ApplicationList/*/$ns3::PacketSocketServer/Rx", MakeCallback (&SocketRecvStats));
   Config::Connect ("/NodeList/*/DeviceList/*/Phy/MonitorSnifferRx", MakeCallback (&MonitorSniffRx));
+
+  Config::Connect ("/NodeList/*/DeviceList/*/$ns3::MacLow/MacTgaxCalibration", MakeCallback (&TgaxCalibrationCallback));
+
 
   if (enableTracing)
     {

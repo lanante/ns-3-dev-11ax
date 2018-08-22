@@ -26,6 +26,7 @@
 #include <map>
 #include "ns3/object.h"
 #include "ns3/nstime.h"
+#include "ns3/traced-callback.h"
 #include "channel-access-manager.h"
 #include "block-ack-cache.h"
 #include "mac-low-transmission-parameters.h"
@@ -451,7 +452,19 @@ public:
    * This function decides if a CF frame can be transmitted in the current CFP.
    */
   bool CanTransmitNextCfFrame (void) const;
+  /**
+   * This function notifies of TGax calibration events..
+   */
+  void NotifyTgaxCalibration (uint32_t id, Time start, Time duration);
 
+  /**
+   * TracedCallback signature for TGax calibration events
+   *
+   * \param [in] id Identifies the TGax calibration event
+   * \param [in] start Time when TGax calibration event started
+   * \param [in] duration Amount of time in TGax calibration event
+   */
+  typedef void (* TgaxCalibrationTraceCallback)(uint32_t id, Time start, Time duration);
 
 private:
   /**
@@ -963,6 +976,8 @@ private:
   WifiTxVector m_currentTxVector;        //!< TXVECTOR used for the current packet transmission
 
   CfAckInfo m_cfAckInfo; //!< Info about piggyback ACKs used in PCF
+
+  TracedCallback<uint32_t, Time, Time > m_maclowTgaxCalibrationTrace;
 };
 
 } //namespace ns3
