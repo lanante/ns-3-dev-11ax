@@ -2359,10 +2359,16 @@ WifiPhy::SendPacket (Ptr<const Packet> packet, WifiTxVector txVector, MpduType m
   WifiPhyTag oldtag;
   newPacket->RemovePacketTag (oldtag);
   // TODO:  In ns-3-dev, find more convenient place to store HeConfiguration
+  Ptr<HeConfiguration> heConfiguration = 0;
   Ptr<WifiNetDevice> wifiNetDevice = DynamicCast<WifiNetDevice> (m_device);
-  Ptr<RegularWifiMac> regularWifiMac = DynamicCast<RegularWifiMac> (wifiNetDevice->GetMac ());
-  Ptr<HeConfiguration> heConfiguration = regularWifiMac->GetHeConfiguration ();
-  
+  if (wifiNetDevice)
+    {
+      Ptr<RegularWifiMac> regularWifiMac = DynamicCast<RegularWifiMac> (wifiNetDevice->GetMac ());
+      if (regularWifiMac)
+        {
+          Ptr<HeConfiguration> heConfiguration = regularWifiMac->GetHeConfiguration ();
+        }
+    }
   if (heConfiguration)
     {
       UintegerValue bssColor;
