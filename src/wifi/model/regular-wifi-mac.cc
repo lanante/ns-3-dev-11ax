@@ -892,6 +892,12 @@ RegularWifiMac::GetHeConfiguration (void) const
   return m_heConfiguration;
 }
 
+Ptr<MacLow>
+RegularWifiMac::GetMacLow (void) const
+{
+  return m_low;
+}
+
 void
 RegularWifiMac::Enqueue (Ptr<const Packet> packet,
                          Mac48Address to, Mac48Address from)
@@ -1241,6 +1247,11 @@ RegularWifiMac::GetTypeId (void)
                    MakeBooleanAccessor (&RegularWifiMac::SetRifsSupported,
                                         &RegularWifiMac::GetRifsSupported),
                    MakeBooleanChecker ())
+    .AddAttribute ("MacLow",
+                   "The MacLow object.",
+                   PointerValue (),
+                   MakePointerAccessor (&RegularWifiMac::GetMacLow),
+                   MakePointerChecker<MacLow> ())
     .AddAttribute ("HeConfiguration",
                    "The HeConfiguration object.",
                    PointerValue (),
