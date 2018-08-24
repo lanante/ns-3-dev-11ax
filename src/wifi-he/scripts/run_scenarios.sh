@@ -14,6 +14,11 @@ MCS=0
 payloadSize=1500
 txStartOffset=5
 enableObssPd=1
+txGain=0
+rxGain=0
+antennas=1
+maxSupportedTxSpatialStreams=1
+maxSupportedRxSpatialStreams=1
 
 cd ../examples
 
@@ -26,7 +31,7 @@ uplink=10.0
 downlink=0.0
 bw=80
 txRange=54
-run_one "$test" "$RngRun" "$powSta" "$powAp" "$duration" "$d" "$r" "$n" "$uplink" "$downlink" "$enableRts" "$standard" "$bw" "$txRange" "$MCS" "$payloadSize" "$txStartOffset" "$enableObssPd"
+run_one "$test" "$RngRun" "$powSta" "$powAp" "$duration" "$d" "$r" "$n" "$uplink" "$downlink" "$enableRts" "$standard" "$bw" "$txRange" "$MCS" "$payloadSize" "$txStartOffset" "$enableObssPd" "$txGain" "$rxGain" "$antennas" "$maxSupportedTxSpatialStreams" "$maxSupportedRxSpatialStreams"
 
 # Test: 2 - Enterprise Scenario
 test=TGax-test2
@@ -37,7 +42,11 @@ uplink=10.0
 downlink=0.0
 bw=80
 txRange=68
-run_one "$test" "$RngRun" "$powSta" "$powAp" "$duration" "$d" "$r" "$n" "$uplink" "$downlink" "$enableRts" "$standard" "$bw" "$txRange" "$MCS" "$payloadSize" "$txStartOffset" "$enableObssPd"
+# TODO - because this runs so slow.
+duration=2
+run_one "$test" "$RngRun" "$powSta" "$powAp" "$duration" "$d" "$r" "$n" "$uplink" "$downlink" "$enableRts" "$standard" "$bw" "$txRange" "$MCS" "$payloadSize" "$txStartOffset" "$enableObssPd" "$txGain" "$rxGain" "$antennas" "$maxSupportedTxSpatialStreams" "$maxSupportedRxSpatialStreams"
+# TODO restore duration for next test
+duration=10
 
 # Test: 3 - Indoor Small BSS Scenario
 test=TGax-test3
@@ -48,7 +57,7 @@ uplink=10.0
 downlink=0.0
 bw=80
 txRange=107
-run_one "$test" "$RngRun" "$powSta" "$powAp" "$duration" "$d" "$r" "$n" "$uplink" "$downlink" "$enableRts" "$standard" "$bw" "$txRange" "$MCS" "$payloadSize" "$txStartOffset" "$enableObssPd"
+run_one "$test" "$RngRun" "$powSta" "$powAp" "$duration" "$d" "$r" "$n" "$uplink" "$downlink" "$enableRts" "$standard" "$bw" "$txRange" "$MCS" "$payloadSize" "$txStartOffset" "$enableObssPd" "$txGain" "$rxGain" "$antennas" "$maxSupportedTxSpatialStreams" "$maxSupportedRxSpatialStreams"
 
 # Test: 4 - Outdoor Large BSS Hotspot Scenario
 test=TGax-test4
@@ -59,4 +68,4 @@ uplink=10.0
 downlink=0.0
 bw=80
 txRange=50
-run_one "$test" "$RngRun" "$powSta" "$powAp" "$duration" "$d" "$r" "$n" "$uplink" "$downlink" "$enableRts" "$standard" "$bw" "$txRange" "$MCS" "$payloadSize" "$txStartOffset" "$enableObssPd"
+run_one "$test" "$RngRun" "$powSta" "$powAp" "$duration" "$d" "$r" "$n" "$uplink" "$downlink" "$enableRts" "$standard" "$bw" "$txRange" "$MCS" "$payloadSize" "$txStartOffset" "$enableObssPd" "$txGain" "$rxGain" "$antennas" "$maxSupportedTxSpatialStreams" "$maxSupportedRxSpatialStreams"

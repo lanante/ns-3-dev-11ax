@@ -578,6 +578,11 @@ main (int argc, char *argv[])
   double obssPdThreshold = -99.0;
   double obssPdThresholdMin = -82.0;
   double obssPdThresholdMax = -62.0;
+  double txGain = 0.0; // dBi
+  double rxGain = 0.0; // dBi
+  uint32_t antennas = 1;
+  uint32_t maxSupportedTxSpatialStreams = 1;
+  uint32_t maxSupportedRxSpatialStreams = 1;
 
   // local variables
   std::string outputFilePrefix = "spatial-reuse";
@@ -590,6 +595,11 @@ main (int argc, char *argv[])
   cmd.AddValue ("duration", "Duration of simulation (s)", duration);
   cmd.AddValue ("powSta", "Power of STA (dBm)", powSta);
   cmd.AddValue ("powAp", "Power of AP (dBm)", powAp);
+  cmd.AddValue ("txGain", "Transmission gain (dB)", txGain);
+  cmd.AddValue ("rxGain", "Reception gain (dB)", rxGain);
+  cmd.AddValue ("antennas", "The number of antennas on each device.", antennas);
+  cmd.AddValue ("maxSupportedTxSpatialStreams", "The maximum number of supported Tx spatial streams.", maxSupportedTxSpatialStreams);
+  cmd.AddValue ("maxSupportedRxSpatialStreams", "The maximum number of supported Rx spatial streams.", maxSupportedRxSpatialStreams);
   cmd.AddValue ("ccaTrSta", "CCA Threshold of STA (dBm)", ccaTrSta);
   cmd.AddValue ("ccaTrAp", "CCA Threshold of AP (dBm)", ccaTrAp);
   cmd.AddValue ("d", "Distance between AP1 and AP2 (m)", d);
@@ -863,6 +873,11 @@ main (int argc, char *argv[])
   // Set PHY power and CCA threshold for STAs
   spectrumPhy.Set ("TxPowerStart", DoubleValue (powSta));
   spectrumPhy.Set ("TxPowerEnd", DoubleValue (powSta));
+  spectrumPhy.Set ("TxGain", DoubleValue (txGain));
+  spectrumPhy.Set ("RxGain", DoubleValue (rxGain));
+  spectrumPhy.Set ("Antennas", UintegerValue (antennas));
+  spectrumPhy.Set ("MaxSupportedTxSpatialStreams", UintegerValue (maxSupportedTxSpatialStreams));
+  spectrumPhy.Set ("MaxSupportedRxSpatialStreams", UintegerValue (maxSupportedRxSpatialStreams));
   spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrSta));
   //PHY energy threshold -92 dBm
   spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-92.0));
@@ -877,6 +892,11 @@ main (int argc, char *argv[])
   // Set  PHY power and CCA threshold for APs
   spectrumPhy.Set ("TxPowerStart", DoubleValue (powAp));
   spectrumPhy.Set ("TxPowerEnd", DoubleValue (powAp));
+  spectrumPhy.Set ("TxGain", DoubleValue (txGain));
+  spectrumPhy.Set ("RxGain", DoubleValue (rxGain));
+  spectrumPhy.Set ("Antennas", UintegerValue (antennas));
+  spectrumPhy.Set ("MaxSupportedTxSpatialStreams", UintegerValue (maxSupportedTxSpatialStreams));
+  spectrumPhy.Set ("MaxSupportedRxSpatialStreams", UintegerValue (maxSupportedRxSpatialStreams));
   spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrAp));
   spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-92.0));
   mac.SetType ("ns3::ApWifiMac", "Ssid", SsidValue (ssidA));
@@ -900,6 +920,11 @@ main (int argc, char *argv[])
   // Set PHY power and CCA threshold for STAs
   spectrumPhy.Set ("TxPowerStart", DoubleValue (powSta));
   spectrumPhy.Set ("TxPowerEnd", DoubleValue (powSta));
+  spectrumPhy.Set ("TxGain", DoubleValue (txGain));
+  spectrumPhy.Set ("RxGain", DoubleValue (rxGain));
+  spectrumPhy.Set ("Antennas", UintegerValue (antennas));
+  spectrumPhy.Set ("MaxSupportedTxSpatialStreams", UintegerValue (maxSupportedTxSpatialStreams));
+  spectrumPhy.Set ("MaxSupportedRxSpatialStreams", UintegerValue (maxSupportedRxSpatialStreams));
   spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrSta));
   spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-92.0));
 
@@ -912,6 +937,11 @@ main (int argc, char *argv[])
   // Set PHY power and CCA threshold for APs
   spectrumPhy.Set ("TxPowerStart", DoubleValue (powAp));
   spectrumPhy.Set ("TxPowerEnd", DoubleValue (powAp));
+  spectrumPhy.Set ("TxGain", DoubleValue (txGain));
+  spectrumPhy.Set ("RxGain", DoubleValue (rxGain));
+  spectrumPhy.Set ("Antennas", UintegerValue (antennas));
+  spectrumPhy.Set ("MaxSupportedTxSpatialStreams", UintegerValue (maxSupportedTxSpatialStreams));
+  spectrumPhy.Set ("MaxSupportedRxSpatialStreams", UintegerValue (maxSupportedRxSpatialStreams));
   spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrAp));
   spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-92.0));
   mac.SetType ("ns3::ApWifiMac", "Ssid", SsidValue (ssidB));
