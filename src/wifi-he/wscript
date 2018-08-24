@@ -9,6 +9,10 @@
 def build(bld):
     module = bld.create_ns3_module('wifi-he', ['wifi', 'network', 'propagation', 'energy', 'spectrum', 'antenna', 'mobility'])
     module.source = [
+        'model/ieee-80211ax-indoor-propagation-loss-model.cc',
+        'model/itu-umi-propagation-loss-model.cc',
+        'model/log-normal-shadowing-iid.cc',
+        'model/los-nlos-classifier.cc',
         ]
 
     module_test = bld.create_ns3_module_test_library('wifi-he')
@@ -19,6 +23,10 @@ def build(bld):
     headers = bld(features='ns3header')
     headers.module = 'wifi-he'
     headers.source = [
+        'model/ieee-80211ax-indoor-propagation-loss-model.h',
+        'model/itu-umi-propagation-loss-model.h',
+        'model/log-normal-shadowing-iid.h',
+        'model/los-nlos-classifier.h',
         ]
 
     if bld.env.ENABLE_EXAMPLES:
