@@ -159,7 +159,6 @@ void
 MacLow::NotifyTgaxCalibration (uint32_t id, Time start, Time duration)
 {
   m_maclowTgaxCalibrationTrace (id, start, duration);
-  std::cout << "TGax Calibration " << id << " at " << start << " for " << duration << std::endl;
 }
 
 void

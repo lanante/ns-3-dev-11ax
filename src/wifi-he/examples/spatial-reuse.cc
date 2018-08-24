@@ -85,6 +85,7 @@
 #include <ns3/spectrum-module.h>
 #include <ns3/applications-module.h>
 #include <ns3/propagation-module.h>
+#include <ns3/ieee-80211ax-indoor-propagation-loss-model.h>
 
 using namespace ns3;
 
@@ -167,7 +168,8 @@ StateToString (WifiPhyState state)
 
 void TgaxCalibrationCallback (std::string context, uint32_t id, Time start, Time duration)
 {
-  std::cout << "spatial-reuse TgaxCalibrationCallback called" << std::endl;
+  // TODO
+  // std::cout << "spatial-reuse TgaxCalibrationCallback called" << std::endl;
 }
 
 void
@@ -851,8 +853,16 @@ main (int argc, char *argv[])
   SpectrumWifiPhyHelper spectrumPhy = SpectrumWifiPhyHelper::Default ();
   Ptr<MultiModelSpectrumChannel> spectrumChannel
     = CreateObject<MultiModelSpectrumChannel> ();
-  Ptr<FriisPropagationLossModel> lossModel
-    = CreateObject<FriisPropagationLossModel> ();
+  // path loss model uses one of the 802.11ax path loss models
+  // described in the TGax simulations scenarios.
+  // TODO 
+  // currently using just the IndoorPropagationLossModel, which
+  // appears suitable for Test2 - Enterprise.  
+  // additional code tweaks needed for Test 1 and Test 3, 
+  // handling of 'W=1 wall' and using the ItuUmitPropagationLossModel
+  // for Test 4.
+  Ptr<Ieee80211axIndoorPropagationLossModel> lossModel
+   = CreateObject<Ieee80211axIndoorPropagationLossModel> ();
   spectrumChannel->AddPropagationLossModel (lossModel);
 
   Ptr<ConstantSpeedPropagationDelayModel> delayModel
@@ -1144,7 +1154,7 @@ main (int argc, char *argv[])
   Config::Connect ("/NodeList/*/ApplicationList/*/$ns3::PacketSocketServer/Rx", MakeCallback (&SocketRecvStats));
   Config::Connect ("/NodeList/*/DeviceList/*/Phy/MonitorSnifferRx", MakeCallback (&MonitorSniffRx));
 
-  Config::Connect ("/NodeList/*/DeviceList/*/$ns3::MacLow/MacTgaxCalibration", MakeCallback (&TgaxCalibrationCallback));
+  Config::Connect ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Mac/$ns3::RegularWifiMac/MacLow/MacTgaxCalibration", MakeCallback (&TgaxCalibrationCallback));
 
 
   if (enableTracing)
