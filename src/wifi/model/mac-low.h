@@ -453,18 +453,28 @@ public:
    */
   bool CanTransmitNextCfFrame (void) const;
   /**
-   * This function notifies of TGax calibration events..
+   * This function notifies of the start of an A-MPDU transmission.
    */
-  void NotifyTgaxCalibration (uint32_t id, Time start, Time duration);
+  void NotifyTxAmpdu (Ptr<const Packet>, const WifiMacHeader &);
+  /**
+   * This function notifies of the start of an Block ACK receptionn.
+   */
+  void NotifyRxBlockAck (Ptr<const Packet>, const WifiMacHeader &);
 
   /**
-   * TracedCallback signature for TGax calibration events
+   * TracedCallback signature for Start Tx A-MPDU events
    *
-   * \param [in] id Identifies the TGax calibration event
-   * \param [in] start Time when TGax calibration event started
-   * \param [in] duration Amount of time in TGax calibration event
+   * \param [in] p The A-MPDU packet
+   * \param [in] hdr The Wifi MAC header
    */
-  typedef void (* TgaxCalibrationTraceCallback)(uint32_t id, Time start, Time duration);
+  typedef void (* TxAmpduTraceCallback)(const Ptr<const Packet> p, const WifiMacHeader &hdr);
+  /**
+   * TracedCallback signature for Start Rx Block ACK events
+   *
+   * \param [in] p The Block ACK packet
+   * \param [in] hdr The Wifi MAC header
+   */
+  typedef void (* RxBlockAckTraceCallback)(const Ptr<const Packet> p, const WifiMacHeader &hdr);
 
 private:
   /**
@@ -977,7 +987,8 @@ private:
 
   CfAckInfo m_cfAckInfo; //!< Info about piggyback ACKs used in PCF
 
-  TracedCallback<uint32_t, Time, Time > m_maclowTgaxCalibrationTrace;
+  TracedCallback <Ptr<const Packet>, const WifiMacHeader &> m_maclowTxAmpduTrace;
+  TracedCallback <Ptr<const Packet>, const WifiMacHeader &> m_maclowRxBlockAckTrace;
 };
 
 } //namespace ns3

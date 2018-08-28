@@ -95,6 +95,24 @@ private:
    */
   double m_sigma;
 
+  /**
+   * distance divisor to parameterize the model
+   * 
+   */
+  double m_distance_divisor;
+
+  /**
+   * number of walls to parameterize the model
+   * 
+   */
+  double m_walls;
+
+  /**
+   * wall multiplier to parameterize the model, dB/wall
+   * 
+   */
+  double m_wall_factor;
+
 };
 
 } // namespace ns3

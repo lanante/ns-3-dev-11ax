@@ -86,6 +86,7 @@
 #include <ns3/applications-module.h>
 #include <ns3/propagation-module.h>
 #include <ns3/ieee-80211ax-indoor-propagation-loss-model.h>
+#include <ns3/itu-umi-propagation-loss-model.h>
 
 using namespace ns3;
 
@@ -135,6 +136,7 @@ SocketRecvStats (std::string context, Ptr<const Packet> p, const Address &addr)
 std::vector<SignalArrival> g_arrivals;
 double g_arrivalsDurationCounter = 0;
 std::ofstream g_stateFile;
+std::ofstream g_TGaxCalibrationTimingsFile;
 
 std::string
 StateToString (WifiPhyState state)
@@ -166,10 +168,66 @@ StateToString (WifiPhyState state)
   return stateString;
 }
 
-void TgaxCalibrationCallback (std::string context, uint32_t id, Time start, Time duration)
+Time t_lastTxAmpduEnd = Seconds (0);
+Time t_lastRxBlockAckEnd = Seconds (0);
+Time t_last_ampdu_duration = Seconds(0);
+Time t_last_block_ack_duration = Seconds(0);
+Time t_last_defer_and_backoff_duration = Seconds(0);
+
+void TxAmpduCallback (std::string context, Ptr<const Packet> p, const WifiMacHeader &hdr)
 {
-  // TODO
-  // std::cout << "spatial-reuse TgaxCalibrationCallback called" << std::endl;
+  Time t_now = Simulator::Now();
+  Time t_duration = hdr.GetDuration ();
+
+  // TGax calibration checkpoint calculations
+  Time t_cp1 = t_now;
+  Time t_cp2 = t_now + t_duration;
+
+  Time t_ampdu_duration = t_cp2 - t_cp1;  // saem as t_duration
+
+  if (t_ampdu_duration != t_last_ampdu_duration)
+    {
+      g_TGaxCalibrationTimingsFile << "A-MPDU-duration " << t_ampdu_duration << std::endl;
+      t_last_ampdu_duration = t_ampdu_duration;
+    }
+
+  t_lastTxAmpduEnd = t_cp2;
+
+  if (t_lastRxBlockAckEnd > Seconds(0))
+    {
+      Time t_cp5 = t_now;
+      Time t_cp4 = t_lastRxBlockAckEnd;
+
+      Time t_defer_and_backoff_duration = t_cp5 - t_cp4;
+
+      if (t_defer_and_backoff_duration != t_last_defer_and_backoff_duration)
+        {
+          g_TGaxCalibrationTimingsFile << "Defer-and-backoff-duration " << t_defer_and_backoff_duration << std::endl;
+          t_last_defer_and_backoff_duration = t_defer_and_backoff_duration;
+        }
+    }
+}
+
+void RxBlockAckCallback (std::string context, Ptr<const Packet> p, const WifiMacHeader &hdr)
+{
+  Time t_now = Simulator::Now();
+  Time t_duration = hdr.GetDuration ();
+
+  // TGax calibration checkpoint calculations
+  Time t_cp3 = t_now;
+  Time t_cp4 = t_now + t_duration;
+
+  Time t_block_ack_duration = t_cp4 - t_cp3;  // saem as t_duration
+
+  // std::cout << "block ack dur " << t_block_ack_duration << std::endl;
+
+  if (t_block_ack_duration != t_last_block_ack_duration)
+    {
+      g_TGaxCalibrationTimingsFile << "Block-ACK-duration " << t_block_ack_duration << std::endl;
+      t_last_block_ack_duration = t_block_ack_duration;
+    }
+
+  t_lastRxBlockAckEnd = t_cp4;
 }
 
 void
@@ -283,14 +341,15 @@ std::vector<uint32_t> signals (100);
 std::vector<uint32_t> noises (100);
 
 void
-SaveSpatialReuseStats (std::string filename, 
+SaveSpatialReuseStats (const std::string filename, 
   const std::vector<uint32_t> &packetsReceived, 
   const std::vector<uint32_t> &bytesReceived, 
   const double duration,
   const double d,
   const double r,
   const int freqHz,
-  const double csr)
+  const double csr,
+  const std::string scenario)
 {
   std::ofstream outFile;
   outFile.open (filename.c_str (), std::ofstream::out | std::ofstream::trunc);
@@ -307,6 +366,7 @@ SaveSpatialReuseStats (std::string filename,
   uint32_t n = (numNodes / 2) - 1;
 
   outFile << "Spatial Reuse Statistics" << std::endl;
+  outFile << "Scenario: " << scenario << std::endl;
   outFile << "APs: " << "2" << std::endl;
   outFile << "Nodes per AP: " << n << std::endl;
   outFile << "Distance between APs [m]: " << d << std::endl;
@@ -348,6 +408,7 @@ SaveSpatialReuseStats (std::string filename,
   double tputAp2Downlink = bytesReceivedAp2Downlink * 8 /1e6 / duration;
 
   // TODO: debug to print out t-put, can remove
+  std::cout << "Scenario: " << scenario << std::endl; 
   std::cout << "Throughput,  AP1 Uplink   [Mbps] : " << tputAp1Uplink << std::endl;
   std::cout << "Throughput,  AP1 Downlink [Mbps] : " << tputAp1Downlink << std::endl;
   std::cout << "Throughput,  AP2 Uplink   [Mbps] : " << tputAp2Uplink << std::endl;
@@ -585,6 +646,9 @@ main (int argc, char *argv[])
   uint32_t antennas = 1;
   uint32_t maxSupportedTxSpatialStreams = 1;
   uint32_t maxSupportedRxSpatialStreams = 1;
+  uint32_t performTgaxTimingChecks = 0;
+  // the scneario - should be one of: residential, enterprise, indoor, or outdoor
+  std::string scenario ("residential");
 
   // local variables
   std::string outputFilePrefix = "spatial-reuse";
@@ -621,7 +685,8 @@ main (int argc, char *argv[])
   cmd.AddValue ("txStartOffset", "N(0, mu) offset for each node's start of packet transmission.  Default mu=5 [ns]", txStartOffset);
   cmd.AddValue ("obssPdThreshold", "Engery threshold (dBm) of received signal below which the PHY layer can avoid declaring CCA BUSY for inter-BSS frames.", obssPdThreshold);
   cmd.AddValue ("obssPdThresholdMin", "Minimum value (dBm) of OBSS_PD threshold.", obssPdThresholdMin);
-  cmd.AddValue ("obssPdThresholdMax", "Maximum value (dBm) of OBSS_PD threshold.", obssPdThresholdMax);
+  cmd.AddValue ("checkTimings", "Perform TGax timings checks (for MAC simulation calibrations).", performTgaxTimingChecks);
+  cmd.AddValue ("scenario", "The spatial-reuse scneario (residential, enterprise, indoor, outdoor).", scenario);
   cmd.Parse (argc, argv);
 
   if (enableRts)
@@ -671,7 +736,7 @@ main (int argc, char *argv[])
   double s0 = 0.7;
   double gamma = 3.0;
   csr = txRange * pow(s0, 1.0 / gamma);
-  std::cout << "S0 " << s0 << " gamma " << gamma << " txRange " << txRange << " csr " << csr << std::endl;
+  // std::cout << "S0 " << s0 << " gamma " << gamma << " txRange " << txRange << " csr " << csr << std::endl;
 
   WifiHelper wifi;
   std::string dataRate;
@@ -855,15 +920,48 @@ main (int argc, char *argv[])
     = CreateObject<MultiModelSpectrumChannel> ();
   // path loss model uses one of the 802.11ax path loss models
   // described in the TGax simulations scenarios.
-  // TODO 
   // currently using just the IndoorPropagationLossModel, which
   // appears suitable for Test2 - Enterprise.  
   // additional code tweaks needed for Test 1 and Test 3, 
   // handling of 'W=1 wall' and using the ItuUmitPropagationLossModel
   // for Test 4.
-  Ptr<Ieee80211axIndoorPropagationLossModel> lossModel
-   = CreateObject<Ieee80211axIndoorPropagationLossModel> ();
-  spectrumChannel->AddPropagationLossModel (lossModel);
+  if (scenario == "residential")
+    {
+      Config::SetDefault ("ns3::Ieee80211axIndoorPropagationLossModel::DistanceDivisor", DoubleValue (5.0));
+      Config::SetDefault ("ns3::Ieee80211axIndoorPropagationLossModel::Walls", DoubleValue (1.0));
+      Config::SetDefault ("ns3::Ieee80211axIndoorPropagationLossModel::WallsFactor", DoubleValue (5.0));
+
+      Ptr<Ieee80211axIndoorPropagationLossModel> lossModel = CreateObject<Ieee80211axIndoorPropagationLossModel> ();
+      spectrumChannel->AddPropagationLossModel (lossModel);
+    }
+  else if (scenario == "enterprise")
+    {
+      Config::SetDefault ("ns3::Ieee80211axIndoorPropagationLossModel::DistanceDivisor", DoubleValue (10.0));
+      Config::SetDefault ("ns3::Ieee80211axIndoorPropagationLossModel::Walls", DoubleValue (1.0));
+      Config::SetDefault ("ns3::Ieee80211axIndoorPropagationLossModel::WallsFactor", DoubleValue (7.0));
+
+      Ptr<Ieee80211axIndoorPropagationLossModel> lossModel = CreateObject<Ieee80211axIndoorPropagationLossModel> ();
+      spectrumChannel->AddPropagationLossModel (lossModel);
+    }
+  else if (scenario == "indoor")
+    {
+      Config::SetDefault ("ns3::Ieee80211axIndoorPropagationLossModel::DistanceDivisor", DoubleValue (10.0));
+      Config::SetDefault ("ns3::Ieee80211axIndoorPropagationLossModel::Walls", DoubleValue (0.0));
+      Config::SetDefault ("ns3::Ieee80211axIndoorPropagationLossModel::WallsFactor", DoubleValue (0.0));
+
+      Ptr<Ieee80211axIndoorPropagationLossModel> lossModel = CreateObject<Ieee80211axIndoorPropagationLossModel> ();
+      spectrumChannel->AddPropagationLossModel (lossModel);
+    }
+  else if (scenario == "outdoor")
+    {
+      Ptr<ItuUmiPropagationLossModel> lossModel = CreateObject<ItuUmiPropagationLossModel> ();
+      spectrumChannel->AddPropagationLossModel (lossModel);
+    }
+  else
+    {
+      std::cout << "Unknown scenario: " << scenario << ". Must be one of:  residential, enterprise, indoor, outdoor." << std::endl;
+      return 1;
+    }
 
   Ptr<ConstantSpeedPropagationDelayModel> delayModel
     = CreateObject<ConstantSpeedPropagationDelayModel> ();
@@ -1154,7 +1252,11 @@ main (int argc, char *argv[])
   Config::Connect ("/NodeList/*/ApplicationList/*/$ns3::PacketSocketServer/Rx", MakeCallback (&SocketRecvStats));
   Config::Connect ("/NodeList/*/DeviceList/*/Phy/MonitorSnifferRx", MakeCallback (&MonitorSniffRx));
 
-  Config::Connect ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Mac/$ns3::RegularWifiMac/MacLow/MacTgaxCalibration", MakeCallback (&TgaxCalibrationCallback));
+  if (performTgaxTimingChecks)
+    {
+      Config::Connect ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Mac/$ns3::RegularWifiMac/MacLow/TxAmpdu", MakeCallback (&TxAmpduCallback));
+      Config::Connect ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Mac/$ns3::RegularWifiMac/MacLow/RxBlockAck", MakeCallback (&RxBlockAckCallback));
+    }
 
 
   if (enableTracing)
@@ -1173,6 +1275,9 @@ main (int argc, char *argv[])
   g_rxSniffFile.open (outputFilePrefix + "-rx-sniff.dat", std::ofstream::out | std::ofstream::trunc);
   g_rxSniffFile.setf (std::ios_base::fixed);
   g_rxSniffFile << "RxNodeId, DstNodeId, SrcNodeId, RxNodeAddr, DA, SA, Noise, Signal " << std::endl;
+
+  g_TGaxCalibrationTimingsFile.open (outputFilePrefix + "-tgax-calibration-timings.dat", std::ofstream::out | std::ofstream::trunc);
+  g_TGaxCalibrationTimingsFile.setf (std::ios_base::fixed);
 
   // Save attribute configuration
   Config::SetDefault ("ns3::ConfigStore::Filename", StringValue (outputFilePrefix + ".config"));
@@ -1207,12 +1312,15 @@ main (int argc, char *argv[])
   ScheduleStateLogDisconnect ();
   g_stateFile.flush ();
   g_stateFile.close ();
+
+  g_TGaxCalibrationTimingsFile.close ();
+
   SaveSpectrumPhyStats (outputFilePrefix + "-phy-log.dat", g_arrivals);
 
   Simulator::Destroy ();
 
   // Save spatial reuse statistics to an output file
-  SaveSpatialReuseStats (outputFilePrefix + "-SR-stats.dat", packetsReceived, bytesReceived, duration, d,  r, freq, csr);
+  SaveSpatialReuseStats (outputFilePrefix + "-SR-stats.dat", packetsReceived, bytesReceived, duration, d,  r, freq, csr, scenario);
 
   return 0;
 }

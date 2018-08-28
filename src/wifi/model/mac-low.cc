@@ -147,18 +147,28 @@ MacLow::GetTypeId (void)
     .SetParent<Object> ()
     .SetGroupName ("Wifi")
     .AddConstructor<MacLow> ()
-    .AddTraceSource ("MacTgaxCalibration",
-                     "A low-level MAC event is being processed that is used in the TGax calibration scenarios.",
-                     MakeTraceSourceAccessor (&MacLow::m_maclowTgaxCalibrationTrace),
-                     "ns3::MacLow::TgaxCalibrationTraceCallback")
+    .AddTraceSource ("TxAmpdu",
+                     "A low-level MAC event to start transmitting a A-MPDU is being processed.",
+                     MakeTraceSourceAccessor (&MacLow::m_maclowTxAmpduTrace),
+                     "ns3::MacLow::TxAmpduTraceCallback")
+    .AddTraceSource ("RxBlockAck",
+                     "A low-level MAC event to start receiving a Block ACK is being processed.",
+                     MakeTraceSourceAccessor (&MacLow::m_maclowRxBlockAckTrace),
+                     "ns3::MacLow::RxBlockAckTraceCallback")
     ;
   return tid;
 }
 
 void
-MacLow::NotifyTgaxCalibration (uint32_t id, Time start, Time duration)
+MacLow::NotifyTxAmpdu (Ptr<const Packet> p, const WifiMacHeader &hdr)
 {
-  m_maclowTgaxCalibrationTrace (id, start, duration);
+  m_maclowTxAmpduTrace (p, hdr);
+}
+
+void
+MacLow::NotifyRxBlockAck (Ptr<const Packet> p, const WifiMacHeader &hdr)
+{
+  m_maclowRxBlockAckTrace (p, hdr);
 }
 
 void
@@ -575,8 +585,7 @@ MacLow::StartTransmission (Ptr<const Packet> packet,
       m_ampdu = IsAmpdu (m_currentPacket, m_currentHdr);
       if (m_ampdu)
         {
-          Time t_now = Simulator::Now();
-          NotifyTgaxCalibration (1, t_now, m_currentHdr.GetDuration ());
+          NotifyTxAmpdu (m_currentPacket, m_currentHdr);
           AmpduTag ampdu;
           m_currentPacket->PeekPacketTag (ampdu);
           if (ampdu.GetRemainingNbOfMpdus () > 0)
@@ -833,8 +842,7 @@ MacLow::ReceiveOk (Ptr<Packet> packet, double rxSnr, double rxPower, WifiTxVecto
            && m_blockAckTimeoutEvent.IsRunning ())
     {
       NS_LOG_DEBUG ("got block ack from " << hdr.GetAddr2 ());
-      Time t_now = Simulator::Now();
-      NotifyTgaxCalibration (2, t_now, m_currentHdr.GetDuration ());
+      NotifyRxBlockAck (packet, hdr);
       SnrTag tag;
       packet->RemovePacketTag (tag);
       FlushAggregateQueue (GetTid (packet, hdr));
