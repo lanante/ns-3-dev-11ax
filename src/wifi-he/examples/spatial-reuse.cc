@@ -183,7 +183,7 @@ void TxAmpduCallback (std::string context, Ptr<const Packet> p, const WifiMacHea
   Time t_cp1 = t_now;
   Time t_cp2 = t_now + t_duration;
 
-  Time t_ampdu_duration = t_cp2 - t_cp1;  // saem as t_duration
+  Time t_ampdu_duration = t_cp2 - t_cp1;  // same as t_duration
 
   if (t_ampdu_duration != t_last_ampdu_duration)
     {
@@ -217,7 +217,7 @@ void RxBlockAckCallback (std::string context, Ptr<const Packet> p, const WifiMac
   Time t_cp3 = t_now;
   Time t_cp4 = t_now + t_duration;
 
-  Time t_block_ack_duration = t_cp4 - t_cp3;  // saem as t_duration
+  Time t_block_ack_duration = t_cp4 - t_cp3;  // same as t_duration
 
   // std::cout << "block ack dur " << t_block_ack_duration << std::endl;
 
@@ -647,7 +647,7 @@ main (int argc, char *argv[])
   uint32_t maxSupportedTxSpatialStreams = 1;
   uint32_t maxSupportedRxSpatialStreams = 1;
   uint32_t performTgaxTimingChecks = 0;
-  // the scneario - should be one of: residential, enterprise, indoor, or outdoor
+  // the scenario - should be one of: residential, enterprise, indoor, or outdoor
   std::string scenario ("residential");
 
   // local variables

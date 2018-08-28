@@ -453,11 +453,11 @@ public:
    */
   bool CanTransmitNextCfFrame (void) const;
   /**
-   * This function notifies of the start of an A-MPDU transmission.
+   * This function announces the start of an A-MPDU transmission.
    */
   void NotifyTxAmpdu (Ptr<const Packet>, const WifiMacHeader &);
   /**
-   * This function notifies of the start of an Block ACK receptionn.
+   * This function announces the start of an Block ACK receptionn.
    */
   void NotifyRxBlockAck (Ptr<const Packet>, const WifiMacHeader &);
 

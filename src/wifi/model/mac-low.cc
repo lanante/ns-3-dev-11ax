@@ -148,11 +148,11 @@ MacLow::GetTypeId (void)
     .SetGroupName ("Wifi")
     .AddConstructor<MacLow> ()
     .AddTraceSource ("TxAmpdu",
-                     "A low-level MAC event to start transmitting a A-MPDU is being processed.",
+                     "A MAC event notifying the start of transmission of an A-MPDU.",
                      MakeTraceSourceAccessor (&MacLow::m_maclowTxAmpduTrace),
                      "ns3::MacLow::TxAmpduTraceCallback")
     .AddTraceSource ("RxBlockAck",
-                     "A low-level MAC event to start receiving a Block ACK is being processed.",
+                     "A MAC event notifying the start of reception of a Block ACK.",
                      MakeTraceSourceAccessor (&MacLow::m_maclowRxBlockAckTrace),
                      "ns3::MacLow::RxBlockAckTraceCallback")
     ;
