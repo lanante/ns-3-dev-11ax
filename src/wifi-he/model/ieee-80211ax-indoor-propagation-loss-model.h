@@ -96,10 +96,10 @@ private:
   double m_sigma;
 
   /**
-   * distance divisor to parameterize the model
+   * distance breadpoint to parameterize the model
    * 
    */
-  double m_distance_divisor;
+  double m_distance_breakpoint;
 
   /**
    * number of walls to parameterize the model

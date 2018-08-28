@@ -927,7 +927,7 @@ main (int argc, char *argv[])
   // for Test 4.
   if (scenario == "residential")
     {
-      Config::SetDefault ("ns3::Ieee80211axIndoorPropagationLossModel::DistanceDivisor", DoubleValue (5.0));
+      Config::SetDefault ("ns3::Ieee80211axIndoorPropagationLossModel::DistanceBreakpoint", DoubleValue (5.0));
       Config::SetDefault ("ns3::Ieee80211axIndoorPropagationLossModel::Walls", DoubleValue (1.0));
       Config::SetDefault ("ns3::Ieee80211axIndoorPropagationLossModel::WallsFactor", DoubleValue (5.0));
 
@@ -936,7 +936,7 @@ main (int argc, char *argv[])
     }
   else if (scenario == "enterprise")
     {
-      Config::SetDefault ("ns3::Ieee80211axIndoorPropagationLossModel::DistanceDivisor", DoubleValue (10.0));
+      Config::SetDefault ("ns3::Ieee80211axIndoorPropagationLossModel::DistanceBreakpoint", DoubleValue (10.0));
       Config::SetDefault ("ns3::Ieee80211axIndoorPropagationLossModel::Walls", DoubleValue (1.0));
       Config::SetDefault ("ns3::Ieee80211axIndoorPropagationLossModel::WallsFactor", DoubleValue (7.0));
 
@@ -945,7 +945,7 @@ main (int argc, char *argv[])
     }
   else if (scenario == "indoor")
     {
-      Config::SetDefault ("ns3::Ieee80211axIndoorPropagationLossModel::DistanceDivisor", DoubleValue (10.0));
+      Config::SetDefault ("ns3::Ieee80211axIndoorPropagationLossModel::DistanceBreakpoint", DoubleValue (10.0));
       Config::SetDefault ("ns3::Ieee80211axIndoorPropagationLossModel::Walls", DoubleValue (0.0));
       Config::SetDefault ("ns3::Ieee80211axIndoorPropagationLossModel::WallsFactor", DoubleValue (0.0));
 

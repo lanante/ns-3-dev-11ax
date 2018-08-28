@@ -55,10 +55,10 @@ Ieee80211axIndoorPropagationLossModel::GetTypeId (void)
                    DoubleValue (5),
                    MakeDoubleAccessor (&Ieee80211axIndoorPropagationLossModel::m_sigma),
                    MakeDoubleChecker<double> ())
-    .AddAttribute ("DistanceDivisor",
-                   "Distance divisor, to parameterize the model.",
+    .AddAttribute ("DistanceBreakpoint",
+                   "Distance breakpoint (m), to parameterize the model.",
                    DoubleValue (10),
-                   MakeDoubleAccessor (&Ieee80211axIndoorPropagationLossModel::m_distance_divisor),
+                   MakeDoubleAccessor (&Ieee80211axIndoorPropagationLossModel::m_distance_breakpoint),
                    MakeDoubleChecker<double> ())
     .AddAttribute ("Walls",
                    "Number of walls intersected, to parameterize the model.",
@@ -81,8 +81,8 @@ Ieee80211axIndoorPropagationLossModel::GetPathLossDb (Ptr<MobilityModel> a, Ptr<
   double d = std::max (distance3D, 1.0);
   double lossDb = 40.05
     + 20*std::log10 (m_frequency/(2.4*1e9))
-    + 20*std::log10(std::min(d, m_distance_divisor))
-    + ((d>m_distance_divisor) ? 35*std::log10(d/m_distance_divisor) : 0)
+    + 20*std::log10(std::min(d, m_distance_breakpoint))
+    + ((d>m_distance_breakpoint) ? 35*std::log10(d/m_distance_breakpoint) : 0)
     + m_walls*m_wall_factor;
   NS_LOG_LOGIC (" lossDb = " << lossDb);
   return lossDb;
