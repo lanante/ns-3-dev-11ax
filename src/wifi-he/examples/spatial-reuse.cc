@@ -168,11 +168,20 @@ StateToString (WifiPhyState state)
   return stateString;
 }
 
-Time t_lastTxAmpduEnd = Seconds (0);
-Time t_lastRxBlockAckEnd = Seconds (0);
-Time t_last_ampdu_duration = Seconds(0);
-Time t_last_block_ack_duration = Seconds(0);
-Time t_last_defer_and_backoff_duration = Seconds(0);
+Time lastTxAmpduEnd = Seconds (0);
+Time lastRxBlockAckEnd = Seconds (0);
+Time lastAmpduDuration = Seconds(0);
+Time lastBlockAckDuration = Seconds(-1);
+Time lastDeferAndBackoffDuration = Seconds(-1);
+Time lastSifsDuration = Seconds(-1);
+
+void WriteCalibrationResult (std::string context, std::string type, Time duration,  Ptr<const Packet> p, const WifiMacHeader &hdr)
+{
+  Time t_now = Simulator::Now();
+  g_TGaxCalibrationTimingsFile << "---------" << std::endl;
+  g_TGaxCalibrationTimingsFile << *p << " " << hdr << std::endl;
+  g_TGaxCalibrationTimingsFile << t_now << " " << context << " " << type << " " << duration << std::endl;
+}
 
 void TxAmpduCallback (std::string context, Ptr<const Packet> p, const WifiMacHeader &hdr)
 {
@@ -183,27 +192,27 @@ void TxAmpduCallback (std::string context, Ptr<const Packet> p, const WifiMacHea
   Time t_cp1 = t_now;
   Time t_cp2 = t_now + t_duration;
 
-  Time t_ampdu_duration = t_cp2 - t_cp1;  // same as t_duration
+  Time ampduDuration = t_cp2 - t_cp1;  // same as t_duration
 
-  if (t_ampdu_duration != t_last_ampdu_duration)
+  // if (ampduDuration != lastAmpduDuration)
     {
-      g_TGaxCalibrationTimingsFile << "A-MPDU-duration " << t_ampdu_duration << std::endl;
-      t_last_ampdu_duration = t_ampdu_duration;
+      WriteCalibrationResult (context, "A-MPDU-duration", ampduDuration, p, hdr);
+      lastAmpduDuration = ampduDuration;
     }
 
-  t_lastTxAmpduEnd = t_cp2;
+  lastTxAmpduEnd = t_cp2;
 
-  if (t_lastRxBlockAckEnd > Seconds(0))
+  if (lastRxBlockAckEnd > Seconds(0))
     {
       Time t_cp5 = t_now;
-      Time t_cp4 = t_lastRxBlockAckEnd;
+      Time t_cp4 = lastRxBlockAckEnd;
 
-      Time t_defer_and_backoff_duration = t_cp5 - t_cp4;
+      Time deferAndBackoffDuration = t_cp5 - t_cp4;
 
-      if (t_defer_and_backoff_duration != t_last_defer_and_backoff_duration)
+      // if (deferAndBackoffDuration != lastDeferAndBackoffDuration)
         {
-          g_TGaxCalibrationTimingsFile << "Defer-and-backoff-duration " << t_defer_and_backoff_duration << std::endl;
-          t_last_defer_and_backoff_duration = t_defer_and_backoff_duration;
+          WriteCalibrationResult (context, "Defer-and-backoff-duration", deferAndBackoffDuration, p, hdr);
+          lastDeferAndBackoffDuration = deferAndBackoffDuration;
         }
     }
 }
@@ -217,17 +226,23 @@ void RxBlockAckCallback (std::string context, Ptr<const Packet> p, const WifiMac
   Time t_cp3 = t_now;
   Time t_cp4 = t_now + t_duration;
 
-  Time t_block_ack_duration = t_cp4 - t_cp3;  // same as t_duration
-
-  // std::cout << "block ack dur " << t_block_ack_duration << std::endl;
-
-  if (t_block_ack_duration != t_last_block_ack_duration)
+  Time sifsDuration = t_cp3 - lastTxAmpduEnd;
+  // if (sifsDuration != lastSifsDuration)
     {
-      g_TGaxCalibrationTimingsFile << "Block-ACK-duration " << t_block_ack_duration << std::endl;
-      t_last_block_ack_duration = t_block_ack_duration;
+      std::cout << "t_cp3 " << t_cp3 << " lastTxAmpduEnd " << lastTxAmpduEnd << std::endl;
+      WriteCalibrationResult (context, "Sifs-duration", sifsDuration, p, hdr);
+      lastSifsDuration = sifsDuration;
     }
 
-  t_lastRxBlockAckEnd = t_cp4;
+  Time blockAckDuration = t_cp4 - t_cp3;  // same as t_duration
+
+  // if (blockAckDuration != lastBlockAckDuration)
+    {
+      WriteCalibrationResult (context, "Block-ACK-duration", blockAckDuration, p, hdr);
+      lastBlockAckDuration = blockAckDuration;
+    }
+
+  lastRxBlockAckEnd = t_cp4;
 }
 
 void
@@ -254,6 +269,7 @@ SignalCb (std::string context, bool wifi, uint32_t senderNodeId, double rxPowerD
 
   NS_LOG_DEBUG (context << " " << wifi << " " << senderNodeId << " " << rxPowerDbm << " " << rxDuration.GetSeconds () / 1000.0);
   uint32_t nodeId = ContextToNodeId (context);
+
   packetsReceivedPerNode[nodeId][senderNodeId] += 1;
   rssiPerNode[nodeId][senderNodeId] += rxPowerDbm;
 }
@@ -344,6 +360,7 @@ void
 SaveSpatialReuseStats (const std::string filename, 
   const std::vector<uint32_t> &packetsReceived, 
   const std::vector<uint32_t> &bytesReceived, 
+  const uint32_t nBss,
   const double duration,
   const double d,
   const double r,
@@ -363,11 +380,11 @@ SaveSpatialReuseStats (const std::string filename,
     }
 
   uint32_t numNodes = packetsReceived.size();
-  uint32_t n = (numNodes / 2) - 1;
+  uint32_t n = (numNodes / nBss) - 1;
 
   outFile << "Spatial Reuse Statistics" << std::endl;
   outFile << "Scenario: " << scenario << std::endl;
-  outFile << "APs: " << "2" << std::endl;
+  outFile << "APs: " << nBss << std::endl;
   outFile << "Nodes per AP: " << n << std::endl;
   outFile << "Distance between APs [m]: " << d << std::endl;
   outFile << "Radius [m]: " << r << std::endl;
@@ -384,7 +401,7 @@ SaveSpatialReuseStats (const std::string filename,
         {
           bytesReceivedAp1Uplink += bytesReceived[k];
         }
-      else if (k == 1)
+      else if ((k == 1) && (nBss == 2))
         {
           bytesReceivedAp2Uplink += bytesReceived[k];
         }
@@ -627,6 +644,7 @@ main (int argc, char *argv[])
   double powAp = 21.0; // dBm
   double ccaTrSta = -102; // dBm
   double ccaTrAp = -82; // dBm
+  uint32_t nBss = 2; // number of BSSs.  Can be 1 or 2 (default)
   double d = 100.0; // distance between AP1 and AP2, m
   uint32_t n = 1; // number of STAs to scatter around each AP;
   double r = 50.0; // radius of circle around each AP in which to scatter the STAs
@@ -687,7 +705,13 @@ main (int argc, char *argv[])
   cmd.AddValue ("obssPdThresholdMin", "Minimum value (dBm) of OBSS_PD threshold.", obssPdThresholdMin);
   cmd.AddValue ("checkTimings", "Perform TGax timings checks (for MAC simulation calibrations).", performTgaxTimingChecks);
   cmd.AddValue ("scenario", "The spatial-reuse scneario (residential, enterprise, indoor, outdoor).", scenario);
+  cmd.AddValue ("nBss", "The number of BSSs.  Can be either 1 or 2 (default).", nBss);
   cmd.Parse (argc, argv);
+
+  if ((nBss < 1) || (nBss > 2))
+    {
+      std::cout << "Invalid nBss parameter: " << nBss << ".  Can only be 1 or 2." << std::endl;
+    }
 
   if (enableRts)
     {
@@ -863,7 +887,7 @@ main (int argc, char *argv[])
 
 
   // total expected nodes.  n STAs for each AP
-  uint32_t numNodes = 2 * (n + 1);
+  uint32_t numNodes = nBss * (n + 1);
   packetsReceived = std::vector<uint32_t> (numNodes);
   bytesReceived = std::vector<uint32_t> (numNodes);
 
@@ -885,9 +909,9 @@ main (int argc, char *argv[])
 
   // Create nodes and containers
   Ptr<Node> ap1 = CreateObject<Node> ();
-  Ptr<Node> ap2 = CreateObject<Node> ();
+  Ptr<Node> ap2 = 0;
   // node containers for two APs and their STAs
-  NodeContainer stasA, stasB,nodesA, nodesB;
+  NodeContainer stasA, stasB, nodesA, nodesB;
 
   // network "A"
   for (uint32_t i = 0; i < n; i++)
@@ -900,16 +924,20 @@ main (int argc, char *argv[])
   nodesA.Add (ap1);
   nodesA.Add (stasA);
 
-  // network "B"
-  for (uint32_t i = 0; i < n; i++)
+  if (nBss == 2)
     {
-      Ptr<Node> sta = CreateObject<Node> ();
-      stasB.Add (sta);
-    }
+      ap2 = CreateObject<Node> ();
+      // network "B"
+      for (uint32_t i = 0; i < n; i++)
+        {
+          Ptr<Node> sta = CreateObject<Node> ();
+          stasB.Add (sta);
+        }
 
-  // AP at front of node container, then STAs
-  nodesB.Add (ap2);
-  nodesB.Add (stasB);
+      // AP at front of node container, then STAs
+      nodesB.Add (ap2);
+      nodesB.Add (stasB);
+    }
 
   // the container for all nodes (from Network "A" and Network "B")
   allNodes = NodeContainer (nodesA, nodesB);
@@ -1025,49 +1053,52 @@ main (int argc, char *argv[])
     }
   apWifiMac->SetHeConfiguration (heConfiguration);
 
-  // Set PHY power and CCA threshold for STAs
-  spectrumPhy.Set ("TxPowerStart", DoubleValue (powSta));
-  spectrumPhy.Set ("TxPowerEnd", DoubleValue (powSta));
-  spectrumPhy.Set ("TxGain", DoubleValue (txGain));
-  spectrumPhy.Set ("RxGain", DoubleValue (rxGain));
-  spectrumPhy.Set ("Antennas", UintegerValue (antennas));
-  spectrumPhy.Set ("MaxSupportedTxSpatialStreams", UintegerValue (maxSupportedTxSpatialStreams));
-  spectrumPhy.Set ("MaxSupportedRxSpatialStreams", UintegerValue (maxSupportedRxSpatialStreams));
-  spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrSta));
-  spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-92.0));
-
-  // Network "B"
-  Ssid ssidB = Ssid ("B");
-  mac.SetType ("ns3::StaWifiMac", "Ssid", SsidValue (ssidB));
-  NetDeviceContainer staDevicesB;
-  staDevicesB = wifi.Install (spectrumPhy, mac, stasB);
-
-  // Set PHY power and CCA threshold for APs
-  spectrumPhy.Set ("TxPowerStart", DoubleValue (powAp));
-  spectrumPhy.Set ("TxPowerEnd", DoubleValue (powAp));
-  spectrumPhy.Set ("TxGain", DoubleValue (txGain));
-  spectrumPhy.Set ("RxGain", DoubleValue (rxGain));
-  spectrumPhy.Set ("Antennas", UintegerValue (antennas));
-  spectrumPhy.Set ("MaxSupportedTxSpatialStreams", UintegerValue (maxSupportedTxSpatialStreams));
-  spectrumPhy.Set ("MaxSupportedRxSpatialStreams", UintegerValue (maxSupportedRxSpatialStreams));
-  spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrAp));
-  spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-92.0));
-  mac.SetType ("ns3::ApWifiMac", "Ssid", SsidValue (ssidB));
-
-  // AP2
   NetDeviceContainer apDeviceB;
-  apDeviceB = wifi.Install (spectrumPhy, mac, ap2);
-  Ptr<WifiNetDevice> ap2Device = apDeviceB.Get (0)->GetObject<WifiNetDevice> ();
-  apWifiMac = ap2Device->GetMac ()->GetObject<ApWifiMac> ();
-  heConfiguration = CreateObject<HeConfiguration> ();
-  if (enableObssPd)
+  NetDeviceContainer staDevicesB;
+  if (nBss == 2)
     {
-      heConfiguration->SetAttribute ("BssColor", UintegerValue (2));
-      heConfiguration->SetAttribute ("ObssPdThreshold", DoubleValue(obssPdThreshold));
-      heConfiguration->SetAttribute ("ObssPdThresholdMin", DoubleValue(obssPdThresholdMin));
-      heConfiguration->SetAttribute ("ObssPdThresholdMax", DoubleValue(obssPdThresholdMax));
+      // Set PHY power and CCA threshold for STAs
+      spectrumPhy.Set ("TxPowerStart", DoubleValue (powSta));
+      spectrumPhy.Set ("TxPowerEnd", DoubleValue (powSta));
+      spectrumPhy.Set ("TxGain", DoubleValue (txGain));
+      spectrumPhy.Set ("RxGain", DoubleValue (rxGain));
+      spectrumPhy.Set ("Antennas", UintegerValue (antennas));
+      spectrumPhy.Set ("MaxSupportedTxSpatialStreams", UintegerValue (maxSupportedTxSpatialStreams));
+      spectrumPhy.Set ("MaxSupportedRxSpatialStreams", UintegerValue (maxSupportedRxSpatialStreams));
+      spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrSta));
+      spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-92.0));
+
+      // Network "B"
+      Ssid ssidB = Ssid ("B");
+      mac.SetType ("ns3::StaWifiMac", "Ssid", SsidValue (ssidB));
+      staDevicesB = wifi.Install (spectrumPhy, mac, stasB);
+
+      // Set PHY power and CCA threshold for APs
+      spectrumPhy.Set ("TxPowerStart", DoubleValue (powAp));
+      spectrumPhy.Set ("TxPowerEnd", DoubleValue (powAp));
+      spectrumPhy.Set ("TxGain", DoubleValue (txGain));
+      spectrumPhy.Set ("RxGain", DoubleValue (rxGain));
+      spectrumPhy.Set ("Antennas", UintegerValue (antennas));
+      spectrumPhy.Set ("MaxSupportedTxSpatialStreams", UintegerValue (maxSupportedTxSpatialStreams));
+      spectrumPhy.Set ("MaxSupportedRxSpatialStreams", UintegerValue (maxSupportedRxSpatialStreams));
+      spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrAp));
+      spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-92.0));
+      mac.SetType ("ns3::ApWifiMac", "Ssid", SsidValue (ssidB));
+
+      // AP2
+      apDeviceB = wifi.Install (spectrumPhy, mac, ap2);
+      Ptr<WifiNetDevice> ap2Device = apDeviceB.Get (0)->GetObject<WifiNetDevice> ();
+      apWifiMac = ap2Device->GetMac ()->GetObject<ApWifiMac> ();
+      heConfiguration = CreateObject<HeConfiguration> ();
+      if (enableObssPd)
+        {
+          heConfiguration->SetAttribute ("BssColor", UintegerValue (2));
+          heConfiguration->SetAttribute ("ObssPdThreshold", DoubleValue(obssPdThreshold));
+          heConfiguration->SetAttribute ("ObssPdThresholdMin", DoubleValue(obssPdThresholdMin));
+          heConfiguration->SetAttribute ("ObssPdThresholdMax", DoubleValue(obssPdThresholdMax));
+        }
+      apWifiMac->SetHeConfiguration (heConfiguration);
     }
-  apWifiMac->SetHeConfiguration (heConfiguration);
 
   // Assign positions to all nodes using position allocator
   MobilityHelper mobility;
@@ -1130,22 +1161,31 @@ main (int argc, char *argv[])
   positionOutFile << std::endl;
   positionOutFile << std::endl;
 
-  // Network "B"
-  // AP2
-  positionAlloc->Add (Vector (d, 0.0, 0.0));        // AP2
-  // STAs for AP2
-  Ptr<UniformDiscPositionAllocator> unitDiscPositionAllocator2 = CreateObject<UniformDiscPositionAllocator> ();
-  // see comments above - each allocator must have unique stream number.
-  unitDiscPositionAllocator2->AssignStreams (streamNumber + 1);
-  // AP2 is at (x=d, y=0), with radius Rho=r
-  unitDiscPositionAllocator2->SetX (d);
-  unitDiscPositionAllocator2->SetY (0);
-  unitDiscPositionAllocator2->SetRho (r);
-  for (uint32_t i = 0; i < n; i++)
+  if (nBss == 2)
     {
-      Vector v = unitDiscPositionAllocator2->GetNext ();
-      positionAlloc->Add (v);
-      positionOutFile << v.x << ", " << v.y << std::endl;
+      // Network "B"
+      // AP2
+      positionAlloc->Add (Vector (d, 0.0, 0.0));        // AP2
+      // STAs for AP2
+      Ptr<UniformDiscPositionAllocator> unitDiscPositionAllocator2 = CreateObject<UniformDiscPositionAllocator> ();
+      // see comments above - each allocator must have unique stream number.
+      unitDiscPositionAllocator2->AssignStreams (streamNumber + 1);
+      // AP2 is at (x=d, y=0), with radius Rho=r
+      unitDiscPositionAllocator2->SetX (d);
+      unitDiscPositionAllocator2->SetY (0);
+      unitDiscPositionAllocator2->SetRho (r);
+      for (uint32_t i = 0; i < n; i++)
+        {
+          Vector v = unitDiscPositionAllocator2->GetNext ();
+          positionAlloc->Add (v);
+          positionOutFile << v.x << ", " << v.y << std::endl;
+        }
+    }
+  else
+    {
+      // need to output something here to represent the positions section for STAs B
+      // since the post-processnig script expects there to be something here.
+      positionOutFile << d << ", " << 0 << std::endl;
     }
   positionOutFile << std::endl;
 
@@ -1211,7 +1251,7 @@ main (int argc, char *argv[])
         }
     }
 
-  if (payloadSize > 0)
+  if ((payloadSize > 0) && (nBss == 2))
     {
       // BSS 2
       // if there is uplilnk traffic from STA to AP, then create server to receive pkts, at the AP
@@ -1320,7 +1360,7 @@ main (int argc, char *argv[])
   Simulator::Destroy ();
 
   // Save spatial reuse statistics to an output file
-  SaveSpatialReuseStats (outputFilePrefix + "-SR-stats.dat", packetsReceived, bytesReceived, duration, d,  r, freq, csr, scenario);
+  SaveSpatialReuseStats (outputFilePrefix + "-SR-stats.dat", packetsReceived, bytesReceived, nBss, duration, d,  r, freq, csr, scenario);
 
   return 0;
 }
