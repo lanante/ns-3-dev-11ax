@@ -229,7 +229,7 @@ void RxBlockAckCallback (std::string context, Ptr<const Packet> p, const WifiMac
   Time sifsDuration = t_cp3 - lastTxAmpduEnd;
   // if (sifsDuration != lastSifsDuration)
     {
-      std::cout << "t_cp3 " << t_cp3 << " lastTxAmpduEnd " << lastTxAmpduEnd << std::endl;
+      // std::cout << "t_cp3 " << t_cp3 << " lastTxAmpduEnd " << lastTxAmpduEnd << std::endl;
       WriteCalibrationResult (context, "Sifs-duration", sifsDuration, p, hdr);
       lastSifsDuration = sifsDuration;
     }
