@@ -885,6 +885,11 @@ main (int argc, char *argv[])
       return 1;
     }
 
+  // disable ObssPd if not 11ax
+  if ((standard != "11ax_2_4GHZ") && (standard != "11ax_5GHZ"))
+    {
+      enableObssPd = false;
+    }
 
   // total expected nodes.  n STAs for each AP
   uint32_t numNodes = nBss * (n + 1);
@@ -1044,9 +1049,9 @@ main (int argc, char *argv[])
   Ptr<ApWifiMac> apWifiMac = apDevice->GetMac ()->GetObject<ApWifiMac> ();
   // The below statements may be simplified in a future HeConfigurationHelper
   Ptr<HeConfiguration> heConfiguration = CreateObject<HeConfiguration> ();
-  if (enableObssPd)
+  heConfiguration->SetAttribute ("BssColor", UintegerValue (1));
+  if ((enableObssPd))
     {
-      heConfiguration->SetAttribute ("BssColor", UintegerValue (1));
       heConfiguration->SetAttribute ("ObssPdThreshold", DoubleValue(obssPdThreshold));
       heConfiguration->SetAttribute ("ObssPdThresholdMin", DoubleValue(obssPdThresholdMin));
       heConfiguration->SetAttribute ("ObssPdThresholdMax", DoubleValue(obssPdThresholdMax));
@@ -1089,10 +1094,10 @@ main (int argc, char *argv[])
       apDeviceB = wifi.Install (spectrumPhy, mac, ap2);
       Ptr<WifiNetDevice> ap2Device = apDeviceB.Get (0)->GetObject<WifiNetDevice> ();
       apWifiMac = ap2Device->GetMac ()->GetObject<ApWifiMac> ();
-      heConfiguration = CreateObject<HeConfiguration> ();
+      Ptr <HeConfiguration> heConfiguration = CreateObject<HeConfiguration> ();
+      heConfiguration->SetAttribute ("BssColor", UintegerValue (2));
       if (enableObssPd)
         {
-          heConfiguration->SetAttribute ("BssColor", UintegerValue (2));
           heConfiguration->SetAttribute ("ObssPdThreshold", DoubleValue(obssPdThreshold));
           heConfiguration->SetAttribute ("ObssPdThresholdMin", DoubleValue(obssPdThresholdMin));
           heConfiguration->SetAttribute ("ObssPdThresholdMax", DoubleValue(obssPdThresholdMax));
