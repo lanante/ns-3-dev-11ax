@@ -1048,15 +1048,15 @@ main (int argc, char *argv[])
   Ptr<WifiNetDevice> apDevice = apDeviceA.Get (0)->GetObject<WifiNetDevice> ();
   Ptr<ApWifiMac> apWifiMac = apDevice->GetMac ()->GetObject<ApWifiMac> ();
   // The below statements may be simplified in a future HeConfigurationHelper
-  Ptr<HeConfiguration> heConfiguration = CreateObject<HeConfiguration> ();
-  heConfiguration->SetAttribute ("BssColor", UintegerValue (1));
   if ((enableObssPd))
     {
+      Ptr<HeConfiguration> heConfiguration = CreateObject<HeConfiguration> ();
+      heConfiguration->SetAttribute ("BssColor", UintegerValue (1));
       heConfiguration->SetAttribute ("ObssPdThreshold", DoubleValue(obssPdThreshold));
       heConfiguration->SetAttribute ("ObssPdThresholdMin", DoubleValue(obssPdThresholdMin));
       heConfiguration->SetAttribute ("ObssPdThresholdMax", DoubleValue(obssPdThresholdMax));
+      apWifiMac->SetHeConfiguration (heConfiguration);
     }
-  apWifiMac->SetHeConfiguration (heConfiguration);
 
   NetDeviceContainer apDeviceB;
   NetDeviceContainer staDevicesB;
@@ -1094,15 +1094,15 @@ main (int argc, char *argv[])
       apDeviceB = wifi.Install (spectrumPhy, mac, ap2);
       Ptr<WifiNetDevice> ap2Device = apDeviceB.Get (0)->GetObject<WifiNetDevice> ();
       apWifiMac = ap2Device->GetMac ()->GetObject<ApWifiMac> ();
-      Ptr <HeConfiguration> heConfiguration = CreateObject<HeConfiguration> ();
-      heConfiguration->SetAttribute ("BssColor", UintegerValue (2));
       if (enableObssPd)
         {
+          Ptr <HeConfiguration> heConfiguration = CreateObject<HeConfiguration> ();
+          heConfiguration->SetAttribute ("BssColor", UintegerValue (2));
           heConfiguration->SetAttribute ("ObssPdThreshold", DoubleValue(obssPdThreshold));
           heConfiguration->SetAttribute ("ObssPdThresholdMin", DoubleValue(obssPdThresholdMin));
           heConfiguration->SetAttribute ("ObssPdThresholdMax", DoubleValue(obssPdThresholdMax));
+          apWifiMac->SetHeConfiguration (heConfiguration);
         }
-      apWifiMac->SetHeConfiguration (heConfiguration);
     }
 
   // Assign positions to all nodes using position allocator
