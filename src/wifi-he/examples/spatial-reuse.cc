@@ -339,6 +339,16 @@ AddClient (Ptr<NetDevice> rxDevice, Ptr<NetDevice> txDevice, Ptr<Node> txNode, u
   client->SetAttribute ("Interval", TimeValue (interval));
 }
 
+void AddClient (ApplicationContainer &clientAppA, Ipv4Address address, Ptr<Node> node, uint16_t port, Time interval, uint32_t payloadSize)
+{
+  UdpClientHelper clientA (address, port);
+  clientA.SetAttribute ("MaxPackets", UintegerValue (4294967295u));
+  clientA.SetAttribute ("Interval", TimeValue (interval)); // s/packet
+  clientA.SetAttribute ("PacketSize", UintegerValue (payloadSize));
+
+  clientAppA.Add (clientA.Install (node));
+}
+
 void
 AddServer (Ptr<NetDevice> rxDevice, Ptr<NetDevice> txDevice, Ptr<Node> rxNode)
 {
@@ -351,6 +361,11 @@ AddServer (Ptr<NetDevice> rxDevice, Ptr<NetDevice> txDevice, Ptr<Node> rxNode)
   server->SetLocal (socketAddr);
   rxNode->AddApplication (server);
 
+}
+
+void AddServer (UdpServerHelper &serverA, ApplicationContainer &serverAppA, Ptr<Node> node)
+{
+  serverAppA.Add (serverA.Install (node));
 }
 
 std::vector<uint32_t> signals (100);
@@ -395,6 +410,15 @@ SaveSpatialReuseStats (const std::string filename,
   uint32_t bytesReceivedAp2Downlink = 0.0;
 
   double rxThroughputPerNode[numNodes];
+  uint32_t bss1LastStaIdx = 0;
+  if (nBss == 1)
+    {
+      bss1LastStaIdx = n;
+    }
+  else
+    {
+      bss1LastStaIdx = n + 1;
+    }
   for (uint32_t k = 0; k < numNodes; k++)
     {
       if (k == 0)
@@ -405,7 +429,7 @@ SaveSpatialReuseStats (const std::string filename,
         {
           bytesReceivedAp2Uplink += bytesReceived[k];
         }
-      else if (k < n)
+      else if (k <= bss1LastStaIdx)
         {
           bytesReceivedAp1Downlink += bytesReceived[k];
         }
@@ -429,12 +453,12 @@ SaveSpatialReuseStats (const std::string filename,
   std::cout << "Throughput,  AP1 Uplink   [Mbps] : " << tputAp1Uplink << std::endl;
   std::cout << "Throughput,  AP1 Downlink [Mbps] : " << tputAp1Downlink << std::endl;
   std::cout << "Throughput,  AP2 Uplink   [Mbps] : " << tputAp2Uplink << std::endl;
-  std::cout << "Throughput,  AP1 Downlink [Mbps] : " << tputAp2Downlink << std::endl;
+  std::cout << "Throughput,  AP2 Downlink [Mbps] : " << tputAp2Downlink << std::endl;
 
   outFile << "Throughput,  AP1 Uplink   [Mbps] : " << tputAp1Uplink << std::endl;
   outFile << "Throughput,  AP1 Downlink [Mbps] : " << tputAp1Downlink << std::endl;
   outFile << "Throughput,  AP2 Uplink   [Mbps] : " << tputAp2Uplink << std::endl;
-  outFile << "Throughput,  AP1 Downlink [Mbps] : " << tputAp2Downlink << std::endl;
+  outFile << "Throughput,  AP2 Downlink [Mbps] : " << tputAp2Downlink << std::endl;
 
   double area = M_PI * r * r;
   outFile << "Area Capacity, AP1 Uplink   [Mbps/m^2] : " << tputAp1Uplink / area << std::endl;
@@ -674,6 +698,8 @@ main (int argc, char *argv[])
   uint32_t mcs = 0; // MCS value
   Time interval = MicroSeconds (1000);
   bool enableObssPd = false;
+  uint32_t maxAmpduSize = 65535;
+  // uint32_t maxAmsduSize = 7935;
 
   CommandLine cmd;
   cmd.AddValue ("duration", "Duration of simulation (s)", duration);
@@ -706,6 +732,7 @@ main (int argc, char *argv[])
   cmd.AddValue ("checkTimings", "Perform TGax timings checks (for MAC simulation calibrations).", performTgaxTimingChecks);
   cmd.AddValue ("scenario", "The spatial-reuse scneario (residential, enterprise, indoor, outdoor).", scenario);
   cmd.AddValue ("nBss", "The number of BSSs.  Can be either 1 or 2 (default).", nBss);
+  cmd.AddValue ("maxAmpduSize", "The maximum A-MPDU size (bytes).", maxAmpduSize);
   cmd.Parse (argc, argv);
 
   if ((nBss < 1) || (nBss > 2))
@@ -1000,6 +1027,8 @@ main (int argc, char *argv[])
     = CreateObject<ConstantSpeedPropagationDelayModel> ();
   spectrumChannel->SetPropagationDelayModel (delayModel);
 
+  spectrumPhy.SetPcapDataLinkType (WifiPhyHelper::DLT_IEEE802_11_RADIO);
+
   spectrumPhy.SetChannel (spectrumChannel);
   spectrumPhy.SetErrorRateModel ("ns3::YansErrorRateModel");
   spectrumPhy.Set ("Frequency", UintegerValue (freq)); // channel 36 at 20 MHz
@@ -1026,7 +1055,10 @@ main (int argc, char *argv[])
   // Network "A"
   Ssid ssidA = Ssid ("A");
   mac.SetType ("ns3::StaWifiMac",
-               "Ssid", SsidValue (ssidA));
+               "Ssid", SsidValue (ssidA),
+               "BE_MaxAmpduSize", UintegerValue(maxAmpduSize));
+  // Do we also want to allow Amsdu Size to be modified?
+  //              "BE_MaxAmsduSize", UintegerValue(maxAmsduSize));
   NetDeviceContainer staDevicesA;
   staDevicesA = wifi.Install (spectrumPhy, mac, stasA);
 
@@ -1040,7 +1072,11 @@ main (int argc, char *argv[])
   spectrumPhy.Set ("MaxSupportedRxSpatialStreams", UintegerValue (maxSupportedRxSpatialStreams));
   spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrAp));
   spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-92.0));
-  mac.SetType ("ns3::ApWifiMac", "Ssid", SsidValue (ssidA));
+  mac.SetType ("ns3::ApWifiMac",
+               "Ssid", SsidValue (ssidA),
+               "BE_MaxAmpduSize", UintegerValue(maxAmpduSize));
+  // Do we also want to allow Amsdu Size to be modified?
+  //              "BE_MaxAmsduSize", UintegerValue(maxAmsduSize));
 
   // AP1
   NetDeviceContainer apDeviceA;
@@ -1075,7 +1111,11 @@ main (int argc, char *argv[])
 
       // Network "B"
       Ssid ssidB = Ssid ("B");
-      mac.SetType ("ns3::StaWifiMac", "Ssid", SsidValue (ssidB));
+      mac.SetType ("ns3::StaWifiMac",
+                   "Ssid", SsidValue (ssidB),
+                   "BE_MaxAmpduSize", UintegerValue(maxAmpduSize));
+      // Do we also want to allow Amsdu Size to be modified?
+      //              "BE_MaxAmsduSize", UintegerValue(maxAmsduSize));
       staDevicesB = wifi.Install (spectrumPhy, mac, stasB);
 
       // Set PHY power and CCA threshold for APs
@@ -1088,7 +1128,11 @@ main (int argc, char *argv[])
       spectrumPhy.Set ("MaxSupportedRxSpatialStreams", UintegerValue (maxSupportedRxSpatialStreams));
       spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrAp));
       spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-92.0));
-      mac.SetType ("ns3::ApWifiMac", "Ssid", SsidValue (ssidB));
+      mac.SetType ("ns3::ApWifiMac",
+                   "Ssid", SsidValue (ssidB),
+                   "BE_MaxAmpduSize", UintegerValue(maxAmpduSize));
+      // Do we also want to allow Amsdu Size to be modified?
+      //              "BE_MaxAmsduSize", UintegerValue(maxAmsduSize));
 
       // AP2
       apDeviceB = wifi.Install (spectrumPhy, mac, ap2);
@@ -1200,10 +1244,6 @@ main (int argc, char *argv[])
   mobility.SetPositionAllocator (positionAlloc);
   mobility.Install (allNodes);
 
-  // Packet Socket for lower layer
-  PacketSocketHelper packetSocket;
-  packetSocket.Install (allNodes);
-
   //uint32_t nNodes = allNodes.GetN ();
   // ApplicationContainer apps;
   //  TypeId tid = TypeId::LookupByName ("ns3::UdpSocketFactory");
@@ -1219,30 +1259,52 @@ main (int argc, char *argv[])
   urv->SetAttribute ("Max", DoubleValue (txStartOffset));
   double next_rng = 0;
 
+  /* Internet stack */
+  InternetStackHelper stack;
+  stack.Install (nodesA);
+  stack.Install (nodesB);
+
+  Ipv4AddressHelper address;
+  address.SetBase ("192.168.1.0", "255.255.255.0");
+  Ipv4InterfaceContainer StaInterfaceA;
+  StaInterfaceA = address.Assign (staDevicesA);
+  Ipv4InterfaceContainer ApInterfaceA;
+  ApInterfaceA = address.Assign (apDeviceA);
+  Ipv4InterfaceContainer StaInterfaceB;
+  StaInterfaceB = address.Assign (staDevicesB);
+  Ipv4InterfaceContainer ApInterfaceB;
+  ApInterfaceB = address.Assign (apDeviceB);
+
+  /* Setting applications */
+  uint16_t uplinkPortA = 9;
+  uint16_t downlinkPortA = 10;
+  UdpServerHelper uplinkServerA (uplinkPortA);
+  UdpServerHelper downlinkServerA (downlinkPortA);
+  uint16_t uplinkPortB = 11;
+  uint16_t downlinkPortB = 12;
+  UdpServerHelper uplinkServerB (uplinkPortB);
+  UdpServerHelper downlinkServerB (downlinkPortB);
+
+  ApplicationContainer uplinkServerAppA;
+  ApplicationContainer downlinkServerAppA;
+  ApplicationContainer uplinkClientAppA;
+  ApplicationContainer downlinkClientAppA;
+
+  ApplicationContainer uplinkServerAppB;
+  ApplicationContainer downlinkServerAppB;
+  ApplicationContainer uplinkClientAppB;
+  ApplicationContainer downlinkClientAppB;
+
   if (payloadSize > 0)
     {
       //BSS 1
-      // if there is uplilnk traffic from STA to AP, then create server to receive pkts, at the AP
-      if (aggregateUplinkMbps)
-      {
-        Ptr<Node> rxNode = allNodes.Get (0);
-        AddServer (apDeviceA.Get (0), staDevicesA.Get (0), rxNode);
-      }
+
+      // create one server (receiver) for uplink traffic
+      AddServer (uplinkServerA, uplinkServerAppA, ap1);
+
       for (uint32_t i = 0; i < n; i++)
         {
-          // uplink traffic - each STA to AP
           if (aggregateUplinkMbps > 0)
-            {
-              // each STA needs a client to generate traffic
-              // random offset so that all transmissions do not occur at the same time
-              if (txStartOffset > 0)
-                {
-                  next_rng = urv->GetValue();
-                }
-              AddClient (apDeviceA.Get (0), staDevicesA.Get (i), allNodes.Get (i + 1), payloadSize, 0, intervalUplink + NanoSeconds(next_rng));
-            }
-          // downlink traffic - AP to each STA
-          if (aggregateDownlinkMbps > 0)
             {
               // for downlink, need to create client at AP to generate traffic to the server at the STA
               // random offset so that all transmissions do not occur at the same time
@@ -1250,8 +1312,19 @@ main (int argc, char *argv[])
                 {
                   next_rng = urv->GetValue();
                 }
-              AddClient (staDevicesA.Get (i), apDeviceA.Get (0), allNodes.Get (0), payloadSize, 0, intervalDownlink + NanoSeconds(next_rng));
-              AddServer (staDevicesA.Get (i), apDeviceA.Get (0), allNodes.Get (i + 1));
+              AddClient (uplinkClientAppA, ApInterfaceA.GetAddress (0), stasA.Get (i), uplinkPortA, Time (intervalUplink + NanoSeconds (next_rng)), payloadSize);
+            }
+          // one server (receiver) for each AP-STA pair
+          AddServer (downlinkServerA, downlinkServerAppA, stasA.Get (i));
+          if (aggregateDownlinkMbps > 0)
+            {
+              // each STA needs a client to generate traffic
+              // random offset so that all transmissions do not occur at the same time
+              if (txStartOffset > 0)
+                {
+                  next_rng = urv->GetValue();
+                }
+              AddClient (downlinkClientAppA, StaInterfaceA.GetAddress (i), ap1, downlinkPortA, Time (intervalDownlink + NanoSeconds (next_rng)), payloadSize);
             }
         }
     }
@@ -1259,16 +1332,25 @@ main (int argc, char *argv[])
   if ((payloadSize > 0) && (nBss == 2))
     {
       // BSS 2
-      // if there is uplilnk traffic from STA to AP, then create server to receive pkts, at the AP
-      if (aggregateUplinkMbps)
-      {
-        Ptr<Node> rxNode = allNodes.Get (n + 1);
-        AddServer (apDeviceB.Get (0), staDevicesB.Get (0), rxNode);
-      }
+
+      // create one server (receiver) for uplink traffic
+      AddServer (uplinkServerB, uplinkServerAppB, ap2);
+
       for (uint32_t i = 0; i < n; i++)
         {
-          // uplink traffic - each STA to AP
           if (aggregateUplinkMbps > 0)
+            {
+              // for downlink, need to create client at AP to generate traffic to the server at the STA
+              // random offset so that all transmissions do not occur at the same time
+              if (txStartOffset > 0)
+                {
+                  next_rng = urv->GetValue();
+                }
+              AddClient (uplinkClientAppB, ApInterfaceB.GetAddress (0), stasB.Get (i), uplinkPortB, Time (intervalUplink + NanoSeconds (next_rng)), payloadSize);
+            }
+          // one server (receiver) for each AP-STA pair
+          AddServer (downlinkServerB, downlinkServerAppB, stasB.Get (i));
+          if (aggregateDownlinkMbps > 0)
             {
               // each STA needs a client to generate traffic
               // random offset so that all transmissions do not occur at the same time
@@ -1276,25 +1358,21 @@ main (int argc, char *argv[])
                 {
                   next_rng = urv->GetValue();
                 }
-              AddClient (apDeviceB.Get (0), staDevicesB.Get (i), allNodes.Get (n + 1 + i + 1), payloadSize, 0, intervalUplink + NanoSeconds(next_rng));
-            }
-          // downlink traffic - AP to each STA
-          if (aggregateDownlinkMbps > 0)
-            {
-              if (txStartOffset > 0)
-                {
-                  next_rng = urv->GetValue();
-                }
-              // for downlink, need to create client at AP to generate traffic to the server at the STA
-              // random offset so that all transmissions do not occur at the same time
-              AddClient (staDevicesB.Get (i), apDeviceB.Get (0), allNodes.Get (n + 1), payloadSize, 0, intervalDownlink + NanoSeconds(next_rng));
-              AddServer (staDevicesB.Get (i), apDeviceB.Get (0), allNodes.Get (n + 1 + i + 1));
+              AddClient (downlinkClientAppB, StaInterfaceB.GetAddress (i), ap2, downlinkPortB, Time (intervalDownlink + NanoSeconds (next_rng)), payloadSize);
             }
         }
     }
 
-  // Log packet receptions
-  Config::Connect ("/NodeList/*/ApplicationList/*/$ns3::PacketSocketServer/Rx", MakeCallback (&SocketRecvStats));
+  uplinkServerAppA.Start (Seconds (0.0));
+  uplinkServerAppA.Stop (Seconds (duration + 1));
+  uplinkClientAppA.Start (Seconds (0.0));
+  uplinkClientAppA.Stop (Seconds (duration + 1));
+
+  uplinkServerAppB.Start (Seconds (0.0));
+  uplinkServerAppB.Stop (Seconds (duration + 1));
+  uplinkClientAppB.Start (Seconds (0.0));
+  uplinkClientAppB.Stop (Seconds (duration + 1));
+
   Config::Connect ("/NodeList/*/DeviceList/*/Phy/MonitorSnifferRx", MakeCallback (&MonitorSniffRx));
 
   if (performTgaxTimingChecks)
@@ -1352,6 +1430,54 @@ main (int argc, char *argv[])
   Time durationTime = Seconds (duration);
   Simulator::Stop (durationTime);
   Simulator::Run ();
+
+  /* Show results */
+  uint32_t nodeIdx = 0;
+  uint32_t nUplinkAppsA = uplinkServerAppA.GetN ();
+  uint64_t totalUplinkPacketsThroughA = 0;
+  for (uint32_t i = 0; i < nUplinkAppsA; i++)
+    {
+      totalUplinkPacketsThroughA += DynamicCast<UdpServer> (uplinkServerAppA.Get (i))->GetReceived ();
+    }
+  bytesReceived[nodeIdx] = payloadSize * totalUplinkPacketsThroughA;
+  packetsReceived[nodeIdx] = totalUplinkPacketsThroughA;
+
+  if (nBss == 2)
+    {
+      nodeIdx++;
+
+      uint32_t nUplinkAppsB = uplinkServerAppB.GetN ();
+      uint64_t totalUplinkPacketsThroughB = 0;
+      for (uint32_t i = 0; i < nUplinkAppsB; i++)
+        {
+          totalUplinkPacketsThroughB += DynamicCast<UdpServer> (uplinkServerAppB.Get (i))->GetReceived ();
+        }
+      bytesReceived[nodeIdx] = payloadSize * totalUplinkPacketsThroughA;
+      packetsReceived[nodeIdx] = totalUplinkPacketsThroughA;
+    }
+
+  uint32_t nDownlinkAppsA = downlinkServerAppA.GetN ();
+  for (uint32_t i = 0; i < nDownlinkAppsA; i++)
+    {
+      nodeIdx++;
+      uint64_t downlinkPacketsThroughA = DynamicCast<UdpServer> (downlinkServerAppA.Get (i))->GetReceived ();
+      bytesReceived[nodeIdx] = payloadSize * downlinkPacketsThroughA;
+      packetsReceived[nodeIdx] = downlinkPacketsThroughA;
+    }
+
+  if (nBss == 2)
+    {
+      uint32_t nDownlinkAppsB = downlinkServerAppB.GetN ();
+std::cout << "nDownlinkAppsB " << nDownlinkAppsB  << std::endl;
+      for (uint32_t i = 0; i < nDownlinkAppsB; i++)
+        {
+          nodeIdx++;
+          uint64_t downlinkPacketsThroughB = DynamicCast<UdpServer> (downlinkServerAppB.Get (i))->GetReceived ();
+std::cout << "nodeIdx " << nodeIdx << " pkts received " << downlinkPacketsThroughB << std::endl;
+          bytesReceived[nodeIdx] = payloadSize * downlinkPacketsThroughB;
+          packetsReceived[nodeIdx] = downlinkPacketsThroughB;
+        }
+    }
 
   SchedulePhyLogDisconnect ();
   ScheduleStateLogDisconnect ();
