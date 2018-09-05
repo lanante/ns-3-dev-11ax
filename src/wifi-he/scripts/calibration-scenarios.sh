@@ -24,6 +24,7 @@ performTgaxTimings=1
 scenario=residential
 nBss=2
 maxAmpduSize=3140
+nodePositionsFile=NONE
 
 cd ../examples
 
@@ -43,7 +44,7 @@ n=1
 uplink=10.0
 downlink=0.0
 txRange=54
-run_one "$test" "$RngRun" "$powSta" "$powAp" "$duration" "$d" "$r" "$n" "$uplink" "$downlink" "$enableRts" "$standard" "$bw" "$txRange" "$MCS" "$payloadSize" "$txStartOffset" "$enableObssPd" "$txGain" "$rxGain" "$antennas" "$maxSupportedTxSpatialStreams" "$maxSupportedRxSpatialStreams" "$performTgaxTimings" "$scenario" "$nBss" "$maxAmpduSize"
+run_one "$test" "$RngRun" "$powSta" "$powAp" "$duration" "$d" "$r" "$n" "$uplink" "$downlink" "$enableRts" "$standard" "$bw" "$txRange" "$MCS" "$payloadSize" "$txStartOffset" "$enableObssPd" "$txGain" "$rxGain" "$antennas" "$maxSupportedTxSpatialStreams" "$maxSupportedRxSpatialStreams" "$performTgaxTimings" "$scenario" "$nBss" "$maxAmpduSize" "$nodePositionsFile"
 
 # Test 1b - MAC overhead w/o RTS/CTS
 test=calibration-test1b
@@ -54,7 +55,7 @@ uplink=10.0
 downlink=0.0
 enableRts=1
 txRange=54
-run_one "$test" "$RngRun" "$powSta" "$powAp" "$duration" "$d" "$r" "$n" "$uplink" "$downlink" "$enableRts" "$standard" "$bw" "$txRange" "$MCS" "$payloadSize" "$txStartOffset" "$enableObssPd" "$txGain" "$rxGain" "$antennas" "$maxSupportedTxSpatialStreams" "$maxSupportedRxSpatialStreams" "$performTgaxTimings" "$scenario" "$nBss" "$maxAmpduSize"
+run_one "$test" "$RngRun" "$powSta" "$powAp" "$duration" "$d" "$r" "$n" "$uplink" "$downlink" "$enableRts" "$standard" "$bw" "$txRange" "$MCS" "$payloadSize" "$txStartOffset" "$enableObssPd" "$txGain" "$rxGain" "$antennas" "$maxSupportedTxSpatialStreams" "$maxSupportedRxSpatialStreams" "$performTgaxTimings" "$scenario" "$nBss" "$maxAmpduSize" "$nodePositionsFile"
 
 # Test 2a - Deferral Test 1
 test=calibration-test2a
@@ -66,7 +67,7 @@ downlink=0.0
 # RTS=[OFF, ON]
 enableRts=0
 txRange=54
-run_one "$test" "$RngRun" "$powSta" "$powAp" "$duration" "$d" "$r" "$n" "$uplink" "$downlink" "$enableRts" "$standard" "$bw" "$txRange" "$MCS" "$payloadSize" "$txStartOffset" "$enableObssPd" "$txGain" "$rxGain" "$antennas" "$maxSupportedTxSpatialStreams" "$maxSupportedRxSpatialStreams" "$performTgaxTimings" "$scenario" "$nBss" "$maxAmpduSize"
+run_one "$test" "$RngRun" "$powSta" "$powAp" "$duration" "$d" "$r" "$n" "$uplink" "$downlink" "$enableRts" "$standard" "$bw" "$txRange" "$MCS" "$payloadSize" "$txStartOffset" "$enableObssPd" "$txGain" "$rxGain" "$antennas" "$maxSupportedTxSpatialStreams" "$maxSupportedRxSpatialStreams" "$performTgaxTimings" "$scenario" "$nBss" "$maxAmpduSize" "$nodePositionsFile"
 
 # Test 2b - Deferral Test 2
 test=calibration-test2b
@@ -78,7 +79,7 @@ downlink=0.0
 # RTS=OFF for this test
 enableRts=0
 txRange=54
-run_one "$test" "$RngRun" "$powSta" "$powAp" "$duration" "$d" "$r" "$n" "$uplink" "$downlink" "$enableRts" "$standard" "$bw" "$txRange" "$MCS" "$payloadSize" "$txStartOffset" "$enableObssPd" "$txGain" "$rxGain" "$antennas" "$maxSupportedTxSpatialStreams" "$maxSupportedRxSpatialStreams" "$performTgaxTimings" "$scenario" "$nBss" "$maxAmpduSize"
+run_one "$test" "$RngRun" "$powSta" "$powAp" "$duration" "$d" "$r" "$n" "$uplink" "$downlink" "$enableRts" "$standard" "$bw" "$txRange" "$MCS" "$payloadSize" "$txStartOffset" "$enableObssPd" "$txGain" "$rxGain" "$antennas" "$maxSupportedTxSpatialStreams" "$maxSupportedRxSpatialStreams" "$performTgaxTimings" "$scenario" "$nBss" "$maxAmpduSize" "$nodePositionsFile"
 
 # Test 3 - NAV Deferral
 # same as Test 2b, but with RTS/CTS ON
@@ -91,5 +92,5 @@ downlink=0.0
 # RTS=ON for this test
 enableRts=1
 txRange=54
-run_one "$test" "$RngRun" "$powSta" "$powAp" "$duration" "$d" "$r" "$n" "$uplink" "$downlink" "$enableRts" "$standard" "$bw" "$txRange" "$MCS" "$payloadSize" "$txStartOffset" "$enableObssPd" "$txGain" "$rxGain" "$antennas" "$maxSupportedTxSpatialStreams" "$maxSupportedRxSpatialStreams" "$performTgaxTimings" "$scenario" "$nBss" "$maxAmpduSize"
+run_one "$test" "$RngRun" "$powSta" "$powAp" "$duration" "$d" "$r" "$n" "$uplink" "$downlink" "$enableRts" "$standard" "$bw" "$txRange" "$MCS" "$payloadSize" "$txStartOffset" "$enableObssPd" "$txGain" "$rxGain" "$antennas" "$maxSupportedTxSpatialStreams" "$maxSupportedRxSpatialStreams" "$performTgaxTimings" "$scenario" "$nBss" "$maxAmpduSize" "$nodePositionsFile"
 
