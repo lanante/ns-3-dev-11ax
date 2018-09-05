@@ -26,7 +26,7 @@ performTgaxTimingChecks=1
 scenario=residential
 nBss=2
 maxAmpduSize=3140
-nodePositionsFile=box5.ns2
+nodePositionsFile=src/wifi-he/scripts/box5.ns2
 
 cd ../examples
 

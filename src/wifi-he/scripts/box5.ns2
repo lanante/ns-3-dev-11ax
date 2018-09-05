@@ -1,0 +1,13 @@
+$node_(0) set X_ 40.0
+$node_(0) set Y_ 20.0
+$node_(1) set X_ 47.5
+$node_(1) set Y_ 10.5
+$node_(2) set X_ 47.0
+$node_(2) set Y_ 12.5
+$node_(3) set X_ 43.0
+$node_(3) set Y_ 19.5
+$node_(4) set X_ 33.5
+$node_(4) set Y_ 17.0
+$node_(5) set X_ 34.0
+$node_(5) set Y_ 22.5
+
