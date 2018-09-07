@@ -701,6 +701,8 @@ main (int argc, char *argv[])
   uint32_t maxAmpduSize = 65535;
   // uint32_t maxAmsduSize = 7935;
   std::string nodePositionsFile ("");
+  // brief delay (s) for the network to settle into a steady state before applications start sending packets
+  double applicationTxStart = 1.0;
 
   CommandLine cmd;
   cmd.AddValue ("duration", "Duration of simulation (s)", duration);
@@ -1413,14 +1415,16 @@ main (int argc, char *argv[])
     }
 
   uplinkServerAppA.Start (Seconds (0.0));
-  uplinkServerAppA.Stop (Seconds (duration + 1));
-  uplinkClientAppA.Start (Seconds (0.0));
-  uplinkClientAppA.Stop (Seconds (duration + 1));
+  uplinkServerAppA.Stop (Seconds (duration + applicationTxStart));
+  // client transmissions may start after some delay
+  uplinkClientAppA.Start (Seconds (applicationTxStart));
+  uplinkClientAppA.Stop (Seconds (duration + applicationTxStart));
 
   uplinkServerAppB.Start (Seconds (0.0));
-  uplinkServerAppB.Stop (Seconds (duration + 1));
-  uplinkClientAppB.Start (Seconds (0.0));
-  uplinkClientAppB.Stop (Seconds (duration + 1));
+  uplinkServerAppB.Stop (Seconds (duration + applicationTxStart));
+  // client transmissions may start after some delay
+  uplinkClientAppB.Start (Seconds (applicationTxStart));
+  uplinkClientAppB.Stop (Seconds (duration + applicationTxStart));
 
   Config::Connect ("/NodeList/*/DeviceList/*/Phy/MonitorSnifferRx", MakeCallback (&MonitorSniffRx));
 
@@ -1476,7 +1480,7 @@ main (int argc, char *argv[])
   //     std::cout << n << " " << address << " Mac48Address " << mac48address << " addrm " << addrm << std::endl;
   //   }
 
-  Time durationTime = Seconds (duration);
+  Time durationTime = Seconds (duration + applicationTxStart);
   Simulator::Stop (durationTime);
   Simulator::Run ();
 
@@ -1517,12 +1521,10 @@ main (int argc, char *argv[])
   if (nBss == 2)
     {
       uint32_t nDownlinkAppsB = downlinkServerAppB.GetN ();
-std::cout << "nDownlinkAppsB " << nDownlinkAppsB  << std::endl;
       for (uint32_t i = 0; i < nDownlinkAppsB; i++)
         {
           nodeIdx++;
           uint64_t downlinkPacketsThroughB = DynamicCast<UdpServer> (downlinkServerAppB.Get (i))->GetReceived ();
-std::cout << "nodeIdx " << nodeIdx << " pkts received " << downlinkPacketsThroughB << std::endl;
           bytesReceived[nodeIdx] = payloadSize * downlinkPacketsThroughB;
           packetsReceived[nodeIdx] = downlinkPacketsThroughB;
         }
