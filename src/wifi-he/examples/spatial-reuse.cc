@@ -730,13 +730,13 @@ main (int argc, char *argv[])
   cmd.AddValue ("payloadSize", "Payload size of 1 packet [bytes]", payloadSize);
   cmd.AddValue ("MCS", "Modulation and Coding Scheme (MCS) index (default=0)", mcs);
   cmd.AddValue ("txStartOffset", "N(0, mu) offset for each node's start of packet transmission.  Default mu=5 [ns]", txStartOffset);
-  cmd.AddValue ("obssPdThreshold", "Engery threshold (dBm) of received signal below which the PHY layer can avoid declaring CCA BUSY for inter-BSS frames.", obssPdThreshold);
+  cmd.AddValue ("obssPdThreshold", "Energy threshold (dBm) of received signal below which the PHY layer can avoid declaring CCA BUSY for inter-BSS frames.", obssPdThreshold);
   cmd.AddValue ("obssPdThresholdMin", "Minimum value (dBm) of OBSS_PD threshold.", obssPdThresholdMin);
   cmd.AddValue ("checkTimings", "Perform TGax timings checks (for MAC simulation calibrations).", performTgaxTimingChecks);
-  cmd.AddValue ("scenario", "The spatial-reuse scneario (residential, enterprise, indoor, outdoor).", scenario);
+  cmd.AddValue ("scenario", "The spatial-reuse scenario (residential, enterprise, indoor, outdoor).", scenario);
   cmd.AddValue ("nBss", "The number of BSSs.  Can be either 1 or 2 (default).", nBss);
   cmd.AddValue ("maxAmpduSize", "The maximum A-MPDU size (bytes).", maxAmpduSize);
-  cmd.AddValue ("nodePositionsFile", "Node positions file, ns-2 format for MobilityHelper.", nodePositionsFile);
+  cmd.AddValue ("nodePositionsFile", "Node positions file, ns-2 format for Ns2MobilityHelper.", nodePositionsFile);
   cmd.Parse (argc, argv);
 
   if ((nBss < 1) || (nBss > 2))

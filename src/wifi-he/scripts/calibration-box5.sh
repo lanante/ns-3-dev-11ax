@@ -7,14 +7,13 @@ source spatial-reuse-functions.sh
 RngRun=1
 powSta=15
 powAp=20
-duration=10.0
+duration=200.0
 enableRts=0
 standard=11ax_5GHZ
-bw=20
+bw=80
 # MCS is 5
 MCS=5
-# 1472 data payload, plus headers = 1544
-payloadSize=1472
+payloadSize=1500
 txStartOffset=5
 enableObssPd=1
 txGain=0
@@ -24,8 +23,8 @@ maxSupportedTxSpatialStreams=1
 maxSupportedRxSpatialStreams=1
 performTgaxTimingChecks=1
 scenario=residential
-nBss=2
-maxAmpduSize=3140
+nBss=1
+maxAmpduSize=65535
 nodePositionsFile=src/wifi-he/scripts/box5.ns2
 
 cd ../examples
@@ -51,7 +50,7 @@ r=50
 n=5
 # CBR=10^8
 uplink=0.0
-downlink=100.0
+downlink=300.0
 txRange=54
 run_one "$test" "$RngRun" "$powSta" "$powAp" "$duration" "$d" "$r" "$n" "$uplink" "$downlink" "$enableRts" "$standard" "$bw" "$txRange" "$MCS" "$payloadSize" "$txStartOffset" "$enableObssPd" "$txGain" "$rxGain" "$antennas" "$maxSupportedTxSpatialStreams" "$maxSupportedRxSpatialStreams" "$performTgaxTimingChecks" "$scenario" "$nBss" "$maxAmpduSize" "$nodePositionsFile"
 
@@ -61,7 +60,7 @@ d=1000
 r=50
 n=5
 # CBR=10^8
-uplink=100.0
+uplink=300.0
 downlink=0.0
 txRange=54
 run_one "$test" "$RngRun" "$powSta" "$powAp" "$duration" "$d" "$r" "$n" "$uplink" "$downlink" "$enableRts" "$standard" "$bw" "$txRange" "$MCS" "$payloadSize" "$txStartOffset" "$enableObssPd" "$txGain" "$rxGain" "$antennas" "$maxSupportedTxSpatialStreams" "$maxSupportedRxSpatialStreams" "$performTgaxTimingChecks" "$scenario" "$nBss" "$maxAmpduSize" "$nodePositionsFile"
@@ -72,8 +71,8 @@ d=1000
 r=50
 n=2
 # CBR=10^8
-# total load is allocated prorata to each STA, so 100Mbps each x 2 = 200 Mbps total
-uplink=200.0
+# total load is allocated prorata to each STA, so 300Mbps each x 2 = 600 Mbps total
+uplink=600.0
 downlink=0.0
 txRange=54
 run_one "$test" "$RngRun" "$powSta" "$powAp" "$duration" "$d" "$r" "$n" "$uplink" "$downlink" "$enableRts" "$standard" "$bw" "$txRange" "$MCS" "$payloadSize" "$txStartOffset" "$enableObssPd" "$txGain" "$rxGain" "$antennas" "$maxSupportedTxSpatialStreams" "$maxSupportedRxSpatialStreams" "$performTgaxTimingChecks" "$scenario" "$nBss" "$maxAmpduSize" "$nodePositionsFile"
@@ -84,8 +83,8 @@ d=1000
 r=50
 n=3
 # CBR=10^8
-# total load is allocated prorata to each STA, so 100Mbps each x 3 = 300 Mbps total
-uplink=300.0
+# total load is allocated prorata to each STA, so 300Mbps each x 3 = 900 Mbps total
+uplink=900.0
 downlink=0.0
 txRange=54
 run_one "$test" "$RngRun" "$powSta" "$powAp" "$duration" "$d" "$r" "$n" "$uplink" "$downlink" "$enableRts" "$standard" "$bw" "$txRange" "$MCS" "$payloadSize" "$txStartOffset" "$enableObssPd" "$txGain" "$rxGain" "$antennas" "$maxSupportedTxSpatialStreams" "$maxSupportedRxSpatialStreams" "$performTgaxTimingChecks" "$scenario" "$nBss" "$maxAmpduSize" "$nodePositionsFile"
