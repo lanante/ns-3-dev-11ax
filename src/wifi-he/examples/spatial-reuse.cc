@@ -661,8 +661,8 @@ main (int argc, char *argv[])
   int maxSlrc = 7;
 
   // command line configurable parameters
-  bool tracing = true;
-  bool enableTracing = true;
+  bool enablePcap = false;
+  bool enableAscii = false;
   double duration = 20.0; // seconds
   double powSta = 10.0; // dBm
   double powAp = 21.0; // dBm
@@ -737,6 +737,8 @@ main (int argc, char *argv[])
   cmd.AddValue ("nBss", "The number of BSSs.  Can be either 1 or 2 (default).", nBss);
   cmd.AddValue ("maxAmpduSize", "The maximum A-MPDU size (bytes).", maxAmpduSize);
   cmd.AddValue ("nodePositionsFile", "Node positions file, ns-2 format for Ns2MobilityHelper.", nodePositionsFile);
+  cmd.AddValue ("enablePcap", "Enable PCAP trace file generation.", enablePcap);
+  cmd.AddValue ("enableAscii", "Enable ASCII trace file generation.", enableAscii);
   cmd.Parse (argc, argv);
 
   if ((nBss < 1) || (nBss > 2))
@@ -1435,11 +1437,10 @@ main (int argc, char *argv[])
     }
 
 
-  if (enableTracing)
+  if (enableAscii)
     {
       AsciiTraceHelper ascii;
       spectrumPhy.EnableAsciiAll (ascii.CreateFileStream (outputFilePrefix + ".tr"));
-      //spectrumPhy.EnablePcapAll("trycap");
     }
 
   // This enabling function could be scheduled later in simulation if desired
@@ -1462,7 +1463,7 @@ main (int argc, char *argv[])
   ConfigStore outputConfig;
   outputConfig.ConfigureAttributes ();
 
-  if (tracing == true)
+  if (enablePcap == true)
     {
       spectrumPhy.EnablePcap ("pcapforPackets", staDevicesA);
     }
