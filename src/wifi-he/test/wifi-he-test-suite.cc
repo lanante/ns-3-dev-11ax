@@ -22,6 +22,18 @@
  *          Scott Carpenter <scarpenter44@windstream.net>
  */
 
+#include "ns3/spectrum-phy.h"
+#include "ns3/spectrum-wifi-helper.h"
+#include "ns3/wifi-spectrum-value-helper.h"
+#include "ns3/spectrum-wifi-phy.h"
+#include "ns3/nist-error-rate-model.h"
+#include "ns3/wifi-mac-header.h"
+#include "ns3/wifi-mac-trailer.h"
+#include "ns3/wifi-phy-tag.h"
+#include "ns3/wifi-spectrum-signal-parameters.h"
+#include "ns3/wifi-phy-listener.h"
+#include "ns3/log.h"
+
 #include "ns3/string.h"
 #include "ns3/yans-wifi-helper.h"
 #include "ns3/mobility-helper.h"
@@ -48,6 +60,8 @@
 #include "ns3/ieee-80211ax-indoor-propagation-loss-model.h"
 
 using namespace ns3;
+
+NS_LOG_COMPONENT_DEFINE ("WifiHeTestSuite");
 
 /*****
 //Helper function to assign streams to random variables, to control
@@ -99,6 +113,109 @@ ContextToNodeId (std::string context)
  * \ingroup wifi-test
  * \ingroup tests
  *
+ * \brief Test Phy Listener
+ */
+class TestPhyListener : public ns3::WifiPhyListener
+{
+public:
+  /**
+   * Create a test PhyListener
+   *
+   */
+  TestPhyListener (void)
+    : m_notifyRxStart (0),
+      m_notifyRxEndOk (0),
+      m_notifyRxEndError (0),
+      m_notifyMaybeCcaBusyStart (0),
+      m_phy (0),
+      m_currentState (WifiPhyState::IDLE)
+  {
+  }
+
+  virtual ~TestPhyListener ()
+  {
+  }
+
+  WifiPhyState GetState (void)
+  {
+    if (m_phy != 0)
+      {
+        PointerValue ptr;
+        m_phy->GetAttribute ("State", ptr);
+        Ptr <WifiPhyStateHelper> state = DynamicCast <WifiPhyStateHelper> (ptr.Get<WifiPhyStateHelper> ());
+        std::cout << "At " << Simulator::Now() << " PHY state is " << state->GetState () << std::endl;
+        return state->GetState ();
+      }
+    else
+      {
+        // ERROR
+        return WifiPhyState::IDLE;
+      }
+  }
+
+  virtual void NotifyRxStart (Time duration)
+  {
+    NS_LOG_FUNCTION (this << duration);
+    ++m_notifyRxStart;
+  }
+
+  virtual void NotifyRxEndOk (void)
+  {
+    NS_LOG_FUNCTION (this);
+    ++m_notifyRxEndOk;
+  }
+
+  virtual void NotifyRxEndError (void)
+  {
+    NS_LOG_FUNCTION (this);
+    ++m_notifyRxEndError;
+  }
+
+  virtual void NotifyTxStart (Time duration, double txPowerDbm)
+  {
+    NS_LOG_FUNCTION (this << duration << txPowerDbm);
+  }
+
+  virtual void NotifyMaybeCcaBusyStart (Time duration)
+  {
+    NS_LOG_FUNCTION (this);
+    ++m_notifyMaybeCcaBusyStart;
+  }
+
+  virtual void NotifySwitchingStart (Time duration)
+  {
+  }
+
+  virtual void NotifySleep (void)
+  {
+  }
+
+  virtual void NotifyOff (void)
+  {
+  }
+
+  virtual void NotifyWakeup (void)
+  {
+  }
+
+  virtual void NotifyOn (void)
+  {
+  }
+
+  uint32_t m_notifyRxStart; ///< notify receive start
+  uint32_t m_notifyRxEndOk; ///< notify receive end OK
+  uint32_t m_notifyRxEndError; ///< notify receive end error
+  uint32_t m_notifyMaybeCcaBusyStart; ///< notify maybe CCA busy start
+  Ptr<WifiPhy> m_phy; ///< the PHY being listened to
+  WifiPhyState m_currentState; ///< the current WifiPhyState
+
+private:
+};
+
+/**
+ * \ingroup wifi-test
+ * \ingroup tests
+ *
  * \brief Wifi Test
  *
  * This test case tests the transmission of a single packet in a Wifi HE network (802.11ax),
@@ -122,6 +239,9 @@ public:
 
   virtual void DoRun (void);
 
+protected:
+  virtual void DoSetup (void);
+
 private:
   /// Run one function
   void RunOne (void);
@@ -134,25 +254,17 @@ private:
 
   /**
    * Check if the Phy State for a node is an expected value
-   * \param idx the index into the vector m_wifiPhyStates of Wifi PHY states
+   * \param idx is 1 for AP, 0 for STA
    * \param idx expectedState the expected WifiPhyState
    */
   void CheckPhyState (uint32_t idx, WifiPhyState expectedState);
-
-  /**
-   * PHY State transition callback
-   * \param context the context
-   * \param start the start time of the PHY state change
-   * \param duration the duration that the PHY will remain in this state
-   * \param state the new WifiPhyState
-   */
-  void StateCb (std::string context, Time start, Time duration, WifiPhyState state);
 
   unsigned int m_numSentPackets; ///< number of sent packets
   unsigned int m_payloadSize; ///< size in bytes of packet payload
   Time m_firstTransmissionTime; ///< first transmission time
   SpectrumWifiPhyHelper m_phy; ///< the PHY
-  std::vector<WifiPhyState> m_wifiPhyStates; ///< vector of PHY states for each node (2 nodes, AP and STA)
+
+  TestPhyListener* m_listener; ///< listener
 
   /**
    * Notify Phy transmit begin
@@ -169,51 +281,6 @@ TestSinglePacketTxTimings::TestSinglePacketTxTimings ()
 {
   m_firstTransmissionTime = Seconds (0);
   m_phy = SpectrumWifiPhyHelper::Default ();
-  m_wifiPhyStates.resize(2);  // 2 nodes - AP and STA
-}
-
-void
-TestSinglePacketTxTimings::StateCb (std::string context, Time start, Time duration, WifiPhyState newState)
-{
-  uint32_t idx = ContextToNodeId (context);
-  // retrieve the current state
-  /* debugging
-  WifiPhyState oldState = m_wifiPhyStates[idx];
-  */
-  // update the state with new value
-  m_wifiPhyStates[idx] = newState;
-
-  /* debugging
-  std::string nodeType = "???";  // some default to indicate unknown
-
-  // determine which node this is by examining the MAC type of the node's device
-  // where the node is found using the context supplied.
-  Ptr<Node> node = NodeList::GetNode(idx);
-  if (node)
-    {
-      Ptr<WifiNetDevice> device = DynamicCast <WifiNetDevice> (node->GetDevice (0));
-      if (device)
-        {
-          Ptr<WifiMac> mac = device->GetMac ();
-          if (mac)
-            {
-              std::string macType = mac->GetInstanceTypeId ().GetName ();
-              if (macType == "ns3::ApWifiMac")
-                {
-                  // the node is an AP
-                  nodeType = "AP ";
-                }
-              else if (macType == "ns3::StaWifiMac")
-                {
-                  // the node is a STA
-                  nodeType = "STA";
-                }
-            }
-        }
-    }
-
-  std::cout << "PhyState at " << nodeType << " changing from " << oldState << " to " << m_wifiPhyStates[idx] << " at " << Simulator::Now() << " " << context << std::endl;;
-  */
 }
 
 void
@@ -233,8 +300,19 @@ TestSinglePacketTxTimings::NotifyPhyTxBegin (std::string context, Ptr<const Pack
           m_firstTransmissionTime = Simulator::Now();
           NS_ASSERT_MSG (m_firstTransmissionTime >= Time (Seconds (1)), "Packet 0 not transmitted at 1 second");
 
-          // in 2us, AP PHY STATE should be IDLE
-          Simulator::Schedule (MicroSeconds (2.0), &TestSinglePacketTxTimings::CheckPhyState, this, 1, WifiPhyState::IDLE);
+          // relative to the start of receiving the packet...
+          // The PHY will remain in the IDLE state from 0..24 us
+          // After the preamble is received (takes 24us), then the PHY will switch to RX
+          // The PHY will remain in RX after the headeer is successfully decded
+
+          // in 23us, AP PHY STATE should be IDLE
+          Simulator::Schedule (MicroSeconds (23.0), &TestSinglePacketTxTimings::CheckPhyState, this, 1, WifiPhyState::IDLE);
+
+          // in 25us, AP PHY STATE should be in RX if the preamble detection succeeded
+          Simulator::Schedule (MicroSeconds (25.0), &TestSinglePacketTxTimings::CheckPhyState, this, 1, WifiPhyState::RX);
+
+          // in 45us, AP PHY STATE should be in RX if the header decoded successfully (IDLE if not)
+          Simulator::Schedule (MicroSeconds (45.0), &TestSinglePacketTxTimings::CheckPhyState, this, 1, WifiPhyState::RX);
         }
 
       m_numSentPackets++;
@@ -252,15 +330,13 @@ TestSinglePacketTxTimings::SendOnePacket (Ptr<WifiNetDevice> dev)
 void
 TestSinglePacketTxTimings::CheckPhyState (uint32_t idx, WifiPhyState expectedState)
 {
-  std::cout << "Checking PHY STATE at " << Simulator::Now() << " Expected " << expectedState << " got " << m_wifiPhyStates[idx] << std::endl;
-
-  if (m_wifiPhyStates[idx] == expectedState)
+  if (idx == 1) // AP
     {
-      // std::cout << "WifiPhyState is as expected " << m_wifiPhyStates[idx] << std::endl;
-    }
-  else
-    {
-      // std::cout << "WifiPhyState is not as expected, instead " << m_wifiPhyStates[idx] << std::endl;
+      WifiPhyState state = m_listener->GetState ();
+      std::ostringstream ossMsg;
+      ossMsg << "PHY State " << state << " does not match expected state " << expectedState << " at " << Simulator::Now();
+      NS_TEST_ASSERT_MSG_EQ (state, expectedState, ossMsg.str ());
+      // std::cout << "Checking PHY STATE at " << Simulator::Now() << " Expected " << expectedState << " got " << state << std::endl;
     }
 }
 
@@ -338,6 +414,13 @@ TestSinglePacketTxTimings::RunOne (void)
   Ptr<WifiNetDevice> ap_device = DynamicCast<WifiNetDevice> (apDevices.Get (0));
   Ptr<WifiNetDevice> sta_device = DynamicCast<WifiNetDevice> (staDevices.Get (0));
 
+  // Create a PHY listener for the AP's PHY.  This will track state changes and be used
+  // to confirm at certain times that the AP is in the right state
+  m_listener = new TestPhyListener;
+  Ptr<WifiPhy> apPhy = DynamicCast<WifiPhy> (ap_device->GetPhy());
+  m_listener->m_phy = apPhy;
+  apPhy->RegisterListener (m_listener);
+
   // PCAP (for debugging)
   // m_phy.SetPcapDataLinkType (WifiPhyHelper::DLT_IEEE802_11_RADIO);
   // m_phy.EnablePcap ("wifi-he-test", sta_device);
@@ -345,8 +428,6 @@ TestSinglePacketTxTimings::RunOne (void)
   // traces:
   // PhyTxBegin - used to test when AP senses STA begins Tx a packet 
   Config::Connect ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Phy/PhyTxBegin", MakeCallback (&TestSinglePacketTxTimings::NotifyPhyTxBegin, this));
-  // monitor the PHY state changes (for all nodes)
-  Config::Connect ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Phy/State/State", MakeCallback (&TestSinglePacketTxTimings::StateCb, this));
 
   // the STA will send 1 packet after 1s (allowing the Wifi network to reach some steady state)
   Simulator::Schedule (Seconds (1.0), &TestSinglePacketTxTimings::SendOnePacket, this, sta_device);
@@ -356,9 +437,17 @@ TestSinglePacketTxTimings::RunOne (void)
 
   Simulator::Run ();
   Simulator::Destroy ();
+  delete m_listener;
 
   // expect only 1 packet successfully sent
   NS_TEST_ASSERT_MSG_EQ (m_numSentPackets, 1, "The number of sent packets is not correct!");
+}
+
+void
+TestSinglePacketTxTimings::DoSetup (void)
+{
+  // m_listener = new TestPhyListener;
+  // m_phy.m_state->RegisterListener (m_listener);
 }
 
 void

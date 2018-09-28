@@ -332,6 +332,11 @@ WifiPhyStateHelper::LogPreviousIdleAndCcaBusyStates (void)
   Time idleStart = Max (m_endCcaBusy, m_endRx);
   idleStart = Max (idleStart, m_endTx);
   idleStart = Max (idleStart, m_endSwitching);
+  // DEBUG
+  // if (idleStart > now)
+  // {
+  //   std::cout << "now= " << now << " m_endCcaBusy= " << m_endCcaBusy << " m_endRx =" << m_endRx << " m_endTx= " << m_endTx << " m_endSwitching= " << m_endSwitching << std::endl;
+  // }
   NS_ASSERT (idleStart <= now);
   if (m_endCcaBusy > m_endRx
       && m_endCcaBusy > m_endSwitching
@@ -387,11 +392,12 @@ void
 WifiPhyStateHelper::SwitchToRx (Time rxDuration)
 {
   NS_LOG_FUNCTION (this << rxDuration);
-  NS_ASSERT (IsStateIdle () || IsStateCcaBusy ());
+  NS_ASSERT (IsStateIdle () || IsStateCcaBusy () || IsStateSwitching());
   NS_ASSERT (!m_rxing);
   Time now = Simulator::Now ();
   switch (GetState ())
     {
+    case WifiPhyState::SWITCHING:
     case WifiPhyState::IDLE:
       LogPreviousIdleAndCcaBusyStates ();
       break;

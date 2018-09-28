@@ -116,6 +116,20 @@ public:
                                       Time rxDuration);
 
   /**
+   * Starting receiving the header of a packet (i.e. after the end of receiving the preamble).
+   *
+   * \param packet the arriving packet
+   * \param txVector the TXVECTOR of the arriving packet
+   * \param mpdutype the type of the MPDU as defined in WifiPhy::MpduType.
+   * \param event the corresponding event of the first time the packet arrives
+   */
+  void EndLegacyPreamble (Ptr<Packet> packet,
+                          WifiTxVector txVector,
+                          MpduType mpdutype,
+                          Ptr<Event> event,
+                          Time rxDuration);
+
+  /**
    * Starting receiving the payload of a packet (i.e. the first bit of the packet has arrived).
    *
    * \param packet the arriving packet
@@ -251,6 +265,20 @@ public:
    * \return the total amount of time this PHY will stay busy for the transmission of the PLCP preamble and PLCP header.
    */
   static Time CalculatePlcpPreambleAndHeaderDuration (WifiTxVector txVector);
+
+  /**
+   * \param txVector the transmission parameters used for this packet
+   *
+   * \return the total amount of time this PHY will stay busy for the transmission of the PLCP preamble.
+   */
+  static Time CalculatePlcpPreambleDuration (WifiTxVector txVector);
+
+  /**
+   * \param txVector the transmission parameters used for this packet
+   *
+   * \return the total amount of time this PHY will stay busy for the transmission of the PLCP header.
+   */
+  static Time CalculatePlcpHeaderDuration (WifiTxVector txVector);
 
   /**
    * \param txVector the transmission parameters used for this packet
@@ -1533,6 +1561,7 @@ protected:
 
   EventId m_endRxEvent;                //!< the end reeive event
   EventId m_endPlcpRxEvent;            //!< the end PLCP receive event
+  EventId m_endPreambleEvent;          //!< the end PLCP receive preamble event
 
 private:
   /**
