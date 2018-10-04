@@ -283,13 +283,6 @@ public:
   /**
    * \param txVector the transmission parameters used for this packet
    *
-   * \return the total amount of time this PHY will start the detection of the actual packet.
-   */
-  static Time CalculateStartOfPacketDuration (WifiTxVector txVector);
-
-  /**
-   * \param txVector the transmission parameters used for this packet
-   *
    * \return the training symbol duration
    */
   static Time GetPlcpTrainingSymbolDuration (WifiTxVector txVector);

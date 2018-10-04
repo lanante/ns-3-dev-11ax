@@ -2282,13 +2282,6 @@ WifiPhy::CalculatePlcpPreambleAndHeaderDuration (WifiTxVector txVector)
 }
 
 Time
-WifiPhy::CalculateStartOfPacketDuration (WifiTxVector txVector)
-{
-  Time duration = GetStartOfPacketDuration (txVector);
-  return duration;
-}
-
-Time
 WifiPhy::CalculateTxDuration (uint32_t size, WifiTxVector txVector, uint16_t frequency, MpduType mpdutype, uint8_t incFlag)
 {
   NS_LOG_FUNCTION (this);
@@ -2606,9 +2599,6 @@ WifiPhy::PacketDetection (Ptr<Packet> packet,
                           Time rxDuration)
 {
   NS_LOG_FUNCTION (this << packet << txVector.GetMode () << txVector.GetPreambleType () << +mpdutype);
-  // Old Behavior:
-  // NS_ASSERT (IsStateRx ());
-  // New Behavior:
   NS_ASSERT (!IsStateRx ());
   NS_ASSERT (m_endPlcpRxEvent.IsExpired ());
 
@@ -2621,15 +2611,11 @@ WifiPhy::PacketDetection (Ptr<Packet> packet,
   {
     NS_LOG_DEBUG ("snr(dB)=" << RatioToDb (snrPer.snr) << ", per=" << snrPer.per);
 
-    // New Behavior:
     // switch to RX after successful preamble detect
     m_state->SwitchToRx (rxDuration);
-    // New Behavior:
-    Time remainingPreambleHeaderDuration = CalculatePlcpPreambleAndHeaderDuration (txVector) - CalculateStartOfPacketDuration (txVector);
+    Time remainingPreambleHeaderDuration = CalculatePlcpPreambleAndHeaderDuration (txVector) - GetStartOfPacketDuration (txVector);
     m_endPlcpRxEvent = Simulator::Schedule (remainingPreambleHeaderDuration, &WifiPhy::StartReceivePacket, this,
                                             packet, txVector, mpdutype, event);
-    // Old Behavior:
-    // StartReceivePacket(packet, txVector, mpdutype, event);
   }
   else
   {
@@ -3805,10 +3791,6 @@ WifiPhy::StartRx (Ptr<Packet> packet, WifiTxVector txVector, MpduType mpdutype, 
 
       NS_LOG_DEBUG ("sync to signal (power=" << rxPowerW << "W)");
       m_currentEvent = event;
-      // Old Behavior:
-      // switch to RX immediately
-      // m_state->SwitchToRx (rxDuration);
-      // New Behavior:
       if (preamble == WIFI_PREAMBLE_NONE)
         {
           m_state->SwitchToRx (rxDuration);
@@ -3827,12 +3809,8 @@ WifiPhy::StartRx (Ptr<Packet> packet, WifiTxVector txVector, MpduType mpdutype, 
             }
 
           NS_ASSERT (m_endPreambleEvent.IsExpired ());
-          // Old Behavior:
-          // Time preambleAndHeaderDuration = CalculatePlcpPreambleAndHeaderDuration (txVector);
-          // m_endPlcpRxEvent = Simulator::Schedule (preambleAndHeaderDuration, &WifiPhy::PacketDetection, this,
-          //                                         packet, txVector, mpdutype, event, Seconds(0));
-          // New Behavior:
-          Time startOfPacketDuration = CalculateStartOfPacketDuration (txVector);
+          // Actual packet detection starts only if preamble is successfully detected.
+          Time startOfPacketDuration = GetStartOfPacketDuration (txVector);
           Time residualRxDuration = rxDuration - startOfPacketDuration;
           m_endPreambleEvent = Simulator::Schedule (startOfPacketDuration, &WifiPhy::PacketDetection, this,
                                                     packet, txVector, mpdutype, event, residualRxDuration);
