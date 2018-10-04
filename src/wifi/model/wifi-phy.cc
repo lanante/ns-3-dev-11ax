@@ -1451,8 +1451,6 @@ WifiPhy::DoChannelSwitch (uint8_t nch)
     }
 
   NS_ASSERT (!IsStateSwitching ());
-  // DEBUG
-  // std::cout << "state in DoChannelSwitch= " << m_state->GetState () << std::endl;
   switch (m_state->GetState ())
     {
     case WifiPhyState::RX:
@@ -1912,6 +1910,12 @@ WifiPhy::GetPlcpHeaderDuration (WifiTxVector txVector)
 }
 
 Time
+WifiPhy::GetStartOfPacketDuration (WifiTxVector txVector)
+{
+  return MicroSeconds (4);
+}
+
+Time
 WifiPhy::GetPlcpPreambleDuration (WifiTxVector txVector)
 {
   WifiPreamble preamble = txVector.GetPreambleType ();
@@ -2246,8 +2250,7 @@ Time
 WifiPhy::CalculatePlcpPreambleDuration (WifiTxVector txVector)
 {
   // WifiPreamble preamble = txVector.GetPreambleType ();
-  Time duration = GetPlcpPreambleDuration (txVector)
-    + GetPlcpHeaderDuration (txVector);
+  Time duration = GetPlcpPreambleDuration (txVector);
   return duration;
 }
 
@@ -2255,7 +2258,8 @@ Time
 WifiPhy::CalculatePlcpHeaderDuration (WifiTxVector txVector)
 {
   WifiPreamble preamble = txVector.GetPreambleType ();
-  Time duration = GetPlcpHtSigHeaderDuration (preamble)
+  Time duration = GetPlcpHeaderDuration (txVector)
+    + GetPlcpHtSigHeaderDuration (preamble)
     + GetPlcpSigA1Duration (preamble)
     + GetPlcpSigA2Duration (preamble)
     + GetPlcpTrainingSymbolDuration (txVector)
@@ -2278,6 +2282,13 @@ WifiPhy::CalculatePlcpPreambleAndHeaderDuration (WifiTxVector txVector)
 }
 
 Time
+WifiPhy::CalculateStartOfPacketDuration (WifiTxVector txVector)
+{
+  Time duration = GetStartOfPacketDuration (txVector);
+  return duration;
+}
+
+Time
 WifiPhy::CalculateTxDuration (uint32_t size, WifiTxVector txVector, uint16_t frequency, MpduType mpdutype, uint8_t incFlag)
 {
   NS_LOG_FUNCTION (this);
@@ -2296,42 +2307,36 @@ WifiPhy::CalculateTxDuration (uint32_t size, WifiTxVector txVector, uint16_t fre
 void
 WifiPhy::NotifyTxBegin (Ptr<const Packet> packet)
 {
-  NS_LOG_FUNCTION (this);
   m_phyTxBeginTrace (packet);
 }
 
 void
 WifiPhy::NotifyTxEnd (Ptr<const Packet> packet)
 {
-  NS_LOG_FUNCTION (this);
   m_phyTxEndTrace (packet);
 }
 
 void
 WifiPhy::NotifyTxDrop (Ptr<const Packet> packet)
 {
-  NS_LOG_FUNCTION (this);
   m_phyTxDropTrace (packet);
 }
 
 void
 WifiPhy::NotifyRxBegin (Ptr<const Packet> packet)
 {
-  NS_LOG_FUNCTION (this);
   m_phyRxBeginTrace (packet);
 }
 
 void
 WifiPhy::NotifyRxEnd (Ptr<const Packet> packet)
 {
-  NS_LOG_FUNCTION (this);
   m_phyRxEndTrace (packet);
 }
 
 void
 WifiPhy::NotifyRxDrop (Ptr<const Packet> packet)
 {
-  NS_LOG_FUNCTION (this);
   m_phyRxDropTrace (packet);
 }
 
@@ -2594,24 +2599,18 @@ WifiPhy::PreambleDetected (double snr,
 }
 
 void
-WifiPhy::EndLegacyPreamble (Ptr<Packet> packet,
-                             WifiTxVector txVector,
-                             MpduType mpdutype,
-                             Ptr<Event> event,
-                             Time rxDuration)
+WifiPhy::PacketDetection (Ptr<Packet> packet,
+                          WifiTxVector txVector,
+                          MpduType mpdutype,
+                          Ptr<Event> event,
+                          Time rxDuration)
 {
   NS_LOG_FUNCTION (this << packet << txVector.GetMode () << txVector.GetPreambleType () << +mpdutype);
-  // Old behavior - switched to RX immediately
+  // Old Behavior:
   // NS_ASSERT (IsStateRx ());
-  // New Behavior - in IDLE until preamble detect succeeds, then switches to RX
-  // if ((m_state->GetState () != WifiPhyState::IDLE) && (m_state->GetState () != WifiPhyState::SWITCHING))
-  // {
-  //   std::cout << "Yikes!  Not IDLE and Not SWITCHING " << m_state->GetState () << std::endl;
-  // }
-  // std::cout << "state in EndLegacy= " << m_state->GetState () << std::endl;
+  // New Behavior:
   NS_ASSERT (!IsStateRx ());
   NS_ASSERT (m_endPlcpRxEvent.IsExpired ());
-  // WifiMode txMode = txVector.GetMode ();
 
   InterferenceHelper::SnrPer snrPer;
   snrPer = m_interference.CalculatePlcpHeaderSnrPer (event);
@@ -2622,13 +2621,15 @@ WifiPhy::EndLegacyPreamble (Ptr<Packet> packet,
   {
     NS_LOG_DEBUG ("snr(dB)=" << RatioToDb (snrPer.snr) << ", per=" << snrPer.per);
 
-    // new behavior, switch to RX after successful preamble detect
-    // TODO
+    // New Behavior:
+    // switch to RX after successful preamble detect
     m_state->SwitchToRx (rxDuration);
-
-    Time headerDuration = CalculatePlcpHeaderDuration (txVector);
-    m_endPlcpRxEvent = Simulator::Schedule (headerDuration, &WifiPhy::StartReceivePacket, this,
+    // New Behavior:
+    Time remainingPreambleHeaderDuration = CalculatePlcpPreambleAndHeaderDuration (txVector) - CalculateStartOfPacketDuration (txVector);
+    m_endPlcpRxEvent = Simulator::Schedule (remainingPreambleHeaderDuration, &WifiPhy::StartReceivePacket, this,
                                             packet, txVector, mpdutype, event);
+    // Old Behavior:
+    // StartReceivePacket(packet, txVector, mpdutype, event);
   }
   else
   {
@@ -3804,9 +3805,10 @@ WifiPhy::StartRx (Ptr<Packet> packet, WifiTxVector txVector, MpduType mpdutype, 
 
       NS_LOG_DEBUG ("sync to signal (power=" << rxPowerW << "W)");
       m_currentEvent = event;
-      // old behavior - switch to RX immediately
-      //m_state->SwitchToRx (rxDuration);
-      // new behavior, switch to RX after Preamble Detect
+      // Old Behavior:
+      // switch to RX immediately
+      // m_state->SwitchToRx (rxDuration);
+      // New Behavior:
       if (preamble == WIFI_PREAMBLE_NONE)
         {
           m_state->SwitchToRx (rxDuration);
@@ -3815,26 +3817,24 @@ WifiPhy::StartRx (Ptr<Packet> packet, WifiTxVector txVector, MpduType mpdutype, 
       NotifyRxBegin (packet);
       m_interference.NotifyRxStart ();
 
-      // DEBUG
-      std::cout << "preamble= " << preamble << " state= " << m_state->GetState () << std::endl;
-
       if (preamble != WIFI_PREAMBLE_NONE)
         {
           NS_ASSERT (m_endPlcpRxEvent.IsExpired ());
-          Time preambleDuration = CalculatePlcpPreambleDuration (txVector);
-          // TODO
-          ////preambleDuration = MicroSeconds(0.0);
-          // m_state->SwitchToIdle (rxDuration);
-          // m_state->DoSwitchFromRx ();
-          Time residualRxDuration = rxDuration - preambleDuration;
-          ////std::cout << "Scheduleing legacy preamble. IsRunning= " << m_endPreambleEvent.IsRunning () << " IsExpired=" << m_endPreambleEvent.IsExpired () << std::endl;
+
           if (m_endPreambleEvent.IsRunning ())
             {
               m_endPreambleEvent.Cancel ();
             }
 
           NS_ASSERT (m_endPreambleEvent.IsExpired ());
-          m_endPreambleEvent = Simulator::Schedule (preambleDuration, &WifiPhy::EndLegacyPreamble, this,
+          // Old Behavior:
+          // Time preambleAndHeaderDuration = CalculatePlcpPreambleAndHeaderDuration (txVector);
+          // m_endPlcpRxEvent = Simulator::Schedule (preambleAndHeaderDuration, &WifiPhy::PacketDetection, this,
+          //                                         packet, txVector, mpdutype, event, Seconds(0));
+          // New Behavior:
+          Time startOfPacketDuration = CalculateStartOfPacketDuration (txVector);
+          Time residualRxDuration = rxDuration - startOfPacketDuration;
+          m_endPreambleEvent = Simulator::Schedule (startOfPacketDuration, &WifiPhy::PacketDetection, this,
                                                     packet, txVector, mpdutype, event, residualRxDuration);
           if (m_endRxEvent.IsRunning ())
             {

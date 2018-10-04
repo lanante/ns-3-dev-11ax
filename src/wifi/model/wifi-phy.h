@@ -123,11 +123,11 @@ public:
    * \param mpdutype the type of the MPDU as defined in WifiPhy::MpduType.
    * \param event the corresponding event of the first time the packet arrives
    */
-  void EndLegacyPreamble (Ptr<Packet> packet,
-                          WifiTxVector txVector,
-                          MpduType mpdutype,
-                          Ptr<Event> event,
-                          Time rxDuration);
+  void PacketDetection (Ptr<Packet> packet,
+                        WifiTxVector txVector,
+                        MpduType mpdutype,
+                        Ptr<Event> event,
+                        Time rxDuration);
 
   /**
    * Starting receiving the payload of a packet (i.e. the first bit of the packet has arrived).
@@ -283,6 +283,13 @@ public:
   /**
    * \param txVector the transmission parameters used for this packet
    *
+   * \return the total amount of time this PHY will start the detection of the actual packet.
+   */
+  static Time CalculateStartOfPacketDuration (WifiTxVector txVector);
+
+  /**
+   * \param txVector the transmission parameters used for this packet
+   *
    * \return the training symbol duration
    */
   static Time GetPlcpTrainingSymbolDuration (WifiTxVector txVector);
@@ -359,6 +366,12 @@ public:
    * \return the duration of the payload
    */
   Time GetPayloadDuration (uint32_t size, WifiTxVector txVector, uint16_t frequency, MpduType mpdutype, uint8_t incFlag);
+  /**
+   * \param txVector the transmission parameters used for this packet
+   *
+   * \return the duration until the start of the packet
+   */
+  static Time GetStartOfPacketDuration (WifiTxVector txVector);
 
   /**
    * The WifiPhy::GetNModes() and WifiPhy::GetMode() methods are used

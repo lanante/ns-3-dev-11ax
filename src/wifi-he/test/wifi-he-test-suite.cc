@@ -301,18 +301,18 @@ TestSinglePacketTxTimings::NotifyPhyTxBegin (std::string context, Ptr<const Pack
           NS_ASSERT_MSG (m_firstTransmissionTime >= Time (Seconds (1)), "Packet 0 not transmitted at 1 second");
 
           // relative to the start of receiving the packet...
-          // The PHY will remain in the IDLE state from 0..24 us
+          // The PHY will remain in the IDLE state from 0..4 us
           // After the preamble is received (takes 24us), then the PHY will switch to RX
-          // The PHY will remain in RX after the headeer is successfully decded
+          // The PHY will remain in RX after the headeer is successfully decoded
 
-          // in 23us, AP PHY STATE should be IDLE
-          Simulator::Schedule (MicroSeconds (23.0), &TestSinglePacketTxTimings::CheckPhyState, this, 1, WifiPhyState::IDLE);
+          // at 4us, AP PHY STATE should be IDLE
+          Simulator::Schedule (MicroSeconds (4.0), &TestSinglePacketTxTimings::CheckPhyState, this, 1, WifiPhyState::IDLE);
 
-          // in 25us, AP PHY STATE should be in RX if the preamble detection succeeded
-          Simulator::Schedule (MicroSeconds (25.0), &TestSinglePacketTxTimings::CheckPhyState, this, 1, WifiPhyState::RX);
+          // at 20us, AP PHY STATE should be in RX if the preamble detection succeeded
+          Simulator::Schedule (MicroSeconds (20.0), &TestSinglePacketTxTimings::CheckPhyState, this, 1, WifiPhyState::RX);
 
-          // in 45us, AP PHY STATE should be in RX if the header decoded successfully (IDLE if not)
-          Simulator::Schedule (MicroSeconds (45.0), &TestSinglePacketTxTimings::CheckPhyState, this, 1, WifiPhyState::RX);
+          // in 40us, AP PHY STATE should be in RX if the header decoded successfully (IDLE if not)
+          Simulator::Schedule (MicroSeconds (40.0), &TestSinglePacketTxTimings::CheckPhyState, this, 1, WifiPhyState::RX);
         }
 
       m_numSentPackets++;
