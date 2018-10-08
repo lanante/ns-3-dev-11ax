@@ -187,7 +187,7 @@ SpectrumWifiPhyBasicTest::DoRun (void)
   Simulator::Run ();
   Simulator::Destroy ();
 
-  NS_TEST_ASSERT_MSG_EQ (m_count, 3, "Didn't receive right number of packets");
+  NS_TEST_ASSERT_MSG_EQ (m_count, 4, "Didn't receive right number of packets");
 }
 
 /**
