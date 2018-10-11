@@ -363,7 +363,7 @@ WifiPhy::WifiPhy ()
     m_rxMpduReferenceNumber (0xffffffff),
     m_endRxEvent (),
     m_endPlcpRxEvent (),
-    m_endPreambleEvent (),
+    m_endPacketDetectionEvent (),
     m_standard (WIFI_PHY_STANDARD_UNSPECIFIED),
     m_isConstructed (false),
     m_channelCenterFrequency (0),
@@ -1457,7 +1457,7 @@ WifiPhy::DoChannelSwitch (uint8_t nch)
       NS_LOG_DEBUG ("drop packet because of channel switching while reception");
       m_endPlcpRxEvent.Cancel ();
       m_endRxEvent.Cancel ();
-      m_endPreambleEvent.Cancel ();
+      m_endPacketDetectionEvent.Cancel ();
       goto switchChannel;
       break;
     case WifiPhyState::TX:
@@ -1466,9 +1466,9 @@ WifiPhy::DoChannelSwitch (uint8_t nch)
       break;
     case WifiPhyState::CCA_BUSY:
     case WifiPhyState::IDLE:
-      if (m_endPreambleEvent.IsRunning ())
+      if (m_endPacketDetectionEvent.IsRunning ())
       {
-        m_endPreambleEvent.Cancel ();
+        m_endPacketDetectionEvent.Cancel ();
         m_endRxEvent.Cancel ();
       }
       goto switchChannel;
@@ -1515,7 +1515,7 @@ WifiPhy::DoFrequencySwitch (uint16_t frequency)
       NS_LOG_DEBUG ("drop packet because of channel/frequency switching while reception");
       m_endPlcpRxEvent.Cancel ();
       m_endRxEvent.Cancel ();
-      m_endPreambleEvent.Cancel ();
+      m_endPacketDetectionEvent.Cancel ();
       goto switchFrequency;
       break;
     case WifiPhyState::TX:
@@ -1592,7 +1592,7 @@ WifiPhy::SetOffMode (void)
     case WifiPhyState::RX:
       m_endPlcpRxEvent.Cancel ();
       m_endRxEvent.Cancel ();
-      m_endPreambleEvent.Cancel ();
+      m_endPacketDetectionEvent.Cancel ();
     case WifiPhyState::TX:
     case WifiPhyState::SWITCHING:
     case WifiPhyState::CCA_BUSY:
@@ -2380,7 +2380,7 @@ WifiPhy::SendPacket (Ptr<const Packet> packet, WifiTxVector txVector, MpduType m
     {
       m_endPlcpRxEvent.Cancel ();
       m_endRxEvent.Cancel ();
-      m_endPreambleEvent.Cancel ();
+      m_endPacketDetectionEvent.Cancel ();
       m_interference.NotifyRxEnd ();
     }
   NotifyTxBegin (packet);
@@ -3732,9 +3732,9 @@ WifiPhy::AbortCurrentReception ()
     {
       m_endRxEvent.Cancel ();
     }
-  if (m_endPreambleEvent.IsRunning ())
+  if (m_endPacketDetectionEvent.IsRunning ())
     {
-      m_endPreambleEvent.Cancel ();
+      m_endPacketDetectionEvent.Cancel ();
     }
   NotifyRxDrop (m_currentEvent->GetPacket ());
   m_interference.NotifyRxEnd ();
@@ -3803,16 +3803,16 @@ WifiPhy::StartRx (Ptr<Packet> packet, WifiTxVector txVector, MpduType mpdutype, 
         {
           NS_ASSERT (m_endPlcpRxEvent.IsExpired ());
 
-          if (m_endPreambleEvent.IsRunning ())
+          if (m_endPacketDetectionEvent.IsRunning ())
             {
-              m_endPreambleEvent.Cancel ();
+              m_endPacketDetectionEvent.Cancel ();
             }
 
-          NS_ASSERT (m_endPreambleEvent.IsExpired ());
+          NS_ASSERT (m_endPacketDetectionEvent.IsExpired ());
           // Actual packet detection starts only if preamble is successfully detected.
           Time startOfPacketDuration = GetStartOfPacketDuration (txVector);
           Time residualRxDuration = rxDuration - startOfPacketDuration;
-          m_endPreambleEvent = Simulator::Schedule (startOfPacketDuration, &WifiPhy::PacketDetection, this,
+          m_endPacketDetectionEvent = Simulator::Schedule (startOfPacketDuration, &WifiPhy::PacketDetection, this,
                                                     packet, txVector, mpdutype, event, residualRxDuration);
           if (m_endRxEvent.IsRunning ())
             {

@@ -1567,7 +1567,7 @@ protected:
 
   EventId m_endRxEvent;                //!< the end reeive event
   EventId m_endPlcpRxEvent;            //!< the end PLCP receive event
-  EventId m_endPreambleEvent;          //!< the end PLCP receive preamble event
+  EventId m_endPacketDetectionEvent;   //!< the end packet detection event
 
 private:
   /**
