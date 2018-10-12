@@ -1302,6 +1302,147 @@ TestSinglePacketEndOfHePreambleCorrectBssColor::CheckResults ()
  * \brief Wifi-HE Test Suite
  */
 
+/**
+ * \ingroup wifi-test
+ * \ingroup tests
+ *
+ * \brief Wifi Test
+ *
+ * This test case tests the transmission of a single packet in a Wifi HE network (802.11ax),
+ * from a STA, that is successfully received by an AP.
+ * This test confirms that the EndOfHePreamble event fires
+ */
+class TestSinglePacketEndOfHePreambleResetPhyOnMagicBssColor : public WifiHeTestCase
+{
+public:
+  TestSinglePacketEndOfHePreambleResetPhyOnMagicBssColor ();
+
+protected:
+  /**
+   * Notify end of HE preamble
+   * \param rssi the rssi of the received packet
+   * \param bssColor the BSS color
+   */
+  void NotifyEndOfHePreamble (std::string context, double rssi, uint8_t bssColor);
+
+  /**
+   * Get the number of STAs
+   */
+  virtual uint32_t GetNumberOfStas ();
+
+  /**
+   * Get the number of APs
+   */
+  virtual uint32_t GetNumberOfAps ();
+
+  /**
+   * Allocate the node positions
+   */
+  virtual Ptr<ListPositionAllocator> AllocatePositions ();
+
+  /**
+   * Setup the simulation
+   */
+  virtual void SetupSimulation ();
+
+  /**
+   * Check the results
+   */
+  virtual void CheckResults ();
+
+};
+
+TestSinglePacketEndOfHePreambleResetPhyOnMagicBssColor::TestSinglePacketEndOfHePreambleResetPhyOnMagicBssColor ()
+  : WifiHeTestCase ()
+{
+  m_enableHeConfiguration = true;
+  // Use a magic BSS Color = 54 to denote nodes that will reset t he PHY upon notifiction of EndOfHeCPreamble event
+  m_expectedBssColor = 54;
+}
+
+// The topology for this test case is 1 STA to 1 AP:
+//  AP  --5m--  STA1
+//
+// at t=1.0s, STA1 sends one packet to AP
+//
+// this test case confirms the transitions from PHY state IDLE to RX occur at expected times
+// and confirms that 1 packet was successfull received
+
+uint32_t
+TestSinglePacketEndOfHePreambleResetPhyOnMagicBssColor::GetNumberOfStas ()
+{
+  uint32_t nStas = 1;
+  return nStas;
+}
+
+uint32_t
+TestSinglePacketEndOfHePreambleResetPhyOnMagicBssColor::GetNumberOfAps ()
+{
+  uint32_t nAps = 1;
+  return nAps;
+}
+
+Ptr<ListPositionAllocator>
+TestSinglePacketEndOfHePreambleResetPhyOnMagicBssColor::AllocatePositions ()
+{
+  Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator> ();
+
+  positionAlloc->Add (Vector (0.0, 0.0, 0.0));  // AP1
+  positionAlloc->Add (Vector (5.0, 0.0, 0.0));  // STA1
+
+  return positionAlloc;
+}
+
+void
+TestSinglePacketEndOfHePreambleResetPhyOnMagicBssColor::NotifyEndOfHePreamble (std::string context, double rssi, uint8_t bssColor)
+{
+  uint32_t idx = ContextToNodeId (context);
+
+  if (idx == 1)
+    {
+      // The AP should have the expected BSS color
+      NS_TEST_ASSERT_MSG_EQ (m_expectedBssColor, bssColor, "The received packet HE BSS Color is not the expected color!");
+      if (bssColor == 54)
+        {
+          // this is the AP, and we have received notification of End of HE Preamble, and the BSS color is our
+          // magic number.  Reset the PHY, and then check that the  PHY returns to IDLE shortly thereafter
+          //m_listener->m_phy->AbortCurrentReception ();
+        }
+    }
+}
+
+void
+TestSinglePacketEndOfHePreambleResetPhyOnMagicBssColor::SetupSimulation ()
+{
+  // PhyEndOfHePreamble - used to test that the PHY EndOfHePreamble event has fired
+  Config::Connect ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Phy/EndOfHePreamble", MakeCallback (&TestSinglePacketEndOfHePreambleResetPhyOnMagicBssColor::NotifyEndOfHePreamble, this));
+
+
+  Ptr<WifiNetDevice> sta1_device = DynamicCast<WifiNetDevice> (m_staDevices.Get (0));
+
+  // the STA will send 1 packet after 1s (allowing the Wifi network to reach some steady state)
+  Simulator::Schedule (Seconds (1.0), &TestSinglePacketEndOfHePreambleResetPhyOnMagicBssColor::SendOnePacket, this, sta1_device, m_payloadSize1);
+
+  // 2s should be enough time ot complete the simulation...
+  Simulator::Stop (Seconds (2.0));
+}
+
+void
+TestSinglePacketEndOfHePreambleResetPhyOnMagicBssColor::CheckResults ()
+{
+  // expect only 1 packet successfully sent, and only 1 packet successfully received, from the first STA
+  NS_TEST_ASSERT_MSG_EQ (m_numSentPackets, 1, "The number of sent packets is not correct!");
+  NS_TEST_ASSERT_MSG_EQ (m_receivedPayload1, true, "The payload for STA1 was not received!");
+  NS_TEST_ASSERT_MSG_EQ (m_receivedPayload2, false, "The payload for STA2 was received, and should not have been received!");
+}
+
+/**
+ * \ingroup wifi-he-test-suite
+ * \ingroup tests
+ *
+ * \brief Wifi-HE Test Suite
+ */
+
 class WifiHeTestSuite : public TestSuite
 {
 public:
@@ -1318,6 +1459,7 @@ WifiHeTestSuite::WifiHeTestSuite ()
   AddTestCase (new TestTwoPacketsCollisionWeakFirstFrame, TestCase::QUICK);
   AddTestCase (new TestSinglePacketEndOfHePreambleNoBssColor, TestCase::QUICK);
   AddTestCase (new TestSinglePacketEndOfHePreambleCorrectBssColor, TestCase::QUICK);
+  AddTestCase (new TestSinglePacketEndOfHePreambleResetPhyOnMagicBssColor, TestCase::QUICK);
 }
 
 // Do not forget to allocate an instance of this TestSuite
