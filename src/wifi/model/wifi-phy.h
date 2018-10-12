@@ -1217,6 +1217,26 @@ public:
                                             MpduInfo aMpdu);
 
   /**
+   * Public method used to fire a EndOfHePreamble trace for end of a wifi packet preamble being received.
+   * Implemented for encapsulation purposes.
+   *
+   * \param rssi the rssi of the packet being received
+   * \param bssColor the BSS color of the packet being received
+   */
+  void NotifyEndOfHePreamble (double rssi,
+                              uint8_t bssColor);
+
+  /**
+   * TracedCallback signature for end of HE preamble events.
+   *
+   *
+   * \param rssi the rssi of the packet being received
+   * \param bssColor the BSS color of the packet being received
+   */
+  typedef void (* EndOfHePreambleCallback)(double rssi,
+                                           uint8_t bssColor);
+
+  /**
    * Assign a fixed random variable stream number to the random variables
    * used by this model. Return the number of streams (possibly zero) that
    * have been assigned.
@@ -1752,6 +1772,13 @@ private:
    * const  references because of their sizes.
    */
   TracedCallback<Ptr<const Packet>, uint16_t, WifiTxVector, MpduInfo, SignalNoiseDbm> m_phyMonitorSniffRxTrace;
+
+  /**
+   * A trace source that emulates end of HE preamble for a packet received
+   *
+   * \see class CallBackTraceSource
+   */
+  TracedCallback<double, uint8_t> m_phyEndOfHePreambleTrace;
 
   /**
    * A trace source that emulates a wifi device in monitor mode

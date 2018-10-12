@@ -352,6 +352,11 @@ WifiPhy::GetTypeId (void)
                      "in monitor mode to sniff all frames being transmitted",
                      MakeTraceSourceAccessor (&WifiPhy::m_phyMonitorSniffTxTrace),
                      "ns3::WifiPhy::MonitorSnifferTxTracedCallback")
+    .AddTraceSource ("EndOfHePreamble",
+                     "Trace source indicating the end of the wifi packet "
+                     "preamble",
+                     MakeTraceSourceAccessor (&WifiPhy::m_phyEndOfHePreambleTrace),
+                     "ns3::WifiPhy::EndOfHePreambleTracedCallback")
   ;
   return tid;
 }
@@ -2346,6 +2351,13 @@ WifiPhy::NotifyMonitorSniffTx (Ptr<const Packet> packet, uint16_t channelFreqMhz
 }
 
 void
+WifiPhy::NotifyEndOfHePreamble (double rssi, uint8_t bssColor)
+{
+//std::cout << "rssi=" << rssi << " BSS Color=" << ((uint32_t) bssColor) << std::endl;
+  m_phyEndOfHePreambleTrace (rssi, bssColor);
+}
+
+void
 WifiPhy::SendPacket (Ptr<const Packet> packet, WifiTxVector txVector, MpduType mpdutype)
 {
   NS_LOG_FUNCTION (this << packet << txVector.GetMode ()
@@ -2607,6 +2619,28 @@ WifiPhy::PacketDetection (Ptr<Packet> packet,
 
   // ensure preamble is successfully detected
   double snr = snrPer.snr;
+
+  // notify the end of the HE preamble occurs
+  uint8_t bssColor = 0;  // default, no BSS color
+  Ptr<HeConfiguration> heConfiguration = 0;
+  Ptr<WifiNetDevice> wifiNetDevice = DynamicCast<WifiNetDevice> (m_device);
+  if (wifiNetDevice)
+    {
+      Ptr<RegularWifiMac> regularWifiMac = DynamicCast<RegularWifiMac> (wifiNetDevice->GetMac ());
+      if (regularWifiMac)
+        {
+          heConfiguration = regularWifiMac->GetHeConfiguration ();
+        }
+    }
+  if (heConfiguration)
+    {
+      UintegerValue uBssColor;
+      heConfiguration->GetAttribute ("BssColor", uBssColor);
+      bssColor = (uint8_t) uBssColor.Get ();
+    }
+  double rssi = snr;  // todo - need rssi, not snr
+  NotifyEndOfHePreamble (rssi, bssColor);
+
   if (PreambleDetected(snr, m_channelWidth))
   {
     NS_LOG_DEBUG ("snr(dB)=" << RatioToDb (snrPer.snr) << ", per=" << snrPer.per);

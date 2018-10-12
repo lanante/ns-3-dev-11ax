@@ -252,6 +252,8 @@ protected:
   NetDeviceContainer m_staDevices;
   bool m_receivedPayload1;
   bool m_receivedPayload2;
+  bool m_enableHeConfiguration;
+  uint32_t m_expectedBssColor;
 
   TestPhyListener* m_listener; ///< listener
 
@@ -268,6 +270,13 @@ protected:
    * \param p the packet
    */
   void NotifyPhyRxEnd (std::string context, Ptr<const Packet> p);
+
+  /**
+   * Notify end of HE preamble
+   * \param rssi the rssi of the received packet
+   * \param bssColor the BSS color
+   */
+  void NotifyEndOfHePreamble (std::string context, double rssi, uint8_t bssColor);
 
   // derived test case classes need to override these methods to control behaviors.
 
@@ -304,7 +313,9 @@ WifiHeTestCase::WifiHeTestCase ()
   m_payloadSize1 (1500),
   m_payloadSize2 (1510),
   m_receivedPayload1 (false),
-  m_receivedPayload2 (false)
+  m_receivedPayload2 (false),
+  m_enableHeConfiguration (false),
+  m_expectedBssColor (0)
 {
   m_firstTransmissionTime = Seconds (0);
   m_phy = SpectrumWifiPhyHelper::Default ();
@@ -368,6 +379,14 @@ WifiHeTestCase::NotifyPhyRxEnd (std::string context, Ptr<const Packet> p)
           m_receivedPayload2 = true;
         }
     }
+}
+
+void
+WifiHeTestCase::NotifyEndOfHePreamble (std::string context, double rssi, uint8_t bssColor)
+{
+  //  uint32_t idx = ContextToNodeId (context);
+
+  std::cout << "NotifyEndOfHePreamble has fired. rssi=" << rssi << " BSS color=" << ((uint32_t) bssColor) << std::endl;
 }
 
 void
@@ -508,6 +527,19 @@ WifiHeTestCase::RunOne (void)
   apDevices = wifi.Install (m_phy, mac, wifiApNode);
 
   wifi.AssignStreams (apDevices, streamNumber);
+
+  if (m_enableHeConfiguration)
+    {
+      Ptr<WifiNetDevice> apDevice = apDevices.Get (0)->GetObject<WifiNetDevice> ();
+      Ptr<ApWifiMac> apWifiMac = apDevice->GetMac ()->GetObject<ApWifiMac> ();
+      // The below statements may be simplified in a future HeConfigurationHelper
+      Ptr<HeConfiguration> heConfiguration = CreateObject<HeConfiguration> ();
+      heConfiguration->SetAttribute ("BssColor", UintegerValue (m_expectedBssColor));
+      heConfiguration->SetAttribute ("ObssPdThreshold", DoubleValue(-99.0));
+      heConfiguration->SetAttribute ("ObssPdThresholdMin", DoubleValue(-82.0));
+      heConfiguration->SetAttribute ("ObssPdThresholdMax", DoubleValue(-62.0));
+      apWifiMac->SetHeConfiguration (heConfiguration);
+    }
 
   // fixed positions
   MobilityHelper mobility;
@@ -1009,6 +1041,261 @@ TestTwoPacketsCollisionWeakFirstFrame::CheckResults ()
 }
 
 /**
+ * \ingroup wifi-test
+ * \ingroup tests
+ *
+ * \brief Wifi Test
+ *
+ * This test case tests the transmission of a single packet in a Wifi HE network (802.11ax),
+ * from a STA, that is successfully received by an AP.
+ * This test confirms that the EndOfHePreamble event fires
+ */
+class TestSinglePacketEndOfHePreambleNoBssColor : public WifiHeTestCase
+{
+public:
+  TestSinglePacketEndOfHePreambleNoBssColor ();
+
+protected:
+  /**
+   * Notify end of HE preamble
+   * \param rssi the rssi of the received packet
+   * \param bssColor the BSS color
+   */
+  void NotifyEndOfHePreamble (std::string context, double rssi, uint8_t bssColor);
+
+  /**
+   * Get the number of STAs
+   */
+  virtual uint32_t GetNumberOfStas ();
+
+  /**
+   * Get the number of APs
+   */
+  virtual uint32_t GetNumberOfAps ();
+
+  /**
+   * Allocate the node positions
+   */
+  virtual Ptr<ListPositionAllocator> AllocatePositions ();
+
+  /**
+   * Setup the simulation
+   */
+  virtual void SetupSimulation ();
+
+  /**
+   * Check the results
+   */
+  virtual void CheckResults ();
+};
+
+TestSinglePacketEndOfHePreambleNoBssColor::TestSinglePacketEndOfHePreambleNoBssColor ()
+  : WifiHeTestCase ()
+{
+  m_expectedBssColor = 0;
+}
+
+// The topology for this test case is 1 STA to 1 AP:
+//  AP  --5m--  STA1
+//
+// at t=1.0s, STA1 sends one packet to AP
+//
+// this test case confirms the transitions from PHY state IDLE to RX occur at expected times
+// and confirms that 1 packet was successfull received
+
+uint32_t
+TestSinglePacketEndOfHePreambleNoBssColor::GetNumberOfStas ()
+{
+  uint32_t nStas = 1;
+  return nStas;
+}
+
+uint32_t
+TestSinglePacketEndOfHePreambleNoBssColor::GetNumberOfAps ()
+{
+  uint32_t nAps = 1;
+  return nAps;
+}
+
+Ptr<ListPositionAllocator>
+TestSinglePacketEndOfHePreambleNoBssColor::AllocatePositions ()
+{
+  Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator> ();
+
+  positionAlloc->Add (Vector (0.0, 0.0, 0.0));  // AP1
+  positionAlloc->Add (Vector (5.0, 0.0, 0.0));  // STA1
+
+  return positionAlloc;
+}
+
+void
+TestSinglePacketEndOfHePreambleNoBssColor::NotifyEndOfHePreamble (std::string context, double rssi, uint8_t bssColor)
+{
+  //  uint32_t idx = ContextToNodeId (context);
+
+  NS_TEST_ASSERT_MSG_EQ (m_expectedBssColor, bssColor, "The received packet HE BSS Color is not the expected color!");
+}
+
+void
+TestSinglePacketEndOfHePreambleNoBssColor::SetupSimulation ()
+{
+  // PhyEndOfHePreamble - used to test that the PHY EndOfHePreamble event has fired
+  Config::Connect ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Phy/EndOfHePreamble", MakeCallback (&TestSinglePacketEndOfHePreambleNoBssColor::NotifyEndOfHePreamble, this));
+
+
+  Ptr<WifiNetDevice> sta1_device = DynamicCast<WifiNetDevice> (m_staDevices.Get (0));
+
+  // the STA will send 1 packet after 1s (allowing the Wifi network to reach some steady state)
+  Simulator::Schedule (Seconds (1.0), &TestSinglePacketEndOfHePreambleNoBssColor::SendOnePacket, this, sta1_device, m_payloadSize1);
+
+  // 2s should be enough time ot complete the simulation...
+  Simulator::Stop (Seconds (2.0));
+}
+
+void
+TestSinglePacketEndOfHePreambleNoBssColor::CheckResults ()
+{
+  // expect only 1 packet successfully sent, and only 1 packet successfully received, from the first STA
+  NS_TEST_ASSERT_MSG_EQ (m_numSentPackets, 1, "The number of sent packets is not correct!");
+  NS_TEST_ASSERT_MSG_EQ (m_receivedPayload1, true, "The payload for STA1 was not received!");
+  NS_TEST_ASSERT_MSG_EQ (m_receivedPayload2, false, "The payload for STA2 was received, and should not have been received!");
+}
+
+/**
+ * \ingroup wifi-he-test-suite
+ * \ingroup tests
+ *
+ * \brief Wifi-HE Test Suite
+ */
+
+/**
+ * \ingroup wifi-test
+ * \ingroup tests
+ *
+ * \brief Wifi Test
+ *
+ * This test case tests the transmission of a single packet in a Wifi HE network (802.11ax),
+ * from a STA, that is successfully received by an AP.
+ * This test confirms that the EndOfHePreamble event fires
+ */
+class TestSinglePacketEndOfHePreambleCorrectBssColor : public WifiHeTestCase
+{
+public:
+  TestSinglePacketEndOfHePreambleCorrectBssColor ();
+
+protected:
+  /**
+   * Notify end of HE preamble
+   * \param rssi the rssi of the received packet
+   * \param bssColor the BSS color
+   */
+  void NotifyEndOfHePreamble (std::string context, double rssi, uint8_t bssColor);
+
+  /**
+   * Get the number of STAs
+   */
+  virtual uint32_t GetNumberOfStas ();
+
+  /**
+   * Get the number of APs
+   */
+  virtual uint32_t GetNumberOfAps ();
+
+  /**
+   * Allocate the node positions
+   */
+  virtual Ptr<ListPositionAllocator> AllocatePositions ();
+
+  /**
+   * Setup the simulation
+   */
+  virtual void SetupSimulation ();
+
+  /**
+   * Check the results
+   */
+  virtual void CheckResults ();
+
+};
+
+TestSinglePacketEndOfHePreambleCorrectBssColor::TestSinglePacketEndOfHePreambleCorrectBssColor ()
+  : WifiHeTestCase ()
+{
+  m_enableHeConfiguration = true;
+  m_expectedBssColor = 1;
+}
+
+// The topology for this test case is 1 STA to 1 AP:
+//  AP  --5m--  STA1
+//
+// at t=1.0s, STA1 sends one packet to AP
+//
+// this test case confirms the transitions from PHY state IDLE to RX occur at expected times
+// and confirms that 1 packet was successfull received
+
+uint32_t
+TestSinglePacketEndOfHePreambleCorrectBssColor::GetNumberOfStas ()
+{
+  uint32_t nStas = 1;
+  return nStas;
+}
+
+uint32_t
+TestSinglePacketEndOfHePreambleCorrectBssColor::GetNumberOfAps ()
+{
+  uint32_t nAps = 1;
+  return nAps;
+}
+
+Ptr<ListPositionAllocator>
+TestSinglePacketEndOfHePreambleCorrectBssColor::AllocatePositions ()
+{
+  Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator> ();
+
+  positionAlloc->Add (Vector (0.0, 0.0, 0.0));  // AP1
+  positionAlloc->Add (Vector (5.0, 0.0, 0.0));  // STA1
+
+  return positionAlloc;
+}
+
+void
+TestSinglePacketEndOfHePreambleCorrectBssColor::NotifyEndOfHePreamble (std::string context, double rssi, uint8_t bssColor)
+{
+  uint32_t idx = ContextToNodeId (context);
+
+  if (idx == 1)
+    {
+      // The AP should have the expected BSS color
+      NS_TEST_ASSERT_MSG_EQ (m_expectedBssColor, bssColor, "The received packet HE BSS Color is not the expected color!");
+    }
+}
+
+void
+TestSinglePacketEndOfHePreambleCorrectBssColor::SetupSimulation ()
+{
+  // PhyEndOfHePreamble - used to test that the PHY EndOfHePreamble event has fired
+  Config::Connect ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Phy/EndOfHePreamble", MakeCallback (&TestSinglePacketEndOfHePreambleCorrectBssColor::NotifyEndOfHePreamble, this));
+
+
+  Ptr<WifiNetDevice> sta1_device = DynamicCast<WifiNetDevice> (m_staDevices.Get (0));
+
+  // the STA will send 1 packet after 1s (allowing the Wifi network to reach some steady state)
+  Simulator::Schedule (Seconds (1.0), &TestSinglePacketEndOfHePreambleCorrectBssColor::SendOnePacket, this, sta1_device, m_payloadSize1);
+
+  // 2s should be enough time ot complete the simulation...
+  Simulator::Stop (Seconds (2.0));
+}
+
+void
+TestSinglePacketEndOfHePreambleCorrectBssColor::CheckResults ()
+{
+  // expect only 1 packet successfully sent, and only 1 packet successfully received, from the first STA
+  NS_TEST_ASSERT_MSG_EQ (m_numSentPackets, 1, "The number of sent packets is not correct!");
+  NS_TEST_ASSERT_MSG_EQ (m_receivedPayload1, true, "The payload for STA1 was not received!");
+  NS_TEST_ASSERT_MSG_EQ (m_receivedPayload2, false, "The payload for STA2 was received, and should not have been received!");
+}
+
+/**
  * \ingroup wifi-he-test-suite
  * \ingroup tests
  *
@@ -1029,6 +1316,8 @@ WifiHeTestSuite::WifiHeTestSuite ()
   AddTestCase (new TestTwoPacketsNoCollision, TestCase::QUICK);
   AddTestCase (new TestTwoPacketsCollisionStrongFirstFrame, TestCase::QUICK);
   AddTestCase (new TestTwoPacketsCollisionWeakFirstFrame, TestCase::QUICK);
+  AddTestCase (new TestSinglePacketEndOfHePreambleNoBssColor, TestCase::QUICK);
+  AddTestCase (new TestSinglePacketEndOfHePreambleCorrectBssColor, TestCase::QUICK);
 }
 
 // Do not forget to allocate an instance of this TestSuite
