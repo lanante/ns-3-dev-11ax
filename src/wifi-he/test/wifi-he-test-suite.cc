@@ -63,39 +63,32 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("WifiHeTestSuite");
 
-/***
-//Helper function to assign streams to random variables, to control
-//randomness in the tests
-static void
-AssignWifiRandomStreams (Ptr<WifiMac> mac, int64_t stream)
-{
-  int64_t currentStream = stream;
-  Ptr<RegularWifiMac> rmac = DynamicCast<RegularWifiMac> (mac);
-  if (rmac)
-    {
-      PointerValue ptr;
-      rmac->GetAttribute ("Txop", ptr);
-      Ptr<Txop> txop = ptr.Get<Txop> ();
-      currentStream += txop->AssignStreams (currentStream);
+// This test suite contains the following test cases:
+//
+//   AddTestCase (new TestSinglePacketTxTimings, TestCase::QUICK);
+//   This test case tests a single STA sending a single packet to an AP
+//   that is successfully received and that the PHY state transitions of the frame
+//   received occur at the expected times, specifically the PHY remains in IDLE for 4us at
+//   which time there is an attempt to detect the preamble, then the PHY remains in RX for
+//   20us (from the start of the frame) after which time there is an attempt to detect the packet
+//
+//   AddTestCase (new TestTwoPacketsNoCollision, TestCase::QUICK);
+//   This test case tests 2 STAs each sending one packet to the AP.  The 2nd STA sends its packet
+//   0.5s after the first STA has sent its packet.  In this scenario, the AP successfully receives
+//   both packets.
+//
+//   AddTestCase (new TestTwoPacketsCollisionStrongFirstFrame, TestCase::QUICK);
+//   This test case tests 2 STAs each sending one packet to the AP.  The 2nd STA sends its packet
+//   1us after the first STA has sent its packet.  In this scenario, the AP successfully receives
+//   and keeps only 1 packet, which is the first packet, the stronger signalled oneboth packets.
+//
+//   AddTestCase (new TestTwoPacketsCollisionWeakFirstFrame, TestCase::QUICK);
+//   This test case tests 2 STAs each sending one packet to the AP.  The 2nd STA sends its packet
+//   1us after the first STA has sent its packet.  In this scenario, the AP successfully receives
+//   and keeps only 1 packet, which is the first packet, the weaker signalled one.  Thus, this test
+//   slightly reverses the above test, in which the ordering of "strong packet send first" has been
+//   changed to "weaker packet sent first".
 
-      rmac->GetAttribute ("VO_Txop", ptr);
-      Ptr<QosTxop> vo_txop = ptr.Get<QosTxop> ();
-      currentStream += vo_txop->AssignStreams (currentStream);
-
-      rmac->GetAttribute ("VI_Txop", ptr);
-      Ptr<QosTxop> vi_txop = ptr.Get<QosTxop> ();
-      currentStream += vi_txop->AssignStreams (currentStream);
-
-      rmac->GetAttribute ("BE_Txop", ptr);
-      Ptr<QosTxop> be_txop = ptr.Get<QosTxop> ();
-      currentStream += be_txop->AssignStreams (currentStream);
-
-      rmac->GetAttribute ("BK_Txop", ptr);
-      Ptr<QosTxop> bk_txop = ptr.Get<QosTxop> ();
-      bk_txop->AssignStreams (currentStream);
-    }
-}
-****/
 
 // Parse context strings of the form "/NodeList/3/DeviceList/1/Mac/Assoc"
 // to extract the NodeId
@@ -144,7 +137,7 @@ public:
         PointerValue ptr;
         m_phy->GetAttribute ("State", ptr);
         Ptr <WifiPhyStateHelper> state = DynamicCast <WifiPhyStateHelper> (ptr.Get<WifiPhyStateHelper> ());
-        std::cout << "At " << Simulator::Now() << " PHY state is " << state->GetState () << std::endl;
+        // std::cout << "At " << Simulator::Now() << " PHY state is " << state->GetState () << std::endl;
         return state->GetState ();
       }
     else
@@ -328,7 +321,7 @@ WifiHeTestCase::NotifyPhyTxBegin (std::string context, Ptr<const Packet> p)
   uint32_t nStas = GetNumberOfStas ();
   if ((idx < nStas) && (pktSize >= m_payloadSize1))
     {
-      std::cout << "PhyTxBegin at " << Simulator::Now() << " " << pktSize << " " << context << " pkt: " << p << std::endl;
+      // std::cout << "PhyTxBegin at " << Simulator::Now() << " " << pktSize << " " << context << " pkt: " << p << std::endl;
       if (m_numSentPackets == 0)
         {
           // this is the first packet
@@ -365,7 +358,7 @@ WifiHeTestCase::NotifyPhyRxEnd (std::string context, Ptr<const Packet> p)
   uint32_t nStas = GetNumberOfStas ();
   if ((idx == nStas) && (pktSize >= m_payloadSize1))
     {
-      std::cout << "PhyRxEnd at " << Simulator::Now() << " " << pktSize << " " << context << " pkt: " << p << std::endl;
+      // std::cout << "PhyRxEnd at " << Simulator::Now() << " " << pktSize << " " << context << " pkt: " << p << std::endl;
       if (pktSize == (m_payloadSize1 + 42))
         {
           m_receivedPayload1 = true;
@@ -466,12 +459,22 @@ WifiHeTestCase::RunOne (void)
     = CreateObject<ConstantSpeedPropagationDelayModel> ();
   channel->SetPropagationDelayModel (delayModel);
 
+  // Ideally we do not need to use the Ieee80211ax loss models.  But, the combination
+  // of which propagation model and the stream number causes the test cases to otherwise fail, 
+  // mainly the two packet tests in which the second packet should not be received incurs a backoff and
+  // then IS received.  For now, am leaving the Ieee80211ax loss model in place, and will debug further
+  // later.
+
   // Use TGax Indoor propagation loss model
   Config::SetDefault ("ns3::Ieee80211axIndoorPropagationLossModel::DistanceBreakpoint", DoubleValue (10.0));
   Config::SetDefault ("ns3::Ieee80211axIndoorPropagationLossModel::Walls", DoubleValue (0.0));
   Config::SetDefault ("ns3::Ieee80211axIndoorPropagationLossModel::WallsFactor", DoubleValue (0.0));
 
+  uint32_t streamNumber = 100;
+
   Ptr<Ieee80211axIndoorPropagationLossModel> lossModel = CreateObject<Ieee80211axIndoorPropagationLossModel> ();
+  //Ptr<FriisPropagationLossModel> lossModel = CreateObject<FriisPropagationLossModel> ();
+  streamNumber += lossModel->AssignStreams (streamNumber);
   channel->AddPropagationLossModel (lossModel);
   m_phy.SetChannel (channel);
 
@@ -493,7 +496,6 @@ WifiHeTestCase::RunOne (void)
 
   m_staDevices = wifi.Install (m_phy, mac, wifiStaNode);
 
-  uint32_t streamNumber = 100;
   wifi.AssignStreams (m_staDevices, streamNumber);
 
   // assign AP MAC
@@ -574,12 +576,9 @@ WifiHeTestCase::DoRun (void)
  * The STA (sender) submits the packet for sending at 1.0s
  * The AP (receiver) senses the channel as WifiPhyState::Tx shortly thereafter.
  * Then, relative to the start of the frame:
- * at time 2.0 us, the receiver state == IDLE.
- * TBD:
- * at time 4.0 us, preamble detection.
- * at time 6.0us, if preamble succeeded, then state == RX.
- * at time 20.0 us, check header
- * at time 40.0 us, if header is decoded successfully, then state == RX, else state == IDLE
+ * at time 4.0 us, PHY is still in IDLE state.
+ * at time 20.0us, PHY has switched to RX state, if preamble detected, then start decode packet.
+ * at time 20.0us, PHY still in RX state if packet decode has been successful
  */
 class TestSinglePacketTxTimings : public WifiHeTestCase
 {
@@ -667,7 +666,7 @@ TestSinglePacketTxTimings::SetupSimulation ()
 void
 TestSinglePacketTxTimings::CheckResults ()
 {
-  // expect only 1 packet successfully sent
+  // expect only 1 packet successfully sent, and only 1 packet successfully received, from the first STA
   NS_TEST_ASSERT_MSG_EQ (m_numSentPackets, 1, "The number of sent packets is not correct!");
   NS_TEST_ASSERT_MSG_EQ (m_receivedPayload1, true, "The payload for STA1 was not received!");
   NS_TEST_ASSERT_MSG_EQ (m_receivedPayload2, false, "The payload for STA2 was received, and should not have been received!");
@@ -685,13 +684,6 @@ TestSinglePacketTxTimings::CheckResults ()
  * Specifically:
  * The STA (sender) submits the packet for sending at 1.0s
  * The AP (receiver) senses the channel as WifiPhyState::Tx shortly thereafter.
- * Then, relative to the start of the frame:
- * at time 2.0 us, the receiver state == IDLE.
- * TBD:
- * at time 4.0 us, preamble detection.
- * at time 6.0us, if preamble succeeded, then state == RX.
- * at time 20.0 us, check header
- * at time 40.0 us, if header is decoded successfully, then state == RX, else state == IDLE
  */
 
 class TestTwoPacketsNoCollision : public WifiHeTestCase
@@ -801,16 +793,6 @@ TestTwoPacketsNoCollision::CheckResults ()
  * This test case tests the transmission of a two packets sent 1us apart that collide in a Wifi HE network (802.11ax),
  * from a STA, that is successfully received by an AP.
  * The Tx timing transistions are tested to confirm that they conform to expectations.
- * Specifically:
- * The STA (sender) submits the packet for sending at 1.0s
- * The AP (receiver) senses the channel as WifiPhyState::Tx shortly thereafter.
- * Then, relative to the start of the frame:
- * at time 2.0 us, the receiver state == IDLE.
- * TBD:
- * at time 4.0 us, preamble detection.
- * at time 6.0us, if preamble succeeded, then state == RX.
- * at time 20.0 us, check header
- * at time 40.0 us, if header is decoded successfully, then state == RX, else state == IDLE
  */
 
 class TestTwoPacketsCollisionStrongFirstFrame : public WifiHeTestCase
@@ -908,7 +890,7 @@ TestTwoPacketsCollisionStrongFirstFrame::SetupSimulation ()
 void
 TestTwoPacketsCollisionStrongFirstFrame::CheckResults ()
 {
-  // expect 1 packets successfully sent
+  // expect 1 packet successfully sent, and 1 successfully received, from the first STA (stronger signal, first arriving packet)
   NS_TEST_ASSERT_MSG_EQ (m_numSentPackets, 1, "The number of sent packets is not correct!");
   NS_TEST_ASSERT_MSG_EQ (m_receivedPayload1, true, "The payload for STA1 was received, and should have been dropped!");
   NS_TEST_ASSERT_MSG_EQ (m_receivedPayload2, false, "The payload for STA2 was not received!");
@@ -923,16 +905,6 @@ TestTwoPacketsCollisionStrongFirstFrame::CheckResults ()
  * This test case tests the transmission of a two packets sent 1us apart that collide in a Wifi HE network (802.11ax),
  * from a STA, that is successfully received by an AP.
  * The Tx timing transistions are tested to confirm that they conform to expectations.
- * Specifically:
- * The STA (sender) submits the packet for sending at 1.0s
- * The AP (receiver) senses the channel as WifiPhyState::Tx shortly thereafter.
- * Then, relative to the start of the frame:
- * at time 2.0 us, the receiver state == IDLE.
- * TBD:
- * at time 4.0 us, preamble detection.
- * at time 6.0us, if preamble succeeded, then state == RX.
- * at time 20.0 us, check header
- * at time 40.0 us, if header is decoded successfully, then state == RX, else state == IDLE
  */
 
 class TestTwoPacketsCollisionWeakFirstFrame : public WifiHeTestCase
@@ -1030,7 +1002,7 @@ TestTwoPacketsCollisionWeakFirstFrame::SetupSimulation ()
 void
 TestTwoPacketsCollisionWeakFirstFrame::CheckResults ()
 {
-  // expect 1 packets successfully sent
+  // expect 1 packets successfully sent and 1 successfully received, from the second STA (weaker signal, but arrives at AP first)
   NS_TEST_ASSERT_MSG_EQ (m_numSentPackets, 1, "The number of sent packets is not correct!");
   NS_TEST_ASSERT_MSG_EQ (m_receivedPayload1, false, "The payload for STA1 was received, and should have been dropped!");
   NS_TEST_ASSERT_MSG_EQ (m_receivedPayload2, true, "The payload for STA2 was not received!");
