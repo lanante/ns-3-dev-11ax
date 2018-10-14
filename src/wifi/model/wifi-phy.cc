@@ -3776,6 +3776,15 @@ WifiPhy::AbortCurrentReception ()
 }
 
 void
+WifiPhy::ForceCcaReset ()
+{
+  NS_LOG_FUNCTION (this);
+
+  // TODO
+  AbortCurrentReception ();
+}
+
+void
 WifiPhy::StartRx (Ptr<Packet> packet, WifiTxVector txVector, MpduType mpdutype, double rxPowerW, Time rxDuration, Ptr<Event> event)
 {
   NS_LOG_FUNCTION (this << packet << txVector << +mpdutype << rxPowerW << rxDuration);

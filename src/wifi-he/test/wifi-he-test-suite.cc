@@ -1404,9 +1404,18 @@ TestSinglePacketEndOfHePreambleResetPhyOnMagicBssColor::NotifyEndOfHePreamble (s
       NS_TEST_ASSERT_MSG_EQ (m_expectedBssColor, bssColor, "The received packet HE BSS Color is not the expected color!");
       if (bssColor == 54)
         {
+
+          // current PHY state should be RX
+          WifiPhyState state = m_listener->GetState ();
+          NS_TEST_ASSERT_MSG_EQ (state, WifiPhyState::RX, "The PHY is not in the RX state!");
+
           // this is the AP, and we have received notification of End of HE Preamble, and the BSS color is our
           // magic number.  Reset the PHY, and then check that the  PHY returns to IDLE shortly thereafter
-          //m_listener->m_phy->AbortCurrentReception ();
+	  // std::cout << "Forcing Reset" << std::endl;
+          m_listener->m_phy->ForceCcaReset ();
+
+          // at 4us, AP PHY STATE should be IDLE
+          Simulator::Schedule (MicroSeconds (4.0), &TestSinglePacketEndOfHePreambleResetPhyOnMagicBssColor::CheckPhyState, this, 1, WifiPhyState::IDLE);
         }
     }
 }
@@ -1431,8 +1440,8 @@ void
 TestSinglePacketEndOfHePreambleResetPhyOnMagicBssColor::CheckResults ()
 {
   // expect only 1 packet successfully sent, and only 1 packet successfully received, from the first STA
-  NS_TEST_ASSERT_MSG_EQ (m_numSentPackets, 1, "The number of sent packets is not correct!");
-  NS_TEST_ASSERT_MSG_EQ (m_receivedPayload1, true, "The payload for STA1 was not received!");
+  NS_TEST_ASSERT_MSG_EQ (m_numSentPackets, 0, "The number of sent packets is not correct!");
+  NS_TEST_ASSERT_MSG_EQ (m_receivedPayload1, false, "The payload for STA1 was not received!");
   NS_TEST_ASSERT_MSG_EQ (m_receivedPayload2, false, "The payload for STA2 was received, and should not have been received!");
 }
 
