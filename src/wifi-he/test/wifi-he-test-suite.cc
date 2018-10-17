@@ -246,6 +246,7 @@ protected:
   void CheckPhyState (uint32_t idx, WifiPhyState expectedState);
 
   unsigned int m_numSentPackets; ///< number of sent packets
+  unsigned int m_totalReceivedPackets; ///< total number of recevied packets, regardless of pkt size
   unsigned int m_payloadSize1; ///< size in bytes of packet #1 payload
   unsigned int m_payloadSize2; ///< size in bytes of packet #2 payload
   Time m_firstTransmissionTime; ///< first transmission time
@@ -311,6 +312,7 @@ protected:
 WifiHeTestCase::WifiHeTestCase ()
   : TestCase ("WifiHe"),
   m_numSentPackets (0),
+  m_totalReceivedPackets (0),
   m_payloadSize1 (1500),
   m_payloadSize2 (1510),
   m_receivedPayload1 (false),
@@ -362,6 +364,8 @@ WifiHeTestCase::NotifyPhyTxBegin (std::string context, Ptr<const Packet> p)
 void
 WifiHeTestCase::NotifyPhyRxEnd (std::string context, Ptr<const Packet> p)
 {
+  m_totalReceivedPackets++;
+
   uint32_t idx = ContextToNodeId (context);
   // get the packet size
   uint32_t pktSize = p->GetSize ();
@@ -515,22 +519,6 @@ WifiHeTestCase::RunOne (void)
                "ActiveProbing", BooleanValue (false));
 
   m_staDevices = wifi.Install (m_phy, mac, wifiStaNode);
-  if (m_enableHeConfiguration)
-    {
-      for (uint32_t i = 0; i < m_staDevices.GetN (); i++)
-        {
-          Ptr<WifiNetDevice> staDevice = m_staDevices.Get (i)->GetObject<WifiNetDevice> ();
-          Ptr<StaWifiMac> staWifiMac = staDevice->GetMac ()->GetObject<StaWifiMac> ();
-          // The below statements may be simplified in a future HeConfigurationHelper
-          Ptr<HeConfiguration> heConfiguration = CreateObject<HeConfiguration> ();
-          heConfiguration->SetAttribute ("BssColor", UintegerValue (m_expectedBssColor));
-          heConfiguration->SetAttribute ("ObssPdThreshold", DoubleValue(-99.0));
-          heConfiguration->SetAttribute ("ObssPdThresholdMin", DoubleValue(-82.0));
-          heConfiguration->SetAttribute ("ObssPdThresholdMax", DoubleValue(-62.0));
-          staWifiMac->SetHeConfiguration (heConfiguration);
-        }
-    }
-
 
   wifi.AssignStreams (m_staDevices, streamNumber);
 
@@ -1287,9 +1275,22 @@ TestSinglePacketEndOfHePreambleCorrectBssColor::NotifyEndOfHePreamble (std::stri
     }
   else
     {
-      // Also, each STA should have the expected BSS color
-      // (future tests may use different colors?)
-      NS_TEST_ASSERT_MSG_EQ (m_expectedBssColor, bssColor, "The STA received packet HE BSS Color is not the expected color!");
+      if (m_totalReceivedPackets < 1 )
+        {
+          // the STA's first received packet will have a color of 0, since the BSS color association is not complete
+          NS_TEST_ASSERT_MSG_EQ (0, bssColor, "The STA received packet HE BSS Color is not the expected color!");
+        }
+      else
+        {
+          // after 0.25s, assume the network has settled, and the BSS color asisgnment has been completed.
+          // first packet is not sent until 1.0s
+          Time now = Simulator::Now();
+          if (now > Seconds(0.25))
+            {
+              // Also, each STA should have the expected BSS color
+              NS_TEST_ASSERT_MSG_EQ (m_expectedBssColor, bssColor, "The STA received packet HE BSS Color is not the expected color!");
+            }
+        }
     }
 }
 
@@ -1443,8 +1444,22 @@ TestSinglePacketEndOfHePreambleResetPhyOnMagicBssColor::NotifyEndOfHePreamble (s
     }
   else
     {
-      // The STA should have the expected BSS color
-      NS_TEST_ASSERT_MSG_EQ (m_expectedBssColor, bssColor, "The STA received packet HE BSS Color is not the expected color!");
+      if (m_totalReceivedPackets < 1 )
+        {
+          // the STA's first received packet will have a color of 0, since the BSS color association is not complete
+          NS_TEST_ASSERT_MSG_EQ (0, bssColor, "The STA received packet HE BSS Color is not the expected color!");
+        }
+      else
+        {
+          Time now = Simulator::Now();
+          // after 0.25s, assume the network has settled, and the BSS color asisgnment has been completed.
+          // first packet is not sent until 1.0s
+          if (now > Seconds(0.25))
+            {
+              // Also, each STA should have the expected BSS color
+              NS_TEST_ASSERT_MSG_EQ (m_expectedBssColor, bssColor, "The STA received packet HE BSS Color is not the expected color!");
+            }
+        }
     }
 }
 

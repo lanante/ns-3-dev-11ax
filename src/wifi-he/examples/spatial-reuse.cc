@@ -1067,21 +1067,6 @@ main (int argc, char *argv[])
   //              "BE_MaxAmsduSize", UintegerValue(maxAmsduSize));
   NetDeviceContainer staDevicesA;
   staDevicesA = wifi.Install (spectrumPhy, mac, stasA);
-  if ((enableObssPd))
-    {
-      for (uint32_t i = 0; i < staDevicesA.GetN (); i++)
-        {
-          Ptr<WifiNetDevice> staDevice = staDevicesA.Get (i)->GetObject<WifiNetDevice> ();
-          Ptr<StaWifiMac> staWifiMac = staDevice->GetMac ()->GetObject<StaWifiMac> ();
-          // The below statements may be simplified in a future HeConfigurationHelper
-          Ptr<HeConfiguration> heConfiguration = CreateObject<HeConfiguration> ();
-          heConfiguration->SetAttribute ("BssColor", UintegerValue (1));
-          heConfiguration->SetAttribute ("ObssPdThreshold", DoubleValue(obssPdThreshold));
-          heConfiguration->SetAttribute ("ObssPdThresholdMin", DoubleValue(obssPdThresholdMin));
-          heConfiguration->SetAttribute ("ObssPdThresholdMax", DoubleValue(obssPdThresholdMax));
-          staWifiMac->SetHeConfiguration (heConfiguration);
-        }
-    }
 
   // Set  PHY power and CCA threshold for APs
   spectrumPhy.Set ("TxPowerStart", DoubleValue (powAp));
@@ -1138,21 +1123,6 @@ main (int argc, char *argv[])
       // Do we also want to allow Amsdu Size to be modified?
       //              "BE_MaxAmsduSize", UintegerValue(maxAmsduSize));
       staDevicesB = wifi.Install (spectrumPhy, mac, stasB);
-      if ((enableObssPd))
-        {
-          for (uint32_t i = 0; i < staDevicesA.GetN (); i++)
-            {
-              Ptr<WifiNetDevice> staDevice = staDevicesB.Get (i)->GetObject<WifiNetDevice> ();
-              Ptr<StaWifiMac> staWifiMac = staDevice->GetMac ()->GetObject<StaWifiMac> ();
-              // The below statements may be simplified in a future HeConfigurationHelper
-              Ptr<HeConfiguration> heConfiguration = CreateObject<HeConfiguration> ();
-              heConfiguration->SetAttribute ("BssColor", UintegerValue (1));
-              heConfiguration->SetAttribute ("ObssPdThreshold", DoubleValue(obssPdThreshold));
-              heConfiguration->SetAttribute ("ObssPdThresholdMin", DoubleValue(obssPdThresholdMin));
-              heConfiguration->SetAttribute ("ObssPdThresholdMax", DoubleValue(obssPdThresholdMax));
-              staWifiMac->SetHeConfiguration (heConfiguration);
-            }
-        }
 
       // Set PHY power and CCA threshold for APs
       spectrumPhy.Set ("TxPowerStart", DoubleValue (powAp));
