@@ -40,6 +40,7 @@
 #include "ns3/wifi-net-device.h"
 #include "ns3/adhoc-wifi-mac.h"
 #include "ns3/ap-wifi-mac.h"
+#include "ns3/sta-wifi-mac.h"
 #include "ns3/propagation-loss-model.h"
 #include "ns3/yans-error-rate-model.h"
 #include "ns3/constant-position-mobility-model.h"
@@ -514,6 +515,22 @@ WifiHeTestCase::RunOne (void)
                "ActiveProbing", BooleanValue (false));
 
   m_staDevices = wifi.Install (m_phy, mac, wifiStaNode);
+  if (m_enableHeConfiguration)
+    {
+      for (uint32_t i = 0; i < m_staDevices.GetN (); i++)
+        {
+          Ptr<WifiNetDevice> staDevice = m_staDevices.Get (i)->GetObject<WifiNetDevice> ();
+          Ptr<StaWifiMac> staWifiMac = staDevice->GetMac ()->GetObject<StaWifiMac> ();
+          // The below statements may be simplified in a future HeConfigurationHelper
+          Ptr<HeConfiguration> heConfiguration = CreateObject<HeConfiguration> ();
+          heConfiguration->SetAttribute ("BssColor", UintegerValue (m_expectedBssColor));
+          heConfiguration->SetAttribute ("ObssPdThreshold", DoubleValue(-99.0));
+          heConfiguration->SetAttribute ("ObssPdThresholdMin", DoubleValue(-82.0));
+          heConfiguration->SetAttribute ("ObssPdThresholdMax", DoubleValue(-62.0));
+          staWifiMac->SetHeConfiguration (heConfiguration);
+        }
+    }
+
 
   wifi.AssignStreams (m_staDevices, streamNumber);
 
@@ -1266,7 +1283,13 @@ TestSinglePacketEndOfHePreambleCorrectBssColor::NotifyEndOfHePreamble (std::stri
   if (idx == 1)
     {
       // The AP should have the expected BSS color
-      NS_TEST_ASSERT_MSG_EQ (m_expectedBssColor, bssColor, "The received packet HE BSS Color is not the expected color!");
+      NS_TEST_ASSERT_MSG_EQ (m_expectedBssColor, bssColor, "The AP received packet HE BSS Color is not the expected color!");
+    }
+  else
+    {
+      // Also, each STA should have the expected BSS color
+      // (future tests may use different colors?)
+      NS_TEST_ASSERT_MSG_EQ (m_expectedBssColor, bssColor, "The STA received packet HE BSS Color is not the expected color!");
     }
 }
 
@@ -1401,7 +1424,7 @@ TestSinglePacketEndOfHePreambleResetPhyOnMagicBssColor::NotifyEndOfHePreamble (s
   if (idx == 1)
     {
       // The AP should have the expected BSS color
-      NS_TEST_ASSERT_MSG_EQ (m_expectedBssColor, bssColor, "The received packet HE BSS Color is not the expected color!");
+      NS_TEST_ASSERT_MSG_EQ (m_expectedBssColor, bssColor, "The AP received packet HE BSS Color is not the expected color!");
       if (bssColor == 54)
         {
 
@@ -1417,6 +1440,11 @@ TestSinglePacketEndOfHePreambleResetPhyOnMagicBssColor::NotifyEndOfHePreamble (s
           // at 4us, AP PHY STATE should be IDLE
           Simulator::Schedule (MicroSeconds (4.0), &TestSinglePacketEndOfHePreambleResetPhyOnMagicBssColor::CheckPhyState, this, 1, WifiPhyState::IDLE);
         }
+    }
+  else
+    {
+      // The STA should have the expected BSS color
+      NS_TEST_ASSERT_MSG_EQ (m_expectedBssColor, bssColor, "The STA received packet HE BSS Color is not the expected color!");
     }
 }
 
