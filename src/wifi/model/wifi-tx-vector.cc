@@ -239,6 +239,30 @@ WifiTxVector::GetBssColor (void) const
   return m_bssColor;
 }
 
+void
+WifiTxVector::SetUlDl (enum HeSigA_UlDl ul_dl)
+{
+  m_uplinkDownlinkBit = ul_dl;
+}
+
+WifiTxVector::HeSigA_UlDl
+WifiTxVector::GetUlDl (void) const
+{
+  return m_uplinkDownlinkBit;
+}
+
+void
+WifiTxVector::SetSrp (HeSigA_SpatialReuse srp)
+{
+  m_spatialReuse = srp;
+}
+
+WifiTxVector::HeSigA_SpatialReuse
+WifiTxVector::GetSrp (void) const
+{
+  return m_spatialReuse;
+}
+
 std::ostream & operator << ( std::ostream &os, const WifiTxVector &v)
 {
   os << "mode: " << v.GetMode () <<

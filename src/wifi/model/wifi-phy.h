@@ -49,6 +49,13 @@ struct SignalNoiseDbm
   double noise; ///< in dBm
 };
 
+// Parameters for receive HE SIG-
+struct HeSigAParameters
+{
+  double rssiW; ///< RSSI in W
+  uint8_t bssColor; ///< BSS color
+};
+
 /// MpduInfo structure
 struct MpduInfo
 {
