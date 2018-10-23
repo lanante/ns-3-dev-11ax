@@ -13,6 +13,7 @@ def build(bld):
         'model/itu-umi-propagation-loss-model.cc',
         'model/log-normal-shadowing-iid.cc',
         'model/los-nlos-classifier.cc',
+        'model/obss-pd-algorithm.cc',
         ]
 
     module_test = bld.create_ns3_module_test_library('wifi-he')
@@ -27,6 +28,7 @@ def build(bld):
         'model/itu-umi-propagation-loss-model.h',
         'model/log-normal-shadowing-iid.h',
         'model/los-nlos-classifier.h',
+        'model/obss-pd-algorithm.h',
         ]
 
     if bld.env.ENABLE_EXAMPLES:

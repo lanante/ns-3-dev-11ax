@@ -59,6 +59,7 @@
 #include "ns3/mgt-headers.h"
 #include "ns3/node-list.h"
 #include "ns3/ieee-80211ax-indoor-propagation-loss-model.h"
+#include "ns3/obss-pd-algorithm.h"
 
 using namespace ns3;
 
@@ -256,6 +257,7 @@ protected:
   bool m_receivedPayload2;
   bool m_enableHeConfiguration;
   uint32_t m_expectedBssColor;
+  NodeContainer m_allNodes;
 
   TestPhyListener* m_listener; ///< listener
 
@@ -389,9 +391,27 @@ WifiHeTestCase::NotifyPhyRxEnd (std::string context, Ptr<const Packet> p)
 void
 WifiHeTestCase::NotifyEndOfHePreamble (std::string context, double rssi, uint8_t bssColor)
 {
-  //  uint32_t idx = ContextToNodeId (context);
+  // get the node id from context
+  uint32_t idx = ContextToNodeId (context);
+  // get ptr to the node
+  Ptr<Node> node = m_allNodes.Get (idx);
+  NS_ASSERT (node != 0);
+  // get ptr to the node's device
+  Ptr<WifiNetDevice> device = DynamicCast<WifiNetDevice> (node->GetDevice (0));
+  NS_ASSERT (device != 0);
+  // from the device, get ptr to the ObssPdAlgorithm
+  Ptr<ObssPdAlgorithm> obssPdAlgorithm = device->GetObject<ObssPdAlgorithm> ();
+  // NS_ASSERT (obssPdAlgorithm != 0);
+  if (obssPdAlgorithm)
+    {
+      // call the OBSS PD algorithm for evaluation
+      struct HeSigAParameters params;
+      params.rssiW = rssi;
+      params.bssColor = bssColor;
+      obssPdAlgorithm->ReceiveHeSigA (params);
+    }
 
-  std::cout << "NotifyEndOfHePreamble has fired. rssi=" << rssi << " BSS color=" << ((uint32_t) bssColor) << std::endl;
+  // std::cout << "NotifyEndOfHePreamble has fired. rssi=" << rssi << " BSS color=" << ((uint32_t) bssColor) << std::endl;
 }
 
 void
@@ -476,6 +496,9 @@ WifiHeTestCase::RunOne (void)
   NodeContainer wifiApNode;
   wifiApNode.Create (nAps);
 
+  m_allNodes.Add (wifiStaNode);
+  m_allNodes.Add (wifiApNode);
+
   // PHY setup
   Ptr<MultiModelSpectrumChannel> channel
     = CreateObject<MultiModelSpectrumChannel> ();
@@ -519,6 +542,16 @@ WifiHeTestCase::RunOne (void)
                "ActiveProbing", BooleanValue (false));
 
   m_staDevices = wifi.Install (m_phy, mac, wifiStaNode);
+  if (m_enableHeConfiguration)
+    {
+      for (uint32_t i = 0; i < m_staDevices.GetN (); i++)
+        {
+          Ptr<WifiNetDevice> staDevice = m_staDevices.Get (i)->GetObject<WifiNetDevice> ();
+          // create also the OBSS PD algorithm object and aggregate it
+          Ptr<ObssPdAlgorithm> obssPdAlgorithm = CreateObject<ObssPdAlgorithm> ();
+          staDevice->AggregateObject (obssPdAlgorithm);
+        }
+    }
 
   wifi.AssignStreams (m_staDevices, streamNumber);
 
@@ -544,6 +577,10 @@ WifiHeTestCase::RunOne (void)
       heConfiguration->SetAttribute ("ObssPdThresholdMin", DoubleValue(-82.0));
       heConfiguration->SetAttribute ("ObssPdThresholdMax", DoubleValue(-62.0));
       apWifiMac->SetHeConfiguration (heConfiguration);
+
+      // create also the OBSS PD algorithm object and aggregate it
+      Ptr<ObssPdAlgorithm> obssPdAlgorithm = CreateObject<ObssPdAlgorithm> ();
+      apDevice->AggregateObject (obssPdAlgorithm);
     }
 
   // fixed positions
@@ -1136,6 +1173,9 @@ TestSinglePacketEndOfHePreambleNoBssColor::AllocatePositions ()
 void
 TestSinglePacketEndOfHePreambleNoBssColor::NotifyEndOfHePreamble (std::string context, double rssi, uint8_t bssColor)
 {
+  // call base class
+  WifiHeTestCase::NotifyEndOfHePreamble (context, rssi, bssColor);
+
   //  uint32_t idx = ContextToNodeId (context);
 
   NS_TEST_ASSERT_MSG_EQ (m_expectedBssColor, bssColor, "The received packet HE BSS Color is not the expected color!");
@@ -1266,6 +1306,9 @@ TestSinglePacketEndOfHePreambleCorrectBssColor::AllocatePositions ()
 void
 TestSinglePacketEndOfHePreambleCorrectBssColor::NotifyEndOfHePreamble (std::string context, double rssi, uint8_t bssColor)
 {
+  // call base class
+  WifiHeTestCase::NotifyEndOfHePreamble (context, rssi, bssColor);
+
   uint32_t idx = ContextToNodeId (context);
 
   if (idx == 1)
@@ -1420,6 +1463,9 @@ TestSinglePacketEndOfHePreambleResetPhyOnMagicBssColor::AllocatePositions ()
 void
 TestSinglePacketEndOfHePreambleResetPhyOnMagicBssColor::NotifyEndOfHePreamble (std::string context, double rssi, uint8_t bssColor)
 {
+  // call base class
+  WifiHeTestCase::NotifyEndOfHePreamble (context, rssi, bssColor);
+
   uint32_t idx = ContextToNodeId (context);
 
   if (idx == 1)
