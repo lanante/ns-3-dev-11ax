@@ -1535,6 +1535,87 @@ TestSinglePacketEndOfHePreambleResetPhyOnMagicBssColor::CheckResults ()
 }
 
 /**
+ * \ingroup wifi-test
+ * \ingroup tests
+ *
+ * \brief Wifi-He Test Case base class
+ *
+ * This class sets up generic information for Wifi-He test cases
+ * so that they are all configured similarly and run consistently
+ */
+class ObssPdAlgorithmTestCase: public TestCase
+{
+public:
+  ObssPdAlgorithmTestCase ();
+
+  virtual void DoRun (void);
+
+protected:
+  virtual void DoSetup (void);
+
+protected:
+
+};
+
+ObssPdAlgorithmTestCase::ObssPdAlgorithmTestCase ()
+  : TestCase ("WifiHe")
+{
+}
+
+void
+ObssPdAlgorithmTestCase::DoSetup (void)
+{
+}
+
+void
+ObssPdAlgorithmTestCase::DoRun (void)
+{
+  // construct ObssPdAlgorithm object, test setting and getting values
+
+  Ptr<ObssPdAlgorithm> obssPdAlgorithm = CreateObject<ObssPdAlgorithm> ();
+  NS_ASSERT (obssPdAlgorithm);
+
+  // test that the default ObssPdLevel is as expected
+  double currentObssPdLevel = obssPdAlgorithm->GetObssPdLevel ();
+  NS_TEST_ASSERT_MSG_EQ (currentObssPdLevel, -82.0, "The default value of the OBSS PD level is not correct!");
+
+  // set the value to a min
+  obssPdAlgorithm->SetObssPdLevel (-82.0);
+  currentObssPdLevel = obssPdAlgorithm->GetObssPdLevel ();
+  NS_TEST_ASSERT_MSG_EQ (currentObssPdLevel, -82.0, "The value of the OBSS PD level is not correct!");
+
+  // set the value to a max
+  obssPdAlgorithm->SetObssPdLevel (-62.0);
+  currentObssPdLevel = obssPdAlgorithm->GetObssPdLevel ();
+  NS_TEST_ASSERT_MSG_EQ (currentObssPdLevel, -62.0, "The value of the OBSS PD level is not correct!");
+
+  // set the value to an inbetween value
+  obssPdAlgorithm->SetObssPdLevel (-72.0);
+  currentObssPdLevel = obssPdAlgorithm->GetObssPdLevel ();
+  NS_TEST_ASSERT_MSG_EQ (currentObssPdLevel, -72.0, "The value of the OBSS PD level is not correct!");
+
+  // set the value to a value that is out of range (allowed)
+  obssPdAlgorithm->SetObssPdLevel (-200.0);
+  currentObssPdLevel = obssPdAlgorithm->GetObssPdLevel ();
+  NS_TEST_ASSERT_MSG_EQ (currentObssPdLevel, -200.0, "The value of the OBSS PD level is not correct!");
+
+  // set the value to a value that is out of range (allowed)
+  obssPdAlgorithm->SetObssPdLevel (-10.0);
+  currentObssPdLevel = obssPdAlgorithm->GetObssPdLevel ();
+  NS_TEST_ASSERT_MSG_EQ (currentObssPdLevel, -10.0, "The value of the OBSS PD level is not correct!");
+
+  // test that the default TxPWr is as expected
+  double currentTxPwr = obssPdAlgorithm->GetTxPwr ();
+  NS_TEST_ASSERT_MSG_EQ (currentTxPwr, 10.0, "The default value of the TxPwr is not correct!");
+
+  // test that the default TxPWr can be changed
+  obssPdAlgorithm->SetTxPwr (20.0);
+  currentTxPwr = obssPdAlgorithm->GetTxPwr ();
+  NS_TEST_ASSERT_MSG_EQ (currentTxPwr, 20.0, "The value of the TxPwr is not correct!");
+
+}
+
+/**
  * \ingroup wifi-he-test-suite
  * \ingroup tests
  *
@@ -1558,6 +1639,7 @@ WifiHeTestSuite::WifiHeTestSuite ()
   AddTestCase (new TestSinglePacketEndOfHePreambleNoBssColor, TestCase::QUICK);
   AddTestCase (new TestSinglePacketEndOfHePreambleCorrectBssColor, TestCase::QUICK);
   AddTestCase (new TestSinglePacketEndOfHePreambleResetPhyOnMagicBssColor, TestCase::QUICK);
+  AddTestCase (new ObssPdAlgorithmTestCase, TestCase::QUICK);
 }
 
 // Do not forget to allocate an instance of this TestSuite

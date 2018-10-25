@@ -17,29 +17,28 @@
  *
  */
 
-#ifndef OBSS_PD_ALGORITHM_H
-#define OBSS_PD_ALGORITHM_H
+#ifndef CONSTANT_OBSS_PD_ALGORITHM_H
+#define CONSTANT_OBSS_PD_ALGORITHM_H
 
 #include "ns3/object.h"
 #include "ns3/wifi-phy.h"
 #include "ns3/regular-wifi-mac.h"
-#include "ns3/wifi-net-device.h"
-#include "ns3/he-configuration.h"
+#include "ns3/obss-pd-algorithm.h"
 
 namespace ns3 {
 
 /**
- * \brief OBSS PD algorithm
+ * \brief Constant OBSS PD algorithm
  * \ingroup wifi
  *
  * This object executes an algorithm for OBSS PD to evalute if a receiving 
  * signal should be accepted or rejeted.
  *
  */
-class ObssPdAlgorithm : public Object
+class ConstantObssPdAlgorithm : public ObssPdAlgorithm
 {
 public:
-  ObssPdAlgorithm ();
+  ConstantObssPdAlgorithm ();
   static TypeId GetTypeId (void);
 
  /**
@@ -47,54 +46,13 @@ public:
    *
    * \param level the OBSS PD level in dBm
    */
-  void SetObssPdLevel (double level);
+  void SetConstantObssPdLevel (double level);
   /**
    * Return the OBSS PD level (dBm).
    *
    * \return the OBSS PD level in dBm
    */
-  double GetObssPdLevel (void) const;
-
- /**
-   * Sets the TxPwr.
-   *
-   * \param txPwr the TxPwr in dBm
-   */
-  void SetTxPwr (double txPwr);
-  /**
-   * Return the TxPwr (dBm).
-   *
-   * \return the TxPwr in dBm
-   */
-  double GetTxPwr (void) const;
-
-  /**
-   * Return the WifiNetDevce aggregated to this object.
-   *
-   * \return the Ptr<WifiNetDevice> aggregated to this object
-   */
-  Ptr<WifiNetDevice> GetWifiNetDevice (void) const;
-
-  /**
-   * Return the WifiPhy associated with this object.
-   *
-   * \return the Ptr<WifiPhy> associated with this object
-   */
-  Ptr<WifiPhy> GetWifiPhy (void) const;
-
-  /**
-   * Return the RegularWifiMac associated with this object.
-   *
-   * \return the Ptr<RegularWifiMac> associated with this object
-   */
-  Ptr<RegularWifiMac> GetRegularWifiMac (void) const;
-
-  /**
-   * Return the HeConfiguration object associated with this object.
-   *
-   * \return the Ptr<RegularWifiMac> assocaited with this object
-   */
-  Ptr<HeConfiguration> GetHeConfiguration (void) const;
+  double GetConstantObssPdLevel (void) const;
 
   /**
    * \param params the HE SIG A parameters
@@ -102,12 +60,12 @@ public:
    * Evaluate the algorithm.
    */
   void ReceiveHeSigA (HeSigAParameters params);
+
 private:
 
-  TracedValue<double> m_obssPdLevel;
-  TracedValue<double> m_txPwr;
+  TracedValue<double> m_constantObssPdLevel;
 };
 
 } //namespace ns3
 
-#endif /* OBSS_PD_ALGORITHM_H */
+#endif /* CONSTANT_OBSS_PD_ALGORITHM_H */
