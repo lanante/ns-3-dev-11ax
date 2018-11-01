@@ -54,21 +54,6 @@ Ieee80211axIndoorPropagationLossModel::GetTypeId (void)
                    "Standard deviation of the shadowing loss in dB",
                    DoubleValue (5),
                    MakeDoubleAccessor (&Ieee80211axIndoorPropagationLossModel::m_sigma),
-                   MakeDoubleChecker<double> ())
-    .AddAttribute ("DistanceBreakpoint",
-                   "Distance breakpoint (m), to parameterize the model.",
-                   DoubleValue (10),
-                   MakeDoubleAccessor (&Ieee80211axIndoorPropagationLossModel::m_distance_breakpoint),
-                   MakeDoubleChecker<double> ())
-    .AddAttribute ("Walls",
-                   "Number of walls intersected, to parameterize the model.",
-                   DoubleValue (0),
-                   MakeDoubleAccessor (&Ieee80211axIndoorPropagationLossModel::m_walls),
-                   MakeDoubleChecker<double> ())
-    .AddAttribute ("WallsFactor",
-                   "Loss per wall intersected (dB), to parameterize the model.",
-                   DoubleValue (0),
-                   MakeDoubleAccessor (&Ieee80211axIndoorPropagationLossModel::m_wall_factor),
                    MakeDoubleChecker<double> ());
   return tid;
 }
@@ -79,11 +64,10 @@ Ieee80211axIndoorPropagationLossModel::GetPathLossDb (Ptr<MobilityModel> a, Ptr<
   NS_LOG_FUNCTION (this << a << b);
   double distance3D = a->GetDistanceFrom (b);
   double d = std::max (distance3D, 1.0);
-  double lossDb = 40.05
-    + 20*std::log10 (m_frequency/(2.4*1e9))
-    + 20*std::log10(std::min(d, m_distance_breakpoint))
-    + ((d>m_distance_breakpoint) ? 35*std::log10(d/m_distance_breakpoint) : 0)
-    + m_walls*m_wall_factor;
+  double lossDb =  40.05 
+    + 20*std::log10 (m_frequency/(2.4*1e9)) 
+    + 20*std::log10(std::min(d, 10.0))
+    + ((d>10) ? 35*std::log10(d/10) : 0);
   NS_LOG_LOGIC (" lossDb = " << lossDb);
   return lossDb;
 }
@@ -91,14 +75,9 @@ Ieee80211axIndoorPropagationLossModel::GetPathLossDb (Ptr<MobilityModel> a, Ptr<
 
 double 
 Ieee80211axIndoorPropagationLossModel::DoCalcRxPower (double txPowerDbm,
-						Ptr<MobilityModel> a,
-						Ptr<MobilityModel> b) const
+                       Ptr<MobilityModel> a,
+                       Ptr<MobilityModel> b) const
 {
-  if (a->GetDistanceFrom (b) == 0.0)
-    {
-      NS_LOG_LOGIC ("Co-located NetDevices. No path loss nor shadowing loss to consider");
-      return txPowerDbm;
-    }
   return (txPowerDbm - GetPathLossDb (a, b) - m_shadowing.GetLossDb (a, b));
 }
 

@@ -10,10 +10,6 @@ def build(bld):
     module = bld.create_ns3_module('wifi-he', ['wifi', 'network', 'propagation', 'energy', 'spectrum', 'antenna', 'mobility'])
     module.source = [
         'model/constant-obss-pd-algorithm.cc',
-        'model/ieee-80211ax-indoor-propagation-loss-model.cc',
-        'model/itu-umi-propagation-loss-model.cc',
-        'model/log-normal-shadowing-iid.cc',
-        'model/los-nlos-classifier.cc',
         'model/obss-pd-algorithm.cc',
         ]
 
@@ -26,10 +22,6 @@ def build(bld):
     headers.module = 'wifi-he'
     headers.source = [
         'model/constant-obss-pd-algorithm.h',
-        'model/ieee-80211ax-indoor-propagation-loss-model.h',
-        'model/itu-umi-propagation-loss-model.h',
-        'model/log-normal-shadowing-iid.h',
-        'model/los-nlos-classifier.h',
         'model/obss-pd-algorithm.h',
         ]
 

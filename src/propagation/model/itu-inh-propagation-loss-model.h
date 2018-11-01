@@ -1,6 +1,7 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
  * Copyright (c) 2015 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+ * Copyright (c) 2016 University of Washington
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -16,23 +17,23 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  * Author: Nicola Baldo <nbaldo@cttc.es>
- * 
+ * Adapted from UmI to InH model by Tom Henderson <tomhend@ee.washington.edu> 
  */
 
-#ifndef IEEE_80211AX_INDOOR_PROPAGATION_LOSS_MODEL_H
-#define IEEE_80211AX_INDOOR_PROPAGATION_LOSS_MODEL_H
+#ifndef ITU_INH_PROPAGATION_LOSS_MODEL_H
+#define ITU_INH_PROPAGATION_LOSS_MODEL_H
 
 #include <ns3/propagation-loss-model.h>
 #include <ns3/log-normal-shadowing-iid.h>
+#include <ns3/los-nlos-classifier.h>
 
 namespace ns3 {
 
 /**
- * This class implements the indoor propagation model described in
- * IEEE 802.11-14/0980r9 "TGax Simulation Scenarios"
- * 
+ * This class implements the ITU InH propagation model described in 
+ * 3GPP TR 36.814
  */
-class Ieee80211axIndoorPropagationLossModel : public PropagationLossModel
+class ItuInhPropagationLossModel : public PropagationLossModel
 {
 
 public:
@@ -40,7 +41,7 @@ public:
   /** 
    * constructor
    */
-  Ieee80211axIndoorPropagationLossModel ();
+  ItuInhPropagationLossModel ();
 
   // inherited from Object
   static TypeId GetTypeId (void);
@@ -51,11 +52,21 @@ public:
    * \param a the first mobility model
    * \param b the second mobility model
    * 
-   * \return the loss in dB for the propagation between
+   * \return the LOS path loss in dB between
    * the two given mobility models
    */
-  double GetPathLossDb (Ptr<MobilityModel> a, Ptr<MobilityModel> b) const;
+  double GetLosPathLossDb (Ptr<MobilityModel> a, Ptr<MobilityModel> b) const;
 
+  /** 
+   * 
+   * 
+   * \param a the first mobility model
+   * \param b the second mobility model
+   * 
+   * \return the NLOS path loss in dB between
+   * the two given mobility models
+   */
+  double GetNlosPathLossDb (Ptr<MobilityModel> a, Ptr<MobilityModel> b) const;
 
   /** 
    * 
@@ -67,6 +78,16 @@ public:
    * considered for the link between a and b 
    */
   double GetSigma (Ptr<MobilityModel> a, Ptr<MobilityModel> b) const;
+
+  /** 
+   * 
+   * 
+   * \param a 
+   * \param b 
+   * 
+   * \return the LOS probability for the link between a and b 
+   */
+  double GetLosProbability (Ptr<MobilityModel> a, Ptr<MobilityModel> b) const;
 
 private:
 
@@ -90,32 +111,13 @@ private:
   LogNormalShadowingIid m_shadowing;
 
   /**
-   * standard deviation of the shadowing loss in dB
+   * LOS/NLOS classification implementation
    * 
    */
-  double m_sigma;
-
-  /**
-   * distance breadpoint to parameterize the model
-   * 
-   */
-  double m_distance_breakpoint;
-
-  /**
-   * number of walls to parameterize the model
-   * 
-   */
-  double m_walls;
-
-  /**
-   * wall multiplier to parameterize the model, dB/wall
-   * 
-   */
-  double m_wall_factor;
-
+  LosNlosClassifier m_losNlosClassifier;
 };
 
 } // namespace ns3
 
 
-#endif // IEEE_80211AX_INDOOR_PROPAGATION_LOSS_MODEL_H
+#endif // ITU_INH_PROPAGATION_LOSS_MODEL_H
