@@ -165,6 +165,16 @@ public:
   void SetMacPdu (Ptr<Packet> p);
 
   /**
+   * \returns true if packet burst contains data to be transmitted, otherwise it returns false
+   */
+  bool IsNonEmptyPacketBurst ();
+
+  /**
+   * \returns true if packet ctrl queue contains ctrl messages to be transmitted, otherwise it returns false
+   */
+  bool IsNonEmptyCtrlMessage ();
+
+  /**
   * \returns the packet burst to be sent
   */
   Ptr<PacketBurst> GetPacketBurst (void);
@@ -178,6 +188,26 @@ public:
   * \returns the list of control messages to be sent
   */
   std::list<Ptr<LteControlMessage> > GetControlMessages (void);
+
+  /**
+   * \returns the whole queue of control messages.
+   */
+  std::vector< std::list<Ptr<LteControlMessage> > > GetLteControlMessageVector ();
+
+  /**
+   * \returns the whole queue of packet bursts.
+   */
+  std::vector< Ptr<PacketBurst> > GetPacketBurstVector();
+
+  /**
+   * Check the head of control message queue and remove it if it is empty
+   */
+  void CheckQueues ();
+
+  /*
+   * Shifts ctrl and packet burst queue
+   */
+  void UpdateQueues (bool drop);
 
 
   /** 

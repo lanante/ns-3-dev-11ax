@@ -331,6 +331,78 @@ static const double cEcrTable [9][38] = {
 };
 
 
+double
+LteMiErrorModel::MibQpsk (double sinrLin)
+{
+  double MI;
+  if (sinrLin > MI_map_qpsk_axis[MI_MAP_QPSK_SIZE - 1])
+    {
+      MI = 1;
+    }
+  else
+    {
+      // since the values in MI_map_qpsk_axis are uniformly spaced, we have
+      // index = ((sinrLin - value[0]) / (value[SIZE - 1] - value[0])) * (SIZE - 1)
+      // the scaling coefficient is always the same, so we use a static const
+      // to speed up the calculation
+      static const double scalingCoeffQpsk =
+        (MI_MAP_QPSK_SIZE - 1) / (MI_map_qpsk_axis[MI_MAP_QPSK_SIZE - 1] - MI_map_qpsk_axis[0]);
+      double sinrIndexDouble = (sinrLin -  MI_map_qpsk_axis[0]) * scalingCoeffQpsk + 1;
+      uint32_t sinrIndex = std::max (0.0, std::floor (sinrIndexDouble));
+      NS_ASSERT_MSG (sinrIndex < MI_MAP_QPSK_SIZE, "MI map out of data");
+      MI = MI_map_qpsk[sinrIndex];
+    }
+  return MI;
+}
+
+double
+LteMiErrorModel::Mib16Qam (double sinrLin)
+{
+  double MI;
+  if (sinrLin > MI_map_16qam_axis[MI_MAP_16QAM_SIZE - 1])
+    {
+      MI = 1;
+    }
+  else
+    {
+      // since the values in MI_map_16QAM_axis are uniformly spaced, we have
+      // index = ((sinrLin - value[0]) / (value[SIZE-1] - value[0])) * (SIZE-1)
+      // the scaling coefficient is always the same, so we use a static const
+      // to speed up the calculation
+      static const double scalingCoeff16qam =
+        (MI_MAP_16QAM_SIZE - 1) / (MI_map_16qam_axis[MI_MAP_16QAM_SIZE - 1] - MI_map_16qam_axis[0]);
+      double sinrIndexDouble = (sinrLin -  MI_map_16qam_axis[0]) * scalingCoeff16qam + 1;
+      uint32_t sinrIndex = std::max (0.0, std::floor (sinrIndexDouble));
+      NS_ASSERT_MSG (sinrIndex < MI_MAP_16QAM_SIZE, "MI map out of data");
+      MI = MI_map_16qam[sinrIndex];
+    }
+  return MI;
+}
+
+double
+LteMiErrorModel::Mib64Qam (double sinrLin)
+{
+  double MI;
+  if (sinrLin > MI_map_64qam_axis[MI_MAP_64QAM_SIZE - 1])
+    {
+      MI = 1;
+    }
+  else
+    {
+      // since the values in MI_map_64QAM_axis are uniformly spaced, we have
+      // index = ((sinrLin - value[0]) / (value[SIZE-1] - value[0])) * (SIZE-1)
+      // the scaling coefficient is always the same, so we use a static const
+      // to speed up the calculation
+      static const double scalingCoeff64qam =
+        (MI_MAP_64QAM_SIZE - 1) / (MI_map_64qam_axis[MI_MAP_64QAM_SIZE - 1] - MI_map_64qam_axis[0]);
+      double sinrIndexDouble = (sinrLin -  MI_map_64qam_axis[0]) * scalingCoeff64qam + 1;
+      uint32_t sinrIndex = std::max (0.0, std::floor (sinrIndexDouble));
+      NS_ASSERT_MSG (sinrIndex < MI_MAP_64QAM_SIZE, "MI map out of data");
+      MI = MI_map_64qam[sinrIndex];
+    }
+  return MI;
+}
+
 double 
 LteMiErrorModel::Mib (const SpectrumValue& sinr, const std::vector<int>& map, uint8_t mcs)
 {
@@ -345,67 +417,15 @@ LteMiErrorModel::Mib (const SpectrumValue& sinr, const std::vector<int>& map, ui
       double sinrLin = sinrCopy[map.at (i)];
       if (mcs <= MI_QPSK_MAX_ID) // QPSK
         {
-
-          if (sinrLin > MI_map_qpsk_axis[MI_MAP_QPSK_SIZE-1])
-            {
-              MI = 1;
-            }
-          else 
-            { 
-              // since the values in MI_map_qpsk_axis are uniformly spaced, we have
-              // index = ((sinrLin - value[0]) / (value[SIZE-1] - value[0])) * (SIZE-1)
-              // the scaling coefficient is always the same, so we use a static const
-              // to speed up the calculation
-              static const double scalingCoeffQpsk = 
-                (MI_MAP_QPSK_SIZE - 1) / (MI_map_qpsk_axis[MI_MAP_QPSK_SIZE-1] - MI_map_qpsk_axis[0]);
-              double sinrIndexDouble = (sinrLin -  MI_map_qpsk_axis[0]) * scalingCoeffQpsk + 1;
-              uint32_t sinrIndex = std::max(0.0, std::floor (sinrIndexDouble));
-              NS_ASSERT_MSG (sinrIndex < MI_MAP_QPSK_SIZE, "MI map out of data");
-              MI = MI_map_qpsk[sinrIndex];
-            }
+          MI = MibQpsk (sinrLin);
         }
-      else
+      else if (mcs > MI_QPSK_MAX_ID && mcs <= MI_16QAM_MAX_ID ) // 16-QAM
         {
-          if (mcs > MI_QPSK_MAX_ID && mcs <= MI_16QAM_MAX_ID )	// 16-QAM
-            {
-              if (sinrLin > MI_map_16qam_axis[MI_MAP_16QAM_SIZE-1])
-                {
-                  MI = 1;
-                }
-              else 
-                {
-                  // since the values in MI_map_16QAM_axis are uniformly spaced, we have
-                  // index = ((sinrLin - value[0]) / (value[SIZE-1] - value[0])) * (SIZE-1)
-                  // the scaling coefficient is always the same, so we use a static const
-                  // to speed up the calculation
-                  static const double scalingCoeff16qam = 
-                    (MI_MAP_16QAM_SIZE - 1) / (MI_map_16qam_axis[MI_MAP_16QAM_SIZE-1] - MI_map_16qam_axis[0]);
-                  double sinrIndexDouble = (sinrLin -  MI_map_16qam_axis[0]) * scalingCoeff16qam + 1;
-                  uint32_t sinrIndex = std::max(0.0, std::floor (sinrIndexDouble));
-                  NS_ASSERT_MSG (sinrIndex < MI_MAP_16QAM_SIZE, "MI map out of data");
-                  MI = MI_map_16qam[sinrIndex];
-                }
-            }
-          else // 64-QAM
-            {
-              if (sinrLin > MI_map_64qam_axis[MI_MAP_64QAM_SIZE-1])
-                {
-                  MI = 1;
-                }
-              else
-                {
-                  // since the values in MI_map_64QAM_axis are uniformly spaced, we have
-                  // index = ((sinrLin - value[0]) / (value[SIZE-1] - value[0])) * (SIZE-1)
-                  // the scaling coefficient is always the same, so we use a static const
-                  // to speed up the calculation
-                  static const double scalingCoeff64qam = 
-                    (MI_MAP_64QAM_SIZE - 1) / (MI_map_64qam_axis[MI_MAP_64QAM_SIZE-1] - MI_map_64qam_axis[0]);
-                  double sinrIndexDouble = (sinrLin -  MI_map_64qam_axis[0]) * scalingCoeff64qam + 1;
-                  uint32_t sinrIndex = std::max(0.0, std::floor (sinrIndexDouble));
-                  NS_ASSERT_MSG (sinrIndex < MI_MAP_64QAM_SIZE, "MI map out of data");
-                  MI = MI_map_64qam[sinrIndex];
-                }
-            }
+          MI = Mib16Qam (sinrLin);
+        }
+      else // 64-QAM
+        {
+          MI = Mib64Qam (sinrLin);
         }
       NS_LOG_LOGIC (" RB " << map.at (i) << "Minimum SNR = " << 10 * std::log10 (sinrLin) << " dB, " << sinrLin << " V, MCS = " << (uint16_t)mcs << ", MI = " << MI);
       MIsum += MI;
@@ -463,40 +483,35 @@ LteMiErrorModel::MappingMiBler (double mib, uint8_t ecrId, uint16_t cbSize)
 
 
 double
-LteMiErrorModel::GetPcfichPdcchError (const SpectrumValue& sinr)
+LteMiErrorModel::GetPcfichPdcchError (std::list<LteListChunkProcessor::Chunk> sinr)
 {
-  NS_LOG_FUNCTION (sinr);
-  double MI;
-  double MIsum = 0.0;
-  SpectrumValue sinrCopy = sinr;
-  Values::iterator sinrIt = sinrCopy.ValuesBegin ();
-  uint16_t rb = 0;
-  NS_ASSERT (sinrIt!=sinrCopy.ValuesEnd ());
-  while (sinrIt!=sinrCopy.ValuesEnd ())
+  NS_LOG_FUNCTION_NOARGS ();
+
+  // calculate MI by averaging the MI over different SINR chunks weighted by their duration
+  double weightedSum = 0;
+  double totDurationSeconds = 0;
+  for (std::list<LteListChunkProcessor::Chunk>::iterator chunkIt = sinr.begin ();
+       chunkIt != sinr.end ();
+       ++chunkIt)
     {
-      double sinrLin = *sinrIt;
-      if (sinrLin > MI_map_qpsk_axis[MI_MAP_QPSK_SIZE-1])
+      Values::iterator sinrIt = chunkIt->m_spectrumValue->ValuesBegin ();
+      uint16_t rb = 0;
+      double MIsum = 0;
+      NS_ASSERT (sinrIt != chunkIt->m_spectrumValue->ValuesEnd ());
+      while (sinrIt != chunkIt->m_spectrumValue->ValuesEnd ())
         {
-          MI = 1;
+          double sinrLin = *sinrIt;
+          double rbMI = MibQpsk (sinrLin);
+          MIsum += rbMI;
+          sinrIt++;
+          rb++;
         }
-      else 
-        { 
-          // since the values in MI_map_qpsk_axis are uniformly spaced, we have
-          // index = ((sinrLin - value[0]) / (value[SIZE-1] - value[0])) * (SIZE-1)
-              // the scaling coefficient is always the same, so we use a static const
-              // to speed up the calculation
-          static const double scalingCoeffQpsk = 
-            (MI_MAP_QPSK_SIZE - 1) / (MI_map_qpsk_axis[MI_MAP_QPSK_SIZE-1] - MI_map_qpsk_axis[0]);
-          double sinrIndexDouble = (sinrLin -  MI_map_qpsk_axis[0]) * scalingCoeffQpsk + 1;
-          uint32_t sinrIndex = std::max(0.0, std::floor (sinrIndexDouble));
-          NS_ASSERT_MSG (sinrIndex < MI_MAP_QPSK_SIZE, "MI map out of data");
-          MI = MI_map_qpsk[sinrIndex];
-        }
-      MIsum += MI;
-      sinrIt++;
-      rb++;
+      double chunkMI = MIsum / rb;
+      weightedSum += chunkMI * chunkIt->m_duration.GetSeconds ();
+      totDurationSeconds += chunkIt->m_duration.GetSeconds ();
     }
-  MI = MIsum / rb;
+  double MI = weightedSum / totDurationSeconds;
+
   // return to the effective SINR value
   int j = 0;
   double esinr = 0.0;
@@ -554,11 +569,27 @@ LteMiErrorModel::GetPcfichPdcchError (const SpectrumValue& sinr)
 
 
 TbStats_t
-LteMiErrorModel::GetTbDecodificationStats (const SpectrumValue& sinr, const std::vector<int>& map, uint16_t size, uint8_t mcs, HarqProcessInfoList_t miHistory)
+LteMiErrorModel::GetTbDecodificationStats (std::list<LteListChunkProcessor::Chunk> sinr, const std::vector<int>& map, uint16_t size, uint8_t mcs, HarqProcessInfoList_t miHistory)
 {
-  NS_LOG_FUNCTION (sinr << &map << (uint32_t) size << (uint32_t) mcs);
+  NS_LOG_FUNCTION (&sinr << &map << (uint32_t) size << (uint32_t) mcs);
 
-  double tbMi = Mib(sinr, map, mcs);
+  // calculate TB MI by averaging the MI over different SINR chunks weighted by their duration
+  double weightedSum = 0;
+  double totDurationSeconds = 0;
+  for (std::list<LteListChunkProcessor::Chunk>::iterator chunkIt = sinr.begin ();
+       chunkIt != sinr.end ();
+       ++chunkIt)
+    {
+      double chunkMi = Mib(*(chunkIt->m_spectrumValue), map, mcs) * chunkIt->m_duration.GetSeconds ();
+      weightedSum += chunkMi;
+      totDurationSeconds += chunkIt->m_duration.GetSeconds ();
+      NS_LOG_LOGIC ("chunk MI " << chunkMi << ", duration " << chunkIt->m_duration
+                    << ", sinr " << *(chunkIt->m_spectrumValue));
+    }
+  double tbMi = weightedSum / totDurationSeconds;
+  NS_LOG_LOGIC ("TB MI " << tbMi);
+
+  // evaluate MI across multiple HARQ retransmissions
   double MI = 0.0;
   double Reff = 0.0;
   NS_ASSERT (mcs < 29);

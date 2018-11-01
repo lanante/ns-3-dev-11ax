@@ -384,7 +384,9 @@ LteAmc::CreateCqiFeedbacks (const SpectrumValue& sinr, uint8_t rbgSize)
             while (mcs <= 28)
               {
                 HarqProcessInfoList_t harqInfoList;
-                tbStats = LteMiErrorModel::GetTbDecodificationStats (sinr, rbgMap, (uint16_t)GetDlTbSizeFromMcs (mcs, rbgSize) / 8, mcs, harqInfoList);
+                std::list<LteListChunkProcessor::Chunk> sinrChunkList;
+                sinrChunkList.push_back (LteListChunkProcessor::Chunk (sinr.Copy (), Seconds (1)));
+                tbStats = LteMiErrorModel::GetTbDecodificationStats (sinrChunkList, rbgMap, (uint16_t) GetDlTbSizeFromMcs (mcs, rbgSize) / 8, mcs, harqInfoList);
                 if (tbStats.tbler > 0.1)
                   {
                     break;

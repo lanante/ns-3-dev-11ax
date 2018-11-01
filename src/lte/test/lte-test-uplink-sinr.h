@@ -102,7 +102,7 @@ class LteUplinkSrsSinrTestCase : public TestCase
     virtual ~LteUplinkSrsSinrTestCase ();
     
   /** 
-   * Callback to be connected to an LteChunkProcessor to collect the reported SINR
+   * Callback to be connected to an LteAverageChunkProcessor to collect the reported SINR
    * 
    * \param sinr 
    */

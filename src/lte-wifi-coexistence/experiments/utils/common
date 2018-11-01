@@ -1,0 +1,90 @@
+#!/bin/bash
+
+#
+# common functions used by several scripts
+#
+
+print_traffic_model () 
+{	
+    case $1 in
+	Udp)
+	    echo "UDP"
+	    ;;
+	Tcp)
+	    echo "FTP Model 1"
+	;;
+	*)
+	    echo "unknown transport $transport"
+	    ;;
+    esac
+}
+
+
+print_operator_laa_wifi () 
+{	
+    case $1  in
+	A)
+	    echo "operator A (LAA)"	
+	    ;;
+	B)
+	    echo "operator B (Wi-Fi)"	
+	    ;;
+	*)
+	    echo "unknown operator $OPERATOR"
+	    ;;
+    esac
+}
+
+print_operator_lte_wifi () 
+{	
+    case $1  in
+	A)
+	    echo "operator A (LTE-DC)"	
+	    ;;
+	B)
+	    echo "operator B (Wi-Fi)"	
+	    ;;
+	*)
+	    echo "unknown operator $OPERATOR"
+	    ;;
+    esac
+}
+
+print_operator_wifi_wifi () 
+{	
+    case $1  in
+	A)
+	    echo "operator A (Wi-Fi)"	
+	    ;;
+	B)
+	    echo "operator B (Wi-Fi)"	
+	    ;;
+	*)
+	    echo "unknown operator $OPERATOR"
+	    ;;
+    esac
+}
+
+
+
+print_max_throughput_range_laa_wifi_simple () 
+{	
+    case $1 in
+	Udp)
+	    echo "80"
+	    ;;
+	Tcp)
+	    echo "25"
+	;;
+	*)
+	    echo "unknown transport $transport"
+	    ;;
+    esac
+}
+
+
+#
+# common settings used by several scripts
+#
+
+POSTSCRIPT_OPTIONS=" color "

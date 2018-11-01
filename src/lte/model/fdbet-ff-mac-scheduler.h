@@ -287,6 +287,13 @@ private:
   */
   void RefreshHarqProcesses ();
 
+  /**
+   *
+   * \return true if there is data on the buffer of the scheduler
+   */
+  bool DoIsThereData();
+
+
   Ptr<LteAmc> m_amc; ///< amc
 
   /**

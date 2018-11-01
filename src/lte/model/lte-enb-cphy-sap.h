@@ -23,8 +23,9 @@
 #define LTE_ENB_CPHY_SAP_H
 
 #include <stdint.h>
-#include <ns3/ptr.h>
+#include <bitset>
 
+#include <ns3/ptr.h>
 #include <ns3/lte-rrc-sap.h>
 
 namespace ns3 {
@@ -112,6 +113,13 @@ public:
   virtual void SetSystemInformationBlockType1 (LteRrcSap::SystemInformationBlockType1 sib1) = 0;
 
   /**
+   * Set the DL FDD Almost Blank Subframe pattern
+   *
+   * \param absPattern bitmask as per TS36.423 section 9.2.54 ABS Information
+   */
+  virtual void SetAbsPattern (std::bitset<40> absPattern) = 0;
+
+  /**
    *
    * \return Reference Signal Power for SIB2
    */
@@ -164,6 +172,7 @@ public:
   virtual void SetSrsConfigurationIndex (uint16_t  rnti, uint16_t srsCi);
   virtual void SetMasterInformationBlock (LteRrcSap::MasterInformationBlock mib);
   virtual void SetSystemInformationBlockType1 (LteRrcSap::SystemInformationBlockType1 sib1);
+  virtual void SetAbsPattern (std::bitset<40> absPattern);
   virtual int8_t GetReferenceSignalPower ();
   
 private:
@@ -251,6 +260,13 @@ void
 MemberLteEnbCphySapProvider<C>::SetSystemInformationBlockType1 (LteRrcSap::SystemInformationBlockType1 sib1)
 {
   m_owner->DoSetSystemInformationBlockType1 (sib1);
+}
+
+template <class C>
+void
+MemberLteEnbCphySapProvider<C>::SetAbsPattern (std::bitset<40> absPattern)
+{
+  m_owner->DoSetAbsPattern (absPattern);
 }
 
 template <class C>

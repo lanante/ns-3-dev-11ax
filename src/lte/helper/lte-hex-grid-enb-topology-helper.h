@@ -62,6 +62,50 @@ public:
   void SetLteHelper (Ptr<LteHelper> h);
 
   /**
+   * Get the position of the antenna site to which the cell belongs
+   *
+   * \param cellIndex index of the cell within the hexagonal topology
+   *
+   * \return the site position
+   */
+  Vector GetSitePosition (uint32_t cellIndex);
+
+  /**
+   * Get the position of the antenna of the cell (typically this
+   * has a little offset from the site position)
+   *
+   * \param cellIndex index of the cell within the hexagonal topology
+   *
+   * \return the antenna position
+   */
+  Vector GetAntennaPosition (uint32_t cellIndex);
+
+  /**
+   * Get the antenna orientation on the x-y plane, in degrees
+   *
+   * \param cellIndex index of the cell within the hexagonal topology
+   *
+   * \return the antenna orientation in degrees
+   */
+  double GetAntennaOrientationDegrees (uint32_t cellIndex);
+
+  /**
+   * Get the position of the center of the hexagonal cell
+   *
+   * \param cellIndex index of the cell within the hexagonal topology
+   *
+   * \return the cell center position
+   */
+  Vector GetCellCenterPosition (uint32_t cellIndex);
+
+  /**
+   * Get the radius of the cells in the hexagonal topology
+   *
+   * \return the cell radius
+   */
+  double GetCellRadius ();
+
+  /**
    * Position the nodes on a hex grid and install the corresponding
    * EnbNetDevices with antenna boresight configured properly
    *

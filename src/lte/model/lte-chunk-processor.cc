@@ -17,7 +17,12 @@
  *
  * Author: Nicola Baldo <nbaldo@cttc.es>
  * Modified by : Marco Miozzo <mmiozzo@cttc.es>
- *        (move from CQI to Ctrl and Data SINR Chunk processors
+ *        (move from CQI to Ctrl and Data SINR Chunk processors)
+ * Modified by : Piotr Gawlowicz <gawlowicz.p@gmail.com>
+ *        (removed all Lte***ChunkProcessor implementations
+ *        and created generic LteChunkProcessor)
+ * Modified by : Nicola Baldo <nbaldo@cttc.es>
+ *        (specialized into average and MI chunk processors)
  */
 
 
@@ -40,14 +45,14 @@ LteChunkProcessor::~LteChunkProcessor ()
 }
 
 void
-LteChunkProcessor::AddCallback (LteChunkProcessorCallback c)
+LteAverageChunkProcessor::AddCallback (LteAverageChunkProcessorCallback c)
 {
   NS_LOG_FUNCTION (this);
-  m_lteChunkProcessorCallbacks.push_back (c);
+  m_lteAverageChunkProcessorCallbacks.push_back (c);
 }
 
 void
-LteChunkProcessor::Start ()
+LteAverageChunkProcessor::Start ()
 {
   NS_LOG_FUNCTION (this);
   m_sumValues = 0;
@@ -56,7 +61,7 @@ LteChunkProcessor::Start ()
 
 
 void
-LteChunkProcessor::EvaluateChunk (const SpectrumValue& sinr, Time duration)
+LteAverageChunkProcessor::EvaluateChunk (const SpectrumValue& sinr, Time duration)
 {
   NS_LOG_FUNCTION (this << sinr << duration);
   if (m_sumValues == 0)
@@ -68,20 +73,72 @@ LteChunkProcessor::EvaluateChunk (const SpectrumValue& sinr, Time duration)
 }
 
 void
-LteChunkProcessor::End ()
+LteAverageChunkProcessor::End ()
 {
   NS_LOG_FUNCTION (this);
   if (m_totDuration.GetSeconds () > 0)
     {
-      std::vector<LteChunkProcessorCallback>::iterator it;
-      for (it = m_lteChunkProcessorCallbacks.begin (); it != m_lteChunkProcessorCallbacks.end (); it++)
+      std::list<LteAverageChunkProcessorCallback>::iterator it;
+      for (it = m_lteAverageChunkProcessorCallbacks.begin (); it != m_lteAverageChunkProcessorCallbacks.end (); it++)
         {
           (*it)((*m_sumValues) / m_totDuration.GetSeconds ());
         }
     }
   else
     {
-      NS_LOG_WARN ("m_numSinr == 0");
+      NS_LOG_WARN ("no values to report");
+    }
+}
+
+
+
+LteListChunkProcessor::Chunk::Chunk (Ptr<SpectrumValue> spectrumValue, Time duration)
+  : m_spectrumValue (spectrumValue),
+    m_duration (duration)
+{
+}
+
+LteListChunkProcessor::Chunk::Chunk ()
+{
+}
+
+void
+LteListChunkProcessor::AddCallback (LteListChunkProcessorCallback c)
+{
+  NS_LOG_FUNCTION (this);
+  m_lteListChunkProcessorCallbacks.push_back (c);
+}
+
+void
+LteListChunkProcessor::Start ()
+{
+  NS_LOG_FUNCTION (this);
+}
+
+void
+LteListChunkProcessor::EvaluateChunk (const SpectrumValue& sinr, Time duration)
+{
+  NS_LOG_FUNCTION (this << sinr << duration);
+  m_chunkList.push_back (Chunk (sinr.Copy (), duration));
+}
+
+void
+LteListChunkProcessor::End ()
+{
+  NS_LOG_FUNCTION (this);
+  if (!m_chunkList.empty ())
+    {
+      NS_LOG_FUNCTION (this << "reporting " << m_chunkList.size () << " chunks");
+      std::list<LteListChunkProcessorCallback>::iterator it;
+      for (it = m_lteListChunkProcessorCallbacks.begin (); it != m_lteListChunkProcessorCallbacks.end (); it++)
+        {
+          (*it)(m_chunkList);
+        }
+      m_chunkList.clear ();
+    }
+  else
+    {
+      NS_LOG_WARN ("no values to report");
     }
 }
 

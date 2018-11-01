@@ -78,6 +78,10 @@ StaWifiMac::GetTypeId (void)
     .AddTraceSource ("DeAssoc", "Association with an access point lost.",
                      MakeTraceSourceAccessor (&StaWifiMac::m_deAssocLogger),
                      "ns3::Mac48Address::TracedCallback")
+    .AddTraceSource ("BeaconArrival",
+                     "Time of beacons arrival from associated AP",
+                     MakeTraceSourceAccessor (&StaWifiMac::m_beaconArrival),
+                     "ns3::Time::TracedValueCallback")
   ;
   return tid;
 }
@@ -613,6 +617,7 @@ StaWifiMac::Receive (Ptr<Packet> packet, const WifiMacHeader *hdr)
         }
       if (goodBeacon && m_state == ASSOCIATED)
         {
+          m_beaconArrival = Simulator::Now ();
           Time delay = MicroSeconds (beacon.GetBeaconIntervalUs () * m_maxMissedBeacons);
           RestartBeaconWatchdog (delay);
           UpdateApInfoFromBeacon (beacon, hdr->GetAddr2 (), hdr->GetAddr3 ());
@@ -1179,6 +1184,13 @@ StaWifiMac::GetSupportedRates (void) const
         {
           rates.AddBssMembershipSelectorRate (m_phy->GetBssMembershipSelector (i));
         }
+    }
+  for (uint8_t i = 0; i < m_phy->GetNModes (); i++)
+    {
+      WifiMode mode = m_phy->GetMode (i);
+      uint64_t modeDataRate = mode.GetDataRate (m_phy->GetChannelWidth ());
+      NS_LOG_DEBUG ("Adding supported rate of " << modeDataRate);
+      rates.AddSupportedRate (modeDataRate);
     }
   for (uint8_t i = 0; i < m_phy->GetNModes (); i++)
     {

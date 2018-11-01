@@ -50,6 +50,7 @@
 #include <set>
 #include <ns3/component-carrier-enb.h>
 #include <vector>
+#include <bitset>
 
 #define MIN_NO_CC 1
 #define MAX_NO_CC 5 // this is the maximum number of carrier components allowed by 3GPP up to R13
@@ -879,6 +880,22 @@ public:
    * \param ccIndex 
    */
   void SetCellId (uint16_t m_cellId, uint8_t ccIndex);
+
+  /**
+   * Set the DL FDD Almost Blank Subframe pattern. This will set the ABS
+   * pattern for component carrier index 0.
+   *
+   * \param absPattern bitmask as per TS36.423 section 9.2.54 ABS Information
+   */
+  void SetAbsPattern (std::bitset<40> absPattern);
+
+  /**
+   * Set the DL FDD Almost Blank Subframe pattern.
+   *
+   * \param absPattern bitmask as per TS36.423 section 9.2.54 ABS Information
+   * \param ccIndex component carrier index
+   */
+  void SetAbsPattern (std::bitset<40> absPattern, uint8_t ccIndex);
 
   /**
    * convert the cell id to component carrier id

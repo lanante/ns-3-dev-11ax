@@ -4,7 +4,9 @@ def build(bld):
     module = bld.create_ns3_module('applications', ['internet', 'config-store','stats'])
     module.source = [
         'model/bulk-send-application.cc',
+        'model/file-transfer-application.cc',
         'model/onoff-application.cc',
+        'model/voice-application.cc',
         'model/packet-sink.cc',
         'model/udp-client.cc',
         'model/udp-server.cc',
@@ -19,6 +21,7 @@ def build(bld):
         'model/three-gpp-http-header.cc',
         'model/three-gpp-http-variables.cc', 
         'helper/bulk-send-helper.cc',
+        'helper/file-transfer-helper.cc',
         'helper/on-off-helper.cc',
         'helper/packet-sink-helper.cc',
         'helper/udp-client-server-helper.cc',
@@ -29,14 +32,17 @@ def build(bld):
     applications_test = bld.create_ns3_module_test_library('applications')
     applications_test.source = [
         'test/three-gpp-http-client-server-test.cc', 
-        'test/udp-client-server-test.cc'
+        'test/udp-client-server-test.cc',
+        'test/voice-application-test-suite.cc',
         ]
 
     headers = bld(features='ns3header')
     headers.module = 'applications'
     headers.source = [
         'model/bulk-send-application.h',
+        'model/file-transfer-application.h',
         'model/onoff-application.h',
+        'model/voice-application.h',
         'model/packet-sink.h',
         'model/udp-client.h',
         'model/udp-server.h',
@@ -51,6 +57,7 @@ def build(bld):
         'model/three-gpp-http-header.h',
         'model/three-gpp-http-variables.h',
         'helper/bulk-send-helper.h',
+        'helper/file-transfer-helper.h',
         'helper/on-off-helper.h',
         'helper/packet-sink-helper.h',
         'helper/udp-client-server-helper.h',
@@ -58,6 +65,9 @@ def build(bld):
         'helper/three-gpp-http-helper.h'
         ]
     
+    if (bld.env['ENABLE_EXAMPLES']):
+        bld.recurse('examples')
+
     if (bld.env['ENABLE_EXAMPLES']):
         bld.recurse('examples')
 

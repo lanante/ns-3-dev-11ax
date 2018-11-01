@@ -177,13 +177,13 @@ LteInterferenceTestCase::DoRun (void)
   // we plug in two instances, one for DL and one for UL
 
   Ptr<LtePhy> ue1Phy = ueDevs1.Get (0)->GetObject<LteUeNetDevice> ()->GetPhy ()->GetObject<LtePhy> ();
-  Ptr<LteChunkProcessor> testDlSinr1 = Create<LteChunkProcessor> ();
+  Ptr<LteAverageChunkProcessor> testDlSinr1 = Create<LteAverageChunkProcessor> ();
   LteSpectrumValueCatcher dlSinr1Catcher;
   testDlSinr1->AddCallback (MakeCallback (&LteSpectrumValueCatcher::ReportValue, &dlSinr1Catcher));
   ue1Phy->GetDownlinkSpectrumPhy ()->AddDataSinrChunkProcessor (testDlSinr1);
 
   Ptr<LtePhy> enb1phy = enbDevs.Get (0)->GetObject<LteEnbNetDevice> ()->GetPhy ()->GetObject<LtePhy> ();
-  Ptr<LteChunkProcessor> testUlSinr1 = Create<LteChunkProcessor> ();
+  Ptr<LteAverageChunkProcessor> testUlSinr1 = Create<LteAverageChunkProcessor> ();
   LteSpectrumValueCatcher ulSinr1Catcher;
   testUlSinr1->AddCallback (MakeCallback (&LteSpectrumValueCatcher::ReportValue, &ulSinr1Catcher));
   enb1phy->GetUplinkSpectrumPhy ()->AddDataSinrChunkProcessor (testUlSinr1);
@@ -198,13 +198,13 @@ LteInterferenceTestCase::DoRun (void)
   // same as above for eNB2 and UE2
 
   Ptr<LtePhy> ue2Phy = ueDevs2.Get (0)->GetObject<LteUeNetDevice> ()->GetPhy ()->GetObject<LtePhy> ();
-  Ptr<LteChunkProcessor> testDlSinr2 = Create<LteChunkProcessor> ();
+  Ptr<LteAverageChunkProcessor> testDlSinr2 = Create<LteAverageChunkProcessor> ();
   LteSpectrumValueCatcher dlSinr2Catcher;
   testDlSinr2->AddCallback (MakeCallback (&LteSpectrumValueCatcher::ReportValue, &dlSinr2Catcher));
   ue2Phy->GetDownlinkSpectrumPhy ()->AddDataSinrChunkProcessor (testDlSinr2);
 
   Ptr<LtePhy> enb2phy = enbDevs.Get (1)->GetObject<LteEnbNetDevice> ()->GetPhy ()->GetObject<LtePhy> ();
-  Ptr<LteChunkProcessor> testUlSinr2 = Create<LteChunkProcessor> ();
+  Ptr<LteAverageChunkProcessor> testUlSinr2 = Create<LteAverageChunkProcessor> ();
   LteSpectrumValueCatcher ulSinr2Catcher;
   testUlSinr2->AddCallback (MakeCallback (&LteSpectrumValueCatcher::ReportValue, &ulSinr2Catcher));
   enb1phy->GetUplinkSpectrumPhy ()->AddDataSinrChunkProcessor (testUlSinr2);

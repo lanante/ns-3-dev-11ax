@@ -22,6 +22,8 @@
 #ifndef LTE_ENB_CMAC_SAP_H
 #define LTE_ENB_CMAC_SAP_H
 
+#include <bitset>
+
 #include <ns3/packet.h>
 #include <ns3/ff-mac-common.h>
 #include <ns3/eps-bearer.h>
@@ -129,6 +131,12 @@ public:
    */
   virtual void UeUpdateConfigurationReq (UeConfig params) = 0;
 
+  /**
+   * Set the DL FDD Almost Blank Subframe pattern.
+   *
+   * \param absPattern bitmask as per TS36.423 section 9.2.54 ABS Information
+   */
+  virtual void SetAbsPattern (std::bitset<40> absPattern) = 0;
 
   /**
    * struct defining the RACH configuration of the MAC

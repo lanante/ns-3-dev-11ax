@@ -21,6 +21,9 @@
 #include "ns3/propagation-loss-model.h"
 #include "ns3/jakes-propagation-loss-model.h"
 #include "ns3/constant-position-mobility-model.h"
+#include "ns3/ieee-80211ax-indoor-propagation-loss-model.h"
+#include "ns3/itu-umi-propagation-loss-model.h"
+#include "ns3/itu-inh-propagation-loss-model.h"
 
 #include "ns3/config.h"
 #include "ns3/command-line.h"
@@ -102,7 +105,6 @@ static Gnuplot
 TestProbabilistic (Ptr<PropagationLossModel> model, unsigned int samples = 100000)
 {
   Ptr<ConstantPositionMobilityModel> a = CreateObject<ConstantPositionMobilityModel> ();
-  Ptr<ConstantPositionMobilityModel> b = CreateObject<ConstantPositionMobilityModel> ();
 
   Gnuplot plot;
 
@@ -115,9 +117,9 @@ TestProbabilistic (Ptr<PropagationLossModel> model, unsigned int samples = 10000
   plot.AppendExtra ("set ticslevel 0");
   plot.AppendExtra ("set xtics offset -0.5,0");
   plot.AppendExtra ("set ytics offset 0,-0.5");
-  plot.AppendExtra ("set xrange [100:]");
+  plot.AppendExtra ("set xrange [10:]");
 
-  double txPowerDbm = +20; // dBm
+  double txPowerDbm = +18; // dBm
 
   Gnuplot3dDataset dataset;
 
@@ -131,14 +133,15 @@ TestProbabilistic (Ptr<PropagationLossModel> model, unsigned int samples = 10000
   {
     a->SetPosition (Vector (0.0, 0.0, 0.0));
 
-    for (double distance = 100.0; distance < 2500.0; distance += 100.0)
+    for (double distance = 0.0; distance < 150.0; distance += 10.0)
       {
-        b->SetPosition (Vector (distance, 0.0, 0.0));
-
         rxPowerMapType rxPowerMap;
 
         for (unsigned int samp = 0; samp < samples; ++samp)
           {
+            Ptr<ConstantPositionMobilityModel> b = CreateObject<ConstantPositionMobilityModel> ();
+            b->SetPosition (Vector (distance, 0.0, 0.0));
+
             // CalcRxPower() returns dBm.
             double rxPowerDbm = model->CalcRxPower (txPowerDbm, a, b);
             rxPowerDbm = dround (rxPowerDbm, 1.0);
@@ -309,6 +312,30 @@ int main (int argc, char *argv[])
 
     Gnuplot plot = TestProbabilistic (log3);
     plot.SetTitle ("ns3::ThreeLogDistancePropagationLossModel and ns3::NakagamiPropagationLossModel (Default Parameters)");
+    gnuplots.AddPlot (plot);
+  }
+
+  {
+    Ptr<Ieee80211axIndoorPropagationLossModel> ieee80211axindoor = CreateObject<Ieee80211axIndoorPropagationLossModel> ();
+
+    Gnuplot plot = TestProbabilistic (ieee80211axindoor);
+    plot.SetTitle ("ns3::Ieee80211axIndoorPropagationLossModel (Default Parameters)");
+    gnuplots.AddPlot (plot);
+  }
+
+  {
+    Ptr<ItuUmiPropagationLossModel> ituUmi = CreateObject<ItuUmiPropagationLossModel> ();
+
+    Gnuplot plot = TestProbabilistic (ituUmi);
+    plot.SetTitle ("ns3::ItuUmiPropagationLossModel (Default Parameters)");
+    gnuplots.AddPlot (plot);
+  }
+
+  {
+    Ptr<ItuInhPropagationLossModel> ituInh = CreateObject<ItuInhPropagationLossModel> ();
+
+    Gnuplot plot = TestProbabilistic (ituInh);
+    plot.SetTitle ("ns3::ItuInhPropagationLossModel (Default Parameters)");
     gnuplots.AddPlot (plot);
   }
 

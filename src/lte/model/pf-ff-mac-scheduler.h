@@ -284,6 +284,19 @@ private:
    */
   void UpdateUlRlcBufferInfo (uint16_t rnti, uint16_t size);
 
+  /*
+   * \brief Gives a rough estimation of transport block size in bytes that
+   * would be enough to transmit data from all logical channels of this UE.
+   * First checks which logical channel has most data for transmission and
+   * then it multiplies this value with number of logical channels. It is
+   * multiplied by the number of the logical channels, because currently
+   * proportional scheduler divides equally resources among logical channels.
+   *
+   * \return estimated size in bytes
+   */
+
+  uint32_t GetNecessaryTbSizeEstimation (uint16_t rnti);
+
   /**
   * \brief Update and return a new process Id for the RNTI specified
   *
@@ -305,6 +318,12 @@ private:
   *
   */
   void RefreshHarqProcesses ();
+
+  /**
+   *
+   * \return true if there is data on the buffer of the scheduler
+   */
+  bool DoIsThereData();
 
   Ptr<LteAmc> m_amc; ///< AMC
 

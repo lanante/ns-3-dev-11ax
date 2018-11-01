@@ -309,5 +309,14 @@ DlHarqFeedbackLteControlMessage::GetDlHarqFeedback (void)
 }
 
 
+// ---------------------------------------------------------------------------
+
+
+DrsLteControlMessage::DrsLteControlMessage (void)
+{
+  SetMessageType (LteControlMessage::DRS);
+}
+
+
 } // namespace ns3
 

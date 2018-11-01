@@ -77,7 +77,7 @@ LenaTestPhyErrorModelSuite::LenaTestPhyErrorModelSuite ()
       // 1 interfering eNB SINR -2.0 BLER 0.007 TB size 217
       AddTestCase (new LenaDlCtrlPhyErrorModelTestCase (2, 1078, 0.007, 9,
                                                         Seconds (0.04), rngRun),
-                   (rngRun == 1) ? TestCase::QUICK : TestCase::TAKES_FOREVER);
+                   (rngRun == 1) ? TestCase::EXTENSIVE : TestCase::TAKES_FOREVER);
       // 2 interfering eNBs SINR -4.0 BLER 0.037 TB size 217
       AddTestCase (new LenaDlCtrlPhyErrorModelTestCase (3, 1040, 0.045, 21,
                                                         Seconds (0.04), rngRun),
@@ -102,7 +102,7 @@ LenaTestPhyErrorModelSuite::LenaTestPhyErrorModelSuite ()
       // MCS 2 TB size of 256 bits BLER 0.33 SINR -5.51
       AddTestCase (new LenaDataPhyErrorModelTestCase (4, 1800, 0.33, 39,
                                                       Seconds (0.04), rngRun),
-                   (rngRun == 1) ? TestCase::QUICK : TestCase::TAKES_FOREVER);
+                   (rngRun == 1) ? TestCase::EXTENSIVE : TestCase::TAKES_FOREVER);
       // MCS 2 TB size of 528 bits BLER 0.11 SINR -5.51
       AddTestCase (new LenaDataPhyErrorModelTestCase (2, 1800, 0.11, 26,
                                                       Seconds (0.04), rngRun),
@@ -110,7 +110,7 @@ LenaTestPhyErrorModelSuite::LenaTestPhyErrorModelSuite ()
       // MCS 2 TB size of 1088 bits BLER 0.02 SINR -5.51
       AddTestCase (new LenaDataPhyErrorModelTestCase (1, 1800, 0.02, 33,
                                                       Seconds (0.04), rngRun),
-                   (rngRun == 1) ? TestCase::EXTENSIVE : TestCase::TAKES_FOREVER);
+                   (rngRun == 1) ? TestCase::QUICK : TestCase::TAKES_FOREVER);
       // MCS 12 TB size of 4800 bits  BLER 0.3  SINR 4.43
       AddTestCase (new LenaDataPhyErrorModelTestCase (1, 600, 0.3, 38,
                                                       Seconds (0.04), rngRun),
@@ -165,6 +165,7 @@ LenaDataPhyErrorModelTestCase::DoRun (void)
   Config::SetDefault ("ns3::LteAmc::AmcModel", EnumValue (LteAmc::PiroEW2010));
   Config::SetDefault ("ns3::LteSpectrumPhy::CtrlErrorModelEnabled", BooleanValue (false));
   Config::SetDefault ("ns3::LteSpectrumPhy::DataErrorModelEnabled", BooleanValue (true));
+  Config::SetDefault ("ns3::LteHelper::UsePdschForCqiGeneration", BooleanValue (false));
   Config::SetDefault ("ns3::RrFfMacScheduler::HarqEnabled", BooleanValue (false));
   Config::SetGlobal ("RngRun", UintegerValue (m_rngRun));
 
@@ -199,6 +200,10 @@ LenaDataPhyErrorModelTestCase::DoRun (void)
   lena->SetPathlossModelAttribute ("ShadowSigmaIndoor", DoubleValue (0.0));
   lena->SetPathlossModelAttribute ("ShadowSigmaExtWalls", DoubleValue (0.0));
 
+  // tricks to make UL propagation the same of DL, so that we can
+  // reuse the DL test vector but still check the UL RX chain
+  lena->SetEnbDeviceAttribute ("UlEarfcn", UintegerValue (100));
+
   // Create Devices and install them in the Nodes (eNB and UE)
   NetDeviceContainer enbDevs;
   NetDeviceContainer ueDevs;
@@ -222,7 +227,7 @@ LenaDataPhyErrorModelTestCase::DoRun (void)
   Ptr<LteEnbNetDevice> lteEnbDev = enbDevs.Get (0)->GetObject<LteEnbNetDevice> ();
   Ptr<LteEnbPhy> enbPhy = lteEnbDev->GetPhy ();
   enbPhy->SetAttribute ("TxPower", DoubleValue (43.0));
-  enbPhy->SetAttribute ("NoiseFigure", DoubleValue (5.0));
+  enbPhy->SetAttribute ("NoiseFigure", DoubleValue (9.0));
   // place the HeNB over the default rooftop level (20 mt.)
   Ptr<MobilityModel> mm = enbNodes.Get (0)->GetObject<MobilityModel> ();
   mm->SetPosition (Vector (0.0, 0.0, 30.0));
@@ -234,13 +239,15 @@ LenaDataPhyErrorModelTestCase::DoRun (void)
       mm1->SetPosition (Vector (m_dist, 0.0, 1.0));
       Ptr<LteUeNetDevice> lteUeDev = ueDevs.Get (i)->GetObject<LteUeNetDevice> ();
       Ptr<LteUePhy> uePhy = lteUeDev->GetPhy ();
-      uePhy->SetAttribute ("TxPower", DoubleValue (23.0));
+      uePhy->SetAttribute ("TxPower", DoubleValue (43.0));
       uePhy->SetAttribute ("NoiseFigure", DoubleValue (9.0));
     }
     
   Time statsDuration = Seconds (1.0);
   Simulator::Stop (m_statsStartTime + statsDuration - Seconds (0.0001));
 
+  lena->EnablePhyTraces ();
+  lena->EnableMacTraces ();
   lena->EnableRlcTraces ();
   Ptr<RadioBearerStatsCalculator> rlcStats = lena->GetRlcStats ();
   rlcStats->SetAttribute ("StartTime", TimeValue (m_statsStartTime));
@@ -255,6 +262,8 @@ LenaDataPhyErrorModelTestCase::DoRun (void)
       // get the imsi
       uint64_t imsi = ueDevs.Get (i)->GetObject<LteUeNetDevice> ()->GetImsi ();
       uint8_t lcId = 3;
+
+      // Downlink test conditions
 
       double dlRxPackets = rlcStats->GetDlRxPackets (imsi, lcId);
       double dlTxPackets = rlcStats->GetDlTxPackets (imsi, lcId);
@@ -277,6 +286,30 @@ LenaDataPhyErrorModelTestCase::DoRun (void)
       // this is the main test condition: check that the RX packets are within the expected range
       NS_TEST_ASSERT_MSG_EQ_TOL (dlRxPackets, expectedDlRxPackets, m_toleranceRxPackets, 
                                  " too different DL RX packets reported");
+
+      // Uplink test conditions
+
+      double ulRxPackets = rlcStats->GetUlRxPackets (imsi, lcId);
+      double ulTxPackets = rlcStats->GetUlTxPackets (imsi, lcId);
+      double ulBler =  1.0 - (ulRxPackets/ulTxPackets);
+      double expectedUlRxPackets = ulTxPackets -ulTxPackets*m_blerRef;
+      NS_LOG_INFO ("\tUser " << i << " imsi " << imsi << " UPLINK"
+                   << " pkts rx " << ulRxPackets << " tx " << ulTxPackets
+                   << " BLER " << ulBler << " Err " << std::fabs (m_blerRef - ulBler)
+                   << " expected rx " << expectedUlRxPackets
+                   << " difference " << std::abs (expectedUlRxPackets - ulRxPackets)
+                   << " tolerance " << m_toleranceRxPackets);
+      NS_UNUSED (ulBler);
+
+      // sanity check for whether the tx packets reported by the stats are correct
+      // we expect one packet per TTI
+      double expectedUlTxPackets = statsDuration.GetMilliSeconds ();
+      NS_TEST_ASSERT_MSG_EQ_TOL (ulTxPackets, expectedUlTxPackets, expectedUlTxPackets * 0.005,
+                                 " too different UL TX packets reported");
+
+      // this is the main test condition: check that the RX packets are within the expected range
+      NS_TEST_ASSERT_MSG_EQ_TOL (ulRxPackets, expectedUlRxPackets, m_toleranceRxPackets,
+                                 " too different UL RX packets reported");
     }
 
 

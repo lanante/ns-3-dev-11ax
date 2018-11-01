@@ -23,6 +23,7 @@
 #include "ns3/object.h"
 #include "ns3/random-variable-stream.h"
 #include "ns3/vector.h"
+#include "ns3/node-container.h"
 
 namespace ns3 {
 
@@ -362,6 +363,110 @@ private:
   double m_rho; //!< value of the radius of the disc
   double m_x;  //!< x coordinate of center of disc
   double m_y;  //!< y coordinate of center of disc
+};
+
+/**
+ * \ingroup mobility
+ * \brief Allocate the positions uniformely (with constant density) randomly within a regular hexagon.
+ *
+ * UniformHexagonPositionAllocator allocates the positions randomly within a hexagon \f$ H \f$ lying on the
+ * plane \f$ z=0 \f$ having center at coordinates \f$ (x,y,0) \f$,
+ * circumradius \f$ \rho \f$ and orientation  \f$ \theta \f$
+ * The random positions are chosen such that,
+ * for any subset \f$ S \subset H \f$, the expected value of the
+ * fraction of points which fall into \f$ S \subset H \f$ corresponds
+ * to \f$ \frac{|S|}{|H|} \f$, i.e., to the ratio of the area of the
+ * subset to the area of the whole hexagon.
+ */
+class UniformHexagonPositionAllocator : public PositionAllocator
+{
+public:
+
+  /**
+   * Register this type with the TypeId system.
+   * \return the object TypeId
+   */
+  static TypeId GetTypeId (void);
+  UniformHexagonPositionAllocator ();
+  virtual ~UniformHexagonPositionAllocator ();
+
+
+  /**
+   * generate gnuplot commands to print the hexagon and write them to file
+   *
+   * \param filename file to write to
+   */
+  void PrintToGnuplotFile (std::string filename);
+
+
+  virtual Vector GetNext (void) const;
+  virtual int64_t AssignStreams (int64_t stream);
+
+private:
+
+  /**
+   *
+   * \param p coordinates of a point q
+   *
+   * \return true if point q is inside a similar hexagon centered at
+   * (0,0) and oriented with sides parallel to the y axis; false otherwise
+   */
+  bool IsInsideCenteredNoRotation (Vector q) const;
+
+  Ptr<UniformRandomVariable> m_rv;  //!< pointer to uniform random variable
+  double m_rho; //!< value of the circumradius of the hexagon
+  double m_theta; //!< orientation of the hexagon
+  double m_x;  //!< x coordinate of center of hexagon
+  double m_y;  //!< y coordinate of center of hexagon
+};
+
+/**
+ * This class will allocate positions using another position allocator and guaranteeing a minimum 2D distance from a provided set of points and/or nodes
+ *
+ */
+class Min2dDistancePositionAllocator : public PositionAllocator
+{
+public:
+
+  /**
+   * Register this type with the TypeId system.
+   * \return the object TypeId
+   */
+  static TypeId GetTypeId (void);
+  Min2dDistancePositionAllocator ();
+  virtual ~Min2dDistancePositionAllocator ();
+
+  virtual Vector GetNext (void) const;
+  virtual int64_t AssignStreams (int64_t stream);
+
+  void SetPositionAllocator (Ptr<PositionAllocator> p);
+
+  void AddNodesDistance (NodeContainer nodes, double distance);
+
+  void AddPositionDistance (Vector position, double distance);
+
+private:
+
+  struct NodesDistance
+  {
+    NodeContainer nodes;
+    double distance;
+  };
+
+  std::list<NodesDistance> m_nodesDistanceList;
+
+  struct PositionDistance
+  {
+    Vector position;
+    double distance;
+  };
+
+  std::list<PositionDistance> m_positionDistanceList;
+
+  uint32_t m_maxAttempts;
+
+  Ptr<PositionAllocator> m_positionAllocator;
+
 };
 
 } // namespace ns3

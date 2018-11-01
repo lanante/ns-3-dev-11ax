@@ -1,0 +1,23 @@
+# -*- Mode: python; py-indent-offset: 4; indent-tabs-mode: nil; coding: utf-8; -*-
+
+def build(bld):
+    obj = bld.create_ns3_program('lte-wifi-simple', ['lte-wifi-coexistence','point-to-point','applications', 'netanim', 'flow-monitor'])
+    obj.source = ['lte-wifi-simple.cc']
+
+    obj = bld.create_ns3_program('lte-wifi-indoor', ['lte-wifi-coexistence','point-to-point','applications', 'netanim', 'flow-monitor'])
+    obj.source = ['lte-wifi-indoor.cc']
+
+    obj = bld.create_ns3_program('wifi-co-channel-networks', ['lte-wifi-coexistence','point-to-point','applications', 'netanim', 'flow-monitor'])
+    obj.source = ['wifi-co-channel-networks.cc']
+
+    obj = bld.create_ns3_program('lte-wifi-outdoor', ['lte-wifi-coexistence','point-to-point','applications', 'netanim', 'flow-monitor'])
+    obj.source = ['lte-wifi-outdoor.cc']
+
+    obj = bld.create_ns3_program('lte-wifi-itu-umi-pathloss', ['propagation','stats'])
+    obj.source = ['lte-wifi-itu-umi-pathloss.cc']
+
+    obj = bld.create_ns3_program('lte-wifi-itu-inh-pathloss', ['propagation','stats'])
+    obj.source = ['lte-wifi-itu-inh-pathloss.cc']
+
+    obj = bld.create_ns3_program('lte-wifi-80211ax-pathloss', ['propagation','stats'])
+    obj.source = ['lte-wifi-80211ax-pathloss.cc']

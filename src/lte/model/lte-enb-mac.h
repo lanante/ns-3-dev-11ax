@@ -28,6 +28,7 @@
 
 #include <map>
 #include <vector>
+#include <bitset>
 #include <ns3/lte-common.h>
 #include <ns3/lte-mac-sap.h>
 #include <ns3/lte-enb-cmac-sap.h>
@@ -39,6 +40,7 @@
 #include <ns3/packet.h>
 #include <ns3/packet-burst.h>
 #include <ns3/lte-ccm-mac-sap.h>
+#include <ns3/lte-channel-access-manager.h>
 
 namespace ns3 {
 
@@ -182,6 +184,13 @@ public:
   typedef void (* UlSchedulingTracedCallback)
     (const uint32_t frame, const uint32_t subframe, const uint16_t rnti,
      const uint8_t mcs, const uint16_t tbsSize);
+
+  /**
+   * TracedCallback signature for HARQ feedback updates.
+   * \param [in] vector of HARQ feedbacks
+   */
+  typedef void (* DlHarqFeedbackTracedCallback)
+    (std::vector<DlInfoListElement_s>);
   
 private:
 
@@ -261,6 +270,12 @@ private:
   * \returns LteEnbCmacSapProvider::AllocateNcRaPreambleReturnValue
   */
   LteEnbCmacSapProvider::AllocateNcRaPreambleReturnValue DoAllocateNcRaPreamble (uint16_t rnti);
+  /**
+   * Set the DL FDD Almost Blank Subframe pattern.
+   *
+   * \param absPattern bitmask as per TS36.423 section 9.2.54 ABS Information
+   */
+  void DoSetAbsPattern (std::bitset<40> absPattern);
 
   // forwarded from LteMacSapProvider
   /**
@@ -337,6 +352,11 @@ private:
   */
   void DoReceiveRachPreamble (uint8_t prachId);
 
+  /**
+   * \brief Check the scheduler if there is data
+   */
+  bool IsThereData (void) const;
+
   // forwarded by LteCcmMacSapProvider
   /**
    * Report MAC CE to scheduler
@@ -409,6 +429,23 @@ private:
    */
   uint32_t m_subframeNo;
   /**
+   * frame number of DL subframe to be scheduled in current subframe indication
+   */
+  uint32_t m_dlSchedFrameNo;
+  /**
+   * subframe number of DL subframe to be scheduled in current subframe indication
+   */
+  uint32_t m_dlSchedSubframeNo;
+  /**
+   * frame number of UL subframe to be scheduled in current subframe indication
+   */
+  uint32_t m_ulSchedFrameNo;
+  /**
+   * subframe number of UL subframe to be scheduled in current subframe indication
+   */
+  uint32_t m_ulSchedSubframeNo;
+
+  /**
    * Trace information regarding DL scheduling
    * Frame number, Subframe number, RNTI, MCS of TB1, size of TB1,
    * MCS of TB2 (0 if not present), size of TB2 (0 if not present)
@@ -421,6 +458,8 @@ private:
    */
   TracedCallback<uint32_t, uint32_t, uint16_t,
                  uint8_t, uint16_t, uint8_t> m_ulScheduling;
+
+  TracedCallback<std::vector<DlInfoListElement_s> > m_dlHarqFeedback; ///< Trace information for DL HARQ
   
   uint8_t m_macChTtiDelay; ///< delay of MAC, PHY and channel in terms of TTIs
 
@@ -455,6 +494,11 @@ private:
   /// component carrier Id used to address sap
   uint8_t m_componentCarrierId;
  
+ /**
+  * DL FDD Almost Blank Subframe pattern
+  * bitmask as per TS36.423 section 9.2.54 ABS Information
+  */
+  std::bitset<40> m_absPattern;
 };
 
 } // end namespace ns3

@@ -61,6 +61,7 @@ public:
     RAR, // Random Access Response
     MIB, // Master Information Block
     SIB1, // System Information Block Type 1
+    DRS, // Discovery reference signals for LAA
   };
 
   LteControlMessage (void);
@@ -401,6 +402,28 @@ private:
   LteRrcSap::SystemInformationBlockType1 m_sib1; ///< SIB1
 
 }; // end of class Sib1LteControlMessage
+
+
+// ---------------------------------------------------------------------------
+
+/**
+ * \ingroup lte
+ * \brief Abstract model for broadcasting the discovery reference signals (DRS) on LAA cells
+ *
+ * DRS is transmitted by eNodeB RRC and received by UE RRC at the 1st and 6th subframe with frequency of 40, 80 or 160ms.
+ *
+ * \sa LteEnbRrc::SetSystemInformationBlockType1, LteEnbPhy::StartSubFrame,
+ *     LteUeRrc::DoRecvSystemInformationBlockType1
+ */
+class DrsLteControlMessage : public LteControlMessage
+{
+public:
+  /**
+   * \brief Create a new instance of DRS control message.
+   */
+  DrsLteControlMessage (void);
+
+}; // end of class DrsLteControlMessage
 
 
 } // namespace ns3

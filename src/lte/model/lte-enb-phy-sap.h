@@ -125,6 +125,11 @@ public:
    */
   virtual void DlInfoListElementHarqFeeback (DlInfoListElement_s params) = 0;
 
+  /**
+   * \brief Ask MAC if there is data to be transmitted.
+   */
+  virtual bool IsThereData (void) = 0;
+
 };
 
 

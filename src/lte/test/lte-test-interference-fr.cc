@@ -175,13 +175,13 @@ LteInterferenceHardFrTestCase::DoRun (void)
   // we plug in two instances, one for DL and one for UL
 
   Ptr<LtePhy> ue1Phy = ueDevs1.Get (0)->GetObject<LteUeNetDevice> ()->GetPhy ()->GetObject<LtePhy> ();
-  Ptr<LteChunkProcessor> testDlSinr1 = Create<LteChunkProcessor> ();
+  Ptr<LteAverageChunkProcessor> testDlSinr1 = Create<LteAverageChunkProcessor> ();
   LteSpectrumValueCatcher dlSinr1Catcher;
   testDlSinr1->AddCallback (MakeCallback (&LteSpectrumValueCatcher::ReportValue, &dlSinr1Catcher));
   ue1Phy->GetDownlinkSpectrumPhy ()->AddDataSinrChunkProcessor (testDlSinr1);
 
   Ptr<LtePhy> enb1phy = enbDevs.Get (0)->GetObject<LteEnbNetDevice> ()->GetPhy ()->GetObject<LtePhy> ();
-  Ptr<LteChunkProcessor> testUlSinr1 = Create<LteChunkProcessor> ();
+  Ptr<LteAverageChunkProcessor> testUlSinr1 = Create<LteAverageChunkProcessor> ();
   LteSpectrumValueCatcher ulSinr1Catcher;
   testUlSinr1->AddCallback (MakeCallback (&LteSpectrumValueCatcher::ReportValue, &ulSinr1Catcher));
   enb1phy->GetUplinkSpectrumPhy ()->AddDataSinrChunkProcessor (testUlSinr1);
@@ -189,13 +189,13 @@ LteInterferenceHardFrTestCase::DoRun (void)
   // same as above for eNB2 and UE2
 
   Ptr<LtePhy> ue2Phy = ueDevs2.Get (0)->GetObject<LteUeNetDevice> ()->GetPhy ()->GetObject<LtePhy> ();
-  Ptr<LteChunkProcessor> testDlSinr2 = Create<LteChunkProcessor> ();
+  Ptr<LteAverageChunkProcessor> testDlSinr2 = Create<LteAverageChunkProcessor> ();
   LteSpectrumValueCatcher dlSinr2Catcher;
   testDlSinr2->AddCallback (MakeCallback (&LteSpectrumValueCatcher::ReportValue, &dlSinr2Catcher));
   ue2Phy->GetDownlinkSpectrumPhy ()->AddDataSinrChunkProcessor (testDlSinr2);
 
   Ptr<LtePhy> enb2phy = enbDevs.Get (1)->GetObject<LteEnbNetDevice> ()->GetPhy ()->GetObject<LtePhy> ();
-  Ptr<LteChunkProcessor> testUlSinr2 = Create<LteChunkProcessor> ();
+  Ptr<LteAverageChunkProcessor> testUlSinr2 = Create<LteAverageChunkProcessor> ();
   LteSpectrumValueCatcher ulSinr2Catcher;
   testUlSinr2->AddCallback (MakeCallback (&LteSpectrumValueCatcher::ReportValue, &ulSinr2Catcher));
   enb1phy->GetUplinkSpectrumPhy ()->AddDataSinrChunkProcessor (testUlSinr2);
@@ -208,9 +208,11 @@ LteInterferenceHardFrTestCase::DoRun (void)
   for (uint32_t i = 0; i < 12; i++)
     {
       double dlSinr1 = dlSinr1Catcher.GetValue ()->operator[] (i);
-      double dlSinr1Db = 10.0 * std::log10 (dlSinr1);
-      NS_TEST_ASSERT_MSG_EQ_TOL (dlSinr1Db, m_expectedDlSinrDb, 0.01, "Wrong SINR in DL! (eNB1 --> UE1)");
-
+      if (dlSinr1)
+        {
+          double dlSinr1Db = 10.0 * std::log10 (dlSinr1);
+          NS_TEST_ASSERT_MSG_EQ_TOL (dlSinr1Db, m_expectedDlSinrDb, 0.01, "Wrong SINR in DL! (eNB1 --> UE1)");
+        }
 
       double dlSinr2 = dlSinr2Catcher.GetValue ()->operator[] (i);
       NS_TEST_ASSERT_MSG_EQ_TOL (dlSinr2, 0, 0.01, "Wrong SINR in DL! (eNB2 --> UE2)");
@@ -219,11 +221,17 @@ LteInterferenceHardFrTestCase::DoRun (void)
   for (uint32_t i = 12; i < 24; i++)
     {
       double dlSinr1 = dlSinr1Catcher.GetValue ()->operator[] (i);
-      NS_TEST_ASSERT_MSG_EQ_TOL (dlSinr1, 0, 0.01, "Wrong SINR in DL! (eNB1 --> UE1)");
+      if (dlSinr1)
+        {
+          NS_TEST_ASSERT_MSG_EQ_TOL (dlSinr1, 0, 0.01, "Wrong SINR in DL! (eNB1 --> UE1)");
+        }
 
       double dlSinr2 = dlSinr2Catcher.GetValue ()->operator[] (i);
-      double dlSinr2Db = 10.0 * std::log10 (dlSinr2);
-      NS_TEST_ASSERT_MSG_EQ_TOL (dlSinr2Db, m_expectedDlSinrDb, 0.01, "Wrong SINR in DL! (eNB2 --> UE2)");
+      if (dlSinr2)
+        {
+          double dlSinr2Db = 10.0 * std::log10 (dlSinr2);
+          NS_TEST_ASSERT_MSG_EQ_TOL (dlSinr2Db, m_expectedDlSinrDb, 0.01, "Wrong SINR in DL! (eNB2 --> UE2)");
+        }
     }
 
   //FR algorithms do not operate in uplink now, so we do not test it
@@ -351,13 +359,13 @@ LteInterferenceStrictFrTestCase::DoRun (void)
   // we plug in two instances, one for DL and one for UL
 
   Ptr<LtePhy> ue1Phy = ueDevs1.Get (0)->GetObject<LteUeNetDevice> ()->GetPhy ()->GetObject<LtePhy> ();
-  Ptr<LteChunkProcessor> testDlSinr1 = Create<LteChunkProcessor> ();
+  Ptr<LteAverageChunkProcessor> testDlSinr1 = Create<LteAverageChunkProcessor> ();
   LteSpectrumValueCatcher dlSinr1Catcher;
   testDlSinr1->AddCallback (MakeCallback (&LteSpectrumValueCatcher::ReportValue, &dlSinr1Catcher));
   ue1Phy->GetDownlinkSpectrumPhy ()->AddDataSinrChunkProcessor (testDlSinr1);
 
   Ptr<LtePhy> enb1phy = enbDevs.Get (0)->GetObject<LteEnbNetDevice> ()->GetPhy ()->GetObject<LtePhy> ();
-  Ptr<LteChunkProcessor> testUlSinr1 = Create<LteChunkProcessor> ();
+  Ptr<LteAverageChunkProcessor> testUlSinr1 = Create<LteAverageChunkProcessor> ();
   LteSpectrumValueCatcher ulSinr1Catcher;
   testUlSinr1->AddCallback (MakeCallback (&LteSpectrumValueCatcher::ReportValue, &ulSinr1Catcher));
   enb1phy->GetUplinkSpectrumPhy ()->AddDataSinrChunkProcessor (testUlSinr1);
@@ -365,13 +373,13 @@ LteInterferenceStrictFrTestCase::DoRun (void)
   // same as above for eNB2 and UE2
 
   Ptr<LtePhy> ue2Phy = ueDevs2.Get (0)->GetObject<LteUeNetDevice> ()->GetPhy ()->GetObject<LtePhy> ();
-  Ptr<LteChunkProcessor> testDlSinr2 = Create<LteChunkProcessor> ();
+  Ptr<LteAverageChunkProcessor> testDlSinr2 = Create<LteAverageChunkProcessor> ();
   LteSpectrumValueCatcher dlSinr2Catcher;
   testDlSinr2->AddCallback (MakeCallback (&LteSpectrumValueCatcher::ReportValue, &dlSinr2Catcher));
   ue2Phy->GetDownlinkSpectrumPhy ()->AddDataSinrChunkProcessor (testDlSinr2);
 
   Ptr<LtePhy> enb2phy = enbDevs.Get (1)->GetObject<LteEnbNetDevice> ()->GetPhy ()->GetObject<LtePhy> ();
-  Ptr<LteChunkProcessor> testUlSinr2 = Create<LteChunkProcessor> ();
+  Ptr<LteAverageChunkProcessor> testUlSinr2 = Create<LteAverageChunkProcessor> ();
   LteSpectrumValueCatcher ulSinr2Catcher;
   testUlSinr2->AddCallback (MakeCallback (&LteSpectrumValueCatcher::ReportValue, &ulSinr2Catcher));
   enb1phy->GetUplinkSpectrumPhy ()->AddDataSinrChunkProcessor (testUlSinr2);
@@ -384,34 +392,50 @@ LteInterferenceStrictFrTestCase::DoRun (void)
   for (uint32_t i = 0; i < 12; i++)
     {
       double dlSinr1 = dlSinr1Catcher.GetValue ()->operator[] (i);
-      double dlSinr1Db = 10.0 * std::log10 (dlSinr1);
-      NS_TEST_ASSERT_MSG_EQ_TOL (dlSinr1Db, m_commonDlSinrDb, 0.01, "Wrong SINR in DL! (eNB1 --> UE1)");
-
+      if (dlSinr1)
+        {
+          double dlSinr1Db = 10.0 * std::log10 (dlSinr1);
+          NS_TEST_ASSERT_MSG_EQ_TOL (dlSinr1Db, m_commonDlSinrDb, 0.01, "Wrong SINR in DL! (eNB1 --> UE1)");
+        }
 
       double dlSinr2 = dlSinr2Catcher.GetValue ()->operator[] (i);
-      double dlSinr2Db = 10.0 * std::log10 (dlSinr2);
-      NS_TEST_ASSERT_MSG_EQ_TOL (dlSinr2Db, m_commonDlSinrDb, 0.01, "Wrong SINR in DL! (eNB2 --> UE2)");
+      if (dlSinr2)
+        {
+          double dlSinr2Db = 10.0 * std::log10 (dlSinr2);
+          NS_TEST_ASSERT_MSG_EQ_TOL (dlSinr2Db, m_commonDlSinrDb, 0.01, "Wrong SINR in DL! (eNB2 --> UE2)");
+        }
     }
 
   for (uint32_t i = 12; i < 18; i++)
     {
       double dlSinr1 = dlSinr1Catcher.GetValue ()->operator[] (i);
-      double dlSinr1Db = 10.0 * std::log10 (dlSinr1);
-      NS_TEST_ASSERT_MSG_EQ_TOL (dlSinr1Db, m_edgeDlSinrDb, 0.01, "Wrong SINR in DL! (eNB1 --> UE1)");
-
+      if(dlSinr1)
+        {
+          double dlSinr1Db = 10.0 * std::log10 (dlSinr1);
+          NS_TEST_ASSERT_MSG_EQ_TOL (dlSinr1Db, m_edgeDlSinrDb, 0.01, "Wrong SINR in DL! (eNB1 --> UE1)");
+        }
 
       double dlSinr2 = dlSinr2Catcher.GetValue ()->operator[] (i);
-      NS_TEST_ASSERT_MSG_EQ_TOL (dlSinr2, 0, 0.01, "Wrong SINR in DL! (eNB2 --> UE2)");
+      if(dlSinr2)
+        {
+          NS_TEST_ASSERT_MSG_EQ_TOL (dlSinr2, 0, 0.01, "Wrong SINR in DL! (eNB2 --> UE2)");
+        }
     }
 
   for (uint32_t i = 18; i < 24; i++)
     {
       double dlSinr1 = dlSinr1Catcher.GetValue ()->operator[] (i);
-      NS_TEST_ASSERT_MSG_EQ_TOL (dlSinr1, 0, 0.01, "Wrong SINR in DL! (eNB1 --> UE1)");
+      if (dlSinr1)
+        {
+          NS_TEST_ASSERT_MSG_EQ_TOL (dlSinr1, 0, 0.01, "Wrong SINR in DL! (eNB1 --> UE1)");
+        }
 
       double dlSinr2 = dlSinr2Catcher.GetValue ()->operator[] (i);
-      double dlSinr2Db = 10.0 * std::log10 (dlSinr2);
-      NS_TEST_ASSERT_MSG_EQ_TOL (dlSinr2Db, m_edgeDlSinrDb, 0.01, "Wrong SINR in DL! (eNB2 --> UE2)");
+      if (dlSinr2)
+        {
+          double dlSinr2Db = 10.0 * std::log10 (dlSinr2);
+          NS_TEST_ASSERT_MSG_EQ_TOL (dlSinr2Db, m_edgeDlSinrDb, 0.01, "Wrong SINR in DL! (eNB2 --> UE2)");
+        }
     }
 
 

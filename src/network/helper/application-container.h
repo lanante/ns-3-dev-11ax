@@ -24,6 +24,7 @@
 #include <stdint.h>
 #include <vector>
 #include "ns3/application.h"
+#include "ns3/random-variable-stream.h"
 
 namespace ns3 {
 
@@ -192,6 +193,24 @@ public:
    * \param start The Time at which each of the applications should start.
    */
   void Start (Time start);
+
+  /**
+   * \brief Arrange for all of the Applications in this container to Start()
+   * at the Time given as a parameter, plus some jitter.
+   *
+   * All Applications need to be provided with a starting simulation time and
+   * a stopping simulation time.  The ApplicationContainer is a convenient 
+   * place for allowing all of the contained Applications to be told to wake
+   * up and start doing their thing (Start) at a common time.
+   *
+   * This method simply iterates through the contained Applications and calls
+   * their Start() methods with the provided Time, plus a jitter drawn from
+   * the provided random variable.
+   *
+   * \param start The Time at which each of the applications should start.
+   * \param rv The random variable that adds jitter
+   */
+  void StartWithJitter (Time start, Ptr<RandomVariableStream> rv);
 
   /**
    * \brief Arrange for all of the Applications in this container to Stop()

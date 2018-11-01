@@ -225,8 +225,8 @@ LteX2HandoverTestCase::DoRun ()
     }
 
   Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator> ();
-  positionAlloc->Add (Vector (-3000, 0, 0)); // enb0
-  positionAlloc->Add (Vector ( 3000, 0, 0)); // enb1
+  positionAlloc->Add (Vector (-4000, 0, 0)); // enb0
+  positionAlloc->Add (Vector ( 4000, 0, 0)); // enb1
   for (uint16_t i = 0; i < m_nUes; i++)
     {
       positionAlloc->Add (Vector (0, 0, 0));

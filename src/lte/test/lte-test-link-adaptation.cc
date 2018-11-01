@@ -206,7 +206,7 @@ LteLinkAdaptationTestCase::DoRun (void)
   // Use testing chunk processor in the PHY layer
   // It will be used to test that the SNR is as intended
   Ptr<LtePhy> uePhy = ueDevs.Get (0)->GetObject<LteUeNetDevice> ()->GetPhy ()->GetObject<LtePhy> ();
-  Ptr<LteChunkProcessor> testSinr = Create<LteChunkProcessor> ();
+  Ptr<LteAverageChunkProcessor> testSinr = Create<LteAverageChunkProcessor> ();
   LteSpectrumValueCatcher sinrCatcher;
   testSinr->AddCallback (MakeCallback (&LteSpectrumValueCatcher::ReportValue, &sinrCatcher));
   uePhy->GetDownlinkSpectrumPhy ()->AddCtrlSinrChunkProcessor (testSinr);

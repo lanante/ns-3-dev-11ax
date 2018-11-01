@@ -446,7 +446,41 @@ RrFfMacScheduler::RefreshHarqProcesses ()
 
 }
 
-
+bool
+RrFfMacScheduler::DoIsThereData ()
+{
+  NS_LOG_FUNCTION (this);
+  for (uint32_t i = 0; i < m_dlInfoListBuffered.size(); i++)
+    {
+      // normally there are 1 or 2 harq statuses
+      for (uint32_t j = 0; j < m_dlInfoListBuffered.at (i).m_harqStatus.size(); j++)
+        {
+          if (m_dlInfoListBuffered.at (i).m_harqStatus.at (j) == DlInfoListElement_s::NACK)
+            {
+              return true;
+            }
+        }
+    }
+  std::list <FfMacSchedSapProvider::SchedDlRlcBufferReqParameters>::iterator itBufReq;
+  for (itBufReq = m_rlcBufferReq.begin (); itBufReq != m_rlcBufferReq.end (); itBufReq++)
+    {
+      if ((itBufReq->m_rlcTransmissionQueueSize > 0)
+          || (itBufReq->m_rlcRetransmissionQueueSize > 0)
+          || (itBufReq->m_rlcStatusPduSize > 0) )
+        {
+          return true;
+        }
+    }
+  std::map <uint16_t,uint32_t>::iterator it;
+  for (it = m_ceBsrRxed.begin (); it != m_ceBsrRxed.end (); it++)
+    {
+      if (it->second > 0)
+        {
+          return true;
+        }
+    }
+  return false;
+}
 
 void
 RrFfMacScheduler::DoSchedDlTriggerReq (const struct FfMacSchedSapProvider::SchedDlTriggerReqParameters& params)

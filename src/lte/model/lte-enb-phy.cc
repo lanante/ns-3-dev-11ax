@@ -23,6 +23,7 @@
 #include <ns3/log.h>
 #include <cfloat>
 #include <cmath>
+#include <fstream>
 #include <ns3/simulator.h>
 #include <ns3/attribute-accessor-helper.h>
 #include <ns3/double.h>
@@ -161,13 +162,19 @@ LteEnbPhy::LteEnbPhy (Ptr<LteSpectrumPhy> dlPhy, Ptr<LteSpectrumPhy> ulPhy)
     m_srsPeriodicity (0),
     m_srsStartTime (Seconds (0)),
     m_currentSrsOffset (0),
-    m_interferenceSampleCounter (0)
+    m_interferenceSampleCounter (0),
+    m_grantTimeout (Seconds(0)),
+    m_isWaitingForChannelAccessGrant (false)
 {
   m_enbPhySapProvider = new EnbMemberLteEnbPhySapProvider (this);
   m_enbCphySapProvider = new MemberLteEnbCphySapProvider<LteEnbPhy> (this);
   m_harqPhyModule = Create <LteHarqPhy> ();
   m_downlinkSpectrumPhy->SetHarqPhyModule (m_harqPhyModule);
   m_uplinkSpectrumPhy->SetHarqPhyModule (m_harqPhyModule);
+  m_reservationSignal = false;
+  m_channelAccessManager = 0;
+  m_ctrlMsgCounter = 0;
+  m_drsReservationSignal = false;
 }
 
 TypeId
@@ -241,9 +248,96 @@ LteEnbPhy::GetTypeId (void)
                    PointerValue (),
                    MakePointerAccessor (&LteEnbPhy::GetUlSpectrumPhy),
                    MakePointerChecker <LteSpectrumPhy> ())
+    .AddAttribute ("MibPeriod",
+                   "The period for sending MIB, number of TTIs between two consecutive mib messages",
+                   UintegerValue (10),
+                   MakeUintegerAccessor (&LteEnbPhy::m_mibPeriod),
+                   MakeUintegerChecker<uint16_t> (10,160))
+    .AddAttribute ("SibPeriod",
+                   "The period for sending SIB, number of TTIs between two consecutive sib messages",
+                   UintegerValue (20),
+                   MakeUintegerAccessor (&LteEnbPhy::m_sibPeriod),
+                   MakeUintegerChecker<uint16_t> (20,160))
+    .AddAttribute ("DrsPeriod",
+                   "The period for sending DRS, number of TTIs between two consecutive drs messages",
+                   UintegerValue (40),
+                   MakeUintegerAccessor (&LteEnbPhy::m_drsPeriod),
+                   MakeUintegerChecker<uint16_t> (40,160))
+    .AddAttribute ("DrsMessagesEnabled",
+                   "If true generate and send drs messages, "
+                   "if false do not generate drs messages",
+                   BooleanValue (false),
+                   MakeBooleanAccessor (&LteEnbPhy::m_drsMessagesEnabled),
+                   MakeBooleanChecker ())
+    .AddAttribute ("DisableMibAndSibStartupTime",
+                   "Disable MIB and SIB messages after the provided time, "
+                   "set to 0 to disable this feature",
+                   TimeValue (Seconds (0)),
+                   MakeTimeAccessor (&LteEnbPhy::m_disableMibAndSibStartupTime),
+                   MakeTimeChecker ())
+    .AddAttribute ("SaveCtrlAndRbStats",
+                   "If true, generate and save to file statistics about ctrl messages and resource block usage at in dispose function, "
+                   "if false, do not generate statistics",
+                   BooleanValue (false),
+                   MakeBooleanAccessor (&LteEnbPhy::m_generateCtrlAndRbStats),
+                   MakeBooleanChecker ())
+    .AddAttribute ("ImplWith2msDelay",
+                   "It is meant to be used when channel access manager is set;"
+                   "if true and channel access manager is set, scheduler will be stopped until channel access grant is obtained, thus there will be 2ms of delay between start of scheduling and transmitting (mac to phy delay)"
+                   "if false and channel access manager is set, scheduler will schedule every subframe, but the data will be transmitted only when there is channel access.",
+                   BooleanValue (false),
+                   MakeBooleanAccessor (&LteEnbPhy::m_channelAccessImplWith2msDelay),
+                   MakeBooleanChecker ())
+    .AddAttribute ("DropPackets",
+                   "Meant to be used only when channel access manager is set and ChannelAccessImplWith2msDelay is set to false;"
+                   "if true, drop packets when there is no channel access"
+                   "if false save packets while channel access is not granted",
+                   BooleanValue (false),
+                   MakeBooleanAccessor (&LteEnbPhy::m_dropPackets),
+                   MakeBooleanChecker ())
+    .AddAttribute ("ChannelAccessManagerStartTime",
+                   "Time at which will start to use channel access manager if available.",
+                   TimeValue (Seconds (2)),
+                   MakeTimeAccessor (&LteEnbPhy::m_channelAccessManagerStartTime),
+                   MakeTimeChecker ())
+    .AddTraceSource ("ReservationSignal",
+                     "Reports that transmission of reservation signal started and it reports its duration",
+                     MakeTraceSourceAccessor (&LteEnbPhy::m_reservationSignalTraceSource),
+                     "ns3::LteEnbPhy::ReportReservationSignalTracedCallback")
+    .AddTraceSource ("DataSent",
+                     "Reports how many bytes was transmited.",
+                     MakeTraceSourceAccessor (&LteEnbPhy::m_data),
+                     "ns3::LteEnbPhy::DataTracedCallback")
+    .AddTraceSource ("Txop",
+                     "Reports that txop started and it reports its duration",
+                     MakeTraceSourceAccessor (&LteEnbPhy::m_txopTraceSource),
+                     "ns3::LteEnbPhy::ReportTxopTracedCallback")
+    .AddTraceSource ("CtrlMsgTransmission",
+                     "Control message transmission traces.",
+                     MakeTraceSourceAccessor (&LteEnbPhy::m_ctrlMsgTransmission),
+                     "ns3::CtrlMsgTransmissionTrace::TracedCallback")
   ;
   return tid;
 }
+
+std::string LteEnbPhy::PrintMessageType (int i)
+{
+  switch (i)
+    {
+    case LteControlMessage::DL_DCI: return "DL DCI";
+    case LteControlMessage::UL_DCI: return "UL DCI";
+    case LteControlMessage::DL_CQI: return "DL CQI";
+    case LteControlMessage::UL_CQI: return "UL CQI";
+    case LteControlMessage::BSR: return "BSR";
+    case LteControlMessage::DL_HARQ: return "DL HARQ";
+    case LteControlMessage::RACH_PREAMBLE: return "RACH_PREAMBLE";
+    case LteControlMessage::RAR: return "RAR";
+    case LteControlMessage::MIB: return "MIB";
+    case LteControlMessage::SIB1: return "SIB1";
+    case LteControlMessage::DRS: return "DRS";
+    }
+  return "";
+};
 
 
 LteEnbPhy::~LteEnbPhy ()
@@ -254,6 +348,50 @@ void
 LteEnbPhy::DoDispose ()
 {
   NS_LOG_FUNCTION (this);
+
+  if (m_generateCtrlAndRbStats)
+    {
+      // save statistics regarding ctrl messages, type and count
+      std::ofstream outFileCtrlMessages;
+
+      std::ostringstream outstring;
+      outstring << "ctrl_messages" << m_cellId << ".txt";
+      outFileCtrlMessages.open (outstring.str ().c_str (), std::ofstream::out | std::ofstream::app);
+      outFileCtrlMessages.setf (std::ios_base::fixed);
+      if (!outFileCtrlMessages.is_open ())
+        {
+          NS_LOG_ERROR ("Can't open file to save lte-enb-phy.cc ctrl messages stats");
+          return;
+        }
+      outFileCtrlMessages << "Number of subframes used to send all CTRL messages:" << m_ctrlMsgCounter << " " << std::endl;
+      for(std::map<int, int>::iterator i = m_ctrlTypesCount.begin (); i != m_ctrlTypesCount.end (); i++)
+        {
+          outFileCtrlMessages << PrintMessageType (i->first) <<  " ";
+          outFileCtrlMessages << i->second << " " << std::endl;
+        }
+      outFileCtrlMessages.close ();
+
+      // save statistics regarding resource block occupancy
+      std::ofstream outFileRbOccupancy;
+      std::ostringstream outstringRb;
+      outstringRb << "rb_occupancy.txt" << m_cellId << ".txt";
+      outFileRbOccupancy.open (outstringRb.str ().c_str (), std::ofstream::out | std::ofstream::app);
+      outFileRbOccupancy.setf (std::ios_base::fixed);
+
+      if (!outFileRbOccupancy.is_open ())
+        {
+          NS_LOG_ERROR ("Can't open file to save lte-enb-phy.cc resource blocks usage stats");
+          return;
+        }
+
+      for (std::map<Time, double>::iterator it = m_logTimeToRbUsage.begin (); it != m_logTimeToRbUsage.end (); it++)
+        {
+          outFileRbOccupancy << it->first.GetSeconds () <<  " ";
+          outFileRbOccupancy << (uint32_t)it->second << " " << std::endl;
+        }
+      outFileRbOccupancy.close ();
+    }
+
   m_ueAttached.clear ();
   m_srsUeOffset.clear ();
   delete m_enbPhySapProvider;
@@ -390,6 +528,35 @@ LteEnbPhy::GetUlSpectrumPhy () const
   return m_uplinkSpectrumPhy;
 }
 
+void
+LteEnbPhy::SetUseReservationSignal (bool useReservationSignal)
+{
+  NS_LOG_FUNCTION (this << useReservationSignal);
+  m_reservationSignal = useReservationSignal;
+}
+
+Time
+LteEnbPhy::GetGrantTimeout () const
+{
+  return m_grantTimeout;
+}
+
+void
+LteEnbPhy::SetChannelAccessManager (Ptr<LteChannelAccessManager> channelAccessManager)
+{
+  NS_LOG_FUNCTION (this);
+  //TODO before changing channel access manager take the stateof the previous, e.g. channel access grant
+  m_channelAccessManager = channelAccessManager;
+  m_channelAccessManager->SetAccessGrantedCallback (MakeCallback (&LteEnbPhy::ReceiveAccessGranted, this));
+  //RequestChannelAccess();
+}
+
+Ptr<LteChannelAccessManager>
+LteEnbPhy::GetChannelAccessManager ()
+{
+  return m_channelAccessManager;
+}
+
 bool
 LteEnbPhy::AddUePhy (uint16_t rnti)
 {
@@ -493,6 +660,7 @@ Ptr<SpectrumValue>
 LteEnbPhy::CreateTxPowerSpectralDensity ()
 {
   NS_LOG_FUNCTION (this);
+  NS_LOG_DEBUG ("TX Power: " << m_txPower);
 
   Ptr<SpectrumValue> psd = LteSpectrumValueHelper::CreateTxPowerSpectralDensity (m_dlEarfcn, m_dlBandwidth, m_txPower, GetDownlinkSubChannels ());
 
@@ -601,15 +769,28 @@ LteEnbPhy::StartFrame (void)
   NS_LOG_INFO ("-----frame " << m_nrFrames << "-----");
   m_nrSubFrames = 0;
 
-  // send MIB at beginning of every frame
-  m_mib.systemFrameNumber = m_nrSubFrames;
-  Ptr<MibLteControlMessage> mibMsg = Create<MibLteControlMessage> ();
-  mibMsg->SetMib (m_mib);
-  m_controlMessagesQueue.at (0).push_back (mibMsg);
+  if (m_disableMibAndSibStartupTime == Seconds (0) ||
+      (m_disableMibAndSibStartupTime != Seconds (0) && Simulator::Now () <= m_disableMibAndSibStartupTime))
+    {
+      uint32_t period = m_mibPeriod / 10;
+      if ((m_nrFrames % period) == 0)
+        {
+          // send MIB at beginning of every frame
+          m_mib.systemFrameNumber = m_nrSubFrames;
+          Ptr<MibLteControlMessage> mibMsg = Create<MibLteControlMessage> ();
+          mibMsg->SetMib (m_mib);
+          m_controlMessagesQueue.at (0).push_back (mibMsg);
+        }
+    }
 
   StartSubFrame ();
 }
 
+bool
+LteEnbPhy::IsThereData ()
+{
+  return m_enbPhySapUser->IsThereData ();
+}
 
 void
 LteEnbPhy::StartSubFrame (void)
@@ -617,6 +798,9 @@ LteEnbPhy::StartSubFrame (void)
   NS_LOG_FUNCTION (this);
 
   ++m_nrSubFrames;
+  m_ttiBegin = Simulator::Now();
+
+  // Piece of code that needs to be executed each subframe, no matter if we are are transmiting subframe or not
 
   /*
    * Send SIB1 at 6th subframe of every odd-numbered radio frame. This is
@@ -625,20 +809,43 @@ LteEnbPhy::StartSubFrame (void)
    * which SFN mod 2 = 0," except that 3GPP counts frames and subframes starting
    * from 0, while ns-3 counts starting from 1.
    */
-  if ((m_nrSubFrames == 6) && ((m_nrFrames % 2) == 1))
+
+  if (m_disableMibAndSibStartupTime == Seconds (0) ||
+      (m_disableMibAndSibStartupTime != Seconds (0) &&  Simulator::Now () <= m_disableMibAndSibStartupTime))
     {
-      Ptr<Sib1LteControlMessage> msg = Create<Sib1LteControlMessage> ();
-      msg->SetSib1 (m_sib1);
-      m_controlMessagesQueue.at (0).push_back (msg);
+      uint32_t sibPeriod = m_sibPeriod / 10;
+      if ((m_nrSubFrames == 6) && ((m_nrFrames % sibPeriod) == 1))
+        {
+          Ptr<Sib1LteControlMessage> msg = Create<Sib1LteControlMessage> ();
+          msg->SetSib1 (m_sib1);
+          m_controlMessagesQueue.at (0).push_back (msg);
+        }
     }
 
-  if (m_srsPeriodicity>0)
-    { 
-      // might be 0 in case the eNB has no UEs attached
-      NS_ASSERT_MSG (m_nrFrames > 1, "the SRS index check code assumes that frameNo starts at 1");
-      NS_ASSERT_MSG (m_nrSubFrames > 0 && m_nrSubFrames <= 10, "the SRS index check code assumes that subframeNo starts at 1");
-      m_currentSrsOffset = (((m_nrFrames-1)*10 + (m_nrSubFrames-1)) % m_srsPeriodicity);
+  if (m_drsMessagesEnabled)
+    {
+      uint32_t drsPeriod = m_drsPeriod/10;
+      if ((m_nrSubFrames == 6) && ((m_nrFrames % drsPeriod) == 1))
+        {
+          Ptr<DrsLteControlMessage> msg = Create<DrsLteControlMessage> ();
+          m_controlMessagesQueue.at (0).push_back (msg);
+        }
     }
+
+  /*
+   * This code should be removed because the only variable affected is m_currentSrsOffset and is only used in CreateSrsCqiReport(). The main reason is when used
+   * some channel acess transmission model that does not call StartSubFrame() for some time, can leave m_currentSrsOffset with old value, which can cause problems because
+   * CreateSrsCqiReport() is called periodically by interference model.
+   *
+    if (m_srsPeriodicity>0)
+       {
+         // might be 0 in case the eNB has no UEs attached
+         NS_ASSERT_MSG (m_nrFrames > 1, "the SRS index check code assumes that frameNo starts at 1");
+         NS_ASSERT_MSG (m_nrSubFrames > 0 && m_nrSubFrames <= 10, "the SRS index check code assumes that subframeNo starts at 1");
+         m_currentSrsOffset = (((m_nrFrames-1)*10 + (m_nrSubFrames-1)) % m_srsPeriodicity);
+       }
+   */
+
   NS_LOG_INFO ("-----sub frame " << m_nrSubFrames << "-----");
   m_harqPhyModule->SubframeIndication (m_nrFrames, m_nrSubFrames);
 
@@ -676,10 +883,159 @@ LteEnbPhy::StartSubFrame (void)
         }
     }
 
+  // if there is no channel access manager transmit subframe
+  if (m_channelAccessManager == 0 ||
+      (m_channelAccessManager != 0 && Simulator::Now () < m_channelAccessManagerStartTime))
+    {
+      TransmitSubFrame ();
+    }
+  else  // if there is channel access manager
+    {
+      if (m_channelAccessImplWith2msDelay)
+        {
+          // if we have grant and there is no data in the buffers of scheduler
+          if ((m_grantTimeout > m_ttiBegin + MilliSeconds (m_macChTtiDelay)) && (!IsThereData ()))
+            {
+              // reduce grant, but allow to PHY to transmit what MAC has alrady scheduled
+              NS_LOG_INFO ("Grant reduced from: " << m_grantTimeout << " to:" << m_ttiBegin + MilliSeconds (m_macChTtiDelay));
+              m_grantTimeout = m_ttiBegin + MilliSeconds (m_macChTtiDelay);
+            }
+
+          // check if channel access was requested, if not request it now.
+          if (m_grantTimeout < m_ttiBegin && !m_isWaitingForChannelAccessGrant && IsThereData ())
+            {
+              // this may invoke immediate update of m_grantTimeout variable from ReceiveAccessGranted,
+              // so it is very important at which point in code we invoke RequestChannelAccess
+              RequestChannelAccess ();
+            }
+
+          // check again state of grant timeout variable, because it might got updated immediately after RequestChannelAccess
+          if (m_grantTimeout - m_ttiBegin >= Seconds (GetTti ()))
+            {
+              TransmitSubFrame ();
+              // because there is a delay between mac and phy, check if channel access will be granted in the future timestamp for which mac would be scheduling if SubframeIndication is triggered
+              if (m_grantTimeout - m_ttiBegin >= MilliSeconds (m_macChTtiDelay) + Seconds (GetTti ()))
+                {
+                  // trigger the MAC
+                  m_enbPhySapUser->SubframeIndication (m_nrFrames, m_nrSubFrames);
+                }
+            }
+          else // no grant, continue to wait for a grant
+            {
+              // if there is nothing to be transmitted shift the queue
+              if (!IsNonEmptyCtrlMessage () && (!IsNonEmptyPacketBurst ()))
+                {
+                  GetControlMessages ();
+                  GetPacketBurst ();
+                }
+            }
+
+          Simulator::Schedule (Seconds (GetTti ()), &LteEnbPhy::EndSubFrame, this);
+          return;
+        }
+      else  // implementation 2 - without 2ms delay, scheduler is not being stopped
+        {
+          // check in queue if there are empty elements
+          CheckQueues ();
+          // if there is no data neither ctrl messages ready to be transmitted shift the queues and release the grant
+          if (!IsNonEmptyCtrlMessage ())
+            {
+              UpdateQueues (m_dropPackets);
+              m_grantTimeout = m_ttiBegin;
+            }
+          else  // there is something ready to be transmitted
+            {
+              // channel access granted
+              if (m_grantTimeout > m_ttiBegin)
+                {
+                  // there is data, check if grant is enough to transmit CTRL or/and DATA, if not ask for new grant
+                  if ((IsNonEmptyPacketBurst () && m_grantTimeout-m_ttiBegin < Seconds (GetTti ())) ||
+                      (!IsNonEmptyPacketBurst () && IsNonEmptyCtrlMessage () && (m_grantTimeout - m_ttiBegin < DL_CTRL_DELAY_FROM_SUBFRAME_START)))
+                    {
+                      m_grantTimeout = m_ttiBegin;
+                      RequestChannelAccess();
+                    }
+                }
+              // channel access not granted
+              else
+                {
+                  // if there is data, ask for channel access grant
+                  if (!m_isWaitingForChannelAccessGrant)
+                    {
+                      RequestChannelAccess ();
+                    }
+                }
+
+              // check again state of grant timeout variable, because it might got updated immediately after RequestChannelAccess
+              if (m_grantTimeout - m_ttiBegin >=  Seconds (GetTti ()))
+                {
+                  NS_ASSERT_MSG (m_controlMessagesQueue.at (0).size (), " Transmit subframe should not be called when there is nothing to transmit.");
+                  TransmitSubFrame ();
+                }
+              else // no grant, continue to wait for a grant
+                {
+                  if (m_dropPackets)
+                    {
+                      std::list<Ptr<LteControlMessage> > ctrlMsg = GetLteControlMessageVector ().at (0);
+                      bool m_hasUlDci = false;
+
+                      if (ctrlMsg.size () > 0)
+                        {
+                          std::list<Ptr<LteControlMessage> >::iterator it;
+                          it = ctrlMsg.begin ();
+
+                          while (it != ctrlMsg.end ())
+                            {
+                              Ptr<LteControlMessage> msg = (*it);
+                              if (msg->GetMessageType () == LteControlMessage::UL_DCI)
+                                {
+                                  NS_LOG_DEBUG ("found UL-DCI");
+                                  m_hasUlDci=true;
+                                }
+                              it++;
+                            }
+                        }
+                      // we drop packet in case we have UL_DCI
+                      if (m_hasUlDci)
+                        {
+                          NS_LOG_DEBUG ("Dropping PDU because its ctrl message contains UL_DCI");
+                          UpdateQueues (true);
+                        }
+                      else
+                        {
+                          UpdateQueues (false);
+                        }
+                    }//end of if drop packet
+                  else
+                    {
+                      // dont drop
+                      UpdateQueues (false);
+                    }
+                }// end of if no grant
+            } //end of else (there is ctrl or data available for transmission)
+        }// end of else of implementation 2
+    } // end of else if there is channel access manager
+
+  // trigger the MAC
+  m_enbPhySapUser->SubframeIndication (m_nrFrames, m_nrSubFrames);
+  Simulator::Schedule (Seconds (GetTti ()),
+                       &LteEnbPhy::EndSubFrame,
+                       this);
+
+}
+
+
+void
+LteEnbPhy::TransmitSubFrame (void)
+{
+  NS_LOG_FUNCTION (this);
+
   // process the current burst of control messages
   std::list<Ptr<LteControlMessage> > ctrlMsg = GetControlMessages ();
+  m_ctrlMsgTransmission(ctrlMsg);
   m_dlDataRbMap.clear ();
   m_dlPowerAllocationMap.clear ();
+  bool drsCtrlMessage = false;
   if (ctrlMsg.size () > 0)
     {
       std::list<Ptr<LteControlMessage> >::iterator it;
@@ -756,29 +1112,92 @@ LteEnbPhy::StartSubFrame (void)
                   QueueUlDci (msg);
                 }
             }
+          else if (msg->GetMessageType () == LteControlMessage::DRS)
+            {
+              m_lastDrsMessageSent = Simulator::Now();
+              drsCtrlMessage = true;
+            }
           it++;
-
         }
     }
 
-  SendControlChannels (ctrlMsg);
+  NS_ASSERT_MSG (m_nrSubFrames > 0 && m_nrSubFrames <= 10, "code assumes subframe in 1..10");
+  uint32_t absIndex = (m_nrFrames % 4) * 10 + ((m_nrSubFrames - 1) % 10);
+  uint32_t absIndex2 = (m_nrFrames * 10 + (m_nrSubFrames - 1)) % 40;
+  bool isAlmostBlankSubframe = m_absPattern[absIndex];
 
-  // send data frame
-  Ptr<PacketBurst> pb = GetPacketBurst ();
-  if (pb)
+  if (isAlmostBlankSubframe) // Almost Blank Subframe
     {
-      Simulator::Schedule (DL_CTRL_DELAY_FROM_SUBFRAME_START, // ctrl frame fixed to 3 symbols
-                           &LteEnbPhy::SendDataChannels,
-                           this,pb);
+      NS_LOG_LOGIC ("Almost Blank Subframe (ABS), absIndex=" << absIndex << ", absIndex2=" << absIndex2 << ", m_absPattern=" << m_absPattern);
+      Ptr<PacketBurst> pb = GetPacketBurst ();
+      NS_ASSERT_MSG (pb == 0, "the LTE MAC scheduler shall not allocate data transmission in an ABS");
     }
+  else // regular subframe
+    {
+      std::list<Ptr<LteControlMessage> >::iterator it;
+      it = ctrlMsg.begin ();
+      while (it != ctrlMsg.end ())
+        {
+          Ptr<LteControlMessage> msg = (*it);
+          if (m_ctrlTypesCount.find (msg->GetMessageType ()) == m_ctrlTypesCount.end ())
+            {
+              m_ctrlTypesCount.insert (std::make_pair<int, int> (msg->GetMessageType (), 1));
+            }
+          else
+            {
+              m_ctrlTypesCount.find (msg->GetMessageType ())->second++;
+            }
+          it++;
+        }
 
-  // trigger the MAC
-  m_enbPhySapUser->SubframeIndication (m_nrFrames, m_nrSubFrames);
-
-  Simulator::Schedule (Seconds (GetTti ()),
-                       &LteEnbPhy::EndSubFrame,
-                       this);
-
+      m_ctrlMsgCounter++;
+      SendControlChannels (ctrlMsg);
+      // schedule PDSCH transmission
+      Ptr<PacketBurst> pb = GetPacketBurst ();
+      if (pb)
+        {
+          Simulator::Schedule (DL_CTRL_DELAY_FROM_SUBFRAME_START, // ctrl frame fixed to 3 symbols
+                               &LteEnbPhy::SendDataChannels,
+                               this,pb);
+        }
+      else if (m_channelAccessManager && (Simulator::Now () > m_channelAccessManagerStartTime)) // check if to send reservation signal after ctrl
+        {
+          if (m_channelAccessImplWith2msDelay)
+            {
+              if (m_reservationSignal)
+                {
+                  Simulator::Schedule (DL_CTRL_DELAY_FROM_SUBFRAME_START, // ctrl frame fixed to 3 symbols
+                                       &LteEnbPhy::DoSendReservationSignal,
+                                       this);
+                }
+            }
+          else
+            {
+              // in the case of drs messages we send reservation signal to simulate that drs message
+              // lasts 1 subframe instead of only 3 symbols
+              if (drsCtrlMessage && m_reservationSignal)
+                {
+                  NS_LOG_DEBUG ("eNB is transmitting DRS at: " << Simulator::Now ());
+                  // Set m_drsReservationSignal to true so we do not fire the ReservationSignal trace again
+                  // in DoSendReservationSignal. DoSendReservationSignal here is being called just to make
+                  // DRS duration 1 msec, not to reserve the channel as we normally do if we get grant in
+                  // the middle of subframe.
+                  m_drsReservationSignal = true;
+                  Simulator::Schedule (DL_CTRL_DELAY_FROM_SUBFRAME_START, // ctrl frame fixed to 3 symbols
+                                       &LteEnbPhy::DoSendReservationSignal,
+                                       this);
+                }
+              else
+                {
+                  // release the grant only when there is nothing waiting to be transmitted
+                  if (m_controlMessagesQueue.at (0).size () == 0)
+                    {
+                      m_grantTimeout = m_ttiBegin + DL_CTRL_DELAY_FROM_SUBFRAME_START;
+                    }
+                }
+            }
+        }
+    }
 }
 
 void
@@ -805,6 +1224,8 @@ LteEnbPhy::SendControlChannels (std::list<Ptr<LteControlMessage> > ctrlMsgList)
 void
 LteEnbPhy::SendDataChannels (Ptr<PacketBurst> pb)
 {
+  // update log file for RB usage
+  m_logTimeToRbUsage.insert (std::make_pair<Time, int> (Simulator::Now (), m_dlDataRbMap.size ()));
   // set the current tx power spectral density
   SetDownlinkSubChannelsWithPowerAllocation (m_dlDataRbMap);
   // send the current burts of packets
@@ -812,6 +1233,44 @@ LteEnbPhy::SendDataChannels (Ptr<PacketBurst> pb)
   std::list<Ptr<LteControlMessage> > ctrlMsgList;
   ctrlMsgList.clear ();
   m_downlinkSpectrumPhy->StartTxDataFrame (pb, ctrlMsgList, DL_DATA_DURATION);
+
+  m_data (pb->GetSize ());
+}
+
+
+void
+LteEnbPhy::DoSendReservationSignal ()
+{
+  // set the current tx power spectral density (full bandwidth)
+  NS_LOG_FUNCTION (this << " eNB: " << m_cellId << " start tx reserv signal at: " << Simulator::Now ().GetMilliSeconds () << " until: " << m_ttiBegin + Seconds (GetTti ()));
+  // Since this is async call, check if we are already transmitting something. If there is already some transmission ongoing, then this reservation signal should not be sent
+  if (!m_downlinkSpectrumPhy->IsStateIdle ())
+  {
+    NS_LOG_WARN ("Tried to send reservation signal when channel state is not IDLE.");
+    return;
+  }
+  NS_ASSERT_MSG (m_channelAccessManager && (Simulator::Now () >= m_channelAccessManagerStartTime), "When m_channelAccessManager is not set, SendReservationSignal function should not be called.");
+
+  std::vector <int> dlRb;
+  for (uint8_t i = 0; i < m_dlBandwidth; i++)
+    {
+      dlRb.push_back (i);
+    }
+  SetDownlinkSubChannels (dlRb);
+  NS_LOG_LOGIC (this << " eNB start TX RESERV SIGNAL");
+  std::list<Ptr<LteControlMessage> > ctrlMsgList;
+  ctrlMsgList.clear ();
+  // similarly to when the data is sent, we reduce the duration for 1 nanoseconds to avoid overlapping simulator events.
+  Time duration = m_ttiBegin + Seconds (GetTti ()) - Simulator::Now () - NanoSeconds (1);
+  if (duration > Seconds (0))
+  {
+     m_downlinkSpectrumPhy->StartTxDataFrame (0, ctrlMsgList, duration);
+     if(!m_drsReservationSignal)
+       {
+          m_reservationSignalTraceSource (Simulator::Now (), duration);
+       }
+     m_drsReservationSignal = false;
+  }
 }
 
 
@@ -837,6 +1296,29 @@ LteEnbPhy::EndFrame (void)
   Simulator::ScheduleNow (&LteEnbPhy::StartFrame, this);
 }
 
+void
+LteEnbPhy::RequestChannelAccess(void)
+{
+  NS_LOG_FUNCTION (this);
+  NS_ASSERT_MSG (m_channelAccessManager != 0 && (Simulator::Now () >= m_channelAccessManagerStartTime), "Channel access manager not set!");
+  m_isWaitingForChannelAccessGrant = true;
+  m_channelAccessManager->RequestAccess ();
+}
+
+void
+LteEnbPhy::ReceiveAccessGranted(Time grantDuration)
+{
+  NS_LOG_FUNCTION (this);
+  // get duration of grant as number of TTIs
+  m_grantTimeout = Simulator::Now () + grantDuration;
+  m_txopTraceSource (Simulator::Now (), grantDuration, m_ttiBegin + Seconds(GetTti ()));
+  m_isWaitingForChannelAccessGrant = false;
+  // dont send reservation if we are at the beginning of the subframe
+  if (m_ttiBegin != Simulator::Now ())
+    {
+      DoSendReservationSignal ();
+    }
+}
 
 void 
 LteEnbPhy::GenerateCtrlCqiReport (const SpectrumValue& sinr)
@@ -1000,6 +1482,8 @@ LteEnbPhy::CreateSrsCqiReport (const SpectrumValue& sinr)
       i++;
     }
   // Insert the user generated the srs as a vendor specific parameter
+  // update currentSrsOffset
+  m_currentSrsOffset = (((m_nrFrames - 1) * 10 + (m_nrSubFrames - 1)) % m_srsPeriodicity);
   NS_LOG_DEBUG (this << " ENB RX UL-CQI of " << m_srsUeOffset.at (m_currentSrsOffset));
   VendorSpecificListElement_s vsp;
   vsp.m_type = SRS_CQI_RNTI_VSP;
@@ -1116,6 +1600,14 @@ LteEnbPhy::DoSetSystemInformationBlockType1 (LteRrcSap::SystemInformationBlockTy
 {
   NS_LOG_FUNCTION (this);
   m_sib1 = sib1;
+}
+
+
+void
+LteEnbPhy::DoSetAbsPattern (std::bitset<40> absPattern)
+{
+  NS_LOG_FUNCTION (this);
+  m_absPattern = absPattern;
 }
 
 

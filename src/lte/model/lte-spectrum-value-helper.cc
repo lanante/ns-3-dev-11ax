@@ -92,8 +92,10 @@ static const struct EutraChannelNumbers
   { 37, 1910, 37550, 37550, 37749, 1910, 37550, 37550, 37749},
   { 38, 2570, 37750, 37750, 38249, 2570, 37750, 37750, 38249},
   { 39, 1880, 38250, 38250, 38649, 1880, 38250, 38250, 38649},
-  { 40, 2300, 38650, 38650, 39649, 2300, 38650, 38650, 39649}
-}; ///< eutra channel numbers
+  { 40, 2300, 38650, 38650, 39649, 2300, 38650, 38650, 39649},
+  { 52, 5150, 255144, 255144, 256143, 0, 0, 0, 0},
+  { 55, 5725, 260894, 260894, 262143, 0, 0, 0, 0}
+};
 
 /// number of EUTRA bands
 #define NUM_EUTRA_BANDS (sizeof (g_eutraChannelNumbers) / sizeof (EutraChannelNumbers))
@@ -102,7 +104,7 @@ double
 LteSpectrumValueHelper::GetCarrierFrequency (uint32_t earfcn)
 {
   NS_LOG_FUNCTION (earfcn);
-  if (earfcn < 7000)
+  if ((earfcn < 7000) || (earfcn > 255144))
     {
       // FDD downlink
       return GetDownlinkCarrierFrequency (earfcn);
@@ -343,11 +345,10 @@ LteSpectrumValueHelper::CreateNoisePowerSpectralDensity (uint32_t earfcn, uint8_
   return CreateNoisePowerSpectralDensity (noiseFigure, model);
 }
 
-Ptr<SpectrumValue>
-LteSpectrumValueHelper::CreateNoisePowerSpectralDensity (double noiseFigureDb, Ptr<SpectrumModel> spectrumModel)
+double
+LteSpectrumValueHelper::GetNoisePowerSpectralDensity (double noiseFigureDb)
 {
-  NS_LOG_FUNCTION (noiseFigureDb << spectrumModel);
-
+  NS_LOG_FUNCTION (noiseFigureDb);
 
   // see "LTE - From theory to practice"
   // Section 22.4.4.2 Thermal Noise and Receiver Noise Figure
@@ -355,6 +356,15 @@ LteSpectrumValueHelper::CreateNoisePowerSpectralDensity (double noiseFigureDb, P
   double kT_W_Hz = std::pow (10.0, (kT_dBm_Hz - 30) / 10.0);
   double noiseFigureLinear = std::pow (10.0, noiseFigureDb / 10.0);
   double noisePowerSpectralDensity =  kT_W_Hz * noiseFigureLinear;
+  return noisePowerSpectralDensity;
+}
+
+Ptr<SpectrumValue>
+LteSpectrumValueHelper::CreateNoisePowerSpectralDensity (double noiseFigureDb, Ptr<SpectrumModel> spectrumModel)
+{
+  NS_LOG_FUNCTION (noiseFigureDb << spectrumModel);
+
+  double noisePowerSpectralDensity =  GetNoisePowerSpectralDensity (noiseFigureDb);
 
   Ptr<SpectrumValue> noisePsd = Create <SpectrumValue> (spectrumModel);
   (*noisePsd) = noisePowerSpectralDensity;

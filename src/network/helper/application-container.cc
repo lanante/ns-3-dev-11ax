@@ -90,6 +90,15 @@ ApplicationContainer::Start (Time start)
     }
 }
 void 
+ApplicationContainer::StartWithJitter (Time start, Ptr<RandomVariableStream> rv)
+{
+  for (Iterator i = Begin (); i != End (); ++i)
+    {
+      Ptr<Application> app = *i;
+      app->SetStartTime (start + Seconds (rv->GetValue ()));
+    }
+}
+void 
 ApplicationContainer::Stop (Time stop)
 {
   for (Iterator i = Begin (); i != End (); ++i)

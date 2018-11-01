@@ -175,13 +175,13 @@ LteEnbAntennaTestCase::DoRun (void)
   // Use testing chunk processor in the PHY layer
   // It will be used to test that the SNR is as intended
   Ptr<LtePhy> uePhy = ueDevs.Get (0)->GetObject<LteUeNetDevice> ()->GetPhy ()->GetObject<LtePhy> ();
-  Ptr<LteChunkProcessor> testDlSinr = Create<LteChunkProcessor> ();
+  Ptr<LteAverageChunkProcessor> testDlSinr = Create<LteAverageChunkProcessor> ();
   LteSpectrumValueCatcher dlSinrCatcher;
   testDlSinr->AddCallback (MakeCallback (&LteSpectrumValueCatcher::ReportValue, &dlSinrCatcher));
   uePhy->GetDownlinkSpectrumPhy ()->AddDataSinrChunkProcessor (testDlSinr);
 
   Ptr<LtePhy> enbphy = enbDevs.Get (0)->GetObject<LteEnbNetDevice> ()->GetPhy ()->GetObject<LtePhy> ();
-  Ptr<LteChunkProcessor> testUlSinr = Create<LteChunkProcessor> ();
+  Ptr<LteAverageChunkProcessor> testUlSinr = Create<LteAverageChunkProcessor> ();
   LteSpectrumValueCatcher ulSinrCatcher;
   testUlSinr->AddCallback (MakeCallback (&LteSpectrumValueCatcher::ReportValue, &ulSinrCatcher));
   enbphy->GetUplinkSpectrumPhy ()->AddDataSinrChunkProcessor (testUlSinr);
@@ -208,7 +208,7 @@ LteEnbAntennaTestCase::DoRun (void)
   const double enbNoiseFigureDb = 5.0; // default eNB noise figure
   double tolerance = (m_antennaGainDb != 0) ? std::abs (m_antennaGainDb) * 0.001 : 0.001;
 
-  // first test with SINR from LteChunkProcessor
+  // first test with SINR from LteAverageChunkProcessor
   // this can only be done for not-too-bad SINR otherwise the measurement won't be available
   double expectedSinrDl = enbTxPowerDbm + m_antennaGainDb - noisePowerDbm + ueNoiseFigureDb;
   if (expectedSinrDl > 0)

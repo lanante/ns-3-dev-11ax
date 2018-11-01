@@ -2114,6 +2114,26 @@ LteEnbRrc::SetCellId (uint16_t cellId, uint8_t ccIndex)
   m_cphySapProvider.at (ccIndex)->SetSystemInformationBlockType1 (m_sib1.at (ccIndex));
 }
 
+void
+LteEnbRrc::SetAbsPattern (std::bitset<40> absPattern)
+{
+  SetAbsPattern (absPattern, 0);
+}
+
+void
+LteEnbRrc::SetAbsPattern (std::bitset<40> absPattern, uint8_t ccIndex)
+{
+  NS_LOG_FUNCTION (this << absPattern << ccIndex);
+  NS_ASSERT_MSG (absPattern[0] == 0 || absPattern[10] == 0 || absPattern[20] == 0 || absPattern[30] == 0,
+                 "The model needs at least a non-blank subframe in {0, 10, 20, 30} to tx the MIB. "
+                 "Watch out for the bit order in the std::bitset constructor from string.");
+  NS_ASSERT_MSG (absPattern[15] == 0 || absPattern[35] == 0,
+                 "The model needs at least a non-blank subframe in {15, 35} to tx the SIB1. "
+                 "Watch out for the bit order in the std::bitset constructor from string."); 
+  m_cmacSapProvider.at (ccIndex)->SetAbsPattern (absPattern);
+  m_cphySapProvider.at (ccIndex)->SetAbsPattern (absPattern);
+}
+
 uint8_t
 LteEnbRrc::CellToComponentCarrierId (uint16_t cellId)
 {

@@ -433,6 +433,13 @@ LteSpectrumPhy::ChangeState (State newState)
 }
 
 
+bool
+LteSpectrumPhy::IsStateIdle (void)
+{
+  return (m_state == IDLE);
+}
+
+
 void
 LteSpectrumPhy::SetHarqPhyModule (Ptr<LteHarqPhy> harq)
 {
@@ -662,6 +669,10 @@ LteSpectrumPhy::StartRx (Ptr<SpectrumSignalParameters> spectrumRxParams)
   Ptr <const SpectrumValue> rxPsd = spectrumRxParams->psd;
   Time duration = spectrumRxParams->duration;
   
+  // pass it to interference calculations regardless of the type (LTE or non-LTE)
+  m_interferenceData->AddSignal (rxPsd, duration);
+  m_interferenceCtrl->AddSignal (rxPsd, duration);
+
   // the device might start RX only if the signal is of a type
   // understood by this device - in this case, an LTE signal.
   Ptr<LteSpectrumSignalParametersDataFrame> lteDataRxParams = DynamicCast<LteSpectrumSignalParametersDataFrame> (spectrumRxParams);
@@ -669,24 +680,19 @@ LteSpectrumPhy::StartRx (Ptr<SpectrumSignalParameters> spectrumRxParams)
   Ptr<LteSpectrumSignalParametersUlSrsFrame> lteUlSrsRxParams = DynamicCast<LteSpectrumSignalParametersUlSrsFrame> (spectrumRxParams);
   if (lteDataRxParams != 0)
     {
-      m_interferenceData->AddSignal (rxPsd, duration);
       StartRxData (lteDataRxParams);
     }
   else if (lteDlCtrlRxParams!=0)
     {
-      m_interferenceCtrl->AddSignal (rxPsd, duration);
       StartRxDlCtrl (lteDlCtrlRxParams);
     }
   else if (lteUlSrsRxParams!=0)
     {
-      m_interferenceCtrl->AddSignal (rxPsd, duration);
       StartRxUlSrs (lteUlSrsRxParams);
     }
   else
     {
-      // other type of signal (could be 3G, GSM, whatever) -> interference
-      m_interferenceData->AddSignal (rxPsd, duration);
-      m_interferenceCtrl->AddSignal (rxPsd, duration);
+      NS_LOG_LOGIC ("non-LTE signal received");
     }    
 }
 
@@ -702,7 +708,14 @@ LteSpectrumPhy::StartRxData (Ptr<LteSpectrumSignalParametersDataFrame> params)
         NS_FATAL_ERROR ("cannot RX while TX: according to FDD channel access, the physical layer for transmission cannot be used for reception");
         break;
       case RX_DL_CTRL:
-        NS_FATAL_ERROR ("cannot RX Data while receiving control");
+        if (m_cellId && params->cellId  == m_cellId )
+          {
+            NS_FATAL_ERROR ("cannot RX Data while receiving control");
+          }
+        else
+          {
+            NS_LOG_LOGIC (this << " not in sync with this signal (cellId="<< params->cellId  << ", m_cellId=" << m_cellId << ")");
+          }
         break;
       case IDLE:
       case RX_DATA:
@@ -924,9 +937,9 @@ LteSpectrumPhy::StartRxUlSrs (Ptr<LteSpectrumSignalParametersUlSrsFrame> lteUlSr
 
 
 void
-LteSpectrumPhy::UpdateSinrPerceived (const SpectrumValue& sinr)
+LteSpectrumPhy::UpdateSinrPerceived (std::list<LteListChunkProcessor::Chunk> sinr)
 {
-  NS_LOG_FUNCTION (this << sinr);
+  NS_LOG_FUNCTION (this);
   m_sinrPerceived = sinr;
 }
 
@@ -969,7 +982,12 @@ LteSpectrumPhy::EndRxData ()
   // apply transmission mode gain
   NS_LOG_DEBUG (this << " txMode " << (uint16_t)m_transmissionMode << " gain " << m_txModeGain.at (m_transmissionMode));
   NS_ASSERT (m_transmissionMode < m_txModeGain.size ());
-  m_sinrPerceived *= m_txModeGain.at (m_transmissionMode);
+  for (std::list<LteListChunkProcessor::Chunk>::iterator chunkIt = m_sinrPerceived.begin ();
+       chunkIt != m_sinrPerceived.end ();
+       ++chunkIt)
+    {
+      *chunkIt->m_spectrumValue *= m_txModeGain.at (m_transmissionMode);
+    }
   
   while (itTb!=m_expectedTbs.end ())
     {
@@ -1164,10 +1182,16 @@ LteSpectrumPhy::EndRxDlCtrl ()
   // apply transmission mode gain
   NS_LOG_DEBUG (this << " txMode " << (uint16_t)m_transmissionMode << " gain " << m_txModeGain.at (m_transmissionMode));
   NS_ASSERT (m_transmissionMode < m_txModeGain.size ());
+  NS_ASSERT (m_txModeGain.size () >= 2);
   if (m_transmissionMode>0)
     {
       // in case of MIMO, ctrl is always txed as TX diversity
-      m_sinrPerceived *= m_txModeGain.at (1);
+      for (std::list<LteListChunkProcessor::Chunk>::iterator chunkIt = m_sinrPerceived.begin ();
+           chunkIt != m_sinrPerceived.end ();
+           ++chunkIt)
+        {
+          *chunkIt->m_spectrumValue *= m_txModeGain.at (1);
+        }
     }
 //   m_sinrPerceived *= m_txModeGain.at (m_transmissionMode);
   bool error = false;

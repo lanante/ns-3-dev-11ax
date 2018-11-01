@@ -28,9 +28,12 @@
 #include <ns3/lte-enb-cphy-sap.h>
 #include <ns3/lte-phy.h>
 #include <ns3/lte-harq-phy.h>
+#include <ns3/lte-channel-access-manager.h>
+#include <ns3/string.h>
 
 #include <map>
 #include <set>
+#include <bitset>
 
 
 
@@ -65,6 +68,8 @@ public:
   LteEnbPhy (Ptr<LteSpectrumPhy> dlPhy, Ptr<LteSpectrumPhy> ulPhy);
 
   virtual ~LteEnbPhy ();
+
+  std::string PrintMessageType(int i);
 
   /**
    * \brief Get the type ID.
@@ -144,6 +149,34 @@ public:
    * \return a pointer to the LteSpectrumPhy instance relative to the uplink
    */
   Ptr<LteSpectrumPhy> GetUlSpectrumPhy () const;
+
+  /**
+   * Set if reservation signal should be used when using channel access manager
+   *
+   * \param useReservationSignal if true, reservation signal will be used
+   */
+  void SetUseReservationSignal (bool useReservationSignal);
+
+  /**
+   * Get the time when channel access grant expires
+   *
+   * \return Time when channel access grant expires
+   */
+  Time GetGrantTimeout() const;
+
+  /**
+   * Set the channel access manager to be used by eNodeB devices.
+   *
+   * \param Pointer to channel access manager.
+   */
+  void SetChannelAccessManager (Ptr<LteChannelAccessManager> channelAccessManager);
+
+  /**
+   * Get a pointer to the channel access manager.
+   *
+   * \return a pointer to the channel access manager.
+   */
+  Ptr<LteChannelAccessManager> GetChannelAccessManager ();
 
 
   /**
@@ -258,6 +291,14 @@ public:
    */
   void StartSubFrame (void);
   /**
+   * \brief Ask MAC if there is data to be transmitted.
+   */
+  bool IsThereData (void);
+  /**
+   * \brief Transmit a LTE sub frame
+   */
+  void TransmitSubFrame (void);
+  /**
    * \brief End a LTE sub frame
    */
   void EndSubFrame (void);
@@ -265,6 +306,15 @@ public:
    * \brief End a LTE frame
    */
   void EndFrame (void);
+  /**
+   * \brief Request channel access from channel access manager.
+   */
+  void RequestChannelAccess(void);
+  /**
+   *  \brief Invoked when channel access manager sends indication that is allowed to transmit.
+   *  \param grantDuration Duration of grant for tranmission.
+   */
+  void  ReceiveAccessGranted(Time grantDuration);
 
   /**
    * \brief PhySpectrum received a new PHY-PDU
@@ -318,6 +368,27 @@ public:
    */
   typedef void (* ReportInterferenceTracedCallback)
     (uint16_t cellId, Ptr<SpectrumValue> spectrumValue);
+
+  /**
+   * TracedCallback signature for the reservation signal trace.
+   *
+   * \param [in] start time
+   * \param [in] duration
+   */
+  typedef void (* ReportReservationSignalTracedCallback)
+      (const Time startTime, const Time duration);
+
+  typedef void (* DataTracedCallback)
+        (const uint32_t data);
+
+  /**
+   * TracedCallback signature for txop trace.
+   *
+   * \param [in] start time
+   * \param [in] duration
+   */
+  typedef void (* ReportTxopTracedCallback)
+      (const Time startTime, const Time duration, const Time nextSubframeStart);
 
 private:
 
@@ -381,6 +452,16 @@ private:
    * \param sib1 LteRrcSap::SystemInformationBlockType1
    */
   void DoSetSystemInformationBlockType1 (LteRrcSap::SystemInformationBlockType1 sib1);
+  /**
+   * Set the DL FDD Almost Blank Subframe pattern.
+   *
+   * \param absPattern bitmask as per TS36.423 section 9.2.54 ABS Information
+   */
+  void DoSetAbsPattern (std::bitset<40> absPattern);
+  /*
+   * \brief Send a channel reservation signal, used when there is no data ready to be sent.
+   */
+  void DoSendReservationSignal ();
 
   // LteEnbPhySapProvider forwarded methods
   void DoSendMacPdu (Ptr<Packet> p);
@@ -480,6 +561,17 @@ private:
    */
   LteRrcSap::SystemInformationBlockType1 m_sib1;
 
+  /**
+   * DL FDD Almost Blank Subframe pattern
+   * bitmask as per TS36.423 section 9.2.54 ABS Information
+   */
+  std::bitset<40> m_absPattern;
+
+  /*
+   * Channel access manager.
+   */
+  Ptr<LteChannelAccessManager> m_channelAccessManager;
+
   Ptr<LteHarqPhy> m_harqPhyModule; ///< HARQ Phy module
 
   /**
@@ -516,6 +608,77 @@ private:
    * PhyTransmissionStatParameters.
    */
   TracedCallback<PhyTransmissionStatParameters> m_dlPhyTransmission;
+
+  /**
+   * Reservation signal trace source. Reports that reservation signal started
+   * with its start time and duration included.
+   */
+  TracedCallback <Time, Time> m_reservationSignalTraceSource;
+
+  /**
+   * Trace source that reports transmitted data size.
+   */
+  TracedCallback<uint32_t> m_data;
+
+  /*
+   * Transmission opportunity trace source. Reports that a transmission
+   * opportunity has started and with its start time and duration. It also
+   * provides the start time of next subframe.
+   */
+  TracedCallback <Time, Time, Time> m_txopTraceSource;
+
+  /**
+   * The `CtrlMsgTransmission` trace source. Contains trace information regarding
+   * control messages transmitted
+   */
+
+  TracedCallback<std::list<Ptr<LteControlMessage> > > m_ctrlMsgTransmission;
+
+  /*
+   * Important to be able to update  m_currentSrsOffset which is used for UL CQI
+   * reporting and for obtaining correct RNTI.
+   */
+  Time m_startedToTransmit;
+
+  /*
+   * Channel access grant timeout - number of TTIs.
+   */
+  Time m_grantTimeout;
+
+  /*
+   * Variable that indicates if the channel access request was sent and the
+   * lte-enb-phy is waiting for channel access grant. If is false, means that
+   * the lte-enb-phy is not waiting for channel, so it is ok to request channel
+   * access.
+   */
+  bool m_isWaitingForChannelAccessGrant;
+
+  /*
+   * Indicates whether a reservation signal shall be sent when there is no data
+   * ready to be transmitted.
+   */
+  bool m_reservationSignal;
+
+  /*
+   *  Tracks the time when current tti began.
+   */
+  Time m_ttiBegin;
+
+
+  uint32_t m_mibPeriod;                       ///< Number of TTIs between two consecutive mib messages
+  uint32_t m_sibPeriod;                       ///< Number of TTIs between two consecutive sib messages
+  uint32_t m_drsPeriod;                       ///< Number of TTIs between two consecutive drs messages
+  bool m_drsMessagesEnabled;                  ///< Whether drs message is generated and sent
+  Time m_disableMibAndSibStartupTime;         ///< Set to disable mib and sib messages after the set time
+  bool m_generateCtrlAndRbStats;              ///< Whether to generate ctrl and rb statistics
+  bool m_channelAccessImplWith2msDelay;       ///< Controls the behavior of channel access manager
+  bool m_dropPackets;                         ///< Whether packets are dropped when there is no channel access
+  std::map<Time, double> m_logTimeToRbUsage;  ///< Logs rb statistics
+  std::map<int, int> m_ctrlTypesCount;        ///< Logs counter of ctrl messages' based on its type
+  int m_ctrlMsgCounter;                       ///< Count how many subframes are used to send ctrl messages
+  Time m_lastDrsMessageSent;                  ///< Last drs message sent
+  Time m_channelAccessManagerStartTime;       ///< Time at which channel access manager will start
+  bool m_drsReservationSignal;                ///< Used to distinguish whether reservation signal is real reservation signal or is used to simulate long DRS transmission
 
 }; // end of `class LteEnbPhy`
 

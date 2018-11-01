@@ -24,7 +24,9 @@
 #include "ns3/uinteger.h"
 #include "ns3/enum.h"
 #include "ns3/log.h"
+#include "ns3/mobility-model.h"
 #include <cmath>
+#include <fstream>
 
 namespace ns3 {
 
@@ -499,6 +501,246 @@ UniformDiscPositionAllocator::AssignStreams (int64_t stream)
 {
   m_rv->SetStream (stream);
   return 1;
+}
+
+
+NS_OBJECT_ENSURE_REGISTERED (UniformHexagonPositionAllocator);
+
+TypeId
+UniformHexagonPositionAllocator::GetTypeId (void)
+{
+  static TypeId tid = TypeId ("ns3::UniformHexagonPositionAllocator")
+    .SetParent<PositionAllocator> ()
+    .SetGroupName ("Mobility")
+    .AddConstructor<UniformHexagonPositionAllocator> ()
+    .AddAttribute ("rho",
+                   "The radius of the hexagon",
+                   DoubleValue (1.0),
+                   MakeDoubleAccessor (&UniformHexagonPositionAllocator::m_rho),
+                   MakeDoubleChecker<double> ())
+    .AddAttribute ("theta",
+                   "The orientation angle of the hexagon, in radians, counterclockwise from the positive y-axis",
+                   DoubleValue (0.0),
+                   MakeDoubleAccessor (&UniformHexagonPositionAllocator::m_theta),
+                   MakeDoubleChecker<double> ())
+    .AddAttribute ("X",
+                   "The x coordinate of the center of the  hexagon.",
+                   DoubleValue (0.0),
+                   MakeDoubleAccessor (&UniformHexagonPositionAllocator::m_x),
+                   MakeDoubleChecker<double> ())
+    .AddAttribute ("Y",
+                   "The y coordinate of the center of the  hexagon.",
+                   DoubleValue (0.0),
+                   MakeDoubleAccessor (&UniformHexagonPositionAllocator::m_y),
+                   MakeDoubleChecker<double> ())
+  ;
+  return tid;
+}
+
+UniformHexagonPositionAllocator::UniformHexagonPositionAllocator ()
+{
+  m_rv = CreateObject<UniformRandomVariable> ();
+}
+
+UniformHexagonPositionAllocator::~UniformHexagonPositionAllocator ()
+{
+}
+
+
+void
+UniformHexagonPositionAllocator::PrintToGnuplotFile (std::string filename)
+{
+  std::ofstream outFile;
+  outFile.open (filename.c_str (), std::ios_base::out | std::ios_base::trunc);
+  if (!outFile.is_open ())
+    {
+      NS_LOG_ERROR ("Can't open file " << filename);
+      return;
+    }
+
+  outFile << "set object 1 polygon from \\\n";
+
+  for (uint32_t vertexId = 0; vertexId < 6; ++vertexId)
+    {
+      // angle of the vertex w.r.t. y-axis
+      double a = vertexId * (M_PI/3.0) + m_theta;
+      double x =  - m_rho * sin (a) + m_x;
+      double y =  m_rho * cos (a) + m_y;
+      outFile << x << ", " << y << " to \\\n";
+    }
+  // repeat vertex 0 to close polygon
+  uint32_t vertexId = 0;
+  double a = vertexId * (M_PI/3.0) + m_theta;
+  double x =  - m_rho * sin (a) + m_x;
+  double y =  m_rho * cos (a) + m_y;
+  outFile << x << ", " << y << std::endl;
+}
+
+
+Vector
+UniformHexagonPositionAllocator::GetNext (void) const
+{
+  NS_LOG_FUNCTION (this);
+
+  Vector p;
+  do
+    {
+      p.x = m_rv->GetValue (-m_rho, m_rho);
+      p.y = m_rv->GetValue (-m_rho, m_rho);
+      NS_LOG_LOGIC ("new random point: " << p << ", m_rho=" << m_rho);
+    }
+  while (!IsInsideCenteredNoRotation (p));
+
+  // rotate and offset
+  Vector p2;
+
+  p2.x = p.x * cos (m_theta) - p.y * sin (m_theta);
+  p2.y = p.x * sin (m_theta) + p.y * cos (m_theta);
+
+  p2.x += m_x;
+  p2.y += m_y;
+
+  NS_LOG_DEBUG ("Hexagon position x=" << p2.x << ", y=" << p2.y);
+  return p2;
+}
+
+int64_t
+UniformHexagonPositionAllocator::AssignStreams (int64_t stream)
+{
+  m_rv->SetStream (stream);
+  return 1;
+}
+
+bool
+UniformHexagonPositionAllocator::IsInsideCenteredNoRotation (Vector q) const
+{
+  NS_LOG_FUNCTION (this << q);
+  // method from http://www.playchilla.com/how-to-check-if-a-point-is-inside-a-hexagon
+
+  // rotate to positive quadrant
+  Vector q2 (std::abs (q.x), std::abs (q.y), 0);
+
+  double v = m_rho / 2;
+  double h = m_rho * cos (M_PI/6.0);
+
+  // check bounding box
+  if ((q2.x > h) || (q2.y > (2*v)))
+    {
+      return false;
+    }
+
+  // check dot product
+  double dotProduct = (2*v*h - v*q2.x - h*q2.y);
+  NS_LOG_LOGIC ("dot product = " << dotProduct);
+  return (dotProduct >= 0);
+}
+
+
+
+
+NS_OBJECT_ENSURE_REGISTERED (Min2dDistancePositionAllocator);
+
+TypeId
+Min2dDistancePositionAllocator::GetTypeId (void)
+{
+  static TypeId tid = TypeId ("ns3::Min2dDistancePositionAllocator")
+    .SetParent<PositionAllocator> ()
+    .SetGroupName ("Mobility")
+    .AddConstructor<Min2dDistancePositionAllocator> ()
+    .AddAttribute ("MaxAttempts",
+                   "Maximum number of attempts to get a position satisfying the min 2D distance before giving up",
+                   UintegerValue (1000),
+                   MakeUintegerAccessor (&Min2dDistancePositionAllocator::m_maxAttempts),
+                   MakeUintegerChecker<uint32_t> ())
+  ;
+  return tid;
+}
+
+Min2dDistancePositionAllocator::Min2dDistancePositionAllocator ()
+{
+}
+
+Min2dDistancePositionAllocator::~Min2dDistancePositionAllocator ()
+{
+}
+
+Vector
+Min2dDistancePositionAllocator::GetNext (void) const
+{
+  bool satisfiesMin2dDistance;
+  Vector p1;
+  uint32_t attempts = 0;
+  do
+    {
+      ++attempts;
+      if (attempts > m_maxAttempts)
+        {
+          NS_FATAL_ERROR ("too many failed attempts, please revise your distance constraints");
+        }
+
+      satisfiesMin2dDistance = true;
+      p1 = m_positionAllocator->GetNext ();
+      Vector2D p12d (p1.x, p1.y);
+
+      for (std::list<Min2dDistancePositionAllocator::NodesDistance>::const_iterator it
+             = m_nodesDistanceList.begin ();
+           satisfiesMin2dDistance && it != m_nodesDistanceList.end ();
+           ++it)
+        {
+          for (NodeContainer::Iterator ncit = it->nodes.Begin ();
+               satisfiesMin2dDistance && ncit != it->nodes.End ();
+               ++ncit)
+            {
+              Vector p2 = (*ncit)->GetObject<MobilityModel> ()->GetPosition ();
+              Vector2D p22d (p2.x, p2.y);
+              double dist = CalculateDistance (p12d, p22d);
+              satisfiesMin2dDistance &= (dist >= it->distance);
+            }
+        }
+
+      for (std::list<Min2dDistancePositionAllocator::PositionDistance>::const_iterator it
+             = m_positionDistanceList.begin ();
+           satisfiesMin2dDistance && it != m_positionDistanceList.end ();
+           ++it)
+        {
+          Vector2D p22d (it->position.x, it->position.y);
+          double dist = CalculateDistance (p12d, p22d);
+          satisfiesMin2dDistance &= (dist >= it->distance);
+        }
+    }
+  while (!satisfiesMin2dDistance);
+  return p1;
+}
+
+int64_t
+Min2dDistancePositionAllocator::AssignStreams (int64_t stream)
+{
+  return m_positionAllocator->AssignStreams (stream);
+}
+
+
+void
+Min2dDistancePositionAllocator::SetPositionAllocator (Ptr<PositionAllocator> p)
+{
+  m_positionAllocator = p;
+}
+
+void
+Min2dDistancePositionAllocator::AddNodesDistance (NodeContainer nodes, double distance)
+{
+  Min2dDistancePositionAllocator::NodesDistance nd;
+  nd.nodes = nodes;
+  nd.distance = distance;
+  m_nodesDistanceList.push_back (nd);
+}
+
+void
+Min2dDistancePositionAllocator::AddPositionDistance (Vector position, double distance)
+{
+  Min2dDistancePositionAllocator::PositionDistance nd;
+  nd.position = position;
+  nd.distance = distance;
+  m_positionDistanceList.push_back (nd);
 }
 
 

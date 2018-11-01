@@ -164,6 +164,17 @@ public:
    * \return a pointer to a newly allocated SpectrumValue representing the noise Power Spectral Density in W/Hz for each Resource Block
    */
   static Ptr<SpectrumValue> CreateNoisePowerSpectralDensity (uint32_t earfcn, uint8_t bandwidth, double noiseFigure);
+  
+  /** 
+   * calculate the noise power spectral density according to a given
+   * noise figure considering a thermal noise power spectral density
+   * of kT = -174 dBm
+   * 
+   * \param noiseFigureDb the noise figure in dB
+   * 
+   * \return the noise power spectral density in W/Hz
+   */
+  static double  GetNoisePowerSpectralDensity (double noiseFigureDb);
 
   /**
    *  create a SpectrumValue that models the power spectral density of AWGN

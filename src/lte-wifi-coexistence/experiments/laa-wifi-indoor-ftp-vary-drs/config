@@ -1,0 +1,67 @@
+#!/bin/bash
+#
+# Copyright (c) 2015 University of Washington
+# Copyright (c) 2015 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License version 2 as
+# published by the Free Software Foundation;
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+# Authors: Tom Henderson <tomh@tomh.org> and Nicola Baldo <nbaldo@cttc.es> and Biljana Bojovic <bbojovic@cttc.es>
+#
+#
+# Simulation configuration parameters used by scripts for simulations running and ploting
+#
+
+# which transport to run when running run-laa-wifi-indoor-ftp.sh  
+transports="Ftp"
+
+# main simulation parameters
+# actual duration is scaled by ftp Lambda value
+base_duration=960
+cell=Laa
+lbtTxopList="8"
+cwUpdateRules="nacks80"
+udpRates="75Kbps 200Kbps"
+energyDetectionList="-72.0"
+ftpLambdas="2.5"
+dropPackets=0
+rlcAmRbsTimerList="20"
+drsPeriodList="40 160"
+
+voiceEnabled=1
+# change TCP segment size from default of 536
+tcpSegSize=1440
+# TCP initial congestion window defaults to 1; change it here
+tcpInitialCw=10
+
+# logging
+logBeaconArrivals=1
+logBeaconNodeId=40
+logPhyNodeId=4
+logWifiRetries=1
+logWifiFailRetries=1
+lteDutyCycle=0.5
+logHarqFeedback=1
+logTxops=1
+logCwChanges=1
+logBackoffChanges=1
+logPhyArrivals=1
+
+#other
+RngRun=1
+OPERATORS="A B"
+
+# specific ploting parameters
+LATENCY_CDF_RANGE="[0:100][0:1]"
+THROUGHPUT_CDF_RANGE="[0:150][0:1]"
+

@@ -39,7 +39,7 @@
 #include <stdint.h>
 #include <ns3/spectrum-value.h>
 #include <ns3/lte-harq-phy.h>
-
+#include <ns3/lte-chunk-processor.h>
 
 
 
@@ -83,6 +83,29 @@ class LteMiErrorModel
 
 public:
 
+  /**
+   * \brief find the mmib (mean mutual information per bit) for the QPSK modulation
+   * \param sinrLin SINR in linear units
+   *
+   * \return the mutual information per bit for the QPSK modulation
+   */
+  static double MibQpsk (double sinrLin);
+
+  /**
+   * \brief find the mmib (mean mutual information per bit) for the 16QAM modulation
+   * \param sinrLin SINR in linear units
+   *
+   * \return the mutual information per bit for the 16QAM modulation
+   */
+  static double Mib16Qam (double sinrLin);
+
+  /**
+   * \brief find the mmib (mean mutual information per bit) for the 64QAM modulation
+   * \param sinrLin SINR in linear units
+   * \return the mutual information per bit for the 64QAM modulation
+   */
+  static double Mib64Qam (double sinrLin);
+
   /** 
    * \brief find the mmib (mean mutual information per bit) for different modulations of the specified TB
    * \param sinr the perceived sinrs in the whole bandwidth
@@ -109,14 +132,14 @@ public:
    * \param miHistory  MI of past transmissions (in case of retx)
    * \return the TB error rate and MI
    */
-  static TbStats_t GetTbDecodificationStats (const SpectrumValue& sinr, const std::vector<int>& map, uint16_t size, uint8_t mcs, HarqProcessInfoList_t miHistory);
+  static TbStats_t GetTbDecodificationStats (std::list<LteListChunkProcessor::Chunk> sinr, const std::vector<int>& map, uint16_t size, uint8_t mcs, HarqProcessInfoList_t miHistory);
   
   /** 
   * \brief run the error-model algorithm for the specified PCFICH+PDCCH channels
   * \param sinr the perceived sinrs in the whole bandwidth
   * \return the decodification error of the PCFICH+PDCCH channels
   */  
-  static double GetPcfichPdcchError (const SpectrumValue& sinr);
+  static double GetPcfichPdcchError (std::list<LteListChunkProcessor::Chunk> sinr);
 
 
 //private:

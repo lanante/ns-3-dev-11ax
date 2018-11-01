@@ -1,0 +1,43 @@
+# -*- Mode: python; py-indent-offset: 4; indent-tabs-mode: nil; coding: utf-8; -*-
+
+# def options(opt):
+#     pass
+
+# def configure(conf):
+#     conf.check_nonfatal(header_name='stdint.h', define_name='HAVE_STDINT_H')
+
+def build(bld):
+    module = bld.create_ns3_module('lte-wifi-coexistence', ['lte','spectrum', 'wifi', 'internet-apps', 'flow-monitor', 'wifi-he'])
+    module.source = [
+        'helper/lte-wifi-coexistence-helper.cc',
+        'helper/scenario-helper.cc',
+        'model/basic-lbt-access-manager.cc',
+        'model/duty-cycle-access-manager.cc',
+        'model/lbt-access-manager.cc',
+        ]
+
+    module_test = bld.create_ns3_module_test_library('lte-wifi-coexistence')
+    module_test.source = [
+        'test/test-lte-unlicensed-interference.cc',
+        'test/test-lte-interference-abs.cc',
+        'test/test-lte-duty-cycle.cc',
+        'test/lbt-access-manager-test.cc',
+        'test/lbt-access-manager-ed-threshold-test.cc',
+        'test/lbt-txop-test.cc',
+        ]
+
+    headers = bld(features='ns3header')
+    headers.module = 'lte-wifi-coexistence'
+    headers.source = [
+        'helper/lte-wifi-coexistence-helper.h',
+        'helper/scenario-helper.h',
+        'model/basic-lbt-access-manager.h',
+        'model/duty-cycle-access-manager.h',
+        'model/lbt-access-manager.h',
+        ]
+
+    if bld.env.ENABLE_EXAMPLES:
+        bld.recurse('examples')
+
+    # bld.ns3_python_bindings()
+

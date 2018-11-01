@@ -273,6 +273,11 @@ public:
    */
   virtual void CschedUeReleaseReq (const struct CschedUeReleaseReqParameters& params) = 0;
 
+  /**
+   * \brief Check the scheduler if there is data
+   */
+  virtual bool IsThereData(void) = 0;
+
 private:
 };
 
@@ -458,6 +463,7 @@ public:
   virtual void CschedLcConfigReq (const struct CschedLcConfigReqParameters& params);
   virtual void CschedLcReleaseReq (const struct CschedLcReleaseReqParameters& params);
   virtual void CschedUeReleaseReq (const struct CschedUeReleaseReqParameters& params);
+  virtual bool IsThereData (void);
 
 private:
   MemberCschedSapProvider ();
@@ -509,6 +515,12 @@ MemberCschedSapProvider<C>::CschedUeReleaseReq (const struct CschedUeReleaseReqP
   m_scheduler->DoCschedUeReleaseReq (params);
 }
 
+template <class C>
+bool
+MemberCschedSapProvider<C>::IsThereData (void)
+{
+  return m_scheduler->DoIsThereData ();
+}
 
 } // end namespace ns3
 

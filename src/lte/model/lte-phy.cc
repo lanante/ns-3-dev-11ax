@@ -192,6 +192,18 @@ LtePhy::SetMacPdu (Ptr<Packet> p)
   m_packetBurstQueue.at (m_packetBurstQueue.size () - 1)->AddPacket (p);
 }
 
+bool
+LtePhy::IsNonEmptyCtrlMessage ()
+{
+  return (m_controlMessagesQueue.at (0).size () > 0);
+}
+
+bool
+LtePhy::IsNonEmptyPacketBurst ()
+{
+  return (m_packetBurstQueue.at (0)->GetSize () > 0);
+}
+
 Ptr<PacketBurst>
 LtePhy::GetPacketBurst (void)
 {
@@ -238,6 +250,57 @@ LtePhy::GetControlMessages (void)
       m_controlMessagesQueue.push_back (newlist);
       std::list<Ptr<LteControlMessage> > emptylist;
       return (emptylist);
+    }
+}
+
+std::vector< std::list< Ptr<LteControlMessage> > >
+LtePhy::GetLteControlMessageVector ()
+{
+  return m_controlMessagesQueue;
+}
+
+std::vector< Ptr<PacketBurst> >
+LtePhy::GetPacketBurstVector ()
+{
+  return m_packetBurstQueue;
+}
+
+void
+LtePhy::CheckQueues ()
+{
+  while (m_controlMessagesQueue.size () > 2 && m_controlMessagesQueue.at (0).size () == 0)
+    {
+      m_controlMessagesQueue.erase (m_controlMessagesQueue.begin ());
+      m_packetBurstQueue.erase (m_packetBurstQueue.begin ());
+    }
+
+}
+
+void
+LtePhy::UpdateQueues (bool drop)
+{
+  NS_ASSERT_MSG ((((m_controlMessagesQueue.at (0).size () == 0) && (m_packetBurstQueue.at (0)->GetSize () == 0)) || (m_controlMessagesQueue.at (0).size () > 0)) , "Invalid queue state, no corresponding CTRL for current packet.");
+
+  if ((m_controlMessagesQueue.at (0).size () > 0 || m_packetBurstQueue.at (0)->GetSize () > 0) && drop)
+    {
+      NS_LOG_WARN ("Found non-empty CTRL and DATA when shifting queues, and don't drop parameter is selected. Data will be lost when shifting.");
+    }
+
+  // In the case of drop option, always delete the element. If the element is empty, in both options, drop and dont drop, we can delete it.
+  if (drop || m_controlMessagesQueue.at (0).size () == 0)
+    {
+      // delete the first element of the vectors
+      m_controlMessagesQueue.erase (m_controlMessagesQueue.begin ());
+      m_packetBurstQueue.erase (m_packetBurstQueue.begin ());
+    }
+
+ // Add new element only if necessary: to maintain the minimum size of the queue which is equal to the m_macChTtiDelay or the last element is not empty, so it is necessary to create a new empty
+  if (m_controlMessagesQueue.size () < m_macChTtiDelay || m_controlMessagesQueue.at (m_controlMessagesQueue.size () - 1).size () != 0)
+    {
+      // add empty element at the end of the vectors
+      std::list< Ptr<LteControlMessage> > newlist;
+      m_controlMessagesQueue.push_back (newlist);
+      m_packetBurstQueue.push_back (CreateObject <PacketBurst> ());
     }
 }
 

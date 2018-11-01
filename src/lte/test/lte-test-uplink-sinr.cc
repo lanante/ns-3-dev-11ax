@@ -144,7 +144,7 @@ LteUplinkDataSinrTestCase::DoRun (void)
   dlPhy->SetCellId (cellId);
   ulPhy->SetCellId (cellId);
 
-  Ptr<LteChunkProcessor> chunkProcessor = Create<LteChunkProcessor> ();
+  Ptr<LteAverageChunkProcessor> chunkProcessor = Create<LteAverageChunkProcessor> ();
   LteSpectrumValueCatcher actualSinrCatcher;
   chunkProcessor->AddCallback (MakeCallback (&LteSpectrumValueCatcher::ReportValue, &actualSinrCatcher));
   ulPhy->AddDataSinrChunkProcessor (chunkProcessor);
@@ -349,7 +349,7 @@ LteUplinkSrsSinrTestCase::DoRun (void)
   dlPhy->SetCellId (cellId);
   ulPhy->SetCellId (cellId);
   
-  Ptr<LteChunkProcessor> chunkProcessor = Create<LteChunkProcessor> ();
+  Ptr<LteAverageChunkProcessor> chunkProcessor = Create<LteAverageChunkProcessor> ();
   chunkProcessor->AddCallback (MakeCallback (&LteUplinkSrsSinrTestCase::ReportSinr, this));
   ulPhy->AddCtrlSinrChunkProcessor (chunkProcessor);
 

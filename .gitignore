@@ -37,3 +37,6 @@ build-dir/
 build/
 /.cproject
 /.project
+
+**/experiments/*/results/
+**/experiments/*/images/
