@@ -486,9 +486,9 @@ private:
 
   /**
    * RRC CCM SAP USER Method
-   * \param res
+   * \param noOfComponentCarriers the number of component carriers
    */
-  void DoComponentCarrierEnabling (std::vector<uint8_t> res);
+  void DoSetNumberOfComponentCarriers (uint16_t noOfComponentCarriers);
 
  
   // INTERNAL METHODS
@@ -679,12 +679,12 @@ private:
   void SendMeasurementReport (uint8_t measId);
 
   /**
-   * Apply radio resoure config dedicated.
+   * Apply radio resource config dedicated.
    * \param rrcd LteRrcSap::RadioResourceConfigDedicated
    */
   void ApplyRadioResourceConfigDedicated (LteRrcSap::RadioResourceConfigDedicated rrcd);
   /**
-   * Apply radio resoure config dedicated secondary carrier.
+   * Apply radio resource config dedicated secondary carrier.
    * \param nonCec LteRrcSap::NonCriticalExtensionConfiguration
    */
   void ApplyRadioResourceConfigDedicatedSecondaryCarrier (LteRrcSap::NonCriticalExtensionConfiguration nonCec);
@@ -1027,7 +1027,7 @@ private:
    * applied to the measurement results and they are used by *UE measurements*
    * function:
    * - LteUeRrc::MeasurementReportTriggering: in this case it is not set any
-   *   measurment related to seconday carrier components since the 
+   *   measurement related to seconday carrier components since the 
    *   A6 event is not implemented
    * - LteUeRrc::SendMeasurementReport: in this case the report are sent.
    */

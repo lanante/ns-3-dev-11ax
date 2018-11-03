@@ -18,41 +18,34 @@
  * Author: Sébastien Deronne <sebastien.deronne@gmail.com>
  */
 
-#include "ns3/packet.h"
 #include "ns3/nstime.h"
 #include "wifi-utils.h"
 #include "ctrl-headers.h"
 #include "wifi-mac-header.h"
 #include "wifi-mac-trailer.h"
+#include "wifi-net-device.h"
+#include "ht-configuration.h"
+#include "he-configuration.h"
 #include "wifi-mode.h"
 
 namespace ns3 {
 
 double
-Log2 (double val)
-{
-  return std::log (val) / std::log (2.0);
-}
-
-
-double
 DbToRatio (double dB)
 {
-  double ratio = std::pow (10.0, dB / 10.0);
-  return ratio;
+  return std::pow (10.0, 0.1 * dB);
 }
 
 double
 DbmToW (double dBm)
 {
-  double mW = std::pow (10.0, dBm / 10.0);
-  return mW / 1000.0;
+  return std::pow (10.0, 0.1 * (dBm - 30.0));
 }
 
 double
 WToDbm (double w)
 {
-  return 10.0 * std::log10 (w * 1000.0);
+  return 10.0 * std::log10 (w) + 30.0;
 }
 
 double
@@ -64,21 +57,32 @@ RatioToDb (double ratio)
 bool
 Is2_4Ghz (double frequency)
 {
-  if (frequency >= 2400 && frequency <= 2500)
-    {
-      return true;
-    }
-  return false;
+  return frequency >= 2400 && frequency <= 2500;
 }
 
 bool
 Is5Ghz (double frequency)
 {
-  if (frequency >= 5000 && frequency <= 6000)
+  return frequency >= 5000 && frequency <= 6000;
+}
+
+uint16_t
+ConvertGuardIntervalToNanoSeconds (WifiMode mode, const Ptr<WifiNetDevice> device)
+{
+  uint16_t gi = 800;
+  if (mode.GetModulationClass () == WIFI_MOD_CLASS_HE)
     {
-      return true;
+      Ptr<HeConfiguration> heConfiguration = device->GetHeConfiguration ();
+      NS_ASSERT (heConfiguration); //If HE modulation is used, we should have a HE configuration attached
+      gi = static_cast<uint16_t> (heConfiguration->GetGuardInterval ().GetNanoSeconds ());
     }
-  return false;
+  else if (mode.GetModulationClass () == WIFI_MOD_CLASS_HT || mode.GetModulationClass () == WIFI_MOD_CLASS_VHT)
+    {
+      Ptr<HtConfiguration> htConfiguration = device->GetHtConfiguration ();
+      NS_ASSERT (htConfiguration); //If HT/VHT modulation is used, we should have a HT configuration attached
+      gi = htConfiguration->GetShortGuardIntervalSupported () ? 400 : 800;
+    }
+  return gi;
 }
 
 uint16_t

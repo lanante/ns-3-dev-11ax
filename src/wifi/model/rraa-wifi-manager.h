@@ -70,13 +70,11 @@ public:
   // Inherited from WifiRemoteStationManager
   virtual void SetupPhy (const Ptr<WifiPhy> phy);
   virtual void SetupMac (const Ptr<WifiMac> mac);
-  void SetHtSupported (bool enable);
-  void SetVhtSupported (bool enable);
-  void SetHeSupported (bool enable);
 
 
 private:
-  //overriden from base class
+  // Overridden from base class.
+  void DoInitialize (void);
   WifiRemoteStation * DoCreateStation (void) const;
   void DoReportRxOk (WifiRemoteStation *station,
                      double rxSnr, WifiMode txMode);
@@ -109,7 +107,7 @@ private:
    */
   uint8_t GetMaxRate (RraaWifiRemoteStation *station) const;
   /**
-   * Check if the counter should be resetted.
+   * Check if the counter should be reset.
    *
    * \param station
    */

@@ -303,7 +303,6 @@ LteSpectrumValueHelper::CreateTxPowerSpectralDensity (uint32_t earfcn, uint8_t t
   Ptr<SpectrumValue> txPsd = Create <SpectrumValue> (model);
 
   // powerTx is expressed in dBm. We must convert it into natural unit.
-  double powerTxW = std::pow (10., (powerTx - 30) / 10);
   double basicPowerTxW = std::pow (10., (powerTx - 30) / 10);
 
 
@@ -317,7 +316,7 @@ LteSpectrumValueHelper::CreateTxPowerSpectralDensity (uint32_t earfcn, uint8_t t
 
       if (powerIt != powerTxMap.end ())
         {
-          powerTxW = std::pow (10., (powerIt->second - 30) / 10);
+          double powerTxW = std::pow (10., (powerIt->second - 30) / 10);
           txPowerDensity = (powerTxW / (txBandwidthConfiguration * 180000));
         }
       else
@@ -333,7 +332,29 @@ LteSpectrumValueHelper::CreateTxPowerSpectralDensity (uint32_t earfcn, uint8_t t
   return txPsd;
 }
 
+Ptr<SpectrumValue>
+LteSpectrumValueHelper::CreateUlTxPowerSpectralDensity (uint16_t earfcn, uint8_t txBandwidthConfiguration, double powerTx, std::vector <int> activeRbs)
+{
+  NS_LOG_FUNCTION (earfcn << (uint16_t) txBandwidthConfiguration << powerTx << activeRbs);
 
+  Ptr<SpectrumModel> model = GetSpectrumModel (earfcn, txBandwidthConfiguration);
+  Ptr<SpectrumValue> txPsd = Create <SpectrumValue> (model);
+
+  // powerTx is expressed in dBm. We must convert it into natural unit.
+  double powerTxW = std::pow (10., (powerTx - 30) / 10);
+
+  double txPowerDensity = (powerTxW / (activeRbs.size() * 180000));
+
+  for (std::vector <int>::iterator it = activeRbs.begin (); it != activeRbs.end (); it++)
+    {
+      int rbId = (*it);
+      (*txPsd)[rbId] = txPowerDensity;
+    }
+
+  NS_LOG_LOGIC (*txPsd);
+
+  return txPsd;
+}
 
 Ptr<SpectrumValue>
 LteSpectrumValueHelper::CreateNoisePowerSpectralDensity (uint32_t earfcn, uint8_t txBandwidthConfiguration, double noiseFigure)

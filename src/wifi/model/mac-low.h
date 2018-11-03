@@ -179,7 +179,7 @@ public:
    *
    * \return true if CTS-to-self is supported, false otherwise
    */
-  bool GetCtsToSelfSupported () const;
+  bool GetCtsToSelfSupported (void) const;
   /**
    * Return the MAC address of this MacLow.
    *
@@ -197,13 +197,13 @@ public:
    *
    * \return Basic Block ACK timeout
    */
-  Time GetBasicBlockAckTimeout () const;
+  Time GetBasicBlockAckTimeout (void) const;
   /**
    * Return Compressed Block ACK timeout of this MacLow.
    *
    * \return Compressed Block ACK timeout
    */
-  Time GetCompressedBlockAckTimeout () const;
+  Time GetCompressedBlockAckTimeout (void) const;
   /**
    * Return CTS timeout of this MacLow.
    *
@@ -325,18 +325,15 @@ public:
    */
   void ReceiveOk (Ptr<Packet> packet, double rxSnr, WifiTxVector txVector, bool ampduSubframe);
   /**
-   * \param packet packet received.
-   * \param rxSnr snr of packet received.
-   *
    * This method is typically invoked by the lower PHY layer to notify
    * the MAC layer that a packet was unsuccessfully received.
    */
-  void ReceiveError (Ptr<Packet> packet, double rxSnr);
+  void ReceiveError (void);
   /**
    * \param duration switching delay duration.
    *
    * This method is typically invoked by the PhyMacLowListener to notify
-   * the MAC layer that a channel switching occured. When a channel switching
+   * the MAC layer that a channel switching occurred. When a channel switching
    * occurs, pending MAC transmissions (RTS, CTS, DATA and ACK) are cancelled.
    */
   void NotifySwitchingStartNow (Time duration);
@@ -388,9 +385,9 @@ public:
    */
   void RegisterEdcaForAc (AcIndex ac, Ptr<QosTxop> edca);
   /**
-   * \param packet the packet to be aggregated. If the aggregation is succesfull, it corresponds either to the first data packet that will be aggregated or to the BAR that will be piggybacked at the end of the A-MPDU.
+   * \param packet the packet to be aggregated. If the aggregation is successful, it corresponds either to the first data packet that will be aggregated or to the BAR that will be piggybacked at the end of the A-MPDU.
    * \param hdr the WifiMacHeader for the packet.
-   * \return the A-MPDU packet if aggregation is successfull, the input packet otherwise
+   * \return the A-MPDU packet if aggregation is successful, the input packet otherwise
    *
    * This function adds the packets that will be added to an A-MPDU to an aggregate queue
    *
@@ -438,7 +435,7 @@ public:
    * Start NAV with the given duration.
    *
    * \param duration the duration
-   * \return true if NAV is resetted
+   * \return true if NAV is reset
    */
   bool DoNavStartNow (Time duration);
   /**
@@ -627,9 +624,9 @@ private:
    */
   void NotifyAckTimeoutStartNow (Time duration);
   /**
-   * Notify ChannelAccessManager that ACK timer should be resetted.
+   * Notify ChannelAccessManager that ACK timer should be reset.
    */
-  void NotifyAckTimeoutResetNow ();
+  void NotifyAckTimeoutResetNow (void);
   /**
    * Notify ChannelAccessManager that CTS timer should be started for the given duration.
    *
@@ -637,12 +634,12 @@ private:
    */
   void NotifyCtsTimeoutStartNow (Time duration);
   /**
-   * Notify ChannelAccessManager that CTS timer should be resetted.
+   * Notify ChannelAccessManager that CTS timer should be reset.
    */
-  void NotifyCtsTimeoutResetNow ();
+  void NotifyCtsTimeoutResetNow (void);
   /**
    * Reset NAV after CTS was missed when the NAV was
-   * setted with RTS.
+   * set with RTS.
    *
    * \param rtsEndRxTime
    */
@@ -906,7 +903,6 @@ private:
   Ptr<Packet> m_currentPacket;              //!< Current packet transmitted/to be transmitted
   WifiMacHeader m_currentHdr;               //!< Header of the current transmitted packet
   Ptr<Txop> m_currentTxop;                  //!< Current TXOP
-  WifiMacHeader m_lastReceivedHdr;          //!< Header of the last received packet
   MacLowTransmissionParameters m_txParams;  //!< Transmission parameters of the current packet
   Mac48Address m_self;                      //!< Address of this MacLow (Mac48Address)
   Mac48Address m_bssid;                     //!< BSSID address (Mac48Address)

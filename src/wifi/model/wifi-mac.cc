@@ -208,6 +208,24 @@ WifiMac::GetTypeId (void)
 }
 
 void
+WifiMac::DoDispose ()
+{
+  m_device = 0;
+}
+
+void
+WifiMac::SetDevice (const Ptr<NetDevice> device)
+{
+  m_device = device;
+}
+
+Ptr<NetDevice>
+WifiMac::GetDevice (void) const
+{
+  return m_device;
+}
+
+void
 WifiMac::SetMaxPropagationDelay (Time delay)
 {
   NS_LOG_FUNCTION (this << delay);
@@ -399,7 +417,7 @@ void
 WifiMac::ConfigureDcf (Ptr<Txop> dcf, uint32_t cwmin, uint32_t cwmax, bool isDsss, AcIndex ac)
 {
   NS_LOG_FUNCTION (this << dcf << cwmin << cwmax << isDsss << ac);
-  /* see IEE802.11 section 7.3.2.29 */
+  /* see IEEE 802.11 section 7.3.2.29 */
   switch (ac)
     {
     case AC_VO:

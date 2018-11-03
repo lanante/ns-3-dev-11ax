@@ -836,7 +836,6 @@ public:
 
   /**
    * \brief Configure cell-specific parameters.
-   * \param cellId the ID of the cell
    *
    * Configure cell-specific parameters and propagate them to lower layers.
    * The parameters include bandwidth, EARFCN (E-UTRA Absolute Radio Frequency
@@ -1191,6 +1190,12 @@ private:
    * \returns measure ID
    */
   uint8_t DoAddUeMeasReportConfigForComponentCarrier (LteRrcSap::ReportConfigEutra reportConfig);
+  /**
+   * \brief Set number of component carriers
+   * \param numberOfComponentCarriers the number of component carriers
+   */
+  void DoSetNumberOfComponentCarriers (uint16_t numberOfComponentCarriers);
+
 
   /**
    * Trigger handover function
@@ -1305,12 +1310,6 @@ public:
    * simulation.
    */
   void SetCsgId (uint32_t csgId, bool csgIndication);
-
-  /**
-   * \brief Set number of component carriers
-   * \param numberOfComponentCarriers the number of component carriers
-   */
-  void SetNumberOfComponentCarriers (uint16_t numberOfComponentCarriers);
 
 private:
 

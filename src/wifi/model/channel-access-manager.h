@@ -38,7 +38,7 @@ class MacLow;
  *
  * Handle a set of independent ns3::Txop, each of which represents
  * a single DCF within a MAC stack. Each ns3::Txop has a priority
- * implicitely associated with it (the priority is determined when the
+ * implicitly associated with it (the priority is determined when the
  * ns3::Txop is added to the ChannelAccessManager: the first Txop to be
  * added gets the highest priority, the second, the second highest
  * priority, and so on.) which is used to handle "internal" collisions.
@@ -97,7 +97,7 @@ public:
   /**
    * \return value set previously using SetEifsNoDifs.
    */
-  Time GetEifsNoDifs () const;
+  Time GetEifsNoDifs (void) const;
 
   /**
    * \param dcf a new Txop.
@@ -196,9 +196,9 @@ public:
    */
   void NotifyAckTimeoutStartNow (Time duration);
   /**
-   * Notify that ACK timer has resetted.
+   * Notify that ACK timer has reset.
    */
-  void NotifyAckTimeoutResetNow ();
+  void NotifyAckTimeoutResetNow (void);
   /**
    * Notify that CTS timer has started for the given duration.
    *
@@ -206,9 +206,9 @@ public:
    */
   void NotifyCtsTimeoutStartNow (Time duration);
   /**
-   * Notify that CTS timer has resetted.
+   * Notify that CTS timer has reset.
    */
-  void NotifyCtsTimeoutResetNow ();
+  void NotifyCtsTimeoutResetNow (void);
 
   /**
    * Check if the device is busy sending or receiving,
@@ -304,7 +304,7 @@ private:
   /**
    * Grant access to DCF
    */
-  void DoGrantAccess (void);
+  void DoGrantDcfAccess (void);
   /**
    * Check if the device is between frames (in DIFS or AIFS interval)
    *
@@ -316,7 +316,7 @@ private:
   /**
    * Grant access to PCF
    */
-  void GrantPcfAccess (Ptr<Txop> state);
+  void DoGrantPcfAccess (Ptr<Txop> state);
 
   /**
    * typedef for a vector of Txops
