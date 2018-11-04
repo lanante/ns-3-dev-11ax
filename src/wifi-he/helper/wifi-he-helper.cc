@@ -3,6 +3,7 @@
 #include "wifi-he-helper.h"
 #include "ns3/obss-pd-algorithm.h"
 #include "ns3/ap-wifi-mac.h"
+#include "ns3/log.h"
 
 namespace ns3 {
 
@@ -57,11 +58,15 @@ WifiHeHelper::Install (NodeContainer c) const
     NS_ASSERT (wifiNetDevice);
 
     // HE Configuration for each AP device
-    Ptr<ApWifiMac> apWifiMac = wifiNetDevice->GetMac ()->GetObject<ApWifiMac> ();
-    if (apWifiMac)
+    Ptr<RegularWifiMac> wifiMac = wifiNetDevice->GetMac ()->GetObject<RegularWifiMac> ();
+    if (wifiMac)
       {
         Ptr<HeConfiguration> heConfiguration = m_heConfiguration.Create<HeConfiguration> ();
-        apWifiMac->SetHeConfiguration (heConfiguration);
+        wifiMac->SetHeConfiguration (heConfiguration);
+      }
+    else
+      {
+        NS_LOG_UNCOND ("Node does not have a WifiMac.  HE Configuration was not set.");
       }
 
     // create also the OBSS PD algorithm object and aggregate it
