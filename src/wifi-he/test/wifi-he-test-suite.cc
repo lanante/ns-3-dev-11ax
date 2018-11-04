@@ -60,6 +60,7 @@
 #include "ns3/node-list.h"
 #include "ns3/ieee-80211ax-indoor-propagation-loss-model.h"
 #include "ns3/obss-pd-algorithm.h"
+#include "ns3/wifi-he-helper.h"
 
 using namespace ns3;
 
@@ -505,16 +506,16 @@ WifiHeTestCase::RunOne (void)
 
   // 1 STA
   uint32_t nStas = GetNumberOfStas ();
-  NodeContainer wifiStaNode;
-  wifiStaNode.Create (nStas);
+  NodeContainer wifiStaNodes;
+  wifiStaNodes.Create (nStas);
 
   // 1 AP
   uint32_t nAps = GetNumberOfAps ();
-  NodeContainer wifiApNode;
-  wifiApNode.Create (nAps);
+  NodeContainer wifiApNodes;
+  wifiApNodes.Create (nAps);
 
-  m_allNodes.Add (wifiStaNode);
-  m_allNodes.Add (wifiApNode);
+  m_allNodes.Add (wifiStaNodes);
+  m_allNodes.Add (wifiApNodes);
 
   // PHY setup
   Ptr<MultiModelSpectrumChannel> channel
@@ -558,16 +559,18 @@ WifiHeTestCase::RunOne (void)
                "Ssid", SsidValue (ssid),
                "ActiveProbing", BooleanValue (false));
 
-  m_staDevices = wifi.Install (m_phy, mac, wifiStaNode);
+  m_staDevices = wifi.Install (m_phy, mac, wifiStaNodes);
+
   if (m_enableHeConfiguration)
     {
-      for (uint32_t i = 0; i < m_staDevices.GetN (); i++)
-        {
-          Ptr<WifiNetDevice> staDevice = m_staDevices.Get (i)->GetObject<WifiNetDevice> ();
-          // create also the OBSS PD algorithm object and aggregate it
-          Ptr<ObssPdAlgorithm> obssPdAlgorithm = CreateObject<ObssPdAlgorithm> ();
-          staDevice->AggregateObject (obssPdAlgorithm);
-        }
+      // Wifi-He helper
+      WifiHeHelper staHeHelper;
+      staHeHelper.SetObssPdAlgorithm ("ns3::ConstantObssPdAlgorithm");
+      // STA determines BSS Color from associated AP
+      staHeHelper.SetHeConfigurationAttribute ("ObssPdThreshold", DoubleValue (-99.0));
+      staHeHelper.SetHeConfigurationAttribute ("ObssPdThresholdMin", DoubleValue (-82.0));
+      staHeHelper.SetHeConfigurationAttribute ("ObssPdThresholdMax", DoubleValue (-62.0));
+      staHeHelper.Install (wifiStaNodes);
     }
 
   wifi.AssignStreams (m_staDevices, streamNumber);
@@ -578,25 +581,20 @@ WifiHeTestCase::RunOne (void)
                "BeaconGeneration", BooleanValue (true));
 
   // install Wifi
-  m_apDevices = wifi.Install (m_phy, mac, wifiApNode);
+  m_apDevices = wifi.Install (m_phy, mac, wifiApNodes);
 
   wifi.AssignStreams (m_apDevices, streamNumber);
 
   if (m_enableHeConfiguration)
     {
-      Ptr<WifiNetDevice> apDevice = m_apDevices.Get (0)->GetObject<WifiNetDevice> ();
-      Ptr<ApWifiMac> apWifiMac = apDevice->GetMac ()->GetObject<ApWifiMac> ();
-      // The below statements may be simplified in a future HeConfigurationHelper
-      Ptr<HeConfiguration> heConfiguration = CreateObject<HeConfiguration> ();
-      heConfiguration->SetAttribute ("BssColor", UintegerValue (m_expectedBssColor));
-      heConfiguration->SetAttribute ("ObssPdThreshold", DoubleValue(-99.0));
-      heConfiguration->SetAttribute ("ObssPdThresholdMin", DoubleValue(-82.0));
-      heConfiguration->SetAttribute ("ObssPdThresholdMax", DoubleValue(-62.0));
-      apWifiMac->SetHeConfiguration (heConfiguration);
-
-      // create also the OBSS PD algorithm object and aggregate it
-      Ptr<ObssPdAlgorithm> obssPdAlgorithm = CreateObject<ObssPdAlgorithm> ();
-      apDevice->AggregateObject (obssPdAlgorithm);
+      // Wifi-He helper
+      WifiHeHelper apHeHelper;
+      apHeHelper.SetObssPdAlgorithm ("ns3::ConstantObssPdAlgorithm");
+      apHeHelper.SetHeConfigurationAttribute ("BssColor", UintegerValue (m_expectedBssColor));
+      apHeHelper.SetHeConfigurationAttribute ("ObssPdThreshold", DoubleValue (-99.0));
+      apHeHelper.SetHeConfigurationAttribute ("ObssPdThresholdMin", DoubleValue (-82.0));
+      apHeHelper.SetHeConfigurationAttribute ("ObssPdThresholdMax", DoubleValue (-62.0));
+      apHeHelper.Install (wifiApNodes);
     }
 
   // fixed positions
@@ -606,8 +604,8 @@ WifiHeTestCase::RunOne (void)
   mobility.SetPositionAllocator (positionAlloc);
 
   mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
-  mobility.Install (wifiApNode);
-  mobility.Install (wifiStaNode);
+  mobility.Install (wifiApNodes);
+  mobility.Install (wifiStaNodes);
 
   Ptr<WifiNetDevice> ap_device = DynamicCast<WifiNetDevice> (m_apDevices.Get (0));
 

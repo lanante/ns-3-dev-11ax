@@ -131,11 +131,31 @@ ObssPdAlgorithm::ReceiveHeSigA (HeSigAParameters params)
 {
   NS_LOG_FUNCTION (this);
 
+  DoReceiveHeSigA (params);
+}
+
+void
+ObssPdAlgorithm::DoReceiveHeSigA (HeSigAParameters params)
+{
+  NS_LOG_FUNCTION (this);
+
   // TODO get phy and mac
   // Ptr<WifiPhy> phy = DynamicCast<WifiPhy> (device->GetPhy());
   // Ptr<RegularWifiMac> mac = device->GetMac ()->GetObject<RegularWifiMac> ();
 
   NS_LOG_DEBUG ("Evaluating OBSS PD algorithm.  RSSI[W]=" << params.rssiW << " bssColor=" << ((uint32_t) params.bssColor));
+
+  // perform PHY reset if receive OBSS frame below constant threshold
+
+  // 1. RSSI<OBSS PD level
+  // 2. Own BSS color!=Signal BSS color
+  // 3. SRP_AND_NON-SRG _OBSS-PD_PROHIBITED ==0
+}
+
+void
+ObssPdAlgorithm::DoReceiveBeacon ()
+{
+  NS_LOG_FUNCTION (this);
 }
 
 } //namespace ns3

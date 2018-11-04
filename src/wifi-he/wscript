@@ -11,6 +11,7 @@ def build(bld):
     module.source = [
         'model/constant-obss-pd-algorithm.cc',
         'model/obss-pd-algorithm.cc',
+        'helper/wifi-he-helper.cc',
         ]
 
     module_test = bld.create_ns3_module_test_library('wifi-he')
@@ -23,6 +24,7 @@ def build(bld):
     headers.source = [
         'model/constant-obss-pd-algorithm.h',
         'model/obss-pd-algorithm.h',
+        'helper/wifi-he-helper.h',
         ]
 
     if bld.env.ENABLE_EXAMPLES:

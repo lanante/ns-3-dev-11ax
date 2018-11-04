@@ -106,6 +106,19 @@ private:
 
   TracedValue<double> m_obssPdLevel;
   TracedValue<double> m_txPwr;
+
+  /**
+   * \param params the HE SIG A parameters
+   *
+   * Evaluate the algorithm.
+   */
+  virtual void DoReceiveHeSigA (HeSigAParameters params);
+
+  /**
+   *
+   * Receive beacon.
+   */
+  virtual void DoReceiveBeacon ();
 };
 
 } //namespace ns3
