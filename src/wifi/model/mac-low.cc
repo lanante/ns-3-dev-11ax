@@ -328,7 +328,7 @@ MacLow::SetCtsToSelfSupported (bool enable)
 }
 
 bool
-MacLow::GetCtsToSelfSupported () const
+MacLow::GetCtsToSelfSupported (void) const
 {
   return m_ctsToSelfSupported;
 }
@@ -400,13 +400,13 @@ MacLow::GetAckTimeout (void) const
 }
 
 Time
-MacLow::GetBasicBlockAckTimeout () const
+MacLow::GetBasicBlockAckTimeout (void) const
 {
   return m_basicBlockAckTimeout;
 }
 
 Time
-MacLow::GetCompressedBlockAckTimeout () const
+MacLow::GetCompressedBlockAckTimeout (void) const
 {
   return m_compressedBlockAckTimeout;
 }
@@ -420,14 +420,12 @@ MacLow::GetCtsTimeout (void) const
 Time
 MacLow::GetSifs (void) const
 {
-  NS_LOG_FUNCTION (this);
   return m_sifs;
 }
 
 Time
 MacLow::GetRifs (void) const
 {
-  NS_LOG_FUNCTION (this);
   return m_rifs;
 }
 
@@ -716,7 +714,6 @@ MacLow::ReceiveOk (Ptr<Packet> packet, double rxSnr, double rxPower, WifiTxVecto
    */
   WifiMacHeader hdr;
   packet->RemoveHeader (hdr);
-  m_lastReceivedHdr = hdr;
 
   bool isPrevNavZero = IsNavZero ();
   NS_LOG_DEBUG ("duration/id=" << hdr.GetDuration ());
@@ -795,7 +792,8 @@ MacLow::ReceiveOk (Ptr<Packet> packet, double rxSnr, double rxPower, WifiTxVecto
           m_stationManager->ReportRxOk (m_currentHdr.GetAddr1 (), &m_currentHdr,
                                         rxSnr, txVector.GetMode ());
           m_stationManager->ReportDataOk (m_currentHdr.GetAddr1 (), &m_currentHdr,
-                                          rxSnr, txVector.GetMode (), tag.Get ());
+                                          rxSnr, txVector.GetMode (), tag.Get (),
+                                          m_currentPacket->GetSize ());
         }
       bool gotAck = false;
       if (m_txParams.MustWaitNormalAck ()
@@ -1343,7 +1341,7 @@ MacLow::NotifyAckTimeoutStartNow (Time duration)
 }
 
 void
-MacLow::NotifyAckTimeoutResetNow ()
+MacLow::NotifyAckTimeoutResetNow (void)
 {
   for (ChannelAccessManagersCI i = m_channelAccessManagers.begin (); i != m_channelAccessManagers.end (); i++)
     {
@@ -1361,7 +1359,7 @@ MacLow::NotifyCtsTimeoutStartNow (Time duration)
 }
 
 void
-MacLow::NotifyCtsTimeoutResetNow ()
+MacLow::NotifyCtsTimeoutResetNow (void)
 {
   for (ChannelAccessManagersCI i = m_channelAccessManagers.begin (); i != m_channelAccessManagers.end (); i++)
     {
@@ -1382,11 +1380,11 @@ MacLow::ForwardDown (Ptr<const Packet> packet, const WifiMacHeader* hdr, WifiTxV
                 ", seq=0x" << std::hex << m_currentHdr.GetSequenceControl () << std::dec);
   if (!m_ampdu || hdr->IsAck () || hdr->IsRts () || hdr->IsCts () || hdr->IsBlockAck () || hdr->IsMgt ())
     {
-      if (hdr->IsCfPoll () && m_stationManager->HasPcfSupported ())
+      if (hdr->IsCfPoll () && m_stationManager->GetPcfSupported ())
         {
           Simulator::Schedule (GetPifs () + m_phy->CalculateTxDuration (packet->GetSize (), txVector, m_phy->GetFrequency ()), &MacLow::CfPollTimeout, this);
         }
-      if (hdr->IsBeacon () && m_stationManager->HasPcfSupported ())
+      if (hdr->IsBeacon () && m_stationManager->GetPcfSupported ())
         {
           if (Simulator::Now () > m_lastBeacon + m_beaconInterval)
             {
@@ -1394,7 +1392,7 @@ MacLow::ForwardDown (Ptr<const Packet> packet, const WifiMacHeader* hdr, WifiTxV
             }
           m_lastBeacon = Simulator::Now ();
         }
-      else if (hdr->IsCfEnd () && m_stationManager->HasPcfSupported ())
+      else if (hdr->IsCfEnd () && m_stationManager->GetPcfSupported ())
         {
           m_cfpStart = NanoSeconds (0);
           m_cfpForeshortening = NanoSeconds (0);
@@ -1488,7 +1486,7 @@ MacLow::ForwardDown (Ptr<const Packet> packet, const WifiMacHeader* hdr, WifiTxV
             }
           if (queueSize > 1)
             {
-              NS_ASSERT (remainingAmpduDuration > 0);
+              NS_ASSERT (remainingAmpduDuration > Time (0));
               delay = delay + mpduDuration;
             }
 
@@ -1545,7 +1543,8 @@ MacLow::NormalAckTimeout (void)
   /// \todo should check that there was no rx start before now.
   /// we should restart a new ack timeout now until the expected
   /// end of rx if there was a rx start before now.
-  m_stationManager->ReportDataFailed (m_currentHdr.GetAddr1 (), &m_currentHdr);
+  m_stationManager->ReportDataFailed (m_currentHdr.GetAddr1 (), &m_currentHdr,
+                                      m_currentPacket->GetSize ());
   Ptr<Txop> txop = m_currentTxop;
   m_currentTxop = 0;
   m_ampdu = false;
@@ -1567,7 +1566,7 @@ MacLow::BlockAckTimeout (void)
   uint8_t tid = GetTid (m_currentPacket, m_currentHdr);
   AmpduTag ampdu;
   m_currentPacket->RemovePacketTag (ampdu);
-  txop->MissedBlockAck (ampdu.GetRemainingNbOfMpdus() + 1);
+  txop->MissedBlockAck (ampdu.GetRemainingNbOfMpdus () + 1);
   FlushAggregateQueue (tid);
 }
 
@@ -1915,7 +1914,7 @@ MacLow::SendDataAfterCts (Time duration)
 {
   NS_LOG_FUNCTION (this);
   /* send the third step in a
-   * RTS/CTS/DATA/ACK hanshake
+   * RTS/CTS/DATA/ACK handshake
    */
   NS_ASSERT (m_currentPacket != 0);
 
@@ -2014,7 +2013,7 @@ void
 MacLow::EndTxNoAck (void)
 {
   NS_LOG_FUNCTION (this);
-  if (m_currentHdr.IsBeacon () && m_stationManager->HasPcfSupported ())
+  if (m_currentHdr.IsBeacon () && m_stationManager->GetPcfSupported ())
     {
       m_cfpStart = Simulator::Now ();
     }
@@ -2064,9 +2063,9 @@ MacLow::SendAckAfterData (Mac48Address source, Time duration, WifiMode dataTxMod
 bool
 MacLow::ReceiveMpdu (Ptr<Packet> packet, WifiMacHeader hdr)
 {
-  if (m_stationManager->HasHtSupported ()
-      || m_stationManager->HasVhtSupported ()
-      || m_stationManager->HasHeSupported ())
+  if (m_stationManager->GetHtSupported ()
+      || m_stationManager->GetVhtSupported ()
+      || m_stationManager->GetHeSupported ())
     {
       Mac48Address originator = hdr.GetAddr2 ();
       uint8_t tid = 0;
@@ -2405,9 +2404,9 @@ MacLow::SendBlockAckAfterBlockAckRequest (const CtrlBAckRequestHeader reqHdr, Ma
           (*i).second.FillBlockAckBitmap (&blockAck);
           NS_LOG_DEBUG ("Got block Ack Req with seq " << reqHdr.GetStartingSequence ());
 
-          if (!m_stationManager->HasHtSupported ()
-              && !m_stationManager->HasVhtSupported ()
-              && !m_stationManager->HasHeSupported ())
+          if (!m_stationManager->GetHtSupported ()
+              && !m_stationManager->GetVhtSupported ()
+              && !m_stationManager->GetHeSupported ())
             {
               /* All packets with smaller sequence than starting sequence control must be passed up to Wifimac
                * See 9.10.3 in IEEE 802.11e standard.
@@ -2564,7 +2563,7 @@ MacLow::StopMpduAggregation (Ptr<const Packet> peekedPacket, WifiMacHeader peeke
   AcIndex ac = QosUtilsMapTidToAc (tid);
   std::map<AcIndex, Ptr<QosTxop> >::const_iterator edcaIt = m_edca.find (ac);
 
-  if (m_phy->GetGreenfield ())
+  if (m_stationManager->GetGreenfieldSupported ())
     {
       aPPDUMaxTime = MicroSeconds (10000);
     }
@@ -2657,7 +2656,7 @@ MacLow::AggregateToAmpdu (Ptr<const Packet> packet, const WifiMacHeader hdr)
               else if (hdr.IsBlockAckReq ())
                 {
                   blockAckSize = static_cast<uint8_t> (packet->GetSize () + hdr.GetSize () + WIFI_MAC_FCS_LENGTH);
-                  qosPolicy = 3; //if the last subrame is block ack req then set ack policy of all frames to blockack
+                  qosPolicy = 3; //if the last subframe is block ack req then set ack policy of all frames to blockack
                   packet->PeekHeader (blockAckReq);
                   startingSequenceNumber = blockAckReq.GetStartingSequence ();
                 }
@@ -2668,7 +2667,6 @@ MacLow::AggregateToAmpdu (Ptr<const Packet> packet, const WifiMacHeader hdr)
               if (peekedPacket == 0)
                 {
                   Ptr<const WifiMacQueueItem> item = queue->PeekByTidAndAddress (tid,
-                                                                                 WifiMacHeader::ADDR1,
                                                                                  hdr.GetAddr1 ());
                   if (item)
                     {
@@ -2767,7 +2765,6 @@ MacLow::AggregateToAmpdu (Ptr<const Packet> packet, const WifiMacHeader hdr)
                           //I reached the first packet that I added to this A-MPDU
                           retry = false;
                           Ptr<const WifiMacQueueItem> item = queue->PeekByTidAndAddress (tid,
-                                                                                         WifiMacHeader::ADDR1,
                                                                                          hdr.GetAddr1 ());
                           if (item != 0)
                             {
@@ -2795,7 +2792,7 @@ MacLow::AggregateToAmpdu (Ptr<const Packet> packet, const WifiMacHeader hdr)
                   else
                     {
                       Ptr<const WifiMacQueueItem> item = queue->PeekByTidAndAddress (tid,
-                                                                                     WifiMacHeader::ADDR1, hdr.GetAddr1 ());
+                                                                                     hdr.GetAddr1 ());
                       if (item != 0)
                         {
                           peekedPacket = item->GetPacket ();
@@ -2933,7 +2930,6 @@ MacLow::PerformMsduAggregation (Ptr<const Packet> packet, WifiMacHeader *hdr, Ti
   queue = edcaIt->second->GetWifiMacQueue ();
 
   Ptr<const WifiMacQueueItem> peekedItem = queue->DequeueByTidAndAddress (hdr->GetQosTid (),
-                                                                          WifiMacHeader::ADDR1,
                                                                           hdr->GetAddr1 ());
   if (peekedItem)
     {
@@ -2944,7 +2940,7 @@ MacLow::PerformMsduAggregation (Ptr<const Packet> packet, WifiMacHeader *hdr, Ti
                                                    edcaIt->second->MapSrcAddressForAggregation (*hdr),
                                                    edcaIt->second->MapDestAddressForAggregation (*hdr));
 
-  peekedItem = queue->PeekByTidAndAddress (hdr->GetQosTid (), WifiMacHeader::ADDR1, hdr->GetAddr1 ());
+  peekedItem = queue->PeekByTidAndAddress (hdr->GetQosTid (), hdr->GetAddr1 ());
   while (peekedItem != 0)
     {
       *hdr = peekedItem->GetHeader ();
@@ -2965,7 +2961,7 @@ MacLow::PerformMsduAggregation (Ptr<const Packet> packet, WifiMacHeader *hdr, Ti
         {
           break;
         }
-      peekedItem = queue->PeekByTidAndAddress (hdr->GetQosTid (), WifiMacHeader::ADDR1, hdr->GetAddr1 ());
+      peekedItem = queue->PeekByTidAndAddress (hdr->GetQosTid (), hdr->GetAddr1 ());
     }
 
   if (isAmsdu)
@@ -2994,7 +2990,7 @@ MacLow::GetRemainingCfpDuration (void) const
 bool
 MacLow::IsCfPeriod (void) const
 {
-  return (m_stationManager->HasPcfSupported () && m_cfpStart.IsStrictlyPositive ());
+  return (m_stationManager->GetPcfSupported () && m_cfpStart.IsStrictlyPositive ());
 }
 
 bool

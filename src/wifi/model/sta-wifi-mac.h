@@ -26,6 +26,9 @@
 #include "infrastructure-wifi-mac.h"
 #include "mgt-headers.h"
 
+class TwoLevelAggregationTest;
+class AmpduAggregationTest;
+
 namespace ns3  {
 
 class SupportedRates;
@@ -102,6 +105,11 @@ struct ApInfo
 class StaWifiMac : public InfrastructureWifiMac
 {
 public:
+  /// Allow test cases to access private members
+  friend class ::TwoLevelAggregationTest;
+  /// Allow test cases to access private members
+  friend class ::AmpduAggregationTest;
+
   /**
    * \brief Get the type ID.
    * \return the object TypeId
@@ -247,7 +255,7 @@ private:
   void StartScanning (void);
   /**
    * This method is called after wait beacon timeout or wait probe request timeout has
-   * occured. This will trigger association process from beacons or probe responses
+   * occurred. This will trigger association process from beacons or probe responses
    * gathered while scanning.
    */
   void ScanningTimeout (void);
@@ -335,7 +343,7 @@ private:
 
   TracedCallback<Mac48Address> m_assocLogger;   ///< assoc logger
   TracedCallback<Mac48Address> m_deAssocLogger; ///< deassoc logger
-  TracedValue<Time> m_beaconArrival;            ///< beacon arrival logger
+  TracedCallback<Time>         m_beaconArrival; ///< beacon arrival logger
 };
 
 } //namespace ns3

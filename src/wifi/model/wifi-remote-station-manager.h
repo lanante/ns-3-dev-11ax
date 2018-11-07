@@ -78,7 +78,7 @@ private:
   double CalculateAveragingCoefficient ();
   /// averaging coefficient depends on the memory time
   Time m_memoryTime;
-  /// when last update has occured
+  /// when last update has occurred
   Time m_lastUpdate;
   /// moving percentage of failed frames
   double m_failAvg;
@@ -191,53 +191,53 @@ public:
    */
   void AddStationHeCapabilities (Mac48Address from, HeCapabilities hecapabilities);
   /**
-   * Enable or disable HT capability support.
-   *
-   * \param enable enable or disable HT capability support
-   */
-  virtual void SetHtSupported (bool enable);
-  /**
    * Return whether the device has HT capability support enabled.
    *
    * \return true if HT capability support is enabled, false otherwise
    */
-  bool HasHtSupported (void) const;
-  /**
-   * Enable or disable VHT capability support.
-   *
-   * \param enable enable or disable VHT capability support
-   */
-  virtual void SetVhtSupported (bool enable);
+  bool GetHtSupported (void) const;
   /**
    * Return whether the device has VHT capability support enabled.
    *
    * \return true if VHT capability support is enabled, false otherwise
    */
-  bool HasVhtSupported (void) const;
-  /**
-   * Enable or disable HE capability support.
-   *
-   * \param enable enable or disable HE capability support
-   */
-  virtual void SetHeSupported (bool enable);
+  bool GetVhtSupported (void) const;
   /**
    * Return whether the device has HE capability support enabled.
    *
    * \return true if HE capability support is enabled, false otherwise
    */
-  bool HasHeSupported (void) const;
+  bool GetHeSupported (void) const;
   /**
    * Enable or disable PCF capability support.
    *
    * \param enable enable or disable PCF capability support
    */
-  virtual void SetPcfSupported (bool enable);
+  void SetPcfSupported (bool enable);
   /**
    * Return whether the device has PCF capability support enabled.
    *
    * \return true if PCF capability support is enabled, false otherwise
    */
-  bool HasPcfSupported (void) const;
+  bool GetPcfSupported (void) const;
+  /**
+   * Return whether the device has HT Greenfield support enabled.
+   *
+   * \return true if HT Grenfield support is enabled, false otherwise
+   */
+  bool GetGreenfieldSupported (void) const;
+  /**
+   * Return whether the device has SGI support enabled.
+   *
+   * \return true if SGI support is enabled, false otherwise
+   */
+  bool GetShortGuardIntervalSupported (void) const;
+  /**
+   * Return the supported HE guard interval duration (in nanoseconds).
+   *
+   * \return the supported HE guard interval duration (in nanoseconds)
+   */
+  uint16_t GetGuardInterval (void) const;
   /**
    * Enable or disable protection for non-ERP stations.
    *
@@ -450,7 +450,7 @@ public:
    * \return true if the station supports HT/VHT short guard interval,
    *         false otherwise
    */
-  bool GetShortGuardInterval (Mac48Address address) const;
+  bool GetShortGuardIntervalSupported (Mac48Address address) const;
   /**
    * Return the number of spatial streams supported by the station.
    *
@@ -485,6 +485,15 @@ public:
    *         false otherwise
    */
   bool GetVhtSupported (Mac48Address address) const;
+  /**
+   * Return whether the station supports HE or not.
+   *
+   * \param address the address of the station
+   *
+   * \return true if HE is supported by the station,
+   *         false otherwise
+   */
+  bool GetHeSupported (Mac48Address address) const;
 
   /**
    * Return a mode for non-unicast packets.
@@ -520,7 +529,7 @@ public:
    */
   void AddAllSupportedMcs (Mac48Address address);
   /**
-   * Invoked in a STA or AP to delete all of the suppported MCS by a destination.
+   * Invoked in a STA or AP to delete all of the supported MCS by a destination.
    *
    * \param address the address of the station being recorded
    */
@@ -659,8 +668,10 @@ public:
    *
    * \param address the address of the receiver
    * \param header MAC header of the DATA packet
+   * \param packetSize the size of the DATA packet
    */
-  void ReportDataFailed (Mac48Address address, const WifiMacHeader *header);
+  void ReportDataFailed (Mac48Address address, const WifiMacHeader *header,
+                         uint32_t packetSize);
   /**
    * Should be invoked whenever we receive the Cts associated to an RTS
    * we just sent. Note that we also get the SNR of the RTS we sent since
@@ -683,9 +694,11 @@ public:
    * \param ackSnr the SNR of the ACK we received
    * \param ackMode the WifiMode the receiver used to send the ACK
    * \param dataSnr the SNR of the DATA we sent
+   * \param packetSize the size of the DATA packet
    */
   void ReportDataOk (Mac48Address address, const WifiMacHeader *header,
-                     double ackSnr, WifiMode ackMode, double dataSnr);
+                     double ackSnr, WifiMode ackMode, double dataSnr,
+                     uint32_t packetSize);
   /**
    * Should be invoked after calling ReportRtsFailed if
    * NeedRetransmission returns false
@@ -700,8 +713,10 @@ public:
    *
    * \param address the address of the receiver
    * \param header MAC header of the DATA packet
+   * \param packetSize the size of the DATA packet
    */
-  void ReportFinalDataFailed (Mac48Address address, const WifiMacHeader *header);
+  void ReportFinalDataFailed (Mac48Address address, const WifiMacHeader *header,
+                              uint32_t packetSize);
   /**
    * Typically called per A-MPDU, either when a Block ACK was successfully
    * received or when a BlockAckTimeout has elapsed.
@@ -978,7 +993,7 @@ protected:
    * \return true if the station supports HT/VHT short guard interval,
    *         false otherwise
    */
-  bool GetShortGuardInterval (const WifiRemoteStation *station) const;
+  bool GetShortGuardIntervalSupported (const WifiRemoteStation *station) const;
   /**
    * Return the HE guard interval duration supported by the station.
    *
@@ -1082,7 +1097,7 @@ private:
    *       or data) has been attempted and has failed.
    */
   virtual bool DoNeedRetransmission (WifiRemoteStation *station,
-                                         Ptr<const Packet> packet, bool normally);
+                                     Ptr<const Packet> packet, bool normally);
   /**
    * \param station the station that we need to communicate
    * \param packet the packet to send
@@ -1350,12 +1365,11 @@ private:
   /**
    * Get control answer mode function.
    *
-   * \param address the address of the station
    * \param reqMode request mode
    *
    * \return control answer mode
    */
-  WifiMode GetControlAnswerMode (Mac48Address address, WifiMode reqMode);
+  WifiMode GetControlAnswerMode (WifiMode reqMode);
 
   /**
    * Actually sets the fragmentation threshold, it also checks the validity of
@@ -1424,9 +1438,6 @@ private:
   WifiMode m_defaultTxMode; //!< The default transmission mode
   WifiMode m_defaultTxMcs;   //!< The default transmission modulation-coding scheme (MCS)
 
-  bool m_htSupported;  //!< Flag if HT capability is supported
-  bool m_vhtSupported; //!< Flag if VHT capability is supported
-  bool m_heSupported;  //!< Flag if HE capability is supported
   bool m_pcfSupported; //!< Flag if PCF capability is supported
   uint32_t m_maxSsrc;  //!< Maximum STA short retry count (SSRC)
   uint32_t m_maxSlrc;  //!< Maximum STA long retry count (SLRC)

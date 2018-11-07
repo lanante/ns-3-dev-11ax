@@ -47,7 +47,7 @@ protected:
 
   /**
    * gain of the antenna in dB, in all directions
-   *
+   * 
    */
   double m_gainDb;
 };

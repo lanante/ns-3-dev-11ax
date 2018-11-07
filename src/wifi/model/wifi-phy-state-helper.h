@@ -36,6 +36,8 @@ class WifiMode;
 class Packet;
 
 /**
+ * Callback if packet successfully received
+ *
  * arg1: packet received successfully
  * arg2: snr of packet
  * arg3: rx power (dBm) of packet
@@ -44,8 +46,7 @@ class Packet;
  */
 typedef Callback<void, Ptr<Packet>, double, double, WifiTxVector> RxOkCallback;
 /**
- * arg1: packet received unsuccessfully
- * arg2: snr of packet
+ * Callback if packet unsuccessfully received
  */
 typedef Callback<void, Ptr<Packet>, double> RxErrorCallback;
 

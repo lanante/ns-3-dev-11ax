@@ -55,6 +55,7 @@ public:
    */
   SpectrumWifiPhyBasicTest (std::string name);
   virtual ~SpectrumWifiPhyBasicTest ();
+
 protected:
   virtual void DoSetup (void);
   Ptr<SpectrumWifiPhy> m_phy; ///< Phy
@@ -84,6 +85,7 @@ protected:
    */
   void SpectrumWifiPhyRxFailure (Ptr<Packet> p, double snr);
   uint32_t m_count; ///< count
+
 private:
   virtual void DoRun (void);
 };

@@ -104,7 +104,7 @@ GridPositionAllocator::GetTypeId (void)
     .SetParent<PositionAllocator> ()
     .SetGroupName ("Mobility")
     .AddConstructor<GridPositionAllocator> ()
-    .AddAttribute ("GridWidth", "The number of objects layed out on a line.",
+    .AddAttribute ("GridWidth", "The number of objects laid out on a line.",
                    UintegerValue (10),
                    MakeUintegerAccessor (&GridPositionAllocator::m_n),
                    MakeUintegerChecker<uint32_t> ())
@@ -115,6 +115,11 @@ GridPositionAllocator::GetTypeId (void)
     .AddAttribute ("MinY", "The y coordinate where the grid starts.",
                    DoubleValue (0.0),
                    MakeDoubleAccessor (&GridPositionAllocator::m_yMin),
+                   MakeDoubleChecker<double> ())
+    .AddAttribute ("Z",
+                   "The z coordinate of all the positions allocated.",
+                   DoubleValue (0.0),
+                   MakeDoubleAccessor (&GridPositionAllocator::m_z),
                    MakeDoubleChecker<double> ())
     .AddAttribute ("DeltaX", "The x space between objects.",
                    DoubleValue (1.0),
@@ -146,6 +151,11 @@ void
 GridPositionAllocator::SetMinY (double yMin)
 {
   m_yMin = yMin;
+}
+void
+GridPositionAllocator::SetZ (double z)
+{
+  m_z = z;
 }
 void
 GridPositionAllocator::SetDeltaX (double deltaX)
@@ -214,7 +224,7 @@ GridPositionAllocator::GetNext (void) const
       break;
     }
   m_current++;
-  return Vector (x, y, 0.0);
+  return Vector (x, y, m_z);
 }
 
 int64_t
@@ -241,7 +251,13 @@ RandomRectanglePositionAllocator::GetTypeId (void)
                    "A random variable which represents the y coordinate of a position in a random rectangle.",
                    StringValue ("ns3::UniformRandomVariable[Min=0.0|Max=1.0]"),
                    MakePointerAccessor (&RandomRectanglePositionAllocator::m_y),
-                   MakePointerChecker<RandomVariableStream> ());
+                   MakePointerChecker<RandomVariableStream> ())
+    .AddAttribute ("Z",
+                   "The z coordinate of all the positions allocated.",
+                   DoubleValue (0.0),
+                   MakeDoubleAccessor (&RandomRectanglePositionAllocator::m_z),
+                   MakeDoubleChecker<double> ())
+    ;
   return tid;
 }
 
@@ -262,13 +278,18 @@ RandomRectanglePositionAllocator::SetY (Ptr<RandomVariableStream> y)
 {
   m_y = y;
 }
+void
+RandomRectanglePositionAllocator::SetZ (double z)
+{
+  m_z = z;
+}
 
 Vector
 RandomRectanglePositionAllocator::GetNext (void) const
 {
   double x = m_x->GetValue ();
   double y = m_y->GetValue ();
-  return Vector (x, y, 0.0);
+  return Vector (x, y, m_z);
 }
 
 int64_t
@@ -376,6 +397,11 @@ RandomDiscPositionAllocator::GetTypeId (void)
                    DoubleValue (0.0),
                    MakeDoubleAccessor (&RandomDiscPositionAllocator::m_y),
                    MakeDoubleChecker<double> ())
+    .AddAttribute ("Z",
+                   "The z coordinate of all the positions in the disc.",
+                   DoubleValue (0.0),
+                   MakeDoubleAccessor (&RandomDiscPositionAllocator::m_z),
+                   MakeDoubleChecker<double> ())
   ;
   return tid;
 }
@@ -407,6 +433,11 @@ RandomDiscPositionAllocator::SetY (double y)
 {
   m_y = y;
 }
+void
+RandomDiscPositionAllocator::SetZ (double z)
+{
+  m_z = z;
+}
 Vector
 RandomDiscPositionAllocator::GetNext (void) const
 {
@@ -415,7 +446,7 @@ RandomDiscPositionAllocator::GetNext (void) const
   double x = m_x + std::cos (theta) * rho;
   double y = m_y + std::sin (theta) * rho;
   NS_LOG_DEBUG ("Disc position x=" << x << ", y=" << y);
-  return Vector (x, y, 0.0);
+  return Vector (x, y, m_z);
 }
 
 int64_t
@@ -452,6 +483,11 @@ UniformDiscPositionAllocator::GetTypeId (void)
                    DoubleValue (0.0),
                    MakeDoubleAccessor (&UniformDiscPositionAllocator::m_y),
                    MakeDoubleChecker<double> ())
+    .AddAttribute ("Z",
+                   "The z coordinate of all the positions in the disc.",
+                   DoubleValue (0.0),
+                   MakeDoubleAccessor (&UniformDiscPositionAllocator::m_z),
+                   MakeDoubleChecker<double> ())
   ;
   return tid;
 }
@@ -479,6 +515,11 @@ UniformDiscPositionAllocator::SetY (double y)
 {
   m_y = y;
 }
+void
+UniformDiscPositionAllocator::SetZ (double z)
+{
+  m_z = z;
+}
 Vector
 UniformDiscPositionAllocator::GetNext (void) const
 {
@@ -493,7 +534,7 @@ UniformDiscPositionAllocator::GetNext (void) const
   x += m_x;
   y += m_y;
   NS_LOG_DEBUG ("Disc position x=" << x << ", y=" << y);
-  return Vector (x, y, 0.0);
+  return Vector (x, y, m_z);
 }
 
 int64_t

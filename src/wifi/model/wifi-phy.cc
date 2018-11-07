@@ -32,8 +32,9 @@
 #include "frame-capture-model.h"
 #include "wifi-radio-energy-model.h"
 #include "error-rate-model.h"
-#include "wifi-net-device.h"
 #include "regular-wifi-mac.h"
+#include "wifi-net-device.h"
+#include "ht-configuration.h"
 #include "he-configuration.h"
 
 namespace ns3 {
@@ -113,6 +114,10 @@ WifiPhy::ChannelToFrequencyWidthMap WifiPhy::m_channelToFrequencyWidth =
   { std::make_pair (157, WIFI_PHY_STANDARD_UNSPECIFIED), std::make_pair (5785, 20) },
   { std::make_pair (161, WIFI_PHY_STANDARD_UNSPECIFIED), std::make_pair (5805, 20) },
   { std::make_pair (165, WIFI_PHY_STANDARD_UNSPECIFIED), std::make_pair (5825, 20) },
+  { std::make_pair (169, WIFI_PHY_STANDARD_UNSPECIFIED), std::make_pair (5845, 20) },
+  { std::make_pair (173, WIFI_PHY_STANDARD_UNSPECIFIED), std::make_pair (5865, 20) },
+  { std::make_pair (177, WIFI_PHY_STANDARD_UNSPECIFIED), std::make_pair (5885, 20) },
+  { std::make_pair (181, WIFI_PHY_STANDARD_UNSPECIFIED), std::make_pair (5905, 20) },
   // 40 MHz channels
   { std::make_pair (38, WIFI_PHY_STANDARD_UNSPECIFIED), std::make_pair (5190, 40) },
   { std::make_pair (46, WIFI_PHY_STANDARD_UNSPECIFIED), std::make_pair (5230, 40) },
@@ -126,6 +131,8 @@ WifiPhy::ChannelToFrequencyWidthMap WifiPhy::m_channelToFrequencyWidth =
   { std::make_pair (142, WIFI_PHY_STANDARD_UNSPECIFIED), std::make_pair (5710, 40) },
   { std::make_pair (151, WIFI_PHY_STANDARD_UNSPECIFIED), std::make_pair (5755, 40) },
   { std::make_pair (159, WIFI_PHY_STANDARD_UNSPECIFIED), std::make_pair (5795, 40) },
+  { std::make_pair (167, WIFI_PHY_STANDARD_UNSPECIFIED), std::make_pair (5835, 40) },
+  { std::make_pair (175, WIFI_PHY_STANDARD_UNSPECIFIED), std::make_pair (5875, 40) },
   // 80 MHz channels
   { std::make_pair (42, WIFI_PHY_STANDARD_UNSPECIFIED), std::make_pair (5210, 80) },
   { std::make_pair (58, WIFI_PHY_STANDARD_UNSPECIFIED), std::make_pair (5290, 80) },
@@ -133,9 +140,11 @@ WifiPhy::ChannelToFrequencyWidthMap WifiPhy::m_channelToFrequencyWidth =
   { std::make_pair (122, WIFI_PHY_STANDARD_UNSPECIFIED), std::make_pair (5610, 80) },
   { std::make_pair (138, WIFI_PHY_STANDARD_UNSPECIFIED), std::make_pair (5690, 80) },
   { std::make_pair (155, WIFI_PHY_STANDARD_UNSPECIFIED), std::make_pair (5775, 80) },
+  { std::make_pair (171, WIFI_PHY_STANDARD_UNSPECIFIED), std::make_pair (5855, 80) },
   // 160 MHz channels
   { std::make_pair (50, WIFI_PHY_STANDARD_UNSPECIFIED), std::make_pair (5250, 160) },
   { std::make_pair (114, WIFI_PHY_STANDARD_UNSPECIFIED), std::make_pair (5570, 160) },
+  { std::make_pair (163, WIFI_PHY_STANDARD_UNSPECIFIED), std::make_pair (5815, 160) },
 
   // 802.11p (10 MHz channels at the 5.855-5.925 band
   { std::make_pair (172, WIFI_PHY_STANDARD_80211_10MHZ), std::make_pair (5860, 10) },
@@ -267,33 +276,24 @@ WifiPhy::GetTypeId (void)
                    BooleanValue (false),
                    MakeBooleanAccessor (&WifiPhy::GetShortGuardInterval,
                                         &WifiPhy::SetShortGuardInterval),
-                   MakeBooleanChecker ())
+                   MakeBooleanChecker (),
+                   TypeId::DEPRECATED, "Use the HtConfiguration instead")
     .AddAttribute ("GuardInterval",
                    "Whether 800ns, 1600ns or 3200ns guard interval is used for HE transmissions."
                    "This parameter is only valuable for 802.11ax STAs and APs.",
                    TimeValue (NanoSeconds (3200)),
                    MakeTimeAccessor (&WifiPhy::GetGuardInterval,
                                      &WifiPhy::SetGuardInterval),
-                   MakeTimeChecker (NanoSeconds (400), NanoSeconds (3200)))
-    .AddAttribute ("LdpcEnabled",
-                   "Whether or not LDPC is enabled (not supported yet!).",
-                   BooleanValue (false),
-                   MakeBooleanAccessor (&WifiPhy::GetLdpc,
-                                        &WifiPhy::SetLdpc),
-                   MakeBooleanChecker ())
-    .AddAttribute ("STBCEnabled",
-                   "Whether or not STBC is enabled (not supported yet!).",
-                   BooleanValue (false),
-                   MakeBooleanAccessor (&WifiPhy::GetStbc,
-                                        &WifiPhy::SetStbc),
-                   MakeBooleanChecker ())
+                   MakeTimeChecker (NanoSeconds (800), NanoSeconds (3200)),
+                   TypeId::DEPRECATED, "Use the HeConfiguration instead")
     .AddAttribute ("GreenfieldEnabled",
                    "Whether or not Greenfield is enabled."
                    "This parameter is only valuable for 802.11n STAs and APs.",
                    BooleanValue (false),
                    MakeBooleanAccessor (&WifiPhy::GetGreenfield,
                                         &WifiPhy::SetGreenfield),
-                   MakeBooleanChecker ())
+                   MakeBooleanChecker (),
+                   TypeId::DEPRECATED, "Use the HtConfiguration instead")
     .AddAttribute ("ShortPlcpPreambleSupported",
                    "Whether or not short PLCP preamble is supported."
                    "This parameter is only valuable for 802.11b STAs and APs."
@@ -596,41 +596,33 @@ WifiPhy::GetRxGain (void) const
 }
 
 void
-WifiPhy::SetLdpc (bool ldpc)
-{
-  NS_LOG_FUNCTION (this << ldpc);
-  m_ldpc = ldpc;
-}
-
-bool
-WifiPhy::GetLdpc (void) const
-{
-  return m_ldpc;
-}
-
-void
-WifiPhy::SetStbc (bool stbc)
-{
-  NS_LOG_FUNCTION (this << stbc);
-  m_stbc = stbc;
-}
-
-bool
-WifiPhy::GetStbc (void) const
-{
-  return m_stbc;
-}
-
-void
 WifiPhy::SetGreenfield (bool greenfield)
 {
   NS_LOG_FUNCTION (this << greenfield);
+  Ptr<WifiNetDevice> device = DynamicCast<WifiNetDevice> (GetDevice ());
+  if (device)
+    {
+      Ptr<HtConfiguration> htConfiguration = device->GetHtConfiguration ();
+      if (htConfiguration)
+        {
+          htConfiguration->SetGreenfieldSupported (greenfield);
+        }
+    }
   m_greenfield = greenfield;
 }
 
 bool
 WifiPhy::GetGreenfield (void) const
 {
+  Ptr<WifiNetDevice> device = DynamicCast<WifiNetDevice> (GetDevice ());
+  if (device)
+    {
+      Ptr<HtConfiguration> htConfiguration = device->GetHtConfiguration ();
+      if (htConfiguration)
+        {
+          return htConfiguration->GetGreenfieldSupported ();
+        }
+    }
   return m_greenfield;
 }
 
@@ -638,12 +630,30 @@ void
 WifiPhy::SetShortGuardInterval (bool shortGuardInterval)
 {
   NS_LOG_FUNCTION (this << shortGuardInterval);
+  Ptr<WifiNetDevice> device = DynamicCast<WifiNetDevice> (GetDevice ());
+  if (device)
+    {
+      Ptr<HtConfiguration> htConfiguration = device->GetHtConfiguration ();
+      if (htConfiguration)
+        {
+          htConfiguration->SetShortGuardIntervalSupported (shortGuardInterval);
+        }
+    }
   m_shortGuardInterval = shortGuardInterval;
 }
 
 bool
 WifiPhy::GetShortGuardInterval (void) const
 {
+  Ptr<WifiNetDevice> device = DynamicCast<WifiNetDevice> (GetDevice ());
+  if (device)
+    {
+      Ptr<HtConfiguration> htConfiguration = device->GetHtConfiguration ();
+      if (htConfiguration)
+        {
+          return htConfiguration->GetShortGuardIntervalSupported ();
+        }
+    }
   return m_shortGuardInterval;
 }
 
@@ -652,12 +662,30 @@ WifiPhy::SetGuardInterval (Time guardInterval)
 {
   NS_LOG_FUNCTION (this << guardInterval);
   NS_ASSERT (guardInterval == NanoSeconds (800) || guardInterval == NanoSeconds (1600) || guardInterval == NanoSeconds (3200));
+  Ptr<WifiNetDevice> device = DynamicCast<WifiNetDevice> (GetDevice ());
+  if (device)
+    {
+      Ptr<HeConfiguration> heConfiguration = device->GetHeConfiguration ();
+      if (heConfiguration)
+        {
+          heConfiguration->SetGuardInterval (guardInterval);
+        }
+    }
   m_guardInterval = guardInterval;
 }
 
 Time
 WifiPhy::GetGuardInterval (void) const
 {
+  Ptr<WifiNetDevice> device = DynamicCast<WifiNetDevice> (GetDevice ());
+  if (device)
+    {
+      Ptr<HeConfiguration> heConfiguration = device->GetHeConfiguration ();
+      if (heConfiguration)
+        {
+          return heConfiguration->GetGuardInterval ();
+        }
+    }
   return m_guardInterval;
 }
 
@@ -678,6 +706,18 @@ void
 WifiPhy::SetDevice (const Ptr<NetDevice> device)
 {
   m_device = device;
+  //TODO: to be removed once deprecated API is cleaned up
+  Ptr<HtConfiguration> htConfiguration = DynamicCast<WifiNetDevice> (device)->GetHtConfiguration ();
+  if (htConfiguration)
+    {
+      htConfiguration->SetShortGuardIntervalSupported (m_shortGuardInterval);
+      htConfiguration->SetGreenfieldSupported (m_greenfield);
+    }
+  Ptr<HeConfiguration> heConfiguration = DynamicCast<WifiNetDevice> (device)->GetHeConfiguration ();
+  if (heConfiguration)
+    {
+      heConfiguration->SetGuardInterval (m_guardInterval);
+    }
 }
 
 Ptr<NetDevice>
@@ -1435,7 +1475,7 @@ WifiPhy::SetChannelNumber (uint8_t nch)
     }
   else
     {
-      NS_FATAL_ERROR ("Frequency not found for channel number " << nch);
+      NS_FATAL_ERROR ("Frequency not found for channel number " << +nch);
     }
 }
 
@@ -1629,7 +1669,7 @@ WifiPhy::ResumeFromSleep (void)
     case WifiPhyState::SLEEP:
       {
         NS_LOG_DEBUG ("resuming from sleep mode");
-        Time delayUntilCcaEnd = m_interference.GetEnergyDuration (DbmToW (GetCcaMode1Threshold ()));
+        Time delayUntilCcaEnd = m_interference.GetEnergyDuration (m_ccaMode1ThresholdW);
         m_state->SwitchFromSleep (delayUntilCcaEnd);
         break;
       }
@@ -1999,13 +2039,13 @@ WifiPhy::GetPayloadDuration (uint32_t size, WifiTxVector txVector, uint16_t freq
   double Nes = 1;
   //todo: improve logic to reduce the number of if cases
   //todo: extend to NSS > 4 for VHT rates
-  if (payloadMode.GetUniqueName () == "HtMcs21"
-      || payloadMode.GetUniqueName () == "HtMcs22"
-      || payloadMode.GetUniqueName () == "HtMcs23"
-      || payloadMode.GetUniqueName () == "HtMcs28"
-      || payloadMode.GetUniqueName () == "HtMcs29"
-      || payloadMode.GetUniqueName () == "HtMcs30"
-      || payloadMode.GetUniqueName () == "HtMcs31")
+  if (payloadMode == GetHtMcs21()
+      || payloadMode == GetHtMcs22 ()
+      || payloadMode == GetHtMcs23 ()
+      || payloadMode == GetHtMcs28 ()
+      || payloadMode == GetHtMcs29 ()
+      || payloadMode == GetHtMcs30 ()
+      || payloadMode == GetHtMcs31 ())
     {
       Nes = 2;
     }
@@ -2193,6 +2233,8 @@ WifiPhy::GetPayloadDuration (uint32_t size, WifiTxVector txVector, uint16_t freq
   else if (mpdutype == NORMAL_MPDU && preamble != WIFI_PREAMBLE_NONE)
     {
       //Not an A-MPDU
+      // The number of OFDM symbols in the data field when BCC encoding 
+      // is used is given in equation 19-32 of the IEEE 802.11-2016 standard.
       numSymbols = lrint (stbc * ceil ((16 + size * 8.0 + 6.0 * Nes) / (stbc * numDataBitsPerSymbol)));
     }
   else
@@ -2366,7 +2408,7 @@ WifiPhy::SendPacket (Ptr<const Packet> packet, WifiTxVector txVector, MpduType m
                         << +txVector.GetTxPowerLevel ()
                         << +mpdutype);
   /* Transmission can happen if:
-   *  - we are syncing on a packet. It is the responsability of the
+   *  - we are syncing on a packet. It is the responsibility of the
    *    MAC layer to avoid doing this but the PHY does nothing to
    *    prevent it.
    *  - we are idle
@@ -2715,8 +2757,8 @@ WifiPhy::EndReceive (Ptr<Packet> packet, WifiPreamble preamble, MpduType mpdutyp
         {
           NotifyRxEnd (packet);
           SignalNoiseDbm signalNoise;
-          signalNoise.signal = RatioToDb (event->GetRxPowerW ()) + 30;
-          signalNoise.noise = RatioToDb (event->GetRxPowerW () / snrPer.snr) + 30;
+          signalNoise.signal = WToDbm (event->GetRxPowerW ());
+          signalNoise.noise = WToDbm (event->GetRxPowerW () / snrPer.snr);
           MpduInfo aMpdu;
           aMpdu.type = mpdutype;
           aMpdu.mpduRefNumber = m_rxMpduReferenceNumber;
@@ -3788,7 +3830,7 @@ void
 WifiPhy::StartRx (Ptr<Packet> packet, WifiTxVector txVector, MpduType mpdutype, double rxPowerW, Time rxDuration, Ptr<Event> event)
 {
   NS_LOG_FUNCTION (this << packet << txVector << +mpdutype << rxPowerW << rxDuration);
-  if (rxPowerW > DbmToW (GetEdThreshold ())) //checked here, no need to check in the payload reception (current implementation assumes constant rx power over the packet duration)
+  if (rxPowerW > m_edThresholdW) //checked here, no need to check in the payload reception (current implementation assumes constant rx power over the packet duration)
     {
       AmpduTag ampduTag;
       WifiPreamble preamble = txVector.GetPreambleType ();
@@ -3869,7 +3911,7 @@ WifiPhy::StartRx (Ptr<Packet> packet, WifiTxVector txVector, MpduType mpdutype, 
   else
     {
       NS_LOG_DEBUG ("drop packet because signal power too Small (" <<
-                    rxPowerW << "<" << DbmToW (GetEdThreshold ()) << ")");
+                    rxPowerW << "<" << m_edThresholdW << ")");
       NotifyRxDrop (packet);
       m_plcpSuccess = false;
       MaybeCcaBusyDuration ();

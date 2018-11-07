@@ -27,7 +27,7 @@ namespace ns3 {
 /**
  * \brief Data structure that records the congestion state of a connection
  *
- * In this data structure, basic informations that should be passed between
+ * In this data structure, basic information that should be passed between
  * socket and the congestion control algorithm are saved. Through the code,
  * it will be referred as Transmission Control Block (TCB), but there are some
  * differencies. In the RFCs, the TCB contains all the variables that defines
@@ -114,26 +114,6 @@ public:
   } EcnState_t;
 
   /**
-   * \ingroup tcp
-   * TracedValue Callback signature for TcpCongState_t
-   *
-   * \param [in] oldValue original value of the traced variable
-   * \param [in] newValue new value of the traced variable
-   */
-  typedef void (* TcpCongStatesTracedValueCallback)(const TcpCongState_t oldValue,
-                                                    const TcpCongState_t newValue);
-
-   /**
-   * \ingroup tcp
-   * TracedValue Callback signature for EcnState_t
-   *
-   * \param [in] oldValue original value of the traced variable
-   * \param [in] newValue new value of the traced variable
-   */
-  typedef void (* EcnStatesTracedValueCallback)(const EcnState_t oldValue,
-                                                const EcnState_t newValue);
-
-  /**
    * \brief Literal names of TCP states for use in log messages
    */
   static const char* const TcpCongStateName[TcpSocketState::CA_LAST_STATE];
@@ -194,5 +174,29 @@ public:
     return m_ssThresh / m_segmentSize;
   }
 };
+
+namespace TracedValueCallback {
+
+  /**
+   * \ingroup tcp
+   * TracedValue Callback signature for TcpCongState_t
+   *
+   * \param [in] oldValue original value of the traced variable
+   * \param [in] newValue new value of the traced variable
+   */
+  typedef void (* TcpCongState)(const TcpSocketState::TcpCongState_t oldValue,
+                                const TcpSocketState::TcpCongState_t newValue);
+
+   /**
+   * \ingroup tcp
+   * TracedValue Callback signature for EcnState_t
+   *
+   * \param [in] oldValue original value of the traced variable
+   * \param [in] newValue new value of the traced variable
+   */
+  typedef void (* EcnState)(const TcpSocketState::EcnState_t oldValue,
+                            const TcpSocketState::EcnState_t newValue);
+
+}  // namespace TracedValueCallback
 
 } //namespace ns3

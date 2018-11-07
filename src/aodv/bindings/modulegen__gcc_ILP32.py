@@ -272,6 +272,9 @@ def register_types(module):
     module.add_class('Time', import_from_module='ns.core')
     ## nstime.h (module 'core'): ns3::Time::Unit [enumeration]
     module.add_enum('Unit', ['Y', 'D', 'H', 'MIN', 'S', 'MS', 'US', 'NS', 'PS', 'FS', 'LAST'], outer_class=root_module['ns3::Time'], import_from_module='ns.core')
+    typehandlers.add_type_alias(u'void ( * ) ( ns3::Time )', u'ns3::Time::TracedCallback')
+    typehandlers.add_type_alias(u'void ( * ) ( ns3::Time )*', u'ns3::Time::TracedCallback*')
+    typehandlers.add_type_alias(u'void ( * ) ( ns3::Time )&', u'ns3::Time::TracedCallback&')
     ## nstime.h (module 'core'): ns3::Time [class]
     root_module['ns3::Time'].implicitly_converts_to(root_module['ns3::int64x64_t'])
     ## trace-source-accessor.h (module 'core'): ns3::TraceSourceAccessor [class]
@@ -427,6 +430,9 @@ def register_types(module):
     typehandlers.add_type_alias(u'void ( * ) ( ns3::Ptr< ns3::Packet const >, ns3::Address const & )', u'ns3::Packet::AddressTracedCallback')
     typehandlers.add_type_alias(u'void ( * ) ( ns3::Ptr< ns3::Packet const >, ns3::Address const & )*', u'ns3::Packet::AddressTracedCallback*')
     typehandlers.add_type_alias(u'void ( * ) ( ns3::Ptr< ns3::Packet const >, ns3::Address const & )&', u'ns3::Packet::AddressTracedCallback&')
+    typehandlers.add_type_alias(u'void ( * ) ( ns3::Ptr< ns3::Packet const > const, ns3::Address const &, ns3::Address const & )', u'ns3::Packet::TwoAddressTracedCallback')
+    typehandlers.add_type_alias(u'void ( * ) ( ns3::Ptr< ns3::Packet const > const, ns3::Address const &, ns3::Address const & )*', u'ns3::Packet::TwoAddressTracedCallback*')
+    typehandlers.add_type_alias(u'void ( * ) ( ns3::Ptr< ns3::Packet const > const, ns3::Address const &, ns3::Address const & )&', u'ns3::Packet::TwoAddressTracedCallback&')
     typehandlers.add_type_alias(u'void ( * ) ( ns3::Ptr< ns3::Packet const >, ns3::Mac48Address )', u'ns3::Packet::Mac48AddressTracedCallback')
     typehandlers.add_type_alias(u'void ( * ) ( ns3::Ptr< ns3::Packet const >, ns3::Mac48Address )*', u'ns3::Packet::Mac48AddressTracedCallback*')
     typehandlers.add_type_alias(u'void ( * ) ( ns3::Ptr< ns3::Packet const >, ns3::Mac48Address )&', u'ns3::Packet::Mac48AddressTracedCallback&')
@@ -2308,6 +2314,11 @@ def register_Ns3NodeContainer_methods(root_module, cls):
     cls.add_method('Begin', 
                    'ns3::NodeContainer::Iterator', 
                    [], 
+                   is_const=True)
+    ## node-container.h (module 'network'): bool ns3::NodeContainer::Contains(uint32_t id) const [member function]
+    cls.add_method('Contains', 
+                   'bool', 
+                   [param('uint32_t', 'id')], 
                    is_const=True)
     ## node-container.h (module 'network'): void ns3::NodeContainer::Create(uint32_t n) [member function]
     cls.add_method('Create', 
@@ -7877,8 +7888,8 @@ def register_Ns3AodvQueueEntry_methods(root_module, cls):
     cls.add_binary_comparison_operator('==')
     ## aodv-rqueue.h (module 'aodv'): ns3::aodv::QueueEntry::QueueEntry(ns3::aodv::QueueEntry const & arg0) [constructor]
     cls.add_constructor([param('ns3::aodv::QueueEntry const &', 'arg0')])
-    ## aodv-rqueue.h (module 'aodv'): ns3::aodv::QueueEntry::QueueEntry(ns3::Ptr<const ns3::Packet> pa=0, ns3::Ipv4Header const & h=ns3::Ipv4Header(), ns3::aodv::QueueEntry::UnicastForwardCallback ucb=::ns3::Callback<void, ns3::Ptr<ns3::Ipv4Route>, ns3::Ptr<const ns3::Packet>, const ns3::Ipv4Header &, ns3::empty, ns3::empty, ns3::empty, ns3::empty, ns3::empty, ns3::empty>( ), ns3::aodv::QueueEntry::ErrorCallback ecb=::ns3::Callback<void, ns3::Ptr<const ns3::Packet>, const ns3::Ipv4Header &, ns3::Socket::SocketErrno, ns3::empty, ns3::empty, ns3::empty, ns3::empty, ns3::empty, ns3::empty>( ), ns3::Time exp=ns3::Simulator::Now()) [constructor]
-    cls.add_constructor([param('ns3::Ptr< ns3::Packet const >', 'pa', default_value='0'), param('ns3::Ipv4Header const &', 'h', default_value='ns3::Ipv4Header()'), param('ns3::aodv::QueueEntry::UnicastForwardCallback', 'ucb', default_value='::ns3::Callback<void, ns3::Ptr<ns3::Ipv4Route>, ns3::Ptr<const ns3::Packet>, const ns3::Ipv4Header &, ns3::empty, ns3::empty, ns3::empty, ns3::empty, ns3::empty, ns3::empty>( )'), param('ns3::aodv::QueueEntry::ErrorCallback', 'ecb', default_value='::ns3::Callback<void, ns3::Ptr<const ns3::Packet>, const ns3::Ipv4Header &, ns3::Socket::SocketErrno, ns3::empty, ns3::empty, ns3::empty, ns3::empty, ns3::empty, ns3::empty>( )'), param('ns3::Time', 'exp', default_value='ns3::Simulator::Now()')])
+    ## aodv-rqueue.h (module 'aodv'): ns3::aodv::QueueEntry::QueueEntry(ns3::Ptr<const ns3::Packet> pa=0, ns3::Ipv4Header const & h=ns3::Ipv4Header(), ns3::aodv::QueueEntry::UnicastForwardCallback ucb=ns3::aodv::QueueEntry::UnicastForwardCallback(), ns3::aodv::QueueEntry::ErrorCallback ecb=ns3::aodv::QueueEntry::ErrorCallback(), ns3::Time exp=ns3::Simulator::Now()) [constructor]
+    cls.add_constructor([param('ns3::Ptr< ns3::Packet const >', 'pa', default_value='0'), param('ns3::Ipv4Header const &', 'h', default_value='ns3::Ipv4Header()'), param('ns3::aodv::QueueEntry::UnicastForwardCallback', 'ucb', default_value='ns3::aodv::QueueEntry::UnicastForwardCallback()'), param('ns3::aodv::QueueEntry::ErrorCallback', 'ecb', default_value='ns3::aodv::QueueEntry::ErrorCallback()'), param('ns3::Time', 'exp', default_value='ns3::Simulator::Now()')])
     ## aodv-rqueue.h (module 'aodv'): ns3::aodv::QueueEntry::ErrorCallback ns3::aodv::QueueEntry::GetErrorCallback() const [member function]
     cls.add_method('GetErrorCallback', 
                    'ns3::aodv::QueueEntry::ErrorCallback', 

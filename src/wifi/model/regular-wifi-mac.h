@@ -139,6 +139,7 @@ public:
    *
    * \param enable true if RIFS is to be supported,
    *               false otherwise
+   * \deprecated
    */
   void SetRifsSupported (bool enable);
   /**
@@ -146,6 +147,7 @@ public:
    *
    * \return true if short RIFS is supported,
    *         false otherwise.
+   * \deprecated
    */
   bool GetRifsSupported (void) const;
   /**
@@ -268,7 +270,7 @@ public:
    *
    * \param packet the packet that has been received.
    * \param from the MAC address of the device that sent the packet.
-   * \param to the MAC address ot the device that the packet is destined for.
+   * \param to the MAC address of the device that the packet is destined for.
    */
   typedef Callback<void, Ptr<Packet>, Mac48Address, Mac48Address> ForwardUpCallback;
   /**
@@ -362,7 +364,7 @@ protected:
    * This method is called by ns3::WifiMac::ConfigureStandard to
    * complete the configuration process for a requested phy standard.
    *
-   * This method may be overriden by a derived class (e.g., in order
+   * This method may be overridden by a derived class (e.g., in order
    * to apply DCF or EDCA parameters specific to the usage model it is
    * dealing with), in which case the reimplementation may choose to
    * deal with certain values in the WifiPhyStandard enumeration, and
@@ -394,9 +396,9 @@ protected:
    * invoked to notify us that a frame has been received. The
    * implementation is intended to capture logic that is going to be
    * common to all (or most) derived classes. Specifically, handling
-   * of Block Ack managment frames is dealt with here.
+   * of Block Ack management frames is dealt with here.
    *
-   * This method will need, however, to be overriden by derived
+   * This method will need, however, to be overridden by derived
    * classes so that they can perform their data handling before
    * invoking the base version.
    *
@@ -661,24 +663,6 @@ private:
    */
   bool m_qosSupported;
   /**
-    * This Boolean is set \c true iff this WifiMac is to model
-    * 802.11n. It is exposed through the attribute system.
-    *
-    * At the moment, this flag is the sole selection between HT and
-    * non-HT operation for the STA (whether IBSS, AP, or
-    * non-AP). Ultimately, we will want a HT-enabled STA to be able to
-    * fall back to non-HT operation with a non-HT peer. This'll
-    * require further intelligence - i.e., per-association HT
-    * state. Having a big switch seems like a good intermediate stage,
-    * however.
-    */
-  bool m_htSupported;
-  /**
-   * This Boolean is set \c true iff this WifiMac is to model
-   * 802.11ac. It is exposed through the attribute system.
-   */
-  bool m_vhtSupported;
-  /**
    * This Boolean is set \c true iff this WifiMac is to model
    * 802.11g. It is exposed through the attribute system.
    */
@@ -688,11 +672,6 @@ private:
    * 802.11b. It is exposed through the attribute system.
    */
   bool m_dsssSupported;
-  /**
-   * This Boolean is set \c true iff this WifiMac is to model
-   * 802.11ax. It is exposed through the attribute system.
-   */
-  bool m_heSupported;
 
   /// Configure aggregation function
   void ConfigureAggregation (void);
@@ -715,7 +694,7 @@ private:
   TracedCallback<const WifiMacHeader &> m_txErrCallback; ///< transmit error callback
 
   bool m_shortSlotTimeSupported; ///< flag whether short slot time is supported
-  bool m_rifsSupported; ///< flag whether RIFS is supported
+  bool m_rifsSupported; ///< flag whether RIFS is supported (deprecated)
   Ptr<HeConfiguration> m_heConfiguration; ///< Ptr to HeConfiguration
 };
 

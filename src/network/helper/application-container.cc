@@ -19,9 +19,12 @@
  */
 
 #include "ns3/names.h"
+#include "ns3/log.h"
 #include "application-container.h"
 
 namespace ns3 {
+
+NS_LOG_COMPONENT_DEFINE ("ApplicationContainer");
 
 ApplicationContainer::ApplicationContainer ()
 {
@@ -95,7 +98,9 @@ ApplicationContainer::StartWithJitter (Time start, Ptr<RandomVariableStream> rv)
   for (Iterator i = Begin (); i != End (); ++i)
     {
       Ptr<Application> app = *i;
-      app->SetStartTime (start + Seconds (rv->GetValue ()));
+      double value = rv->GetValue ();
+      NS_LOG_DEBUG ("Start application at time " << start.GetSeconds () + value << "s");
+      app->SetStartTime (start + Seconds (value));
     }
 }
 void 
