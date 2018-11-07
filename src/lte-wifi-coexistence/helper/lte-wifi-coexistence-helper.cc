@@ -116,7 +116,6 @@ LteWifiCoexistenceHelper::ConfigureEnbDevicesForLbt (NetDeviceContainer enbDevic
       WifiHelper wifi;
       wifi.SetStandard (WIFI_PHY_STANDARD_80211n_5GHZ);
       WifiMacHelper mac;
-      spectrumPhy.Set ("ShortGuardEnabled", BooleanValue (false));
       spectrumPhy.Set ("ChannelWidth", UintegerValue (20));
       spectrumPhy.Set ("TxGain", DoubleValue (phyParams.m_bsTxGain));
       spectrumPhy.Set ("RxGain", DoubleValue (phyParams.m_bsRxGain));
