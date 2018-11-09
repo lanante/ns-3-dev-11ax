@@ -29,11 +29,11 @@
 namespace ns3 {
 
 /**
- * \brief OBSS PD algorithm
- * \ingroup wifi
+ * \brief OBSS PD algorithm interface
+ * \ingroup wifi-he
  *
- * This object executes an algorithm for OBSS PD to evalute if a receiving
- * signal should be accepted or rejeted.
+ * This object provides the interface for all OBSS_PD adjustment algorithms
+ * and is designed to be subclassed.
  *
  */
 class ObssPdAlgorithm : public Object

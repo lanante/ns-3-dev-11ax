@@ -40,8 +40,8 @@ TypeId
 ConstantObssPdAlgorithm::GetTypeId (void)
 {
   static ns3::TypeId tid = ns3::TypeId ("ns3::ConstantObssPdAlgorithm")
-    .SetParent<Object> ()
-    .SetGroupName ("Wifi")
+    .SetParent<ObssPdAlgorithm> ()
+    .SetGroupName ("WifiHe")
     .AddConstructor<ConstantObssPdAlgorithm> ()
     .AddAttribute ("ConstantObssPdLevel",
                    "The OBSS PD level.",

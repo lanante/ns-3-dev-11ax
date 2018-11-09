@@ -32,7 +32,7 @@ namespace ns3 {
  * \ingroup wifi
  *
  * This object executes an algorithm for OBSS PD to evalute if a receiving
- * signal should be accepted or rejeted.
+ * signal should be accepted or rejected.
  *
  */
 class ConstantObssPdAlgorithm : public ObssPdAlgorithm
