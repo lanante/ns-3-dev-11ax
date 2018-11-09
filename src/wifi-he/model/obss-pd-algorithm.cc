@@ -21,6 +21,8 @@
 #include "ns3/uinteger.h"
 #include "ns3/double.h"
 #include "ns3/log.h"
+#include "ns3/node.h"
+#include "ns3/config.h"
 
 namespace ns3 {
 
@@ -89,6 +91,26 @@ ObssPdAlgorithm::GetTxPwr (void) const
   return m_txPwr;
 }
 
+void
+ObssPdAlgorithm::SetupCallbacks ()
+{
+  Ptr<WifiNetDevice> wifiNetDevice = GetWifiNetDevice ();
+  Ptr<Node> node = wifiNetDevice-> GetNode();
+  uint32_t nodeid = node->GetId ();
+
+  std::ostringstream oss;
+  oss.str ("");
+  oss << "/NodeList/" << nodeid << "/DeviceList/*/";
+  std::string devicepath = oss.str ();
+
+  // PhyEndOfHePreamble - used to test that the PHY EndOfHePreamble event has fired
+  Config::ConnectWithoutContext (devicepath + "$ns3::WifiNetDevice/Phy/EndOfHePreamble", MakeCallback (&ObssPdAlgorithm::ReceiveHeSigA, this));
+
+  // @TODO set up callback for StaWifiMac BeaconReception
+  // This might go here, or it might be delegrated to a derived class.  Not all OBSS PD algorithms require
+  // beacon reception information?
+}
+
 Ptr<WifiNetDevice>
 ObssPdAlgorithm::GetWifiNetDevice (void) const
 {
@@ -124,6 +146,14 @@ ObssPdAlgorithm::ReceiveHeSigA (HeSigAParameters params)
 }
 
 void
+ObssPdAlgorithm::ReceiveBeacon (HeBeaconReceptionParameters params)
+{
+  NS_LOG_FUNCTION (this);
+
+  DoReceiveBeacon (params);
+}
+
+void
 ObssPdAlgorithm::DoReceiveHeSigA (HeSigAParameters params)
 {
   NS_LOG_FUNCTION (this);
@@ -136,15 +166,26 @@ ObssPdAlgorithm::DoReceiveHeSigA (HeSigAParameters params)
 
   // perform PHY reset if receive OBSS frame below constant threshold
 
+  // @TODO:
+  // OBSS PD level needs to be "set" prior to evaluation here
+  // Own BSS color needs to be obtained from device.  If STA, it may be 0 until association with
+  // an 11ax AP is completed.
+  // the bits in (3) below are defined in wifi-phy.h but not yet being sent.
+
   // 1. RSSI<OBSS PD level
   // 2. Own BSS color!=Signal BSS color
   // 3. SRP_AND_NON-SRG _OBSS-PD_PROHIBITED ==0
 }
 
 void
-ObssPdAlgorithm::DoReceiveBeacon ()
+ObssPdAlgorithm::DoReceiveBeacon (HeBeaconReceptionParameters params)
 {
   NS_LOG_FUNCTION (this);
+
+  // TODO:
+  // port code from sta-wifi-mac that handled beacon (Morteza's code there, refactor to here?)
+  // does this code belong here, or in ConstantObssPdAlgorithm, or in a new class:
+  // implement a dervied class / new algorithm:  BeaconRssiObssPdAlgorithm
 }
 
 } //namespace ns3

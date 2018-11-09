@@ -69,6 +69,13 @@ public:
   double GetTxPwr (void) const;
 
   /**
+   * Setup callbacks.
+   *
+   */
+  void SetupCallbacks ();
+
+
+  /**
    * Return the WifiNetDevce aggregated to this object.
    *
    * \return the Ptr<WifiNetDevice> aggregated to this object
@@ -99,9 +106,16 @@ public:
   /**
    * \param params the HE SIG A parameters
    *
-   * Evaluate the algorithm.
+   * Evaluate the receipt of HE SIG-A.
    */
   void ReceiveHeSigA (HeSigAParameters params);
+
+  /**
+   * \param params the HE Beacon parameters
+   *
+   * Evaluate the receipt of a beacon.
+   */
+  void ReceiveBeacon (HeBeaconReceptionParameters params);
 private:
 
   TracedValue<double> m_obssPdLevel;
@@ -118,7 +132,7 @@ private:
    *
    * Receive beacon.
    */
-  virtual void DoReceiveBeacon ();
+  virtual void DoReceiveBeacon (HeBeaconReceptionParameters params);
 };
 
 } //namespace ns3

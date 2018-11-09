@@ -2393,10 +2393,10 @@ WifiPhy::NotifyMonitorSniffTx (Ptr<const Packet> packet, uint16_t channelFreqMhz
 }
 
 void
-WifiPhy::NotifyEndOfHePreamble (double rssi, uint8_t bssColor)
+WifiPhy::NotifyEndOfHePreamble (HeSigAParameters params)
 {
 //std::cout << "rssi=" << rssi << " BSS Color=" << ((uint32_t) bssColor) << std::endl;
-  m_phyEndOfHePreambleTrace (rssi, bssColor);
+  m_phyEndOfHePreambleTrace (params);
 }
 
 void
@@ -2453,8 +2453,12 @@ WifiPhy::SendPacket (Ptr<const Packet> packet, WifiTxVector txVector, MpduType m
   WifiPhyTag oldtag;
   newPacket->RemovePacketTag (oldtag);
   // TODO:  In ns-3-dev, find more convenient place to store HeConfiguration
+  Ptr<HeConfiguration> heConfiguration = 0;
   Ptr<WifiNetDevice> wifiNetDevice = DynamicCast<WifiNetDevice> (m_device);
-  Ptr<HeConfiguration> heConfiguration = wifiNetDevice->GetHeConfiguration ();
+  if (wifiNetDevice)
+    {
+      heConfiguration = wifiNetDevice->GetHeConfiguration ();
+    }
   if (heConfiguration)
     {
       UintegerValue bssColor;
@@ -2694,16 +2698,23 @@ WifiPhy::StartReceivePacket (Ptr<Packet> packet,
 
           // notify the end of the HE preamble occurs
           uint8_t bssColor = 0;  // default, no BSS color
+          Ptr<HeConfiguration> heConfiguration = 0;
           Ptr<WifiNetDevice> wifiNetDevice = DynamicCast<WifiNetDevice> (m_device);
-          Ptr<HeConfiguration> heConfiguration = wifiNetDevice->GetHeConfiguration ();
+          if (wifiNetDevice)
+            {
+              heConfiguration = wifiNetDevice->GetHeConfiguration ();
+            }
           if (heConfiguration)
             {
               UintegerValue uBssColor;
               heConfiguration->GetAttribute ("BssColor", uBssColor);
               bssColor = (uint8_t) uBssColor.Get ();
             }
-          double rssi = event->GetRxPowerW ();  // RX power, W
-          NotifyEndOfHePreamble (rssi, bssColor);
+          double rssiW = event->GetRxPowerW ();  // RX power, W
+          HeSigAParameters params;
+          params.rssiW = rssiW;
+          params.bssColor = bssColor;
+          NotifyEndOfHePreamble (params);
         }
       else //mode is not allowed
         {

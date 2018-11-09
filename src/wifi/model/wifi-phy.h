@@ -27,6 +27,7 @@
 #include "wifi-phy-standard.h"
 #include "interference-helper.h"
 #include "wifi-phy-state-helper.h"
+#include "ns3/mac48-address.h"
 
 namespace ns3 {
 
@@ -49,7 +50,7 @@ struct SignalNoiseDbm
   double noise; ///< in dBm
 };
 
-// Parameters for receive HE SIG-
+// Parameters for receive HE SIG-A
 struct HeSigAParameters
 {
   double rssiW; ///< RSSI in W
@@ -1227,21 +1228,17 @@ public:
    * Public method used to fire a EndOfHePreamble trace for end of a wifi packet preamble being received.
    * Implemented for encapsulation purposes.
    *
-   * \param rssi the rssi of the packet being received
-   * \param bssColor the BSS color of the packet being received
+   * \param params the HE SIG-A parameters
    */
-  void NotifyEndOfHePreamble (double rssi,
-                              uint8_t bssColor);
+  void NotifyEndOfHePreamble (HeSigAParameters params);
 
   /**
    * TracedCallback signature for end of HE preamble events.
    *
    *
-   * \param rssi the rssi of the packet being received
-   * \param bssColor the BSS color of the packet being received
+   * \param params the HE SIG-A parameters
    */
-  typedef void (* EndOfHePreambleCallback)(double rssi,
-                                           uint8_t bssColor);
+  typedef void (* EndOfHePreambleCallback)(HeSigAParameters params);
 
   /**
    * Assign a fixed random variable stream number to the random variables
@@ -1780,7 +1777,7 @@ private:
    *
    * \see class CallBackTraceSource
    */
-  TracedCallback<double, uint8_t> m_phyEndOfHePreambleTrace;
+  TracedCallback<HeSigAParameters> m_phyEndOfHePreambleTrace;
 
   /**
    * A trace source that emulates a wifi device in monitor mode
