@@ -41,6 +41,7 @@
 #include "ns3/adhoc-wifi-mac.h"
 #include "ns3/ap-wifi-mac.h"
 #include "ns3/sta-wifi-mac.h"
+#include "ns3/regular-wifi-mac.h"
 #include "ns3/propagation-loss-model.h"
 #include "ns3/yans-error-rate-model.h"
 #include "ns3/constant-position-mobility-model.h"
@@ -283,7 +284,7 @@ protected:
    * \param rssi the rssi of the received packet
    * \param bssColor the BSS color
    */
-  void NotifyEndOfHePreamble (std::string context, double rssi, uint8_t bssColor);
+  void NotifyEndOfHePreamble (std::string context, HeSigAParameters params);
 
   // derived test case classes need to override these methods to control behaviors.
 
@@ -311,6 +312,13 @@ protected:
    * Check the results
    */
   virtual void CheckResults ();
+
+private:
+  /**
+   * Get ptr to the OBB PD algorithm object
+   */
+  Ptr<ObssPdAlgorithm> GetObssPdAlgorithm (Ptr<Node>);
+
 
 };
 
@@ -406,26 +414,30 @@ WifiHeTestCase::NotifyPhyRxEnd (std::string context, Ptr<const Packet> p)
     }
 }
 
-void
-WifiHeTestCase::NotifyEndOfHePreamble (std::string context, double rssi, uint8_t bssColor)
+Ptr <ObssPdAlgorithm>
+WifiHeTestCase::GetObssPdAlgorithm (Ptr<Node> node)
 {
-  // get the node id from context
-  uint32_t idx = ContextToNodeId (context);
-  // get ptr to the node
-  Ptr<Node> node = m_allNodes.Get (idx);
   NS_ASSERT (node != 0);
   // get ptr to the node's device
   Ptr<WifiNetDevice> device = DynamicCast<WifiNetDevice> (node->GetDevice (0));
   NS_ASSERT (device != 0);
   // from the device, get ptr to the ObssPdAlgorithm
   Ptr<ObssPdAlgorithm> obssPdAlgorithm = device->GetObject<ObssPdAlgorithm> ();
-  // NS_ASSERT (obssPdAlgorithm != 0);
+  return obssPdAlgorithm;
+}
+
+void
+WifiHeTestCase::NotifyEndOfHePreamble (std::string context, HeSigAParameters params)
+{
+  // get the node id from context
+  uint32_t idx = ContextToNodeId (context);
+  // get ptr to the node
+  Ptr<Node> node = m_allNodes.Get (idx);
+  // get the ptr to the OBSS PD algorithm object for this node
+  Ptr<ObssPdAlgorithm> obssPdAlgorithm = GetObssPdAlgorithm (node);
   if (obssPdAlgorithm)
     {
       // call the OBSS PD algorithm for evaluation
-      struct HeSigAParameters params;
-      params.rssiW = rssi;
-      params.bssColor = bssColor;
       obssPdAlgorithm->ReceiveHeSigA (params);
     }
 
@@ -1117,7 +1129,7 @@ protected:
    * \param rssi the rssi of the received packet
    * \param bssColor the BSS color
    */
-  void NotifyEndOfHePreamble (std::string context, double rssi, uint8_t bssColor);
+  void NotifyEndOfHePreamble (std::string context, HeSigAParameters params);
 
   /**
    * Get the number of STAs
@@ -1185,14 +1197,14 @@ TestSinglePacketEndOfHePreambleNoBssColor::AllocatePositions ()
 }
 
 void
-TestSinglePacketEndOfHePreambleNoBssColor::NotifyEndOfHePreamble (std::string context, double rssi, uint8_t bssColor)
+TestSinglePacketEndOfHePreambleNoBssColor::NotifyEndOfHePreamble (std::string context, HeSigAParameters params)
 {
   // call base class
-  WifiHeTestCase::NotifyEndOfHePreamble (context, rssi, bssColor);
+  WifiHeTestCase::NotifyEndOfHePreamble (context, params);
 
   //  uint32_t idx = ContextToNodeId (context);
 
-  NS_TEST_ASSERT_MSG_EQ (m_expectedBssColor, bssColor, "The received packet HE BSS Color is not the expected color!");
+  NS_TEST_ASSERT_MSG_EQ (m_expectedBssColor, params.bssColor, "The received packet HE BSS Color is not the expected color!");
 }
 
 void
@@ -1248,7 +1260,7 @@ protected:
    * \param rssi the rssi of the received packet
    * \param bssColor the BSS color
    */
-  void NotifyEndOfHePreamble (std::string context, double rssi, uint8_t bssColor);
+  void NotifyEndOfHePreamble (std::string context, HeSigAParameters params);
 
   /**
    * Get the number of STAs
@@ -1318,24 +1330,24 @@ TestSinglePacketEndOfHePreambleCorrectBssColor::AllocatePositions ()
 }
 
 void
-TestSinglePacketEndOfHePreambleCorrectBssColor::NotifyEndOfHePreamble (std::string context, double rssi, uint8_t bssColor)
+TestSinglePacketEndOfHePreambleCorrectBssColor::NotifyEndOfHePreamble (std::string context, HeSigAParameters params)
 {
   // call base class
-  WifiHeTestCase::NotifyEndOfHePreamble (context, rssi, bssColor);
+  WifiHeTestCase::NotifyEndOfHePreamble (context, params);
 
   uint32_t idx = ContextToNodeId (context);
 
   if (idx == 1)
     {
       // The AP should have the expected BSS color
-      NS_TEST_ASSERT_MSG_EQ (m_expectedBssColor, bssColor, "The AP received packet HE BSS Color is not the expected color!");
+      NS_TEST_ASSERT_MSG_EQ (m_expectedBssColor, params.bssColor, "The AP received packet HE BSS Color is not the expected color!");
     }
   else
     {
       if (m_totalReceivedPackets < 1 )
         {
           // the STA's first received packet will have a color of 0, since the BSS color association is not complete
-          NS_TEST_ASSERT_MSG_EQ (0, bssColor, "The STA received packet HE BSS Color is not the expected color!");
+          NS_TEST_ASSERT_MSG_EQ (0, params.bssColor, "The STA received packet HE BSS Color is not the expected color!");
         }
       else
         {
@@ -1345,7 +1357,7 @@ TestSinglePacketEndOfHePreambleCorrectBssColor::NotifyEndOfHePreamble (std::stri
           if (now > Seconds(0.25))
             {
               // Also, each STA should have the expected BSS color
-              NS_TEST_ASSERT_MSG_EQ (m_expectedBssColor, bssColor, "The STA received packet HE BSS Color is not the expected color!");
+              NS_TEST_ASSERT_MSG_EQ (m_expectedBssColor, params.bssColor, "The STA received packet HE BSS Color is not the expected color!");
             }
         }
     }
@@ -1404,7 +1416,7 @@ protected:
    * \param rssi the rssi of the received packet
    * \param bssColor the BSS color
    */
-  void NotifyEndOfHePreamble (std::string context, double rssi, uint8_t bssColor);
+  void NotifyEndOfHePreamble (std::string context, HeSigAParameters params);
 
   /**
    * Get the number of STAs
@@ -1475,18 +1487,18 @@ TestSinglePacketEndOfHePreambleResetPhyOnMagicBssColor::AllocatePositions ()
 }
 
 void
-TestSinglePacketEndOfHePreambleResetPhyOnMagicBssColor::NotifyEndOfHePreamble (std::string context, double rssi, uint8_t bssColor)
+TestSinglePacketEndOfHePreambleResetPhyOnMagicBssColor::NotifyEndOfHePreamble (std::string context, HeSigAParameters params)
 {
   // call base class
-  WifiHeTestCase::NotifyEndOfHePreamble (context, rssi, bssColor);
+  WifiHeTestCase::NotifyEndOfHePreamble (context, params);
 
   uint32_t idx = ContextToNodeId (context);
 
   if (idx == 1)
     {
       // The AP should have the expected BSS color
-      NS_TEST_ASSERT_MSG_EQ (m_expectedBssColor, bssColor, "The AP received packet HE BSS Color is not the expected color!");
-      if (bssColor == 54)
+      NS_TEST_ASSERT_MSG_EQ (m_expectedBssColor, params.bssColor, "The AP received packet HE BSS Color is not the expected color!");
+      if (params.bssColor == 54)
         {
 
           // current PHY state should be RX
@@ -1507,7 +1519,7 @@ TestSinglePacketEndOfHePreambleResetPhyOnMagicBssColor::NotifyEndOfHePreamble (s
       if (m_totalReceivedPackets < 1 )
         {
           // the STA's first received packet will have a color of 0, since the BSS color association is not complete
-          NS_TEST_ASSERT_MSG_EQ (0, bssColor, "The STA received packet HE BSS Color is not the expected color!");
+          NS_TEST_ASSERT_MSG_EQ (0, params.bssColor, "The STA received packet HE BSS Color is not the expected color!");
         }
       else
         {
@@ -1517,7 +1529,7 @@ TestSinglePacketEndOfHePreambleResetPhyOnMagicBssColor::NotifyEndOfHePreamble (s
           if (now > Seconds(0.25))
             {
               // Also, each STA should have the expected BSS color
-              NS_TEST_ASSERT_MSG_EQ (m_expectedBssColor, bssColor, "The STA received packet HE BSS Color is not the expected color!");
+              NS_TEST_ASSERT_MSG_EQ (m_expectedBssColor, params.bssColor, "The STA received packet HE BSS Color is not the expected color!");
             }
         }
     }
@@ -1704,6 +1716,15 @@ TestInterBss::TestInterBss ()
 //  TX1 and TX2 are full buffer
 //
 // this test case confirms TBD
+
+// @TODO:
+// This is intended to be the base class for the test suite of OBSS PD test cases
+// as defined by Leonardo Lanante.  The basics of Test1a is given here, although
+// is may need to be ported to another derived class, if there is a need to separate
+// the functionality among those tests.
+// For now, this test only sets up 2 APs and 2 STAs, with the APs separated by some
+// distance, d2, and then each AP sends just 1 packet.  This test case will therefore
+// need to be enhanced to send packets full stream, and check throughput.
 
 uint32_t
 TestInterBss::GetNumberOfStas ()

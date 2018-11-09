@@ -72,6 +72,8 @@ WifiHeHelper::Install (NodeContainer c) const
     // create also the OBSS PD algorithm object and aggregate it
     Ptr<ObssPdAlgorithm> obssPdAlgorithm = m_algorithm.Create<ObssPdAlgorithm> ();
     wifiNetDevice->AggregateObject (obssPdAlgorithm);
+    // set up the callbacks that the OBSS PD algorithm needs
+    obssPdAlgorithm->SetupCallbacks ();
   }
 }
 

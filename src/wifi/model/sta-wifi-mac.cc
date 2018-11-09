@@ -82,6 +82,10 @@ StaWifiMac::GetTypeId (void)
                      "Time of beacons arrival from associated AP",
                      MakeTraceSourceAccessor (&StaWifiMac::m_beaconArrival),
                      "ns3::Time::TracedValueCallback")
+    .AddTraceSource ("BeaconReception",
+                     "Trace source indicating the reception of a wifi beacon",
+                     MakeTraceSourceAccessor (&StaWifiMac::m_staWifiMacBeaconReceptionTrace),
+                     "ns3::StaWifiMac::BeaconReceptionTracedCallback")
   ;
   return tid;
 }
@@ -1251,6 +1255,12 @@ StaWifiMac::PhyCapabilitiesChanged (void)
       SetState (WAIT_ASSOC_RESP);
       SendAssociationRequest (true);
     }
+}
+
+void
+StaWifiMac::NotifyBeaconReception (HeBeaconReceptionParameters params)
+{
+  m_staWifiMacBeaconReceptionTrace (params);
 }
 
 } //namespace ns3

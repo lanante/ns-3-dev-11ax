@@ -34,6 +34,16 @@ class ChannelAccessManager;
 class ExtendedCapabilities;
 class HeConfiguration;
 
+// Parameters for receive HE Beacon
+struct HeBeaconReceptionParameters
+{
+  double rssiW; ///< RSSI in W
+  uint8_t bssColor; ///< BSS color
+  Mac48Address addr; ///< address of the device receiving the beacon
+  Mac48Address bssid; ///< BSSID that device is associated with
+  // ?? MgtBeaconHeader beacon; ///< Beacon header
+};
+
 /**
  * \brief base class for all MAC-level wifi objects.
  * \ingroup wifi
