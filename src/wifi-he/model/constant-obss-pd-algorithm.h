@@ -31,7 +31,7 @@ namespace ns3 {
  * \brief Constant OBSS PD algorithm
  * \ingroup wifi
  *
- * This object executes an algorithm for OBSS PD to evalute if a receiving 
+ * This object executes an algorithm for OBSS PD to evalute if a receiving
  * signal should be accepted or rejeted.
  *
  */
@@ -41,11 +41,11 @@ public:
   ConstantObssPdAlgorithm ();
   static TypeId GetTypeId (void);
 
- /**
-   * Sets the OBSS PD level.
-   *
-   * \param level the OBSS PD level in dBm
-   */
+  /**
+    * Sets the OBSS PD level.
+    *
+    * \param level the OBSS PD level in dBm
+    */
   void SetConstantObssPdLevel (double level);
   /**
    * Return the OBSS PD level (dBm).
@@ -62,7 +62,6 @@ public:
   void ReceiveHeSigA (HeSigAParameters params);
 
 private:
-
   TracedValue<double> m_constantObssPdLevel;
 };
 

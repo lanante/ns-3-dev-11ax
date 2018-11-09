@@ -29,9 +29,9 @@ namespace ns3 {
 NS_LOG_COMPONENT_DEFINE ("ConstantObssPdAlgorithm");
 NS_OBJECT_ENSURE_REGISTERED (ConstantObssPdAlgorithm);
 
-ConstantObssPdAlgorithm::ConstantObssPdAlgorithm () :
-  ObssPdAlgorithm (),
-  m_constantObssPdLevel (-82.0)
+ConstantObssPdAlgorithm::ConstantObssPdAlgorithm ()
+  : ObssPdAlgorithm (),
+    m_constantObssPdLevel (-82.0)
 {
   NS_LOG_FUNCTION (this);
 }
@@ -51,8 +51,8 @@ ConstantObssPdAlgorithm::GetTypeId (void)
     .AddTraceSource ("ConstantObssPdLevel",
                      "The OBSS PD level.",
                      MakeTraceSourceAccessor (&ConstantObssPdAlgorithm::m_constantObssPdLevel),
-                     "ns3::TracedValueCallback::Double")    ;
-    return tid;
+                     "ns3::TracedValueCallback::Double");
+  return tid;
 }
 
 void

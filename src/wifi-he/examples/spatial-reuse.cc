@@ -106,8 +106,8 @@ struct SignalArrival
 std::vector<uint32_t> packetsReceived (0);
 std::vector<uint32_t> bytesReceived (0);
 
-std::vector<std::vector<uint32_t>> packetsReceivedPerNode;
-std::vector<std::vector<double>> rssiPerNode;
+std::vector<std::vector<uint32_t> > packetsReceivedPerNode;
+std::vector<std::vector<double> > rssiPerNode;
 
 // Parse context strings of the form "/NodeList/3/DeviceList/1/Mac/Assoc"
 // to extract the NodeId
@@ -170,14 +170,14 @@ StateToString (WifiPhyState state)
 
 Time lastTxAmpduEnd = Seconds (0);
 Time lastRxBlockAckEnd = Seconds (0);
-Time lastAmpduDuration = Seconds(0);
-Time lastBlockAckDuration = Seconds(-1);
-Time lastDeferAndBackoffDuration = Seconds(-1);
-Time lastSifsDuration = Seconds(-1);
+Time lastAmpduDuration = Seconds (0);
+Time lastBlockAckDuration = Seconds (-1);
+Time lastDeferAndBackoffDuration = Seconds (-1);
+Time lastSifsDuration = Seconds (-1);
 
 void WriteCalibrationResult (std::string context, std::string type, Time duration,  Ptr<const Packet> p, const WifiMacHeader &hdr)
 {
-  Time t_now = Simulator::Now();
+  Time t_now = Simulator::Now ();
   g_TGaxCalibrationTimingsFile << "---------" << std::endl;
   g_TGaxCalibrationTimingsFile << *p << " " << hdr << std::endl;
   g_TGaxCalibrationTimingsFile << t_now << " " << context << " " << type << " " << duration << std::endl;
@@ -185,7 +185,7 @@ void WriteCalibrationResult (std::string context, std::string type, Time duratio
 
 void TxAmpduCallback (std::string context, Ptr<const Packet> p, const WifiMacHeader &hdr)
 {
-  Time t_now = Simulator::Now();
+  Time t_now = Simulator::Now ();
   Time t_duration = hdr.GetDuration ();
 
   // TGax calibration checkpoint calculations
@@ -195,14 +195,14 @@ void TxAmpduCallback (std::string context, Ptr<const Packet> p, const WifiMacHea
   Time ampduDuration = t_cp2 - t_cp1;  // same as t_duration
 
   // if (ampduDuration != lastAmpduDuration)
-    {
-      WriteCalibrationResult (context, "A-MPDU-duration", ampduDuration, p, hdr);
-      lastAmpduDuration = ampduDuration;
-    }
+  {
+    WriteCalibrationResult (context, "A-MPDU-duration", ampduDuration, p, hdr);
+    lastAmpduDuration = ampduDuration;
+  }
 
   lastTxAmpduEnd = t_cp2;
 
-  if (lastRxBlockAckEnd > Seconds(0))
+  if (lastRxBlockAckEnd > Seconds (0))
     {
       Time t_cp5 = t_now;
       Time t_cp4 = lastRxBlockAckEnd;
@@ -210,16 +210,16 @@ void TxAmpduCallback (std::string context, Ptr<const Packet> p, const WifiMacHea
       Time deferAndBackoffDuration = t_cp5 - t_cp4;
 
       // if (deferAndBackoffDuration != lastDeferAndBackoffDuration)
-        {
-          WriteCalibrationResult (context, "Defer-and-backoff-duration", deferAndBackoffDuration, p, hdr);
-          lastDeferAndBackoffDuration = deferAndBackoffDuration;
-        }
+      {
+        WriteCalibrationResult (context, "Defer-and-backoff-duration", deferAndBackoffDuration, p, hdr);
+        lastDeferAndBackoffDuration = deferAndBackoffDuration;
+      }
     }
 }
 
 void RxBlockAckCallback (std::string context, Ptr<const Packet> p, const WifiMacHeader &hdr)
 {
-  Time t_now = Simulator::Now();
+  Time t_now = Simulator::Now ();
   Time t_duration = hdr.GetDuration ();
 
   // TGax calibration checkpoint calculations
@@ -228,19 +228,19 @@ void RxBlockAckCallback (std::string context, Ptr<const Packet> p, const WifiMac
 
   Time sifsDuration = t_cp3 - lastTxAmpduEnd;
   // if (sifsDuration != lastSifsDuration)
-    {
-      // std::cout << "t_cp3 " << t_cp3 << " lastTxAmpduEnd " << lastTxAmpduEnd << std::endl;
-      WriteCalibrationResult (context, "Sifs-duration", sifsDuration, p, hdr);
-      lastSifsDuration = sifsDuration;
-    }
+  {
+    // std::cout << "t_cp3 " << t_cp3 << " lastTxAmpduEnd " << lastTxAmpduEnd << std::endl;
+    WriteCalibrationResult (context, "Sifs-duration", sifsDuration, p, hdr);
+    lastSifsDuration = sifsDuration;
+  }
 
   Time blockAckDuration = t_cp4 - t_cp3;  // same as t_duration
 
   // if (blockAckDuration != lastBlockAckDuration)
-    {
-      WriteCalibrationResult (context, "Block-ACK-duration", blockAckDuration, p, hdr);
-      lastBlockAckDuration = blockAckDuration;
-    }
+  {
+    WriteCalibrationResult (context, "Block-ACK-duration", blockAckDuration, p, hdr);
+    lastBlockAckDuration = blockAckDuration;
+  }
 
   lastRxBlockAckEnd = t_cp4;
 }
@@ -372,16 +372,16 @@ std::vector<uint32_t> signals (100);
 std::vector<uint32_t> noises (100);
 
 void
-SaveSpatialReuseStats (const std::string filename, 
-  const std::vector<uint32_t> &packetsReceived, 
-  const std::vector<uint32_t> &bytesReceived, 
-  const uint32_t nBss,
-  const double duration,
-  const double d,
-  const double r,
-  const int freqHz,
-  const double csr,
-  const std::string scenario)
+SaveSpatialReuseStats (const std::string filename,
+                       const std::vector<uint32_t> &packetsReceived,
+                       const std::vector<uint32_t> &bytesReceived,
+                       const uint32_t nBss,
+                       const double duration,
+                       const double d,
+                       const double r,
+                       const int freqHz,
+                       const double csr,
+                       const std::string scenario)
 {
   std::ofstream outFile;
   outFile.open (filename.c_str (), std::ofstream::out | std::ofstream::trunc);
@@ -394,7 +394,7 @@ SaveSpatialReuseStats (const std::string filename,
       return;
     }
 
-  uint32_t numNodes = packetsReceived.size();
+  uint32_t numNodes = packetsReceived.size ();
   uint32_t n = (numNodes / nBss) - 1;
 
   outFile << "Spatial Reuse Statistics" << std::endl;
@@ -438,18 +438,18 @@ SaveSpatialReuseStats (const std::string filename,
           bytesReceivedAp2Downlink += bytesReceived[k];
         }
       double bitsReceived = bytesReceived[k] * 8;
-      // rxThroughputPerNode[k] = static_cast<double> (packetsReceived[k] * payloadSize * 8) / 1e6 / duration; 
-      rxThroughputPerNode[k] = static_cast<double> (bitsReceived) / 1e6 / duration; 
+      // rxThroughputPerNode[k] = static_cast<double> (packetsReceived[k] * payloadSize * 8) / 1e6 / duration;
+      rxThroughputPerNode[k] = static_cast<double> (bitsReceived) / 1e6 / duration;
       outFile << "Node " << k << ", pkts " << packetsReceived[k] << ", bytes " << bytesReceived[k] << ", throughput [MMb/s] " << rxThroughputPerNode[k] << std::endl;
     }
 
   double tputAp1Uplink = bytesReceivedAp1Uplink * 8 / 1e6 / duration;
   double tputAp1Downlink = bytesReceivedAp1Downlink * 8 / 1e6 / duration;
   double tputAp2Uplink = bytesReceivedAp2Uplink * 8 / 1e6 / duration;
-  double tputAp2Downlink = bytesReceivedAp2Downlink * 8 /1e6 / duration;
+  double tputAp2Downlink = bytesReceivedAp2Downlink * 8 / 1e6 / duration;
 
   // TODO: debug to print out t-put, can remove
-  std::cout << "Scenario: " << scenario << std::endl; 
+  std::cout << "Scenario: " << scenario << std::endl;
   std::cout << "Throughput,  AP1 Uplink   [Mbps] : " << tputAp1Uplink << std::endl;
   std::cout << "Throughput,  AP1 Downlink [Mbps] : " << tputAp1Downlink << std::endl;
   std::cout << "Throughput,  AP2 Uplink   [Mbps] : " << tputAp2Uplink << std::endl;
@@ -524,7 +524,7 @@ MacAddressToNodeId (Mac48Address macAddress)
   uint32_t nNodes = allNodes.GetN ();
   for (uint32_t n = 0; n < nNodes; n++)
     {
-      Mac48Address nodeAddress = Mac48Address::ConvertFrom (allNodes.Get (n)->GetDevice(0)->GetAddress());
+      Mac48Address nodeAddress = Mac48Address::ConvertFrom (allNodes.Get (n)->GetDevice (0)->GetAddress ());
       if (inAddress == nodeAddress)
         {
           nodeId = n;
@@ -568,7 +568,7 @@ void ProcessPacket (std::string context,
       packet->PeekHeader (hdr);
       addr1 = hdr.GetAddr1 ();
       addr2 = hdr.GetAddr2 ();
-      Mac48Address whatsThis = Mac48Address("00:00:00:00:00:00");
+      Mac48Address whatsThis = Mac48Address ("00:00:00:00:00:00");
       if (!addr1.IsBroadcast () && (addr2 != whatsThis))
         {
           dstNodeId = MacAddressToNodeId (addr1);
@@ -625,9 +625,9 @@ void MonitorSniffRx (std::string context,
         {
           // A-MPDU frame
           MpduAggregator::DeaggregatedMpdus packets = MpduAggregator::Deaggregate (packetCopy);
-          for (MpduAggregator::DeaggregatedMpdusCI n = packets.begin(); n != packets.end(); ++n)
+          for (MpduAggregator::DeaggregatedMpdusCI n = packets.begin (); n != packets.end (); ++n)
             {
-              std::pair<Ptr<Packet>, AmpduSubframeHeader> deAggPair = (std::pair<Ptr<Packet>, AmpduSubframeHeader>) *n;
+              std::pair<Ptr<Packet>, AmpduSubframeHeader> deAggPair = (std::pair<Ptr<Packet>, AmpduSubframeHeader>) * n;
               Ptr<Packet> aggregatedPacket = deAggPair.first;
               ProcessPacket (context,
                              aggregatedPacket,
@@ -753,14 +753,14 @@ main (int argc, char *argv[])
 
   if (maxSlrc < 0)
     {
-      maxSlrc = std::numeric_limits<uint32_t>::max();
+      maxSlrc = std::numeric_limits<uint32_t>::max ();
     }
   Config::SetDefault ("ns3::WifiRemoteStationManager::MaxSlrc", UintegerValue (maxSlrc));
 
   std::ostringstream ossMcs;
   ossMcs << mcs;
 
-  // carrier sense range (csr) is a calculated value that is used for displaying the 
+  // carrier sense range (csr) is a calculated value that is used for displaying the
   // estimated range in which an AP can successfully receive from STAs.
   // first, let us calculate the max distance, txRange, that a transmitting STA's signal
   // can be received above the CcaMode1Threshold.
@@ -775,7 +775,7 @@ main (int argc, char *argv[])
   //For the following conditions:
   // AWGN Channel
   // BCC with 1482 bytes Packet Length
-  // PER=0.1 
+  // PER=0.1
   // the minimum SINR values (S0) are
   //
   // [MCS S0 ]
@@ -792,7 +792,7 @@ main (int argc, char *argv[])
   // Caclculating CSR for MCS0, assuming gamma = 3, we get
   double s0 = 0.7;
   double gamma = 3.0;
-  csr = txRange * pow(s0, 1.0 / gamma);
+  csr = txRange * pow (s0, 1.0 / gamma);
   // std::cout << "S0 " << s0 << " gamma " << gamma << " txRange " << txRange << " csr " << csr << std::endl;
 
   WifiHelper wifi;
@@ -987,8 +987,8 @@ main (int argc, char *argv[])
   // path loss model uses one of the 802.11ax path loss models
   // described in the TGax simulations scenarios.
   // currently using just the IndoorPropagationLossModel, which
-  // appears suitable for Test2 - Enterprise.  
-  // additional code tweaks needed for Test 1 and Test 3, 
+  // appears suitable for Test2 - Enterprise.
+  // additional code tweaks needed for Test 1 and Test 3,
   // handling of 'W=1 wall' and using the ItuUmitPropagationLossModel
   // for Test 4.
   if (scenario == "residential")
@@ -1062,7 +1062,7 @@ main (int argc, char *argv[])
   Ssid ssidA = Ssid ("A");
   mac.SetType ("ns3::StaWifiMac",
                "Ssid", SsidValue (ssidA),
-               "BE_MaxAmpduSize", UintegerValue(maxAmpduSize));
+               "BE_MaxAmpduSize", UintegerValue (maxAmpduSize));
   // Do we also want to allow Amsdu Size to be modified?
   //              "BE_MaxAmsduSize", UintegerValue(maxAmsduSize));
   NetDeviceContainer staDevicesA;
@@ -1080,7 +1080,7 @@ main (int argc, char *argv[])
   spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-92.0));
   mac.SetType ("ns3::ApWifiMac",
                "Ssid", SsidValue (ssidA),
-               "BE_MaxAmpduSize", UintegerValue(maxAmpduSize));
+               "BE_MaxAmpduSize", UintegerValue (maxAmpduSize));
   // Do we also want to allow Amsdu Size to be modified?
   //              "BE_MaxAmsduSize", UintegerValue(maxAmsduSize));
 
@@ -1094,9 +1094,9 @@ main (int argc, char *argv[])
     {
       Ptr<HeConfiguration> heConfiguration = CreateObject<HeConfiguration> ();
       heConfiguration->SetAttribute ("BssColor", UintegerValue (1));
-      heConfiguration->SetAttribute ("ObssPdThreshold", DoubleValue(obssPdThreshold));
-      heConfiguration->SetAttribute ("ObssPdThresholdMin", DoubleValue(obssPdThresholdMin));
-      heConfiguration->SetAttribute ("ObssPdThresholdMax", DoubleValue(obssPdThresholdMax));
+      heConfiguration->SetAttribute ("ObssPdThreshold", DoubleValue (obssPdThreshold));
+      heConfiguration->SetAttribute ("ObssPdThresholdMin", DoubleValue (obssPdThresholdMin));
+      heConfiguration->SetAttribute ("ObssPdThresholdMax", DoubleValue (obssPdThresholdMax));
       apWifiMac->SetHeConfiguration (heConfiguration);
     }
 
@@ -1119,7 +1119,7 @@ main (int argc, char *argv[])
       Ssid ssidB = Ssid ("B");
       mac.SetType ("ns3::StaWifiMac",
                    "Ssid", SsidValue (ssidB),
-                   "BE_MaxAmpduSize", UintegerValue(maxAmpduSize));
+                   "BE_MaxAmpduSize", UintegerValue (maxAmpduSize));
       // Do we also want to allow Amsdu Size to be modified?
       //              "BE_MaxAmsduSize", UintegerValue(maxAmsduSize));
       staDevicesB = wifi.Install (spectrumPhy, mac, stasB);
@@ -1136,7 +1136,7 @@ main (int argc, char *argv[])
       spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-92.0));
       mac.SetType ("ns3::ApWifiMac",
                    "Ssid", SsidValue (ssidB),
-                   "BE_MaxAmpduSize", UintegerValue(maxAmpduSize));
+                   "BE_MaxAmpduSize", UintegerValue (maxAmpduSize));
       // Do we also want to allow Amsdu Size to be modified?
       //              "BE_MaxAmsduSize", UintegerValue(maxAmsduSize));
 
@@ -1148,9 +1148,9 @@ main (int argc, char *argv[])
         {
           Ptr <HeConfiguration> heConfiguration = CreateObject<HeConfiguration> ();
           heConfiguration->SetAttribute ("BssColor", UintegerValue (2));
-          heConfiguration->SetAttribute ("ObssPdThreshold", DoubleValue(obssPdThreshold));
-          heConfiguration->SetAttribute ("ObssPdThresholdMin", DoubleValue(obssPdThresholdMin));
-          heConfiguration->SetAttribute ("ObssPdThresholdMax", DoubleValue(obssPdThresholdMax));
+          heConfiguration->SetAttribute ("ObssPdThreshold", DoubleValue (obssPdThreshold));
+          heConfiguration->SetAttribute ("ObssPdThresholdMin", DoubleValue (obssPdThresholdMin));
+          heConfiguration->SetAttribute ("ObssPdThresholdMax", DoubleValue (obssPdThresholdMax));
           apWifiMac->SetHeConfiguration (heConfiguration);
         }
     }
@@ -1196,8 +1196,8 @@ main (int argc, char *argv[])
       for (uint32_t nodeIdx = 0; nodeIdx < numNodes; nodeIdx++)
         {
           Ptr<Node> node = nodesA.Get (nodeIdx);
-          Ptr<MobilityModel> mob = node->GetObject<MobilityModel>();
-          Vector position = mob->GetPosition();
+          Ptr<MobilityModel> mob = node->GetObject<MobilityModel> ();
+          Vector position = mob->GetPosition ();
           double x = position.x;
           double y = position.y;
 
@@ -1363,7 +1363,7 @@ main (int argc, char *argv[])
               // random offset so that all transmissions do not occur at the same time
               if (txStartOffset > 0)
                 {
-                  next_rng = urv->GetValue();
+                  next_rng = urv->GetValue ();
                 }
               AddClient (uplinkClientAppA, ApInterfaceA.GetAddress (0), stasA.Get (i), uplinkPortA, Time (intervalUplink + NanoSeconds (next_rng)), payloadSize);
             }
@@ -1375,7 +1375,7 @@ main (int argc, char *argv[])
               // random offset so that all transmissions do not occur at the same time
               if (txStartOffset > 0)
                 {
-                  next_rng = urv->GetValue();
+                  next_rng = urv->GetValue ();
                 }
               AddClient (downlinkClientAppA, StaInterfaceA.GetAddress (i), ap1, downlinkPortA, Time (intervalDownlink + NanoSeconds (next_rng)), payloadSize);
             }
@@ -1397,7 +1397,7 @@ main (int argc, char *argv[])
               // random offset so that all transmissions do not occur at the same time
               if (txStartOffset > 0)
                 {
-                  next_rng = urv->GetValue();
+                  next_rng = urv->GetValue ();
                 }
               AddClient (uplinkClientAppB, ApInterfaceB.GetAddress (0), stasB.Get (i), uplinkPortB, Time (intervalUplink + NanoSeconds (next_rng)), payloadSize);
             }
@@ -1409,7 +1409,7 @@ main (int argc, char *argv[])
               // random offset so that all transmissions do not occur at the same time
               if (txStartOffset > 0)
                 {
-                  next_rng = urv->GetValue();
+                  next_rng = urv->GetValue ();
                 }
               AddClient (downlinkClientAppB, StaInterfaceB.GetAddress (i), ap2, downlinkPortB, Time (intervalDownlink + NanoSeconds (next_rng)), payloadSize);
             }

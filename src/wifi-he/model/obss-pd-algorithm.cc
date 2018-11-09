@@ -29,9 +29,9 @@ namespace ns3 {
 NS_LOG_COMPONENT_DEFINE ("ObssPdAlgorithm");
 NS_OBJECT_ENSURE_REGISTERED (ObssPdAlgorithm);
 
-ObssPdAlgorithm::ObssPdAlgorithm () :
-  m_obssPdLevel (-82.0),
-  m_txPwr (10.0)
+ObssPdAlgorithm::ObssPdAlgorithm ()
+  : m_obssPdLevel (-82.0),
+    m_txPwr (10.0)
 {
   NS_LOG_FUNCTION (this);
 }
@@ -61,8 +61,8 @@ ObssPdAlgorithm::GetTypeId (void)
                      "The TxPwr.",
                      MakeTraceSourceAccessor (&ObssPdAlgorithm::m_txPwr),
                      "ns3::TracedValueCallback::Double")
-    ;
-    return tid;
+  ;
+  return tid;
 }
 
 void
@@ -95,7 +95,7 @@ void
 ObssPdAlgorithm::SetupCallbacks ()
 {
   Ptr<WifiNetDevice> wifiNetDevice = GetWifiNetDevice ();
-  Ptr<Node> node = wifiNetDevice-> GetNode();
+  Ptr<Node> node = wifiNetDevice->GetNode ();
   uint32_t nodeid = node->GetId ();
 
   std::ostringstream oss;
@@ -123,7 +123,7 @@ Ptr<WifiPhy>
 ObssPdAlgorithm::GetWifiPhy (void) const
 {
   Ptr<WifiNetDevice> wifiNetDevice = GetWifiNetDevice ();
-  Ptr<WifiPhy> wifiPhy = DynamicCast<WifiPhy> (wifiNetDevice->GetPhy());
+  Ptr<WifiPhy> wifiPhy = DynamicCast<WifiPhy> (wifiNetDevice->GetPhy ());
   NS_ASSERT (wifiPhy);
   return wifiPhy;
 }
