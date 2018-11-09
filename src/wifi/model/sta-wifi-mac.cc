@@ -33,6 +33,7 @@
 #include "wifi-utils.h"
 #include "wifi-net-device.h"
 #include "ht-configuration.h"
+#include "he-configuration.h"
 
 namespace ns3 {
 
@@ -818,9 +819,7 @@ StaWifiMac::UpdateApInfoFromBeacon (MgtBeaconHeader beacon, Mac48Address apAddr,
             {
               m_stationManager->SetUseGreenfieldProtection (false);
             }
-          Ptr<WifiNetDevice> device = DynamicCast<WifiNetDevice> (GetDevice ());
-          Ptr<HtConfiguration> htConfiguration = device->GetHtConfiguration ();
-          if (!GetVhtSupported () && htConfiguration && htConfiguration->GetRifsSupported () && htOperation.GetRifsMode ())
+          if (!GetVhtSupported () && GetHtConfiguration ()->GetRifsSupported () && htOperation.GetRifsMode ())
             {
               m_stationManager->SetRifsPermitted (true);
             }
@@ -1018,9 +1017,7 @@ StaWifiMac::UpdateApInfoFromAssocResp (MgtAssocResponseHeader assocResp, Mac48Ad
             {
               m_stationManager->SetUseGreenfieldProtection (false);
             }
-          Ptr<WifiNetDevice> device = DynamicCast<WifiNetDevice> (GetDevice ());
-          Ptr<HtConfiguration> htConfiguration = device->GetHtConfiguration ();
-          if (!GetVhtSupported () && htConfiguration && htConfiguration->GetRifsSupported () && htOperation.GetRifsMode ())
+          if (!GetVhtSupported () && GetHtConfiguration ()->GetRifsSupported () && htOperation.GetRifsMode ())
             {
               m_stationManager->SetRifsPermitted (true);
             }
@@ -1046,14 +1043,10 @@ StaWifiMac::UpdateApInfoFromAssocResp (MgtAssocResponseHeader assocResp, Mac48Ad
       //todo: once we support non constant rate managers, we should add checks here whether HE is supported by the peer
       m_stationManager->AddStationHeCapabilities (apAddr, hecapabilities);
       HeOperation heOperation = assocResp.GetHeOperation ();
-      if (GetHeConfiguration () == 0)
-        {
-          NS_LOG_DEBUG ("Creating HeConfiguration object on STA");
-          Ptr<HeConfiguration> heConfiguration = CreateObject<HeConfiguration> ();
-          SetHeConfiguration (heConfiguration);
-        }
       NS_LOG_DEBUG ("Setting BSS color to " << heOperation.GetBssColor ());
-      GetHeConfiguration ()->SetAttribute ("BssColor", UintegerValue (heOperation.GetBssColor ()));
+      Ptr<WifiNetDevice> device = DynamicCast<WifiNetDevice> (GetDevice ());
+      Ptr<HeConfiguration> heConfiguration = device->GetHeConfiguration ();
+      heConfiguration->SetAttribute ("BssColor", UintegerValue (heOperation.GetBssColor ()));
     }
   for (uint8_t i = 0; i < m_phy->GetNModes (); i++)
     {

@@ -2453,16 +2453,8 @@ WifiPhy::SendPacket (Ptr<const Packet> packet, WifiTxVector txVector, MpduType m
   WifiPhyTag oldtag;
   newPacket->RemovePacketTag (oldtag);
   // TODO:  In ns-3-dev, find more convenient place to store HeConfiguration
-  Ptr<HeConfiguration> heConfiguration = 0;
   Ptr<WifiNetDevice> wifiNetDevice = DynamicCast<WifiNetDevice> (m_device);
-  if (wifiNetDevice)
-    {
-      Ptr<RegularWifiMac> regularWifiMac = DynamicCast<RegularWifiMac> (wifiNetDevice->GetMac ());
-      if (regularWifiMac)
-        {
-          Ptr<HeConfiguration> heConfiguration = regularWifiMac->GetHeConfiguration ();
-        }
-    }
+  Ptr<HeConfiguration> heConfiguration = wifiNetDevice->GetHeConfiguration ();
   if (heConfiguration)
     {
       UintegerValue bssColor;
@@ -2702,16 +2694,8 @@ WifiPhy::StartReceivePacket (Ptr<Packet> packet,
 
           // notify the end of the HE preamble occurs
           uint8_t bssColor = 0;  // default, no BSS color
-          Ptr<HeConfiguration> heConfiguration = 0;
           Ptr<WifiNetDevice> wifiNetDevice = DynamicCast<WifiNetDevice> (m_device);
-          if (wifiNetDevice)
-            {
-              Ptr<RegularWifiMac> regularWifiMac = DynamicCast<RegularWifiMac> (wifiNetDevice->GetMac ());
-              if (regularWifiMac)
-                {
-                  heConfiguration = regularWifiMac->GetHeConfiguration ();
-                }
-            }
+          Ptr<HeConfiguration> heConfiguration = wifiNetDevice->GetHeConfiguration ();
           if (heConfiguration)
             {
               UintegerValue uBssColor;

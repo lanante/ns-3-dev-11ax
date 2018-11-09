@@ -272,16 +272,8 @@ SpectrumWifiPhy::StartRx (Ptr<SpectrumSignalParameters> rxParams)
     }
   WifiTxVector txVector = tag.GetWifiTxVector ();
   // TODO:  In ns-3-dev, find more convenient place to store HeConfiguration
-  Ptr<HeConfiguration> heConfiguration = 0;
   Ptr<WifiNetDevice> wifiNetDevice = DynamicCast<WifiNetDevice> (GetDevice ());
-  if (wifiNetDevice) 
-    {
-      Ptr<RegularWifiMac> regularWifiMac = DynamicCast<RegularWifiMac> (wifiNetDevice->GetMac ());
-      if (regularWifiMac)
-        {
-          heConfiguration = regularWifiMac->GetHeConfiguration ();
-        }
-    }
+  Ptr<HeConfiguration> heConfiguration = wifiNetDevice->GetHeConfiguration ();
   if (heConfiguration)
     {
       UintegerValue bssColor;

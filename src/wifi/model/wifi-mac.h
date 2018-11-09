@@ -30,6 +30,8 @@ namespace ns3 {
 
 class Ssid;
 class Txop;
+class HtConfiguration;
+class HeConfiguration;
 
 /**
  * \brief base class for all MAC-level wifi objects.
@@ -311,6 +313,10 @@ public:
   void ConfigureStandard (WifiPhyStandard standard);
 
 
+  /**
+   * \param heConfiguration return pointer to HeConfiguration
+   */
+  void SetHeConfiguration (Ptr<HeConfiguration> heConfiguration);
 protected:
   /**
    * \param dcf the DCF to be configured
@@ -323,6 +329,14 @@ protected:
    */
   void ConfigureDcf (Ptr<Txop> dcf, uint32_t cwmin, uint32_t cwmax, bool isDsss, AcIndex ac);
 
+  /**
+   * \return pointer to HtConfiguration if it exists
+   */
+  Ptr<HtConfiguration> GetHtConfiguration (void) const;
+  /**
+   * \return pointer to HeConfiguration if it exists
+   */
+  Ptr<HeConfiguration> GetHeConfiguration (void) const;
 
 private:
   /**

@@ -56,19 +56,7 @@ WifiHeHelper::Install (NodeContainer c) const
     Ptr<Node> node = c.Get (i);
     Ptr<WifiNetDevice> wifiNetDevice = DynamicCast<WifiNetDevice> (node->GetDevice (0));
     NS_ASSERT (wifiNetDevice);
-
-    // HE Configuration for each AP device
-    Ptr<RegularWifiMac> wifiMac = wifiNetDevice->GetMac ()->GetObject<RegularWifiMac> ();
-    if (wifiMac)
-      {
-        Ptr<HeConfiguration> heConfiguration = m_heConfiguration.Create<HeConfiguration> ();
-        wifiMac->SetHeConfiguration (heConfiguration);
-      }
-    else
-      {
-        NS_LOG_UNCOND ("Node does not have a WifiMac.  HE Configuration was not set.");
-      }
-
+    wifiNetDevice->SetHeConfiguration (m_heConfiguration.Create<HeConfiguration> ());
     // create also the OBSS PD algorithm object and aggregate it
     Ptr<ObssPdAlgorithm> obssPdAlgorithm = m_algorithm.Create<ObssPdAlgorithm> ();
     wifiNetDevice->AggregateObject (obssPdAlgorithm);

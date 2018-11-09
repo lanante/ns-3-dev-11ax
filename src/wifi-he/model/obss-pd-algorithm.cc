@@ -106,21 +106,10 @@ ObssPdAlgorithm::GetWifiPhy (void) const
   return wifiPhy;
 }
 
-Ptr<RegularWifiMac>
-ObssPdAlgorithm::GetRegularWifiMac (void) const
-{
-  Ptr<WifiNetDevice> wifiNetDevice = GetWifiNetDevice ();
-  Ptr<RegularWifiMac> regularWifiMac = wifiNetDevice->GetMac ()->GetObject<RegularWifiMac> ();
-  NS_ASSERT (regularWifiMac);
-  return regularWifiMac;
-}
-
 Ptr<HeConfiguration>
 ObssPdAlgorithm::GetHeConfiguration (void) const
 {
-
-  Ptr<RegularWifiMac> regularWifiMac = GetRegularWifiMac ();
-  Ptr<HeConfiguration> heConfiguration = regularWifiMac->GetHeConfiguration ();
+  Ptr<HeConfiguration> heConfiguration = GetWifiNetDevice ()->GetHeConfiguration ();
   // assume that there must be an HeConfiguration object for this device
   NS_ASSERT (heConfiguration);
   return heConfiguration;

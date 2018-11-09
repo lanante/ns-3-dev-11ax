@@ -871,18 +871,6 @@ RegularWifiMac::GetRifsSupported (void) const
   return m_rifsSupported;
 }
 
-void
-RegularWifiMac::SetHeConfiguration (Ptr<HeConfiguration> heConfiguration)
-{
-  m_heConfiguration = heConfiguration;
-}
-
-Ptr<HeConfiguration>
-RegularWifiMac::GetHeConfiguration (void) const
-{
-  return m_heConfiguration;
-}
-
 Ptr<MacLow>
 RegularWifiMac::GetMacLow (void) const
 {
@@ -1246,11 +1234,6 @@ RegularWifiMac::GetTypeId (void)
                    PointerValue (),
                    MakePointerAccessor (&RegularWifiMac::GetMacLow),
                    MakePointerChecker<MacLow> ())
-    .AddAttribute ("HeConfiguration",
-                   "The HeConfiguration object.",
-                   PointerValue (),
-                   MakePointerAccessor (&RegularWifiMac::GetHeConfiguration),
-                   MakePointerChecker<HeConfiguration> ())
     .AddAttribute ("Txop",
                    "The Txop object.",
                    PointerValue (),

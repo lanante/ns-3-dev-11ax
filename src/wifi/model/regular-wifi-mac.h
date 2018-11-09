@@ -151,14 +151,6 @@ public:
    */
   bool GetRifsSupported (void) const;
   /**
-   * \param heConfiguration pointer to HeConfiguration
-   */
-  void SetHeConfiguration (Ptr<HeConfiguration> heConfiguration);
-  /**
-   * \return pointer to HeConfiguration if it exists
-   */
-  Ptr<HeConfiguration> GetHeConfiguration (void) const;
-  /**
    * \return pointer to MacLow
    */
   Ptr<MacLow> GetMacLow (void) const;
