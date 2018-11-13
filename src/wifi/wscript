@@ -113,6 +113,7 @@ def build(bld):
     obj_test.source = [
         'test/block-ack-test-suite.cc',
         'test/channel-access-manager-test.cc',
+        'test/trigger-frame-test-suite.cc',
         'test/tx-duration-test.cc',
         'test/power-rate-adaptation-test.cc',
         'test/wifi-test.cc',
@@ -225,6 +226,7 @@ def build(bld):
         'model/wifi-phy-state.h',
         'model/wifi-phy-listener.h',
         'model/block-ack-type.h',
+        'model/trigger-frame-type.h',
         'model/wifi-mpdu-type.h',
         'model/ht-configuration.h',
         'model/vht-configuration.h',
