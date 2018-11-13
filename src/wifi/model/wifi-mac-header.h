@@ -35,7 +35,8 @@ class Time;
  */
 enum WifiMacType
 {
-  WIFI_MAC_CTL_CTLWRAPPER = 0,
+  WIFI_MAC_CTL_TRIGGER = 0,
+  WIFI_MAC_CTL_CTLWRAPPER,
   WIFI_MAC_CTL_RTS,
   WIFI_MAC_CTL_CTS,
   WIFI_MAC_CTL_ACK,
@@ -386,6 +387,12 @@ public:
    * \return true if the header is a Block ACK header, false otherwise
    */
   bool IsBlockAck (void) const;
+  /**
+   * Return true if the header is a Trigger header.
+   *
+   * \return true if the header is a Trigger header, false otherwise
+   */
+  bool IsTrigger (void) const;
   /**
    * Return true if the header is an Association Request header.
    *
