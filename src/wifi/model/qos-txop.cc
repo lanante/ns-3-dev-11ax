@@ -274,7 +274,7 @@ QosTxop::NotifyAccessGranted (void)
           Ptr<const WifiMacQueueItem> item;
           if (m_currentHdr.IsQosData ()
               && (item = m_queue->PeekByTidAndAddress (m_currentHdr.GetQosTid (),
-                                                       WifiMacHeader::ADDR1, m_currentHdr.GetAddr1 ()))
+                                                       m_currentHdr.GetAddr1 ()))
               && !m_currentHdr.GetAddr1 ().IsBroadcast ()
               && m_msduAggregator != 0 && !m_currentHdr.IsRetry ())
             {
@@ -287,7 +287,6 @@ QosTxop::NotifyAccessGranted (void)
               bool aggregated = false;
               bool isAmsdu = false;
               Ptr<const WifiMacQueueItem> peekedItem = m_queue->PeekByTidAndAddress (m_currentHdr.GetQosTid (),
-                                                                                     WifiMacHeader::ADDR1,
                                                                                      m_currentHdr.GetAddr1 ());
               while (peekedItem != 0)
                 {
@@ -305,7 +304,7 @@ QosTxop::NotifyAccessGranted (void)
                       break;
                     }
                   peekedItem = m_queue->PeekByTidAndAddress (m_currentHdr.GetQosTid (),
-                                                             WifiMacHeader::ADDR1, m_currentHdr.GetAddr1 ());
+                                                             m_currentHdr.GetAddr1 ());
                 }
               if (isAmsdu)
                 {
@@ -378,11 +377,11 @@ void QosTxop::NotifyInternalCollision (void)
           if (!NeedDataRetransmission (packet, header))
             {
               resetDcf = true;
-              m_stationManager->ReportFinalDataFailed (header.GetAddr1 (), &header);
+              m_stationManager->ReportFinalDataFailed (header.GetAddr1 (), &header, packet->GetSize ());
             }
           else
             {
-              m_stationManager->ReportDataFailed (header.GetAddr1 (), &header);
+              m_stationManager->ReportDataFailed (header.GetAddr1 (), &header, packet->GetSize ());
             }
         }
       if (resetDcf)
@@ -561,7 +560,8 @@ QosTxop::MissedAck (void)
   if (!NeedDataRetransmission (m_currentPacket, m_currentHdr))
     {
       NS_LOG_DEBUG ("Ack Fail");
-      m_stationManager->ReportFinalDataFailed (m_currentHdr.GetAddr1 (), &m_currentHdr);
+      m_stationManager->ReportFinalDataFailed (m_currentHdr.GetAddr1 (), &m_currentHdr,
+                                               m_currentPacket->GetSize ());
       bool resetCurrentPacket = true;
       if (!m_txFailedCallback.IsNull ())
         {
@@ -637,7 +637,7 @@ QosTxop::MissedBlockAck (uint8_t nMpdus)
         }
       else
         {
-          //standard says when loosing a BlockAck originator may send a BAR page 139
+          //standard says when losing a BlockAck originator may send a BAR page 139
           NS_LOG_DEBUG ("Transmit Block Ack Request");
           CtrlBAckRequestHeader reqHdr;
           reqHdr.SetType (COMPRESSED_BLOCK_ACK);
@@ -748,7 +748,7 @@ QosTxop::RestartAccessIfNeeded (void)
 void
 QosTxop::StartAccessIfNeeded (void)
 {
-  //NS_LOG_FUNCTION (this);
+  NS_LOG_FUNCTION (this);
   if (m_currentPacket == 0
       && (!m_queue->IsEmpty () || m_baManager->HasPackets ())
       && !IsAccessRequested ())
@@ -819,7 +819,6 @@ QosTxop::StartNextPacket (void)
   if (peekedPacket == 0)
     {
       Ptr<const WifiMacQueueItem> peekedItem = m_queue->PeekByTidAndAddress (m_currentHdr.GetQosTid (),
-                                                                             WifiMacHeader::ADDR1,
                                                                              m_currentHdr.GetAddr1 ());
       if (peekedItem)
         {
@@ -854,7 +853,6 @@ QosTxop::StartNextPacket (void)
     {
       NS_LOG_DEBUG ("start next packet");
       Ptr<WifiMacQueueItem> item = m_queue->DequeueByTidAndAddress (m_currentHdr.GetQosTid (),
-                                                                    WifiMacHeader::ADDR1,
                                                                     m_currentHdr.GetAddr1 ());
       NS_ASSERT (item != 0);
       m_currentPacket = item->GetPacket ();
@@ -904,7 +902,6 @@ QosTxop::HasTxop (void) const
     }
 
   Ptr<const WifiMacQueueItem> peekedItem = m_queue->PeekByTidAndAddress (m_currentHdr.GetQosTid (),
-                                                                         WifiMacHeader::ADDR1,
                                                                          m_currentHdr.GetAddr1 ());
   if (peekedItem == 0)
     {
@@ -953,10 +950,10 @@ bool
 QosTxop::NeedFragmentation (void) const
 {
   NS_LOG_FUNCTION (this);
-  if (m_stationManager->HasVhtSupported ()
-      || m_stationManager->HasHeSupported ()
+  if (m_stationManager->GetVhtSupported ()
+      || m_stationManager->GetHeSupported ()
       || GetAmpduExist (m_currentHdr.GetAddr1 ())
-      || (m_stationManager->HasHtSupported ()
+      || (m_stationManager->GetHtSupported ()
           && m_currentHdr.IsQosData ()
           && GetBaAgreementExists (m_currentHdr.GetAddr1 (), GetTid (m_currentPacket, m_currentHdr))
           && GetMpduAggregator ()->GetMaxAmpduSize () >= m_currentPacket->GetSize ()))
@@ -974,7 +971,7 @@ QosTxop::NeedFragmentation (void) const
 }
 
 bool
-QosTxop::IsTxopFragmentation () const
+QosTxop::IsTxopFragmentation (void) const
 {
   if (GetTxopLimit ().IsZero ())
     {
@@ -989,7 +986,7 @@ QosTxop::IsTxopFragmentation () const
 }
 
 uint32_t
-QosTxop::GetTxopFragmentSize () const
+QosTxop::GetTxopFragmentSize (void) const
 {
   Time txopDuration = GetTxopLimit ();
   if (txopDuration.IsZero ())
@@ -1022,7 +1019,7 @@ QosTxop::GetTxopFragmentSize () const
 }
 
 uint32_t
-QosTxop::GetNTxopFragment () const
+QosTxop::GetNTxopFragment (void) const
 {
   uint32_t fragmentSize = GetTxopFragmentSize ();
   uint32_t nFragments = (m_currentPacket->GetSize () / fragmentSize);
@@ -1301,9 +1298,10 @@ QosTxop::VerifyBlockAck (void)
 bool QosTxop::GetAmpduExist (Mac48Address dest) const
 {
   NS_LOG_FUNCTION (this << dest);
-  if (m_aMpduEnabled.find (dest) != m_aMpduEnabled.end ())
+  auto it = m_aMpduEnabled.find (dest);
+  if (it != m_aMpduEnabled.end ())
     {
-      return m_aMpduEnabled.find (dest)->second;
+      return it->second;
     }
   return false;
 }
@@ -1311,14 +1309,7 @@ bool QosTxop::GetAmpduExist (Mac48Address dest) const
 void QosTxop::SetAmpduExist (Mac48Address dest, bool enableAmpdu)
 {
   NS_LOG_FUNCTION (this << dest << enableAmpdu);
-  if (m_aMpduEnabled.find (dest) != m_aMpduEnabled.end () && m_aMpduEnabled.find (dest)->second != enableAmpdu)
-    {
-      m_aMpduEnabled.erase (m_aMpduEnabled.find (dest));
-    }
-  if (m_aMpduEnabled.find (dest) == m_aMpduEnabled.end ())
-    {
-      m_aMpduEnabled.insert (std::make_pair (dest, enableAmpdu));
-    }
+  m_aMpduEnabled[dest] = enableAmpdu;
 }
 
 void
@@ -1348,7 +1339,7 @@ QosTxop::CompleteMpduTx (Ptr<const Packet> packet, WifiMacHeader hdr, Time tstam
 }
 
 bool
-QosTxop::SetupBlockAckIfNeeded ()
+QosTxop::SetupBlockAckIfNeeded (void)
 {
   NS_LOG_FUNCTION (this);
   uint8_t tid = m_currentHdr.GetQosTid ();
@@ -1356,8 +1347,8 @@ QosTxop::SetupBlockAckIfNeeded ()
   uint32_t packets = m_queue->GetNPacketsByTidAndAddress (tid, recipient);
   if ((GetBlockAckThreshold () > 0 && packets >= GetBlockAckThreshold ())
       || (m_mpduAggregator != 0 && m_mpduAggregator->GetMaxAmpduSize () > 0 && packets > 1)
-      || m_stationManager->HasVhtSupported ()
-      || m_stationManager->HasHeSupported ())
+      || m_stationManager->GetVhtSupported ()
+      || m_stationManager->GetHeSupported ())
     {
       /* Block ack setup */
       uint16_t startingSequence = m_txMiddle->GetNextSeqNumberByTidAndAddress (tid, recipient);
@@ -1539,7 +1530,7 @@ QosTxop::SendDelbaFrame (Mac48Address addr, uint8_t tid, bool byOriginator)
 }
 
 void
-QosTxop::DoInitialize ()
+QosTxop::DoInitialize (void)
 {
   NS_LOG_FUNCTION (this);
   ResetCw ();
@@ -1569,7 +1560,7 @@ QosTxop::BaTxFailed (const WifiMacHeader &hdr)
 }
 
 bool
-QosTxop::IsQosTxop () const
+QosTxop::IsQosTxop (void) const
 {
   return true;
 }

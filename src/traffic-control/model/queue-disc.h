@@ -22,6 +22,7 @@
 
 #include "ns3/object.h"
 #include "ns3/traced-value.h"
+#include "ns3/traced-callback.h"
 #include "ns3/net-device.h"
 #include "ns3/queue-item.h"
 #include "ns3/queue-size.h"
@@ -338,16 +339,39 @@ public:
   const Stats& GetStats (void);
 
   /**
-   * \brief Set the NetDevice on which this queue discipline is installed.
-   * \param device the NetDevice on which this queue discipline is installed.
+   * \param ndqi the NetDeviceQueueInterface aggregated to the receiving object.
+   *
+   * Set the pointer to the NetDeviceQueueInterface object aggregated to the
+   * object receiving the packets dequeued from this queue disc.
    */
-  void SetNetDevice (Ptr<NetDevice> device);
+  void SetNetDeviceQueueInterface (Ptr<NetDeviceQueueInterface> ndqi);
 
   /**
-   * \brief Get the NetDevice on which this queue discipline is installed
-   * \return the NetDevice on which this queue discipline is installed.
+   * \return the NetDeviceQueueInterface aggregated to the receiving object.
+   *
+   * Get the pointer to the NetDeviceQueueInterface object aggregated to the
+   * object receiving the packets dequeued from this queue disc.
    */
-  Ptr<NetDevice> GetNetDevice (void) const;
+  Ptr<NetDeviceQueueInterface> GetNetDeviceQueueInterface (void) const;
+
+  /// Callback invoked to send a packet to the receiving object when Run is called
+  typedef std::function<void (Ptr<QueueDiscItem>)> SendCallback;
+
+  /**
+   * \param func the callback to send a packet to the receiving object.
+   *
+   * Set the callback used by the Transmit method (called eventually by the Run
+   * method) to send a packet to the receiving object.
+   */
+  void SetSendCallback (SendCallback func);
+
+  /**
+   * \return the callback to send a packet to the receiving object.
+   *
+   * Get the callback used by the Transmit method (called eventually by the Run
+   * method) to send a packet to the receiving object.
+   */
+  SendCallback GetSendCallback (void) const;
 
   /**
    * \brief Set the maximum number of dequeue operations following a packet enqueue
@@ -574,14 +598,16 @@ private:
    * The implementation of this method is based on the qdisc_peek_dequeued
    * function of the Linux kernel, which dequeues a packet and retains it in the
    * queue disc as a requeued packet. The packet is not traced as requeued, nor
-   * is the total count of requeued packets increased. The dequeued packet is
-   * not counted in the backlog of the queue disc and is actually extracted from
-   * the queue disc by calling Dequeue. This approach is especially recommended
-   * for queue discs for which it is not obvious what is the next packet that
-   * will be dequeued (e.g., queue discs having multiple internal queues or
-   * child queue discs or queue discs that drop packets after dequeue).
-   * Subclasses can however provide their own implementation of this method that
-   * overrides the default one.
+   * is the total count of requeued packets increased. The packet is still
+   * considered to be part of the queue disc and the dequeue trace is fired
+   * when Dequeue is called and the packet is actually extracted from the
+   * queue disc.
+   *
+   * This approach is especially recommended for queue discs for which it is not
+   * obvious what is the next packet that will be dequeued (e.g., queue discs
+   * having multiple internal queues or child queue discs or queue discs that
+   * drop packets after dequeue). Subclasses can however provide their own
+   * implementation of this method that overrides the default one.
    *
    * \return 0 if the operation was not successful; the packet otherwise.
    */
@@ -663,15 +689,16 @@ private:
 
   TracedValue<uint32_t> m_nPackets; //!< Number of packets in the queue
   TracedValue<uint32_t> m_nBytes;   //!< Number of bytes in the queue
-  TracedValue<Time> m_sojourn;      //!< Sojourn time of the latest dequeued packet
+  TracedCallback<Time> m_sojourn;   //!< Sojourn time of the latest dequeued packet
   QueueSize m_maxSize;              //!< max queue size
 
   Stats m_stats;                    //!< The collected statistics
   uint32_t m_quota;                 //!< Maximum number of packets dequeued in a qdisc run
-  Ptr<NetDevice> m_device;          //!< The NetDevice on which this queue discipline is installed
   Ptr<NetDeviceQueueInterface> m_devQueueIface;   //!< NetDevice queue interface
+  SendCallback m_send;              //!< Callback used to send a packet to the receiving object
   bool m_running;                   //!< The queue disc is performing multiple dequeue operations
   Ptr<QueueDiscItem> m_requeued;    //!< The last packet that failed to be transmitted
+  bool m_peeked;                    //!< A packet was dequeued because Peek was called
   std::string m_childQueueDiscDropMsg;  //!< Reason why a packet was dropped by a child queue disc
   QueueDiscSizePolicy m_sizePolicy;     //!< The queue disc size policy
   bool m_prohibitChangeMode;            //!< True if changing mode is prohibited

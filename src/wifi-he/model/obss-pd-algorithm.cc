@@ -29,9 +29,9 @@ namespace ns3 {
 NS_LOG_COMPONENT_DEFINE ("ObssPdAlgorithm");
 NS_OBJECT_ENSURE_REGISTERED (ObssPdAlgorithm);
 
-ObssPdAlgorithm::ObssPdAlgorithm () :
-  m_obssPdLevel (-82.0),
-  m_txPwr (10.0)
+ObssPdAlgorithm::ObssPdAlgorithm ()
+  : m_obssPdLevel (-82.0),
+    m_txPwr (10.0)
 {
   NS_LOG_FUNCTION (this);
 }
@@ -41,7 +41,7 @@ ObssPdAlgorithm::GetTypeId (void)
 {
   static ns3::TypeId tid = ns3::TypeId ("ns3::ObssPdAlgorithm")
     .SetParent<Object> ()
-    .SetGroupName ("Wifi")
+    .SetGroupName ("WifiHe")
     .AddConstructor<ObssPdAlgorithm> ()
     .AddAttribute ("ObssPdLevel",
                    "The OBSS PD level.",
@@ -61,8 +61,8 @@ ObssPdAlgorithm::GetTypeId (void)
                      "The TxPwr.",
                      MakeTraceSourceAccessor (&ObssPdAlgorithm::m_txPwr),
                      "ns3::TracedValueCallback::Double")
-    ;
-    return tid;
+  ;
+  return tid;
 }
 
 void
@@ -95,7 +95,7 @@ void
 ObssPdAlgorithm::SetupCallbacks ()
 {
   Ptr<WifiNetDevice> wifiNetDevice = GetWifiNetDevice ();
-  Ptr<Node> node = wifiNetDevice-> GetNode();
+  Ptr<Node> node = wifiNetDevice->GetNode ();
   uint32_t nodeid = node->GetId ();
 
   std::ostringstream oss;
@@ -123,26 +123,15 @@ Ptr<WifiPhy>
 ObssPdAlgorithm::GetWifiPhy (void) const
 {
   Ptr<WifiNetDevice> wifiNetDevice = GetWifiNetDevice ();
-  Ptr<WifiPhy> wifiPhy = DynamicCast<WifiPhy> (wifiNetDevice->GetPhy());
+  Ptr<WifiPhy> wifiPhy = DynamicCast<WifiPhy> (wifiNetDevice->GetPhy ());
   NS_ASSERT (wifiPhy);
   return wifiPhy;
-}
-
-Ptr<RegularWifiMac>
-ObssPdAlgorithm::GetRegularWifiMac (void) const
-{
-  Ptr<WifiNetDevice> wifiNetDevice = GetWifiNetDevice ();
-  Ptr<RegularWifiMac> regularWifiMac = wifiNetDevice->GetMac ()->GetObject<RegularWifiMac> ();
-  NS_ASSERT (regularWifiMac);
-  return regularWifiMac;
 }
 
 Ptr<HeConfiguration>
 ObssPdAlgorithm::GetHeConfiguration (void) const
 {
-
-  Ptr<RegularWifiMac> regularWifiMac = GetRegularWifiMac ();
-  Ptr<HeConfiguration> heConfiguration = regularWifiMac->GetHeConfiguration ();
+  Ptr<HeConfiguration> heConfiguration = GetWifiNetDevice ()->GetHeConfiguration ();
   // assume that there must be an HeConfiguration object for this device
   NS_ASSERT (heConfiguration);
   return heConfiguration;

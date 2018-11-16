@@ -18,7 +18,7 @@
  *
  * Authors: Mathieu Lacage <mathieu.lacage@sophia.inria.fr>
  *          Quincy Tse <quincy.tse@nicta.com.au>
- *          Sébastien Deronne <sebastien.deronne@gmail.com>
+ *          Sbastien Deronne <sebastien.deronne@gmail.com>
  *          Scott Carpenter <scarpenter44@windstream.net>
  */
 
@@ -221,7 +221,7 @@ private:
  * This class sets up generic information for Wifi-He test cases
  * so that they are all configured similarly and run consistently
  */
-class WifiHeTestCase: public TestCase
+class WifiHeTestCase : public TestCase
 {
 public:
   WifiHeTestCase ();
@@ -324,15 +324,15 @@ private:
 
 WifiHeTestCase::WifiHeTestCase ()
   : TestCase ("WifiHe"),
-  m_numStaPacketsSent (0),
-  m_numApPacketsSent (0),
-  m_totalReceivedPackets (0),
-  m_payloadSize1 (1500),
-  m_payloadSize2 (1510),
-  m_receivedPayload1 (false),
-  m_receivedPayload2 (false),
-  m_enableHeConfiguration (false),
-  m_expectedBssColor (0)
+    m_numStaPacketsSent (0),
+    m_numApPacketsSent (0),
+    m_totalReceivedPackets (0),
+    m_payloadSize1 (1500),
+    m_payloadSize2 (1510),
+    m_receivedPayload1 (false),
+    m_receivedPayload2 (false),
+    m_enableHeConfiguration (false),
+    m_expectedBssColor (0)
 {
   m_firstTransmissionTime = Seconds (0);
   m_phy = SpectrumWifiPhyHelper::Default ();
@@ -353,7 +353,7 @@ WifiHeTestCase::NotifyPhyTxBegin (std::string context, Ptr<const Packet> p)
       if (m_numStaPacketsSent == 0)
         {
           // this is the first packet
-          m_firstTransmissionTime = Simulator::Now();
+          m_firstTransmissionTime = Simulator::Now ();
           NS_ASSERT_MSG (m_firstTransmissionTime >= Time (Seconds (1)), "Packet 0 not transmitted at 1 second");
 
           // relative to the start of receiving the packet...
@@ -459,7 +459,7 @@ WifiHeTestCase::CheckPhyState (uint32_t idx, WifiPhyState expectedState)
     {
       WifiPhyState state = m_listener->GetState ();
       std::ostringstream ossMsg;
-      ossMsg << "PHY State " << state << " does not match expected state " << expectedState << " at " << Simulator::Now();
+      ossMsg << "PHY State " << state << " does not match expected state " << expectedState << " at " << Simulator::Now ();
       NS_TEST_ASSERT_MSG_EQ (state, expectedState, ossMsg.str ());
       // std::cout << "Checking PHY STATE at " << Simulator::Now() << " Expected " << expectedState << " got " << state << std::endl;
     }
@@ -537,7 +537,7 @@ WifiHeTestCase::RunOne (void)
   channel->SetPropagationDelayModel (delayModel);
 
   // Ideally we do not need to use the Ieee80211ax loss models.  But, the combination
-  // of which propagation model and the stream number causes the test cases to otherwise fail, 
+  // of which propagation model and the stream number causes the test cases to otherwise fail,
   // mainly the two packet tests in which the second packet should not be received incurs a backoff and
   // then IS received.  For now, am leaving the Ieee80211ax loss model in place, and will debug further
   // later.
@@ -624,7 +624,7 @@ WifiHeTestCase::RunOne (void)
   // Create a PHY listener for the AP's PHY.  This will track state changes and be used
   // to confirm at certain times that the AP is in the right state
   m_listener = new TestPhyListener;
-  Ptr<WifiPhy> apPhy = DynamicCast<WifiPhy> (ap_device->GetPhy());
+  Ptr<WifiPhy> apPhy = DynamicCast<WifiPhy> (ap_device->GetPhy ());
   m_listener->m_phy = apPhy;
   apPhy->RegisterListener (m_listener);
 
@@ -1353,8 +1353,8 @@ TestSinglePacketEndOfHePreambleCorrectBssColor::NotifyEndOfHePreamble (std::stri
         {
           // after 0.25s, assume the network has settled, and the BSS color asisgnment has been completed.
           // first packet is not sent until 1.0s
-          Time now = Simulator::Now();
-          if (now > Seconds(0.25))
+          Time now = Simulator::Now ();
+          if (now > Seconds (0.25))
             {
               // Also, each STA should have the expected BSS color
               NS_TEST_ASSERT_MSG_EQ (m_expectedBssColor, params.bssColor, "The STA received packet HE BSS Color is not the expected color!");
@@ -1507,7 +1507,7 @@ TestSinglePacketEndOfHePreambleResetPhyOnMagicBssColor::NotifyEndOfHePreamble (s
 
           // this is the AP, and we have received notification of End of HE Preamble, and the BSS color is our
           // magic number.  Reset the PHY, and then check that the  PHY returns to IDLE shortly thereafter
-	  // std::cout << "Forcing Reset" << std::endl;
+          // std::cout << "Forcing Reset" << std::endl;
           m_listener->m_phy->ForceCcaReset ();
 
           // at 4us, AP PHY STATE should be IDLE
@@ -1523,10 +1523,10 @@ TestSinglePacketEndOfHePreambleResetPhyOnMagicBssColor::NotifyEndOfHePreamble (s
         }
       else
         {
-          Time now = Simulator::Now();
+          Time now = Simulator::Now ();
           // after 0.25s, assume the network has settled, and the BSS color asisgnment has been completed.
           // first packet is not sent until 1.0s
-          if (now > Seconds(0.25))
+          if (now > Seconds (0.25))
             {
               // Also, each STA should have the expected BSS color
               NS_TEST_ASSERT_MSG_EQ (m_expectedBssColor, params.bssColor, "The STA received packet HE BSS Color is not the expected color!");
@@ -1569,7 +1569,7 @@ TestSinglePacketEndOfHePreambleResetPhyOnMagicBssColor::CheckResults ()
  * This class sets up generic information for Wifi-He test cases
  * so that they are all configured similarly and run consistently
  */
-class ObssPdAlgorithmTestCase: public TestCase
+class ObssPdAlgorithmTestCase : public TestCase
 {
 public:
   ObssPdAlgorithmTestCase ();
@@ -1580,7 +1580,6 @@ protected:
   virtual void DoSetup (void);
 
 protected:
-
 };
 
 ObssPdAlgorithmTestCase::ObssPdAlgorithmTestCase ()
@@ -1750,9 +1749,9 @@ TestInterBss::AllocatePositions ()
   double d3 = 10.0;
 
   positionAlloc->Add (Vector (d1,       0.0, 0.0));  // AP1
-  positionAlloc->Add (Vector (d1+d2,    0.0, 0.0));  // AP1
+  positionAlloc->Add (Vector (d1 + d2,    0.0, 0.0));  // AP1
   positionAlloc->Add (Vector (0.0,      0.0, 0.0));  // STA2
-  positionAlloc->Add (Vector (d1+d2+d3, 0.0, 0.0));  // STA2
+  positionAlloc->Add (Vector (d1 + d2 + d3, 0.0, 0.0));  // STA2
 
   return positionAlloc;
 }

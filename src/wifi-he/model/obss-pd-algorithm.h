@@ -29,11 +29,11 @@
 namespace ns3 {
 
 /**
- * \brief OBSS PD algorithm
- * \ingroup wifi
+ * \brief OBSS PD algorithm interface
+ * \ingroup wifi-he
  *
- * This object executes an algorithm for OBSS PD to evalute if a receiving 
- * signal should be accepted or rejeted.
+ * This object provides the interface for all OBSS_PD adjustment algorithms
+ * and is designed to be subclassed.
  *
  */
 class ObssPdAlgorithm : public Object
@@ -42,11 +42,11 @@ public:
   ObssPdAlgorithm ();
   static TypeId GetTypeId (void);
 
- /**
-   * Sets the OBSS PD level.
-   *
-   * \param level the OBSS PD level in dBm
-   */
+  /**
+    * Sets the OBSS PD level.
+    *
+    * \param level the OBSS PD level in dBm
+    */
   void SetObssPdLevel (double level);
   /**
    * Return the OBSS PD level (dBm).
@@ -55,11 +55,11 @@ public:
    */
   double GetObssPdLevel (void) const;
 
- /**
-   * Sets the TxPwr.
-   *
-   * \param txPwr the TxPwr in dBm
-   */
+  /**
+    * Sets the TxPwr.
+    *
+    * \param txPwr the TxPwr in dBm
+    */
   void SetTxPwr (double txPwr);
   /**
    * Return the TxPwr (dBm).
@@ -117,7 +117,6 @@ public:
    */
   void ReceiveBeacon (HeBeaconReceptionParameters params);
 private:
-
   TracedValue<double> m_obssPdLevel;
   TracedValue<double> m_txPwr;
 

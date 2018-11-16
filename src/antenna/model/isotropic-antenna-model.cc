@@ -26,6 +26,7 @@
 #include "isotropic-antenna-model.h"
 
 
+
 namespace ns3 {
 
 NS_LOG_COMPONENT_DEFINE ("IsotropicAntennaModel");
@@ -45,7 +46,6 @@ IsotropicAntennaModel::GetTypeId ()
                    DoubleValue (0),
                    MakeDoubleAccessor (&IsotropicAntennaModel::m_gainDb),
                    MakeDoubleChecker<double> ())
-
   ;
   return tid;
 }

@@ -29,9 +29,9 @@ namespace ns3 {
 NS_LOG_COMPONENT_DEFINE ("ConstantObssPdAlgorithm");
 NS_OBJECT_ENSURE_REGISTERED (ConstantObssPdAlgorithm);
 
-ConstantObssPdAlgorithm::ConstantObssPdAlgorithm () :
-  ObssPdAlgorithm (),
-  m_constantObssPdLevel (-82.0)
+ConstantObssPdAlgorithm::ConstantObssPdAlgorithm ()
+  : ObssPdAlgorithm (),
+    m_constantObssPdLevel (-82.0)
 {
   NS_LOG_FUNCTION (this);
 }
@@ -40,8 +40,8 @@ TypeId
 ConstantObssPdAlgorithm::GetTypeId (void)
 {
   static ns3::TypeId tid = ns3::TypeId ("ns3::ConstantObssPdAlgorithm")
-    .SetParent<Object> ()
-    .SetGroupName ("Wifi")
+    .SetParent<ObssPdAlgorithm> ()
+    .SetGroupName ("WifiHe")
     .AddConstructor<ConstantObssPdAlgorithm> ()
     .AddAttribute ("ConstantObssPdLevel",
                    "The OBSS PD level.",
@@ -51,8 +51,8 @@ ConstantObssPdAlgorithm::GetTypeId (void)
     .AddTraceSource ("ConstantObssPdLevel",
                      "The OBSS PD level.",
                      MakeTraceSourceAccessor (&ConstantObssPdAlgorithm::m_constantObssPdLevel),
-                     "ns3::TracedValueCallback::Double")    ;
-    return tid;
+                     "ns3::TracedValueCallback::Double");
+  return tid;
 }
 
 void

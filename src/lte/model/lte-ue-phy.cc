@@ -146,8 +146,6 @@ LteUePhy::LteUePhy ()
 
 LteUePhy::LteUePhy (Ptr<LteSpectrumPhy> dlPhy, Ptr<LteSpectrumPhy> ulPhy)
   : LtePhy (dlPhy, ulPhy),
-    m_p10CqiPeriodicity (MilliSeconds (1)),  // ideal behavior
-    m_a30CqiPeriodicity (MilliSeconds (1)),  // ideal behavior
     m_uePhySapUser (0),
     m_ueCphySapUser (0),
     m_state (CELL_SEARCH),
@@ -285,6 +283,12 @@ LteUePhy::GetTypeId (void)
                    "length of layer-1 filtering.",
                    TimeValue (MilliSeconds (200)),
                    MakeTimeAccessor (&LteUePhy::m_ueMeasurementsFilterPeriod),
+                   MakeTimeChecker ())
+    .AddAttribute ("DownlinkCqiPeriodicity",
+                   "Periodicity in milliseconds for reporting the"
+                   "wideband and subband downlink CQIs to the eNB",
+                   TimeValue (MilliSeconds (1)),
+                   MakeTimeAccessor (&LteUePhy::SetDownlinkCqiPeriodicity),
                    MakeTimeChecker ())
     .AddTraceSource ("ReportUeMeasurements",
                      "Report UE measurements RSRP (dBm) and RSRQ (dB).",
@@ -468,7 +472,7 @@ LteUePhy::CreateTxPowerSpectralDensity ()
 {
   NS_LOG_FUNCTION (this);
   LteSpectrumValueHelper psdHelper;
-  Ptr<SpectrumValue> psd = psdHelper.CreateTxPowerSpectralDensity (m_ulEarfcn, m_ulBandwidth, m_txPower, GetSubChannelsForTransmission ());
+  Ptr<SpectrumValue> psd = psdHelper.CreateUlTxPowerSpectralDensity (m_ulEarfcn, m_ulBandwidth, m_txPower, GetSubChannelsForTransmission ());
 
   return psd;
 }
@@ -494,6 +498,8 @@ LteUePhy::GenerateCqiRsrpRsrq (const SpectrumValue& sinr)
       // check periodic wideband CQI
       if (Simulator::Now () > m_p10CqiLast + m_p10CqiPeriodicity)
         {
+          NS_LOG_DEBUG("Reporting P10 CQI at : " << Simulator::Now().GetMilliSeconds()
+                       << " ms. Last reported at : " << m_p10CqiLast.GetMilliSeconds() << " ms");
           Ptr<LteUeNetDevice> thisDevice = GetDevice ()->GetObject<LteUeNetDevice> ();
           Ptr<DlCqiLteControlMessage> msg = CreateDlCqiFeedbackMessage (sinr);
           if (msg)
@@ -505,6 +511,8 @@ LteUePhy::GenerateCqiRsrpRsrq (const SpectrumValue& sinr)
       // check aperiodic high-layer configured subband CQI
       if  (Simulator::Now () > m_a30CqiLast + m_a30CqiPeriodicity)
         {
+          NS_LOG_DEBUG("Reporting A30 CQI at : " << Simulator::Now().GetMilliSeconds()
+                       << " ms. Last reported at : " << m_a30CqiLast.GetMilliSeconds() << " ms");
           Ptr<LteUeNetDevice> thisDevice = GetDevice ()->GetObject<LteUeNetDevice> ();
           Ptr<DlCqiLteControlMessage> msg = CreateDlCqiFeedbackMessage (sinr);
           if (msg)
@@ -844,6 +852,14 @@ LteUePhy::ReportUeMeasurements ()
 }
 
 void
+LteUePhy::SetDownlinkCqiPeriodicity (Time cqiPeriodicity)
+{
+  NS_LOG_FUNCTION (this << cqiPeriodicity);
+  m_a30CqiPeriodicity = cqiPeriodicity;
+  m_p10CqiPeriodicity = cqiPeriodicity;
+}
+
+void
 LteUePhy::DoSendLteControlMessage (Ptr<LteControlMessage> msg)
 {
   NS_LOG_FUNCTION (this << msg);
@@ -976,7 +992,7 @@ LteUePhy::ReceiveLteControlMessageList (std::list<Ptr<LteControlMessage> > msgLi
                   else
                     {
                       NS_LOG_INFO ("received RAR RNTI " << m_raRnti);
-                      // set the uplink bandwidht according to the UL grant
+                      // set the uplink bandwidth according to the UL grant
                       std::vector <int> ulRb;
                       for (int i = 0; i < it->rarPayload.m_grant.m_rbLen; i++)
                         {
@@ -1356,6 +1372,13 @@ LteUePhy::DoSetPa (double pa)
 }
 
 void 
+LteUePhy::DoSetRsrpFilterCoefficient (uint8_t rsrpFilterCoefficient)
+{
+  NS_LOG_FUNCTION (this << (uint16_t) (rsrpFilterCoefficient));
+  m_powerControl->SetRsrpFilterCoefficient (rsrpFilterCoefficient);
+}
+
+void
 LteUePhy::SetTxMode1Gain (double gain)
 {
   SetTxModeGain (1, gain);

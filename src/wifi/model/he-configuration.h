@@ -37,8 +37,19 @@ class HeConfiguration : public Object
 public:
   HeConfiguration ();
   static TypeId GetTypeId (void);
+
+  /**
+   * \param guardInterval the supported HE guard interval
+   */
+  void SetGuardInterval (Time guardInterval);
+  /**
+   * \return the supported HE guard interval
+   */
+  Time GetGuardInterval (void) const;
+
 private:
   uint8_t m_bssColor; //!< BSS color
+  Time m_guardInterval; //!< Supported HE guard interval
   double m_obssPdThreshold;  //!< OBSS_PD threshold (dBm)
   double m_obssPdThresholdMin; //!< OBSS_PD threshold minimum (dBm)
   double m_obssPdThresholdMax; //!< OBSS_PD threshold maximum (dBm)

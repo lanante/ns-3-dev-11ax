@@ -36,10 +36,10 @@ gcc_min_version = (4, 9, 2)
 # Bug 2181:  clang warnings about unused local typedefs and potentially
 # evaluated expressions affecting darwin clang/LLVM version 7.0.0 (Xcode 7)
 # or clang/LLVM version 3.6 or greater.  We must make this platform-specific.
-darwin_clang_version_warn_unused_local_typedefs = ('7', '0', '0')
-darwin_clang_version_warn_potentially_evaluated = ('7', '0', '0')
-clang_version_warn_unused_local_typedefs = ('3', '6', '0')
-clang_version_warn_potentially_evaluated = ('3', '6', '0')
+darwin_clang_version_warn_unused_local_typedefs = (7, 0, 0)
+darwin_clang_version_warn_potentially_evaluated = (7, 0, 0)
+clang_version_warn_unused_local_typedefs = (3, 6, 0)
+clang_version_warn_potentially_evaluated = (3, 6, 0)
 
 # Get the information out of the NS-3 configuration file.
 config_file_exists = False
@@ -417,25 +417,25 @@ def configure(conf):
         if libstdcxx_location:
             conf.env.append_value('NS3_MODULE_PATH', libstdcxx_location)
 
-        if Options.platform in ['linux']:
+        if Utils.unversioned_sys_platform() in ['linux']:
             if conf.check_compilation_flag('-Wl,--soname=foo'):
                 env['WL_SONAME_SUPPORTED'] = True
 
     # bug 2181 on clang warning suppressions
     if conf.env['CXX_NAME'] in ['clang']:
-        if Options.platform == 'darwin':
-            if conf.env['CC_VERSION'] >= darwin_clang_version_warn_unused_local_typedefs:
+        if Utils.unversioned_sys_platform() == 'darwin':
+            if tuple(map(int, conf.env['CC_VERSION'])) >= darwin_clang_version_warn_unused_local_typedefs:
                 env.append_value('CXXFLAGS', '-Wno-unused-local-typedefs')
-            if conf.env['CC_VERSION'] >= darwin_clang_version_warn_potentially_evaluated: 
+            if tuple(map(int, conf.env['CC_VERSION'])) >= darwin_clang_version_warn_potentially_evaluated:
                 env.append_value('CXXFLAGS', '-Wno-potentially-evaluated-expression')
         else:
-            if conf.env['CC_VERSION'] >= clang_version_warn_unused_local_typedefs:
+            if tuple(map(int, conf.env['CC_VERSION'])) >= clang_version_warn_unused_local_typedefs:
                 env.append_value('CXXFLAGS', '-Wno-unused-local-typedefs')
-            if conf.env['CC_VERSION'] >= clang_version_warn_potentially_evaluated: 
+            if tuple(map(int, conf.env['CC_VERSION'])) >= clang_version_warn_potentially_evaluated:
                 env.append_value('CXXFLAGS', '-Wno-potentially-evaluated-expression')
     env['ENABLE_STATIC_NS3'] = False
     if Options.options.enable_static:
-        if Options.platform == 'darwin':
+        if Utils.unversioned_sys_platform() == 'darwin':
             if conf.check_compilation_flag(flag=[], linkflags=['-Wl,-all_load']):
                 conf.report_optional_feature("static", "Static build", True, '')
                 env['ENABLE_STATIC_NS3'] = True
@@ -643,7 +643,6 @@ def configure(conf):
             if conf.check_compilation_flag(flag, mode='cc'):
                 env.append_value('CCFLAGS', flag)
 
-    add_gcc_flag('-Wno-error=deprecated-declarations')
     add_gcc_flag('-fstrict-aliasing')
     add_gcc_flag('-Wstrict-aliasing')
 
@@ -708,7 +707,7 @@ def create_suid_program(bld, name):
     program.target = "%s%s-%s%s" % (wutils.APPNAME, wutils.VERSION, name, bld.env.BUILD_SUFFIX)
 
     if bld.env['ENABLE_SUDO']:
-        program.create_task("SuidBuild")
+        program.create_task("SuidBuild_task")
 
     bld.set_group(grp)
 

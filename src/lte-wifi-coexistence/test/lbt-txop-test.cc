@@ -325,7 +325,6 @@ LbtTxopTestCase::DoRun (void)
   WifiHelper wifi;
   wifi.SetStandard (WIFI_PHY_STANDARD_80211n_5GHZ);
   WifiMacHelper mac;
-  spectrumPhy.Set ("ShortGuardEnabled", BooleanValue (false));
   spectrumPhy.Set ("ChannelWidth", UintegerValue (20));
   spectrumPhy.Set ("TxGain", DoubleValue (phyParams.m_ueTxGain));
   spectrumPhy.Set ("RxGain", DoubleValue (phyParams.m_ueRxGain));

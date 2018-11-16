@@ -75,7 +75,7 @@ int main (int argc, char *argv[])
   cmd.AddValue ("simulationTime", "Simulation time in seconds", simulationTime);
   cmd.AddValue ("udp", "UDP if set to 1, TCP otherwise", udp);
   cmd.AddValue ("useRts", "Enable/disable RTS/CTS", useRts);
-  cmd.AddValue ("mcs", "if set, limit testing to a specific MCS (0-7)", mcs);
+  cmd.AddValue ("mcs", "if set, limit testing to a specific MCS (0-11)", mcs);
   cmd.AddValue ("minExpectedThroughput", "if set, simulation fails if the lowest throughput is below this value", minExpectedThroughput);
   cmd.AddValue ("maxExpectedThroughput", "if set, simulation fails if the highest throughput is above this value", maxExpectedThroughput);
   cmd.Parse (argc,argv);
@@ -127,9 +127,6 @@ int main (int argc, char *argv[])
               YansWifiPhyHelper phy = YansWifiPhyHelper::Default ();
               phy.SetChannel (channel.Create ());
 
-              // Set guard interval
-              phy.Set ("GuardInterval", TimeValue (NanoSeconds (gi)));
-
               WifiMacHelper mac;
               WifiHelper wifi;
               if (frequency == 5.0)
@@ -167,8 +164,9 @@ int main (int argc, char *argv[])
               NetDeviceContainer apDevice;
               apDevice = wifi.Install (phy, mac, wifiApNode);
 
-              // Set channel width
+              // Set channel width and guard interval
               Config::Set ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Phy/ChannelWidth", UintegerValue (channelWidth));
+              Config::Set ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/HeConfiguration/GuardInterval", TimeValue (NanoSeconds (gi)));
 
               // mobility.
               MobilityHelper mobility;

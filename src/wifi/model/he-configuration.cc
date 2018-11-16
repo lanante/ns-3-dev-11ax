@@ -17,10 +17,11 @@
  *
  */
 
-#include "he-configuration.h"
-#include "ns3/uinteger.h"
 #include "ns3/double.h"
 #include "ns3/log.h"
+#include "ns3/nstime.h"
+#include "ns3/uinteger.h"
+#include "he-configuration.h"
 
 namespace ns3 {
 
@@ -59,8 +60,29 @@ HeConfiguration::GetTypeId (void)
                    DoubleValue (-62.0),
                    MakeDoubleAccessor (&HeConfiguration::m_obssPdThresholdMax),
                    MakeDoubleChecker<double> ())
+    .AddAttribute ("GuardInterval",
+                   "Specify the shortest guard interval duration that can be used for HE transmissions."
+                   "Possible values are 800ns, 1600ns or 3200ns.",
+                   TimeValue (NanoSeconds (3200)),
+                   MakeTimeAccessor (&HeConfiguration::GetGuardInterval,
+                                     &HeConfiguration::SetGuardInterval),
+                   MakeTimeChecker (NanoSeconds (800), NanoSeconds (3200)))
     ;
     return tid;
+}
+
+void
+HeConfiguration::SetGuardInterval (Time guardInterval)
+{
+  NS_LOG_FUNCTION (this << guardInterval);
+  NS_ASSERT (guardInterval == NanoSeconds (800) || guardInterval == NanoSeconds (1600) || guardInterval == NanoSeconds (3200));
+  m_guardInterval = guardInterval;
+}
+
+Time
+HeConfiguration::GetGuardInterval (void) const
+{
+  return m_guardInterval;
 }
 
 } //namespace ns3

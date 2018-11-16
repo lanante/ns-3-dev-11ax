@@ -137,11 +137,11 @@ NodeContainer::GetGlobal (void)
 }
 
 bool
-NodeContainer::Contains (uint32_t index) const
+NodeContainer::Contains (uint32_t id) const
 {
   for (uint32_t i = 0; i < m_nodes.size (); i++)
     {
-      if (m_nodes[i]->GetId () == index)
+      if (m_nodes[i]->GetId () == id)
         {
           return true;
         }

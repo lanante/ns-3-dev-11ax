@@ -2033,7 +2033,6 @@ ConfigureWifiAp (NodeContainer bsNodes, struct PhyParams phyParams, Ptr<Spectrum
   wifi.SetStandard (WIFI_PHY_STANDARD_80211n_5GHZ);
   WifiMacHelper mac;
 
-  spectrumPhy.Set ("ShortGuardEnabled", BooleanValue (false));
   spectrumPhy.Set ("ChannelWidth", UintegerValue (20));
   mac.SetType ("ns3::ApWifiMac",
                "Ssid", SsidValue (ssid),
@@ -2096,7 +2095,6 @@ ConfigureWifiSta (NodeContainer ueNodes, struct PhyParams phyParams, Ptr<Spectru
   wifi.SetStandard (WIFI_PHY_STANDARD_80211n_5GHZ);
   WifiMacHelper mac;
 
-  spectrumPhy.Set ("ShortGuardEnabled", BooleanValue (false));
   spectrumPhy.Set ("ChannelWidth", UintegerValue (20));
   mac.SetType ("ns3::StaWifiMac",
                "Ssid", SsidValue (ssid),
