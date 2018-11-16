@@ -55,25 +55,29 @@ WifiHeHelper::Install (NodeContainer c) const
   {
     Ptr<Node> node = c.Get (i);
     Ptr<WifiNetDevice> wifiNetDevice = DynamicCast<WifiNetDevice> (node->GetDevice (0));
-    NS_ASSERT (wifiNetDevice);
-
-    // HE Configuration for each AP device
-    Ptr<RegularWifiMac> wifiMac = wifiNetDevice->GetMac ()->GetObject<RegularWifiMac> ();
-    if (wifiMac)
+    if (wifiNetDevice)
       {
-        Ptr<HeConfiguration> heConfiguration = m_heConfiguration.Create<HeConfiguration> ();
-        wifiMac->SetHeConfiguration (heConfiguration);
+        // HE Configuration for each AP device
+        Ptr<RegularWifiMac> wifiMac = wifiNetDevice->GetMac ()->GetObject<RegularWifiMac> ();
+        if (wifiMac)
+          {
+            Ptr<HeConfiguration> heConfiguration = m_heConfiguration.Create<HeConfiguration> ();
+            wifiMac->SetHeConfiguration (heConfiguration);
+          }
+        else
+          {
+            NS_LOG_UNCOND ("Node does not have a WifiMac.  HE Configuration was not set.");
+          }
+        // create also the OBSS PD algorithm object and aggregate it
+        Ptr<ObssPdAlgorithm> obssPdAlgorithm = m_algorithm.Create<ObssPdAlgorithm> ();
+        wifiNetDevice->AggregateObject (obssPdAlgorithm);
+        // set up the callbacks that the OBSS PD algorithm needs
+        obssPdAlgorithm->SetupCallbacks ();
       }
     else
       {
-        NS_LOG_UNCOND ("Node does not have a WifiMac.  HE Configuration was not set.");
+        NS_LOG_UNCOND ("Node does not have a WifiNetDevice.  HE Configuration was not set.");
       }
-
-    // create also the OBSS PD algorithm object and aggregate it
-    Ptr<ObssPdAlgorithm> obssPdAlgorithm = m_algorithm.Create<ObssPdAlgorithm> ();
-    wifiNetDevice->AggregateObject (obssPdAlgorithm);
-    // set up the callbacks that the OBSS PD algorithm needs
-    obssPdAlgorithm->SetupCallbacks ();
   }
 }
 

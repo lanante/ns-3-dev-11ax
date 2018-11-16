@@ -17,7 +17,10 @@ Wi-Fi High Efficiency (HE)
 
 .. toctree::
 
+   wifi-he-introduction
    wifi-he-design
-   wifi-he-user
-   wifi-he-testing
+   wifi-he-usage
+   wifi-he-validation
+   wifi-he-results
+   wifi-he-open-issues-and-future-work
    wifi-he-references

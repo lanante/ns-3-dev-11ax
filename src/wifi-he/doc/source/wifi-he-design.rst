@@ -1,4 +1,4 @@
-Wi-Fi HE Design
+Design
 ***************
 
 .. include:: replace.txt
