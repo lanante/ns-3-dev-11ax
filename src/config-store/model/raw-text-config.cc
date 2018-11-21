@@ -101,7 +101,7 @@ public:
 private:
     virtual void DoVisitAttribute (Ptr<Object> object, std::string name) {
       StringValue str;
-      object->GetAttribute (name, str);
+      object->GetAttributeFailSafe (name, str);
       NS_LOG_DEBUG ("Saving " << GetCurrentPath ());
       *m_os << "value " << GetCurrentPath () << " \"" << str.Get () << "\"" << std::endl;
     }

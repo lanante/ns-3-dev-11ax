@@ -260,7 +260,8 @@ ObjectBase::GetAttributeFailSafe (std::string name, AttributeValue &value) const
   NS_LOG_FUNCTION (this << name << &value);
   struct TypeId::AttributeInformation info;
   TypeId tid = GetInstanceTypeId ();
-  if (!tid.LookupAttributeByName (name, &info))
+  bool quiet = true;
+  if (!tid.LookupAttributeByName (name, &info, quiet))
     {
       return false;
     }

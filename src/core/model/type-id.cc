@@ -874,7 +874,7 @@ TypeId::GetRegistered (uint16_t i)
 }
 
 bool
-TypeId::LookupAttributeByName (std::string name, struct TypeId::AttributeInformation *info) const
+TypeId::LookupAttributeByName (std::string name, struct TypeId::AttributeInformation *info, bool quiet) const
 {
   NS_LOG_FUNCTION (this << name << info);
   TypeId tid;
@@ -893,8 +893,11 @@ TypeId::LookupAttributeByName (std::string name, struct TypeId::AttributeInforma
                 }
               else if (tmp.supportLevel == TypeId::DEPRECATED)
                 {
-                  std::cerr << "Attribute '" << name << "' is deprecated: "
-                                 << tmp.supportMsg << std::endl;
+                  if (!quiet)
+                    {
+                      std::cerr << "Attribute '" << name << "' is deprecated: "
+                                << tmp.supportMsg << std::endl;
+                    }
                   *info = tmp;
                   return true;
                 }
