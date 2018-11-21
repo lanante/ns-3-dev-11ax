@@ -18,7 +18,7 @@ In this chapter we provide some initial simulation results obtained to evaluate
 the WiFi He features, especially spatial reuse and coexistence of 802.11ac, 
 802.11ax, and/or LTE networks. We first describe the framework used to launch
 simulation scenarios and process the results.  Then we present the results for
-some selected scenarios.
+some selected scenarios and parametric studies
 
 Scenario
 ========
@@ -431,3 +431,379 @@ Other things to do:
 * extend / repeat with 3 BSS, 4 BSS
 
 * add latency plots
+
+Parametric Studies
+==================
+
+In this section we discuss parametric studies that have been conducted to 
+examine the behaviors of the spatial reuse and coexistence features of
+802.11ax.  We first describe the framework used to represent the scenarios
+in order to conduct simluation experiements for these studies.  Then we 
+present the results of those studies.
+
+The following three parametric studies are conducted:
+
+* Study 1 -- All nodes operate as 802.11ac (baseline)
+
+* Study 2 -- All nodes operate as 802.11ax with OBSS_PD features enabled.
+
+* Study 3 -- Several BSSs inter-operate using mixtures of 802.11ac, 802.11ax,
+and LAA nodes.
+
+Study 1 - 802.11ac (baseline)
+=============================
+
+The objective of this scenario is "to capture the issues and be representative
+of real-world deployments with high density of APs and STAs" [TGax15].  
+
+Topology / Environment Description
+##################################
+
+BSSs are place a regular and symmetric grid as in Figure X
+for spatial resue with reuse frequency of N=3.
+
+The node positions for Study 1 are given below.
+
+.. _positions-test-study1:
+
+.. figure:: figures/spatial-reuse-positions-test-study1.*
+   :align: center 
+
+   Node positions for Study 1.
+
+Figure :ref:`positions-test-study1` illustrates the node positions 
+for Study 1.
+
+The BSSs are arranged with one BSS of high interest centered in the 
+topology, with six other BSSs surrounding the high-interest BSS and
+arranged in a hexagonal pattern.  As outlined in [TGax15] for the
+Indoor Small BSSs Scenario, STAs are associated with each BSS within 
+a radius of r=10m.  
+
+The figure shown illustrates a scenario in which each BSS has 30 STAs
+allocated randomly within its dropping radius (solid lines).  Dashed 
+lines indicate nomial Carrier Sense Range (CSR) limits of 15m.
+
+Parameters
+##########
+
+In this section, we desribe the parameters used for Study 1, and we
+describe any deviations from those described in [TGax15] Scenario 3.
+
+Topology
+########
+
+* BSSs - BSSs are placed in a regular and symmetric grid as shown 
+in the Figure above, with reuse frequency N=3.  Each hexagon of the grid 
+is modeled as a circle with radius r=10m into which the positions of the 
+STAs are uniformly distributed.
+
+* Reuse Frequency - N=3.
+
+* AP location - APs are placed at the center of each circle.
+
+* Inter BSS Distance (ICD) - BSSs are separated from one another 
+by an inter BSS distance (ICD) of 2 * h, where 
+h = sqrt(r^2-r^2/4) = 17.32m.
+
+* AP antenna height - a 2D model is assumed, and heights of nodes, including
+the AP antenna height, are not modeled.
+
+* STA locations - STAs are uniformly distributed throughout the circle 
+(radius r) of each BSS.
+
+* Number of STAs - the number of STAs is varied for this study from 5 to 40 
+in steps of 5.
+
+Channel Model
+#############
+
+* Fading model - the TGac channel model D NLOS as mentioned in [TGax15] is 
+not modeled in this study.
+
+* Pathloss model - the pathloss model as given in [TGax15] for the Indoor 
+Small BSSs (Scenario 3) is modeled.
+
+* Shadowing - Log-normal with 5 dB standard deviation, iid across all links.
+
+PHY Parameters
+##############
+
+* AP TX power - 20 dBm per antenna.
+
+* STA TX power - 15 dBm per antenna.
+
+* MCS - the ns-3 ideal channel model is used.  This is a minor deviation from the
+[TGax15] described scenario of MCS0 or MCS7 only.
+
+* antennas - (SISO) one antenna is modeled per AP and per STA.  This is a deviation from
+the parameters described in [TGax15].
+
+* TX gain - 0 dBm
+
+* RX gain - 0 dBm
+
+ns-3 parameters:
+
+* Maximum supported TX spatial streams - 1
+
+* Maximum supported RX spatial streams - 1
+
+MAC Parameters
+##############
+
+* Access protocol parameters - EDCA with default EDCA parameter set.
+
+* Primary channels - All BSS at 5GHz with 20 MHz BSS with reuse 3.  Assignment
+of 20 MHz bands is a deviation from the parameters described in [TGax11].
+
+* Aggregation - A-MPDU aggregation size of 3140..
+
+* RTS/CTS Threshold - no RTS/CTS
+
+* Association - STAs are associated with the BSS for the circle into which the 
+STA has been dropped.  This varies from the association scheme described in [TGax15],
+although the resulting number of associated STAs per BSS remains the same.
+
+Traffic Model
+#############
+
+The modeling of traffic differs from the approach described in [TGax15],
+in which several different classes of traffic are described.  Instead, an
+approach is used that allows the mix of uplink and downlink traffic and the
+packet sizes to be specified.
+
+The total offered load of the entire system is specified in Mbps.  This total
+load is then allocated into uplink and downlink portions.  For example, assuming
+a total offfered load of 5.0 Mbps with an allocation of 90% downlink and 10% uplink,
+then the downlink traffic is 5.0 x 90% = 4.5 Mbps and the uplink traffic is 
+5.0 x 10% = 0.5 Mbps.
+
+The total load is allocated per node.  For example, if the total downlink traffic
+is 4.5 Mbps and there are 10 STAs, then the traffic flow per link is 4.5 Mbps / 10 
+= 0.45 Mbps per downlink.
+
+Separate payload sizes (i.e., application layer packet lengths) are specified for
+the uplink payload and the downlink payload sizes.  These payload sizes and the 
+allocated traffic are used to determine the transmission interval per packet.
+
+All traffic is assumed a Constant Bit Rate (CCR) and transmissions use UDP datagrams.
+
+* Uplink payload size - 1500 bytes (or TBD)
+
+* Downlink payload size - 1500 bytes (or TBD)
+
+Conducting the Study 1 Experiments
+##################################
+
+To conduct the exeriments for Study 1, a bash script is used to repeatedly
+run the ns-3 spatial-reuse.cc script.  
+
+Parameters are fixed as described above, with the execption of the number of 
+STAs.
+
+The total offered load for each BSS is a balanced load, with the same load
+for each BSS.  The offered load is increased from 1 Mbps, 
+in steps of 1 Mbps, until the simluation shows that the (central) BSS of 
+interest becomes saturated.
+
+The traffic mix is 90% downlink and 10% uplink, with a downlink 
+payload size of 1500 bytes, and an uplink payload size of 300 bytes.
+
+The number of STAs, n, is varied from 5 to 40 in steps of 5.
+
+All nodes in Study 1 use 802.11ac.
+
+Results are collected in terms of the one, central BSS of high-interest
+(i.e., the "red" BSS area within the figure above).
+
+Performance metrics collected include the following (using the same definitions
+as given earlier):
+
+* system throughput
+
+* area capacity
+
+* spectrum efficiency
+
+* latency
+
+Study 1 Results
+===============
+
+System Throughput
+#################
+
+(Here there will be a figure of the system throughput as a function of 
+offered load.  There will be a separate line for each combination of 
+n STAs - i.e., n=5, n=10, n=15, ..., n=40).
+
+Area Capacity
+#############
+
+(Here there will be a figure of the area capacity as a function of 
+offered load.  There will be a separate line for each combination of 
+n STAs - i.e., n=5, n=10, n=15, ..., n=40).
+
+Spectrum Efficiency
+###################
+
+(Here there will be a figure of the spectrum efficiency as a function of 
+offered load.  There will be a separate line for each combination of 
+n STAs - i.e., n=5, n=10, n=15, ..., n=40).
+
+Latency
+#######
+
+(Here there will be a figure of the average latency as a function of 
+offered load.  There will be a separate line for each combination of 
+n STAs - i.e., n=5, n=10, n=15, ..., n=40).
+
+Study 2 - 802.11ax
+==================
+
+Study 2 repeats the experiments of Study 1, with the following
+changes:
+
+* standard - all nodes operate using 802.11ax
+
+* BSS color - each BSS is assigned its own unique color.  For
+example, BSS #1 uses BSS color 1, BSS #2 uses BSS color 2, etc.
+
+* OBSS_PD level - as an additional sensitivity study, this value 
+is varied from -82 dB to -62 dB, in steps of 5 dB.
+
+Study 2 Results
+===============
+
+The following figures will be repeated several times, with one chart
+for each combination of the OBSS_PD level.  For example, there will 
+be a system throughput chart for OBSS_PD level -82 dB, and another system
+throuhgput chart for OBSS_Pd level -77 dB.
+
+System Throughput
+#################
+
+(Here there will be a figure of the system throughput as a function of 
+offered load.  There will be a separate line for each combination of 
+n STAs - i.e., n=5, n=10, n=15, ..., n=40).
+
+Area Capacity
+#############
+
+(Here there will be a figure of the area capacity as a function of 
+offered load.  There will be a separate line for each combination of 
+n STAs - i.e., n=5, n=10, n=15, ..., n=40).
+
+Spectrum Efficiency
+###################
+
+(Here there will be a figure of the spectrum efficiency as a function of 
+offered load.  There will be a separate line for each combination of 
+n STAs - i.e., n=5, n=10, n=15, ..., n=40).
+
+Latency
+#######
+
+(Here there will be a figure of the average latency as a function of 
+offered load.  There will be a separate line for each combination of 
+n STAs - i.e., n=5, n=10, n=15, ..., n=40).
+
+OBSS PD Levels
+##############
+
+(Here, there will be charts showing the sensitivity of the performance
+to the changes in the OBSS_PD levels.
+several figures will be provided.  Each figure will be for a 
+given offered load and number of STAs that saturate (or neearly 
+saturate) the given network of interest.  For each figure, 
+the area capacity will be shown as a function of OBSS_PD level.
+There will be a separate line for each combination of OBSS_PD 
+level - i.e., -82 dB, -77 dB, ..., -62 db).
+
+Study 3 - Coexistence
+=====================
+
+Study 3 examines coexistence of combinations of 8021.ac, 802.11ac, and
+LAA networks.
+
+The topology of Study 3 is similar to that of Study 1 and Study 2,
+and is illustrated below.
+
+The node positions for Study 3 are given below.
+
+.. _positions-test-study3:
+
+.. figure:: figures/spatial-reuse-positions-test-study3.*
+   :align: center 
+
+   Node positions for Study 3.
+
+Figure :ref:`positions-test-study3` illustrates the node positions 
+for Study 3.
+
+The system consists of 7 BSSs, with the BSS of interest (red) in the 
+center.  This BSS is surrounded by a set of BSSs placed in a 
+hexagonal pattern around it.  For illustrative purposes, the 
+surrounding BSSs in the figure are shown in one of two colors, blue
+or black, to indicate the placement and allocation of different
+types of neighboring networks.
+
+Study 3 thus consists of simulation where BSS of interest is an
+802.11ac network, while the mix of neighboring networks are varied
+(i.e., how many BSS are "blue" and how many are "black" ).
+
+The following topology is studied:
+
+* BSS #1 - the BSS off interest (center) - 802.11ax
+* BSS #2 - 802.11ac
+* BSS #3 - 802.11ax
+* BSS #4 - 802.11ax
+* BSS #5 - 802.11ac
+* BSS #6 - 802.11ax coexisting with LAA
+* BSS #7 - 802.11ax
+
+BSS #6 is an 802.11ax network with an overlaid LAA network.  The ratio of nodes 
+within that network is allocated as (X% TBD) as 802.11ax nodes and (Y% TBD) as
+LAA nodes.
+
+The simulation paramters for each network are determined as follows:
+
+* 802.11ac - "best performing" parameters as identified by Study 1.
+
+* 802.1asx - "best performing" parameter as identified by Study 2.
+
+* LAA - TBD
+
+
+Study 3 Results
+===============
+
+System Throughput
+#################
+
+(Here there will be a figure of the system throughput as a function of 
+offered load.  There will be a separate line for each combination of 
+n STAs - i.e., n=5, n=10, n=15, ..., n=40).
+
+Area Capacity
+#############
+
+(Here there will be a figure of the area capacity as a function of 
+offered load.  There will be a separate line for each combination of 
+n STAs - i.e., n=5, n=10, n=15, ..., n=40).
+
+Spectrum Efficiency
+###################
+
+(Here there will be a figure of the spectrum efficiency as a function of 
+offered load.  There will be a separate line for each combination of 
+n STAs - i.e., n=5, n=10, n=15, ..., n=40).
+
+Latency
+#######
+
+(Here there will be a figure of the average latency as a function of 
+offered load.  There will be a separate line for each combination of 
+n STAs - i.e., n=5, n=10, n=15, ..., n=40).
+

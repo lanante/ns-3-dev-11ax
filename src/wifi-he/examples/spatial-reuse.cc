@@ -726,7 +726,7 @@ main (int argc, char *argv[])
   cmd.AddValue ("obssPdThreshold", "Energy threshold (dBm) of received signal below which the PHY layer can avoid declaring CCA BUSY for inter-BSS frames.", obssPdThreshold);
   cmd.AddValue ("obssPdThresholdMin", "Minimum value (dBm) of OBSS_PD threshold.", obssPdThresholdMin);
   cmd.AddValue ("checkTimings", "Perform TGax timings checks (for MAC simulation calibrations).", performTgaxTimingChecks);
-  cmd.AddValue ("scenario", "The spatial-reuse scenario (residential, enterprise, indoor, outdoor).", scenario);
+  cmd.AddValue ("scenario", "The spatial-reuse scenario (residential, enterprise, indoor, outdoor, study1).", scenario);
   cmd.AddValue ("nBss", "The number of BSSs.  Can be either 1 or 2 (default).", nBss);
   cmd.AddValue ("maxAmpduSize", "The maximum A-MPDU size (bytes).", maxAmpduSize);
   cmd.AddValue ("nodePositionsFile", "Node positions file, ns-2 format for Ns2MobilityHelper.", nodePositionsFile);
@@ -734,7 +734,12 @@ main (int argc, char *argv[])
   cmd.AddValue ("enableAscii", "Enable ASCII trace file generation.", enableAscii);
   cmd.Parse (argc, argv);
 
-  if ((nBss < 1) || (nBss > 4))
+  if (scenario == "study1")
+    {
+      nBss = 7;
+    }
+
+  if ((nBss < 1) || (nBss > 7))
     {
       std::cout << "Invalid nBss parameter: " << nBss << ".  Can only be 1, 2, 3 or 4." << std::endl;
     }
@@ -943,9 +948,17 @@ main (int argc, char *argv[])
   Ptr<Node> ap2 = 0;
   Ptr<Node> ap3 = 0;
   Ptr<Node> ap4 = 0;
+  Ptr<Node> ap5 = 0;
+  Ptr<Node> ap6 = 0;
+  Ptr<Node> ap7 = 0;
   // node containers for two APs and their STAs
-  NodeContainer stasA, stasB, nodesA, nodesB;
-  NodeContainer stasC, stasD, nodesC, nodesD;
+  NodeContainer stasA, nodesA;
+  NodeContainer stasB, nodesB;
+  NodeContainer stasC, nodesC;
+  NodeContainer stasD, nodesD;
+  NodeContainer stasE, nodesE;
+  NodeContainer stasF, nodesF;
+  NodeContainer stasG, nodesG;
 
   // network "A"
   for (uint32_t i = 0; i < n; i++)
@@ -958,7 +971,7 @@ main (int argc, char *argv[])
   nodesA.Add (ap1);
   nodesA.Add (stasA);
 
-  if (nBss >= 2)
+  if ((nBss >= 2) || (scenario == "study1"))
     {
       ap2 = CreateObject<Node> ();
       // network "B"
@@ -973,7 +986,7 @@ main (int argc, char *argv[])
       nodesB.Add (stasB);
     }
 
-  if (nBss >= 3)
+  if ((nBss >= 3) || (scenario == "study1"))
     {
       ap3 = CreateObject<Node> ();
       // network "C"
@@ -988,7 +1001,7 @@ main (int argc, char *argv[])
       nodesC.Add (stasC);
     }
 
-  if (nBss >= 4)
+  if ((nBss >= 4) || (scenario == "study1"))
     {
       ap4 = CreateObject<Node> ();
       // network "D"
@@ -1003,8 +1016,50 @@ main (int argc, char *argv[])
       nodesD.Add (stasD);
     }
 
+  if (scenario == "study1")
+    {
+      ap5 = CreateObject<Node> ();
+      // network "E"
+      for (uint32_t i = 0; i < n; i++)
+        {
+          Ptr<Node> sta = CreateObject<Node> ();
+          stasE.Add (sta);
+        }
+
+      // AP at front of node container, then STAs
+      nodesE.Add (ap5);
+      nodesE.Add (stasE);
+
+      ap6 = CreateObject<Node> ();
+      // network "F"
+      for (uint32_t i = 0; i < n; i++)
+        {
+          Ptr<Node> sta = CreateObject<Node> ();
+          stasF.Add (sta);
+        }
+
+      // AP at front of node container, then STAs
+      nodesF.Add (ap6);
+      nodesF.Add (stasF);
+
+      ap7 = CreateObject<Node> ();
+      // network "G"
+      for (uint32_t i = 0; i < n; i++)
+        {
+          Ptr<Node> sta = CreateObject<Node> ();
+          stasG.Add (sta);
+        }
+
+      // AP at front of node container, then STAs
+      nodesG.Add (ap7);
+      nodesG.Add (stasG);
+    }
+
   // the container for all nodes (from Network "A" and Network "B")
   allNodes = NodeContainer (nodesA, nodesB, nodesC, nodesD);
+  allNodes.Add(nodesE);
+  allNodes.Add(nodesF);
+  allNodes.Add(nodesG);
 
   // PHY setup
   SpectrumWifiPhyHelper spectrumPhy = SpectrumWifiPhyHelper::Default ();
@@ -1035,7 +1090,7 @@ main (int argc, char *argv[])
       Ptr<Ieee80211axIndoorPropagationLossModel> lossModel = CreateObject<Ieee80211axIndoorPropagationLossModel> ();
       spectrumChannel->AddPropagationLossModel (lossModel);
     }
-  else if (scenario == "indoor")
+  else if ((scenario == "indoor") || (scenario == "study1"))
     {
       Config::SetDefault ("ns3::Ieee80211axIndoorPropagationLossModel::DistanceBreakpoint", DoubleValue (10.0));
       Config::SetDefault ("ns3::Ieee80211axIndoorPropagationLossModel::Walls", DoubleValue (0.0));
@@ -1128,7 +1183,7 @@ main (int argc, char *argv[])
 
   NetDeviceContainer apDeviceB;
   NetDeviceContainer staDevicesB;
-  if (nBss >= 2)
+  if ((nBss >= 2) || (scenario == "study1"))
     {
       // Set PHY power and CCA threshold for STAs
       spectrumPhy.Set ("TxPowerStart", DoubleValue (powSta));
@@ -1183,7 +1238,7 @@ main (int argc, char *argv[])
 
   NetDeviceContainer apDeviceC;
   NetDeviceContainer staDevicesC;
-  if (nBss >= 3)
+  if ((nBss >= 3) || (scenario == "study1"))
     {
       // Set PHY power and CCA threshold for STAs
       spectrumPhy.Set ("TxPowerStart", DoubleValue (powSta));
@@ -1238,7 +1293,7 @@ main (int argc, char *argv[])
 
   NetDeviceContainer apDeviceD;
   NetDeviceContainer staDevicesD;
-  if (nBss >= 4)
+  if ((nBss >= 4) || (scenario == "study1"))
     {
       // Set PHY power and CCA threshold for STAs
       spectrumPhy.Set ("TxPowerStart", DoubleValue (powSta));
@@ -1276,7 +1331,7 @@ main (int argc, char *argv[])
       // Do we also want to allow Amsdu Size to be modified?
       //              "BE_MaxAmsduSize", UintegerValue(maxAmsduSize));
 
-      // AP3
+      // AP4
       apDeviceD = wifi.Install (spectrumPhy, mac, ap4);
       Ptr<WifiNetDevice> ap4Device = apDeviceC.Get (0)->GetObject<WifiNetDevice> ();
       apWifiMac = ap4Device->GetMac ()->GetObject<ApWifiMac> ();
@@ -1284,6 +1339,154 @@ main (int argc, char *argv[])
         {
           Ptr <HeConfiguration> heConfiguration = CreateObject<HeConfiguration> ();
           heConfiguration->SetAttribute ("BssColor", UintegerValue (4));
+          heConfiguration->SetAttribute ("ObssPdThreshold", DoubleValue(obssPdThreshold));
+          heConfiguration->SetAttribute ("ObssPdThresholdMin", DoubleValue(obssPdThresholdMin));
+          heConfiguration->SetAttribute ("ObssPdThresholdMax", DoubleValue(obssPdThresholdMax));
+          apWifiMac->SetHeConfiguration (heConfiguration);
+        }
+    }
+
+  NetDeviceContainer apDeviceE;
+  NetDeviceContainer staDevicesE;
+  NetDeviceContainer apDeviceF;
+  NetDeviceContainer staDevicesF;
+  NetDeviceContainer apDeviceG;
+  NetDeviceContainer staDevicesG;
+  if (scenario == "study1")
+    {
+      // Set PHY power and CCA threshold for STAs
+      spectrumPhy.Set ("TxPowerStart", DoubleValue (powSta));
+      spectrumPhy.Set ("TxPowerEnd", DoubleValue (powSta));
+      spectrumPhy.Set ("TxGain", DoubleValue (txGain));
+      spectrumPhy.Set ("RxGain", DoubleValue (rxGain));
+      spectrumPhy.Set ("Antennas", UintegerValue (antennas));
+      spectrumPhy.Set ("MaxSupportedTxSpatialStreams", UintegerValue (maxSupportedTxSpatialStreams));
+      spectrumPhy.Set ("MaxSupportedRxSpatialStreams", UintegerValue (maxSupportedRxSpatialStreams));
+      spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrSta));
+      spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-92.0));
+
+      // Network "E"
+      Ssid ssidE = Ssid ("E");
+      mac.SetType ("ns3::StaWifiMac",
+                   "Ssid", SsidValue (ssidE),
+                   "BE_MaxAmpduSize", UintegerValue(maxAmpduSize));
+      // Do we also want to allow Amsdu Size to be modified?
+      //              "BE_MaxAmsduSize", UintegerValue(maxAmsduSize));
+      staDevicesE = wifi.Install (spectrumPhy, mac, stasE);
+
+      // Set PHY power and CCA threshold for APs
+      spectrumPhy.Set ("TxPowerStart", DoubleValue (powAp));
+      spectrumPhy.Set ("TxPowerEnd", DoubleValue (powAp));
+      spectrumPhy.Set ("TxGain", DoubleValue (txGain));
+      spectrumPhy.Set ("RxGain", DoubleValue (rxGain));
+      spectrumPhy.Set ("Antennas", UintegerValue (antennas));
+      spectrumPhy.Set ("MaxSupportedTxSpatialStreams", UintegerValue (maxSupportedTxSpatialStreams));
+      spectrumPhy.Set ("MaxSupportedRxSpatialStreams", UintegerValue (maxSupportedRxSpatialStreams));
+      spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrAp));
+      spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-92.0));
+      mac.SetType ("ns3::ApWifiMac",
+                   "Ssid", SsidValue (ssidE),
+                   "BE_MaxAmpduSize", UintegerValue(maxAmpduSize));
+      // Do we also want to allow Amsdu Size to be modified?
+      //              "BE_MaxAmsduSize", UintegerValue(maxAmsduSize));
+
+      // AP5
+      apDeviceE = wifi.Install (spectrumPhy, mac, ap5);
+      Ptr<WifiNetDevice> ap5Device = apDeviceC.Get (0)->GetObject<WifiNetDevice> ();
+      apWifiMac = ap5Device->GetMac ()->GetObject<ApWifiMac> ();
+      if (enableObssPd)
+        {
+          Ptr <HeConfiguration> heConfiguration = CreateObject<HeConfiguration> ();
+          heConfiguration->SetAttribute ("BssColor", UintegerValue (5));
+          heConfiguration->SetAttribute ("ObssPdThreshold", DoubleValue(obssPdThreshold));
+          heConfiguration->SetAttribute ("ObssPdThresholdMin", DoubleValue(obssPdThresholdMin));
+          heConfiguration->SetAttribute ("ObssPdThresholdMax", DoubleValue(obssPdThresholdMax));
+          apWifiMac->SetHeConfiguration (heConfiguration);
+        }
+
+      // Set PHY power and CCA threshold for STAs
+      spectrumPhy.Set ("TxPowerStart", DoubleValue (powSta));
+      spectrumPhy.Set ("TxPowerEnd", DoubleValue (powSta));
+      spectrumPhy.Set ("TxGain", DoubleValue (txGain));
+      spectrumPhy.Set ("RxGain", DoubleValue (rxGain));
+      spectrumPhy.Set ("Antennas", UintegerValue (antennas));
+      spectrumPhy.Set ("MaxSupportedTxSpatialStreams", UintegerValue (maxSupportedTxSpatialStreams));
+      spectrumPhy.Set ("MaxSupportedRxSpatialStreams", UintegerValue (maxSupportedRxSpatialStreams));
+      spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrSta));
+      spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-92.0));
+
+      // Network "F"
+      Ssid ssidF = Ssid ("F");
+      mac.SetType ("ns3::StaWifiMac",
+                   "Ssid", SsidValue (ssidF),
+                   "BE_MaxAmpduSize", UintegerValue(maxAmpduSize));
+      // Do we also want to allow Amsdu Size to be modified?
+      //              "BE_MaxAmsduSize", UintegerValue(maxAmsduSize));
+      staDevicesF = wifi.Install (spectrumPhy, mac, stasF);
+
+      // Set PHY power and CCA threshold for APs
+      spectrumPhy.Set ("TxPowerStart", DoubleValue (powAp));
+      spectrumPhy.Set ("TxPowerEnd", DoubleValue (powAp));
+      spectrumPhy.Set ("TxGain", DoubleValue (txGain));
+      spectrumPhy.Set ("RxGain", DoubleValue (rxGain));
+      spectrumPhy.Set ("Antennas", UintegerValue (antennas));
+      spectrumPhy.Set ("MaxSupportedTxSpatialStreams", UintegerValue (maxSupportedTxSpatialStreams));
+      spectrumPhy.Set ("MaxSupportedRxSpatialStreams", UintegerValue (maxSupportedRxSpatialStreams));
+      spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrAp));
+      spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-92.0));
+      mac.SetType ("ns3::ApWifiMac",
+                   "Ssid", SsidValue (ssidE),
+                   "BE_MaxAmpduSize", UintegerValue(maxAmpduSize));
+      // Do we also want to allow Amsdu Size to be modified?
+      //              "BE_MaxAmsduSize", UintegerValue(maxAmsduSize));
+
+      // AP6
+      apDeviceF = wifi.Install (spectrumPhy, mac, ap6);
+      Ptr<WifiNetDevice> ap6Device = apDeviceC.Get (0)->GetObject<WifiNetDevice> ();
+      apWifiMac = ap6Device->GetMac ()->GetObject<ApWifiMac> ();
+      if (enableObssPd)
+        {
+          Ptr <HeConfiguration> heConfiguration = CreateObject<HeConfiguration> ();
+          heConfiguration->SetAttribute ("BssColor", UintegerValue (6));
+          heConfiguration->SetAttribute ("ObssPdThreshold", DoubleValue(obssPdThreshold));
+          heConfiguration->SetAttribute ("ObssPdThresholdMin", DoubleValue(obssPdThresholdMin));
+          heConfiguration->SetAttribute ("ObssPdThresholdMax", DoubleValue(obssPdThresholdMax));
+          apWifiMac->SetHeConfiguration (heConfiguration);
+        }
+
+      // Network "G"
+      Ssid ssidG = Ssid ("G");
+      mac.SetType ("ns3::StaWifiMac",
+                   "Ssid", SsidValue (ssidG),
+                   "BE_MaxAmpduSize", UintegerValue(maxAmpduSize));
+      // Do we also want to allow Amsdu Size to be modified?
+      //              "BE_MaxAmsduSize", UintegerValue(maxAmsduSize));
+      staDevicesG = wifi.Install (spectrumPhy, mac, stasG);
+
+      // Set PHY power and CCA threshold for APs
+      spectrumPhy.Set ("TxPowerStart", DoubleValue (powAp));
+      spectrumPhy.Set ("TxPowerEnd", DoubleValue (powAp));
+      spectrumPhy.Set ("TxGain", DoubleValue (txGain));
+      spectrumPhy.Set ("RxGain", DoubleValue (rxGain));
+      spectrumPhy.Set ("Antennas", UintegerValue (antennas));
+      spectrumPhy.Set ("MaxSupportedTxSpatialStreams", UintegerValue (maxSupportedTxSpatialStreams));
+      spectrumPhy.Set ("MaxSupportedRxSpatialStreams", UintegerValue (maxSupportedRxSpatialStreams));
+      spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrAp));
+      spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-92.0));
+      mac.SetType ("ns3::ApWifiMac",
+                   "Ssid", SsidValue (ssidG),
+                   "BE_MaxAmpduSize", UintegerValue(maxAmpduSize));
+      // Do we also want to allow Amsdu Size to be modified?
+      //              "BE_MaxAmsduSize", UintegerValue(maxAmsduSize));
+
+      // AP7
+      apDeviceG = wifi.Install (spectrumPhy, mac, ap7);
+      Ptr<WifiNetDevice> ap7Device = apDeviceC.Get (0)->GetObject<WifiNetDevice> ();
+      apWifiMac = ap7Device->GetMac ()->GetObject<ApWifiMac> ();
+      if (enableObssPd)
+        {
+          Ptr <HeConfiguration> heConfiguration = CreateObject<HeConfiguration> ();
+          heConfiguration->SetAttribute ("BssColor", UintegerValue (7));
           heConfiguration->SetAttribute ("ObssPdThreshold", DoubleValue(obssPdThreshold));
           heConfiguration->SetAttribute ("ObssPdThresholdMin", DoubleValue(obssPdThresholdMin));
           heConfiguration->SetAttribute ("ObssPdThresholdMax", DoubleValue(obssPdThresholdMax));
@@ -1311,11 +1514,22 @@ main (int argc, char *argv[])
 
 
   // bounding box
-  double boundingBoxExtension = 10.0;
-  positionOutFile << -(r + boundingBoxExtension) <<      ", " << -d + -r - boundingBoxExtension << std::endl;
-  positionOutFile << (d + r + boundingBoxExtension) << ", " << -d + -r - boundingBoxExtension << std::endl;
-  positionOutFile << (d + r + boundingBoxExtension) << ", " <<  r + boundingBoxExtension << std::endl;
-  positionOutFile << -(r + boundingBoxExtension) <<      ", " <<  r + boundingBoxExtension << std::endl;
+  if (scenario != "study1")
+    {
+      double boundingBoxExtension = 10.0;
+      positionOutFile << -(r + boundingBoxExtension) <<      ", " << -d + -r - boundingBoxExtension << std::endl;
+      positionOutFile << (d + r + boundingBoxExtension) << ", " << -d + -r - boundingBoxExtension << std::endl;
+      positionOutFile << (d + r + boundingBoxExtension) << ", " <<  r + boundingBoxExtension << std::endl;
+      positionOutFile << -(r + boundingBoxExtension) <<      ", " <<  r + boundingBoxExtension << std::endl;
+    }
+  else
+    {
+      // study1 scenario bounding box
+      positionOutFile << -40.0 <<  ", " << -40.0 << std::endl;
+      positionOutFile <<  40.0 <<  ", " << -40.0 << std::endl;
+      positionOutFile <<  40.0 <<  ", " <<  40.0 << std::endl;
+      positionOutFile <<  40.0 <<  ", " << -40.0 << std::endl;
+    }
   positionOutFile << std::endl;
   positionOutFile << std::endl;
 
@@ -1365,6 +1579,215 @@ main (int argc, char *argv[])
       // need to output something here to represent the positions section for STAs B
       // since the post-processnig script expects there to be something here.
       positionOutFile << d << ", " << 0 << std::endl;
+    }
+  else if (scenario == "study1")
+    {
+      double x1 = 0.0;
+      double y1 = 0.0;
+      double theta = 0.0;  // radians
+      double x2 = d * cos(theta);
+      double y2 = d * sin(theta);
+      theta += 60.0 / 360.0 * 2.0 * M_PI;
+      double x3 = d * cos(theta);
+      double y3 = d * sin(theta);
+      theta += 60.0 / 360.0 * 2.0 * M_PI;
+      double x4 = d * cos(theta);
+      double y4 = d * sin(theta);
+      theta += 60.0 / 360.0 * 2.0 * M_PI;
+      double x5 = d * cos(theta);
+      double y5 = d * sin(theta);
+      theta += 60.0 / 360.0 * 2.0 * M_PI;
+      double x6 = d * cos(theta);
+      double y6 = d * sin(theta);
+      theta += 60.0 / 360.0 * 2.0 * M_PI;
+      double x7 = d * cos(theta);
+      double y7 = d * sin(theta);
+
+      // "A" - APs
+      positionOutFile << x1 << ", " << y1 << ", " << r << ", " << csr << std::endl;
+      positionOutFile << std::endl;
+      positionOutFile << std::endl;
+
+      // "B" - APs
+      positionOutFile << x2 << ", " << y2 << ", " << r << ", " << csr << std::endl;
+      positionOutFile << std::endl;
+      positionOutFile << std::endl;
+
+      // "C" - APs
+      positionOutFile << x3 << ", " << y3 << ", " << r << ", " << csr << std::endl;
+      positionOutFile << std::endl;
+      positionOutFile << std::endl;
+
+      // "D" - APs
+      positionOutFile << x4 << ", " << y4 << ", " << r << ", " << csr << std::endl;
+      positionOutFile << std::endl;
+      positionOutFile << std::endl;
+
+      // "E" - APs
+      positionOutFile << x5 << ", " << y5 << ", " << r << ", " << csr << std::endl;
+      positionOutFile << std::endl;
+      positionOutFile << std::endl;
+
+      // "F" - APs
+      positionOutFile << x6 << ", " << y6 << ", " << r << ", " << csr << std::endl;
+      positionOutFile << std::endl;
+      positionOutFile << std::endl;
+
+      // "G" - APs
+      positionOutFile << x7 << ", " << y7 << ", " << r << ", " << csr << std::endl;
+      positionOutFile << std::endl;
+      positionOutFile << std::endl;
+
+      // Network "A"
+      // AP1
+      positionAlloc->Add (Vector (x1, y1, 0.0));        // AP1
+      // STAs for AP1
+      // STAs for each AP are allocated uwing a different instance of a UnitDiscPositionAllocation.  To
+      // ensure unique randomness of positions,  each allocator must be allocated a different stream number.
+      Ptr<UniformDiscPositionAllocator> unitDiscPositionAllocator1 = CreateObject<UniformDiscPositionAllocator> ();
+      unitDiscPositionAllocator1->AssignStreams (streamNumber);
+      // AP1 is at origin (x=x1, y=y1), with radius Rho=r
+      unitDiscPositionAllocator1->SetX (x1);
+      unitDiscPositionAllocator1->SetY (y1);
+      unitDiscPositionAllocator1->SetRho (r);
+      for (uint32_t i = 0; i < n; i++)
+        {
+          Vector v = unitDiscPositionAllocator1->GetNext ();
+          positionAlloc->Add (v);
+          positionOutFile << v.x << ", " << v.y << std::endl;
+        }
+      positionOutFile << std::endl;
+      positionOutFile << std::endl;
+
+      // Network "B"
+      // AP2
+      positionAlloc->Add (Vector (x2, y2, 0.0));        // AP2
+      // STAs for AP2
+      // STAs for each AP are allocated uwing a different instance of a UnitDiscPositionAllocation.  To
+      // ensure unique randomness of positions,  each allocator must be allocated a different stream number.
+      Ptr<UniformDiscPositionAllocator> unitDiscPositionAllocator2 = CreateObject<UniformDiscPositionAllocator> ();
+      unitDiscPositionAllocator2->AssignStreams (streamNumber + 1);
+      // AP1 is at origin (x=x2, y=y2), with radius Rho=r
+      unitDiscPositionAllocator2->SetX (x2);
+      unitDiscPositionAllocator2->SetY (y2);
+      unitDiscPositionAllocator2->SetRho (r);
+      for (uint32_t i = 0; i < n; i++)
+        {
+          Vector v = unitDiscPositionAllocator2->GetNext ();
+          positionAlloc->Add (v);
+          positionOutFile << v.x << ", " << v.y << std::endl;
+        }
+      positionOutFile << std::endl;
+      positionOutFile << std::endl;
+
+      // Network "C"
+      // AP3
+      positionAlloc->Add (Vector (x3, y3, 0.0));        // AP3
+      // STAs for AP3
+      // STAs for each AP are allocated uwing a different instance of a UnitDiscPositionAllocation.  To
+      // ensure unique randomness of positions,  each allocator must be allocated a different stream number.
+      Ptr<UniformDiscPositionAllocator> unitDiscPositionAllocator3 = CreateObject<UniformDiscPositionAllocator> ();
+      unitDiscPositionAllocator3->AssignStreams (streamNumber + 2);
+      // AP1 is at origin (x=x3, y=y3), with radius Rho=r
+      unitDiscPositionAllocator3->SetX (x3);
+      unitDiscPositionAllocator3->SetY (y3);
+      unitDiscPositionAllocator3->SetRho (r);
+      for (uint32_t i = 0; i < n; i++)
+        {
+          Vector v = unitDiscPositionAllocator3->GetNext ();
+          positionAlloc->Add (v);
+          positionOutFile << v.x << ", " << v.y << std::endl;
+        }
+      positionOutFile << std::endl;
+      positionOutFile << std::endl;
+
+      // Network "D"
+      // AP4
+      positionAlloc->Add (Vector (x4, y4, 0.0));        // AP4
+      // STAs for AP4
+      // STAs for each AP are allocated uwing a different instance of a UnitDiscPositionAllocation.  To
+      // ensure unique randomness of positions,  each allocator must be allocated a different stream number.
+      Ptr<UniformDiscPositionAllocator> unitDiscPositionAllocator4 = CreateObject<UniformDiscPositionAllocator> ();
+      unitDiscPositionAllocator4->AssignStreams (streamNumber + 3);
+      // AP1 is at origin (x=x4, y=y4), with radius Rho=r
+      unitDiscPositionAllocator4->SetX (x4);
+      unitDiscPositionAllocator4->SetY (y4);
+      unitDiscPositionAllocator4->SetRho (r);
+      for (uint32_t i = 0; i < n; i++)
+        {
+          Vector v = unitDiscPositionAllocator4->GetNext ();
+          positionAlloc->Add (v);
+          positionOutFile << v.x << ", " << v.y << std::endl;
+        }
+      positionOutFile << std::endl;
+      positionOutFile << std::endl;
+
+      // Network "E"
+      // AP5
+      positionAlloc->Add (Vector (x5, y5, 0.0));        // AP5
+      // STAs for AP5
+      // STAs for each AP are allocated uwing a different instance of a UnitDiscPositionAllocation.  To
+      // ensure unique randomness of positions,  each allocator must be allocated a different stream number.
+      Ptr<UniformDiscPositionAllocator> unitDiscPositionAllocator5 = CreateObject<UniformDiscPositionAllocator> ();
+      unitDiscPositionAllocator5->AssignStreams (streamNumber + 4);
+      // AP1 is at origin (x=x5, y=y5), with radius Rho=r
+      unitDiscPositionAllocator5->SetX (x5);
+      unitDiscPositionAllocator5->SetY (y5);
+      unitDiscPositionAllocator5->SetRho (r);
+      for (uint32_t i = 0; i < n; i++)
+        {
+          Vector v = unitDiscPositionAllocator5->GetNext ();
+          positionAlloc->Add (v);
+          positionOutFile << v.x << ", " << v.y << std::endl;
+        }
+      positionOutFile << std::endl;
+      positionOutFile << std::endl;
+
+      // Network "F"
+      // AP6
+      positionAlloc->Add (Vector (x6, y6, 0.0));        // AP6
+      // STAs for AP6
+      // STAs for each AP are allocated uwing a different instance of a UnitDiscPositionAllocation.  To
+      // ensure unique randomness of positions,  each allocator must be allocated a different stream number.
+      Ptr<UniformDiscPositionAllocator> unitDiscPositionAllocator6 = CreateObject<UniformDiscPositionAllocator> ();
+      unitDiscPositionAllocator6->AssignStreams (streamNumber + 5);
+      // AP1 is at origin (x=x6, y=y6), with radius Rho=r
+      unitDiscPositionAllocator6->SetX (x6);
+      unitDiscPositionAllocator6->SetY (y6);
+      unitDiscPositionAllocator6->SetRho (r);
+      for (uint32_t i = 0; i < n; i++)
+        {
+          Vector v = unitDiscPositionAllocator6->GetNext ();
+          positionAlloc->Add (v);
+          positionOutFile << v.x << ", " << v.y << std::endl;
+        }
+      positionOutFile << std::endl;
+      positionOutFile << std::endl;
+
+      // Network "G"
+      // AP7
+      positionAlloc->Add (Vector (x7, y7, 0.0));        // AP7
+      // STAs for AP7
+      // STAs for each AP are allocated uwing a different instance of a UnitDiscPositionAllocation.  To
+      // ensure unique randomness of positions,  each allocator must be allocated a different stream number.
+      Ptr<UniformDiscPositionAllocator> unitDiscPositionAllocator7 = CreateObject<UniformDiscPositionAllocator> ();
+      unitDiscPositionAllocator7->AssignStreams (streamNumber + 6);
+      // AP1 is at origin (x=x7, y=y7), with radius Rho=r
+      unitDiscPositionAllocator7->SetX (x7);
+      unitDiscPositionAllocator7->SetY (y7);
+      unitDiscPositionAllocator7->SetRho (r);
+      for (uint32_t i = 0; i < n; i++)
+        {
+          Vector v = unitDiscPositionAllocator7->GetNext ();
+          positionAlloc->Add (v);
+          positionOutFile << v.x << ", " << v.y << std::endl;
+        }
+      positionOutFile << std::endl;
+      positionOutFile << std::endl;
+
+      mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
+      mobility.SetPositionAllocator (positionAlloc);
+      mobility.Install (allNodes);
     }
   else
     {
@@ -1526,6 +1949,9 @@ main (int argc, char *argv[])
   stack.Install (nodesB);
   stack.Install (nodesC);
   stack.Install (nodesD);
+  stack.Install (nodesE);
+  stack.Install (nodesF);
+  stack.Install (nodesG);
 
   Ipv4AddressHelper address;
   address.SetBase ("192.168.1.0", "255.255.255.0");
@@ -1545,6 +1971,18 @@ main (int argc, char *argv[])
   StaInterfaceD = address.Assign (staDevicesD);
   Ipv4InterfaceContainer ApInterfaceD;
   ApInterfaceD = address.Assign (apDeviceD);
+  Ipv4InterfaceContainer StaInterfaceE;
+  StaInterfaceE = address.Assign (staDevicesE);
+  Ipv4InterfaceContainer ApInterfaceE;
+  ApInterfaceE = address.Assign (apDeviceE);
+  Ipv4InterfaceContainer StaInterfaceF;
+  StaInterfaceF = address.Assign (staDevicesF);
+  Ipv4InterfaceContainer ApInterfaceF;
+  ApInterfaceF = address.Assign (apDeviceF);
+  Ipv4InterfaceContainer StaInterfaceG;
+  StaInterfaceG = address.Assign (staDevicesG);
+  Ipv4InterfaceContainer ApInterfaceG;
+  ApInterfaceG = address.Assign (apDeviceG);
 
   /* Setting applications */
   uint16_t uplinkPortA = 9;
@@ -1563,6 +2001,18 @@ main (int argc, char *argv[])
   uint16_t downlinkPortD = 16;
   UdpServerHelper uplinkServerD (uplinkPortD);
   UdpServerHelper downlinkServerD (downlinkPortD);
+  uint16_t uplinkPortE = 17;
+  uint16_t downlinkPortE = 18;
+  UdpServerHelper uplinkServerE (uplinkPortE);
+  UdpServerHelper downlinkServerE (downlinkPortE);
+  uint16_t uplinkPortF = 19;
+  uint16_t downlinkPortF = 20;
+  UdpServerHelper uplinkServerF (uplinkPortF);
+  UdpServerHelper downlinkServerF (downlinkPortF);
+  uint16_t uplinkPortG = 21;
+  uint16_t downlinkPortG = 22;
+  UdpServerHelper uplinkServerG (uplinkPortG);
+  UdpServerHelper downlinkServerG (downlinkPortG);
 
   ApplicationContainer uplinkServerAppA;
   ApplicationContainer downlinkServerAppA;
@@ -1583,6 +2033,21 @@ main (int argc, char *argv[])
   ApplicationContainer downlinkServerAppD;
   ApplicationContainer uplinkClientAppD;
   ApplicationContainer downlinkClientAppD;
+
+  ApplicationContainer uplinkServerAppE;
+  ApplicationContainer downlinkServerAppE;
+  ApplicationContainer uplinkClientAppE;
+  ApplicationContainer downlinkClientAppE;
+
+  ApplicationContainer uplinkServerAppF;
+  ApplicationContainer downlinkServerAppF;
+  ApplicationContainer uplinkClientAppF;
+  ApplicationContainer downlinkClientAppF;
+
+  ApplicationContainer uplinkServerAppG;
+  ApplicationContainer downlinkServerAppG;
+  ApplicationContainer uplinkClientAppG;
+  ApplicationContainer downlinkClientAppG;
 
   if (payloadSize > 0)
     {
@@ -1618,7 +2083,7 @@ main (int argc, char *argv[])
         }
     }
 
-  if ((payloadSize > 0) && (nBss >= 2))
+  if ((payloadSize > 0) && ((nBss >= 2) || (scenario == "study1")))
     {
       // BSS 2
 
@@ -1652,7 +2117,7 @@ main (int argc, char *argv[])
         }
     }
 
-  if ((payloadSize > 0) && (nBss >= 3))
+  if ((payloadSize > 0) && ((nBss >= 3) || (scenario == "study1")))
     {
       // BSS 3
 
@@ -1686,9 +2151,9 @@ main (int argc, char *argv[])
         }
     }
 
-  if ((payloadSize > 0) && (nBss >= 4))
+  if ((payloadSize > 0) && ((nBss >= 4) || (scenario == "study1")))
     {
-      // BSS 3
+      // BSS 4
 
       // create one server (receiver) for uplink traffic
       AddServer (uplinkServerD, uplinkServerAppD, ap4);
@@ -1715,7 +2180,103 @@ main (int argc, char *argv[])
                 {
                   next_rng = urv->GetValue();
                 }
-              AddClient (downlinkClientAppD, StaInterfaceD.GetAddress (i), ap4, downlinkPortC, Time (intervalDownlink + NanoSeconds (next_rng)), payloadSize);
+              AddClient (downlinkClientAppD, StaInterfaceD.GetAddress (i), ap4, downlinkPortD, Time (intervalDownlink + NanoSeconds (next_rng)), payloadSize);
+            }
+        }
+    }
+
+  if (scenario == "study1")
+    {
+      // BSS 5
+
+      // create one server (receiver) for uplink traffic
+      AddServer (uplinkServerE, uplinkServerAppE, ap5);
+
+      for (uint32_t i = 0; i < n; i++)
+        {
+          if (aggregateUplinkMbps > 0)
+            {
+              // for downlink, need to create client at AP to generate traffic to the server at the STA
+              // random offset so that all transmissions do not occur at the same time
+              if (txStartOffset > 0)
+                {
+                  next_rng = urv->GetValue();
+                }
+              AddClient (uplinkClientAppE, ApInterfaceE.GetAddress (0), stasE.Get (i), uplinkPortE, Time (intervalUplink + NanoSeconds (next_rng)), payloadSize);
+            }
+          // one server (receiver) for each AP-STA pair
+          AddServer (downlinkServerE, downlinkServerAppE, stasE.Get (i));
+          if (aggregateDownlinkMbps > 0)
+            {
+              // each STA needs a client to generate traffic
+              // random offset so that all transmissions do not occur at the same time
+              if (txStartOffset > 0)
+                {
+                  next_rng = urv->GetValue();
+                }
+              AddClient (downlinkClientAppE, StaInterfaceE.GetAddress (i), ap5, downlinkPortE, Time (intervalDownlink + NanoSeconds (next_rng)), payloadSize);
+            }
+        }
+
+      // BSS 6
+
+      // create one server (receiver) for uplink traffic
+      AddServer (uplinkServerF, uplinkServerAppF, ap6);
+
+      for (uint32_t i = 0; i < n; i++)
+        {
+          if (aggregateUplinkMbps > 0)
+            {
+              // for downlink, need to create client at AP to generate traffic to the server at the STA
+              // random offset so that all transmissions do not occur at the same time
+              if (txStartOffset > 0)
+                {
+                  next_rng = urv->GetValue();
+                }
+              AddClient (uplinkClientAppF, ApInterfaceF.GetAddress (0), stasF.Get (i), uplinkPortF, Time (intervalUplink + NanoSeconds (next_rng)), payloadSize);
+            }
+          // one server (receiver) for each AP-STA pair
+          AddServer (downlinkServerF, downlinkServerAppF, stasF.Get (i));
+          if (aggregateDownlinkMbps > 0)
+            {
+              // each STA needs a client to generate traffic
+              // random offset so that all transmissions do not occur at the same time
+              if (txStartOffset > 0)
+                {
+                  next_rng = urv->GetValue();
+                }
+              AddClient (downlinkClientAppF, StaInterfaceF.GetAddress (i), ap6, downlinkPortF, Time (intervalDownlink + NanoSeconds (next_rng)), payloadSize);
+            }
+        }
+
+      // BSS 7
+
+      // create one server (receiver) for uplink traffic
+      AddServer (uplinkServerG, uplinkServerAppG, ap7);
+
+      for (uint32_t i = 0; i < n; i++)
+        {
+          if (aggregateUplinkMbps > 0)
+            {
+              // for downlink, need to create client at AP to generate traffic to the server at the STA
+              // random offset so that all transmissions do not occur at the same time
+              if (txStartOffset > 0)
+                {
+                  next_rng = urv->GetValue();
+                }
+              AddClient (uplinkClientAppG, ApInterfaceG.GetAddress (0), stasG.Get (i), uplinkPortG, Time (intervalUplink + NanoSeconds (next_rng)), payloadSize);
+            }
+          // one server (receiver) for each AP-STA pair
+          AddServer (downlinkServerG, downlinkServerAppG, stasG.Get (i));
+          if (aggregateDownlinkMbps > 0)
+            {
+              // each STA needs a client to generate traffic
+              // random offset so that all transmissions do not occur at the same time
+              if (txStartOffset > 0)
+                {
+                  next_rng = urv->GetValue();
+                }
+              AddClient (downlinkClientAppG, StaInterfaceG.GetAddress (i), ap7, downlinkPortG, Time (intervalDownlink + NanoSeconds (next_rng)), payloadSize);
             }
         }
     }
@@ -1743,6 +2304,24 @@ main (int argc, char *argv[])
   // client transmissions may start after some delay
   uplinkClientAppD.Start (Seconds (applicationTxStart));
   uplinkClientAppD.Stop (Seconds (duration + applicationTxStart));
+
+  uplinkServerAppE.Start (Seconds (0.0));
+  uplinkServerAppE.Stop (Seconds (duration + applicationTxStart));
+  // client transmissions may start after some delay
+  uplinkClientAppE.Start (Seconds (applicationTxStart));
+  uplinkClientAppE.Stop (Seconds (duration + applicationTxStart));
+
+  uplinkServerAppF.Start (Seconds (0.0));
+  uplinkServerAppF.Stop (Seconds (duration + applicationTxStart));
+  // client transmissions may start after some delay
+  uplinkClientAppF.Start (Seconds (applicationTxStart));
+  uplinkClientAppF.Stop (Seconds (duration + applicationTxStart));
+
+  uplinkServerAppG.Start (Seconds (0.0));
+  uplinkServerAppG.Stop (Seconds (duration + applicationTxStart));
+  // client transmissions may start after some delay
+  uplinkClientAppG.Start (Seconds (applicationTxStart));
+  uplinkClientAppG.Stop (Seconds (duration + applicationTxStart));
 
   Config::Connect ("/NodeList/*/DeviceList/*/Phy/MonitorSnifferRx", MakeCallback (&MonitorSniffRx));
 
@@ -1812,7 +2391,7 @@ main (int argc, char *argv[])
   bytesReceived[nodeIdx] = payloadSize * totalUplinkPacketsThroughA;
   packetsReceived[nodeIdx] = totalUplinkPacketsThroughA;
 
-  if (nBss >= 2)
+  if ((nBss >= 2) || (scenario == "study1"))
     {
       nodeIdx++;
 
@@ -1826,7 +2405,7 @@ main (int argc, char *argv[])
       packetsReceived[nodeIdx] = totalUplinkPacketsThroughB;
     }
 
-  if (nBss >= 3)
+  if ((nBss >= 3) || (scenario == "study1"))
     {
       nodeIdx++;
 
@@ -1840,7 +2419,7 @@ main (int argc, char *argv[])
       packetsReceived[nodeIdx] = totalUplinkPacketsThroughC;
     }
 
-  if (nBss >= 4)
+  if ((nBss >= 4) || (scenario == "study1"))
     {
       nodeIdx++;
 
@@ -1854,6 +2433,42 @@ main (int argc, char *argv[])
       packetsReceived[nodeIdx] = totalUplinkPacketsThroughD;
     }
 
+  if (scenario == "study1")
+    {
+      nodeIdx++;
+
+      uint32_t nUplinkAppsE = uplinkServerAppE.GetN ();
+      uint64_t totalUplinkPacketsThroughE = 0;
+      for (uint32_t i = 0; i < nUplinkAppsE; i++)
+        {
+          totalUplinkPacketsThroughE += DynamicCast<UdpServer> (uplinkServerAppE.Get (i))->GetReceived ();
+        }
+      bytesReceived[nodeIdx] = payloadSize * totalUplinkPacketsThroughE;
+      packetsReceived[nodeIdx] = totalUplinkPacketsThroughE;
+
+      nodeIdx++;
+
+      uint32_t nUplinkAppsF = uplinkServerAppF.GetN ();
+      uint64_t totalUplinkPacketsThroughF = 0;
+      for (uint32_t i = 0; i < nUplinkAppsF; i++)
+        {
+          totalUplinkPacketsThroughF += DynamicCast<UdpServer> (uplinkServerAppF.Get (i))->GetReceived ();
+        }
+      bytesReceived[nodeIdx] = payloadSize * totalUplinkPacketsThroughF;
+      packetsReceived[nodeIdx] = totalUplinkPacketsThroughF;
+
+      nodeIdx++;
+
+      uint32_t nUplinkAppsG = uplinkServerAppG.GetN ();
+      uint64_t totalUplinkPacketsThroughG = 0;
+      for (uint32_t i = 0; i < nUplinkAppsG; i++)
+        {
+          totalUplinkPacketsThroughG += DynamicCast<UdpServer> (uplinkServerAppG.Get (i))->GetReceived ();
+        }
+      bytesReceived[nodeIdx] = payloadSize * totalUplinkPacketsThroughG;
+      packetsReceived[nodeIdx] = totalUplinkPacketsThroughG;
+    }
+
   uint32_t nDownlinkAppsA = downlinkServerAppA.GetN ();
   for (uint32_t i = 0; i < nDownlinkAppsA; i++)
     {
@@ -1863,7 +2478,7 @@ main (int argc, char *argv[])
       packetsReceived[nodeIdx] = downlinkPacketsThroughA;
     }
 
-  if (nBss >= 2)
+  if ((nBss >= 2) || (scenario == "study1"))
     {
       uint32_t nDownlinkAppsB = downlinkServerAppB.GetN ();
       for (uint32_t i = 0; i < nDownlinkAppsB; i++)
@@ -1875,7 +2490,7 @@ main (int argc, char *argv[])
         }
     }
 
-  if (nBss >= 3)
+  if ((nBss >= 3) || (scenario == "study1"))
     {
       uint32_t nDownlinkAppsC = downlinkServerAppC.GetN ();
       for (uint32_t i = 0; i < nDownlinkAppsC; i++)
@@ -1887,7 +2502,7 @@ main (int argc, char *argv[])
         }
     }
 
-  if (nBss >= 4)
+  if ((nBss >= 4) || (scenario == "study1"))
     {
       uint32_t nDownlinkAppsD = downlinkServerAppD.GetN ();
       for (uint32_t i = 0; i < nDownlinkAppsD; i++)
@@ -1896,6 +2511,36 @@ main (int argc, char *argv[])
           uint64_t downlinkPacketsThroughD = DynamicCast<UdpServer> (downlinkServerAppD.Get (i))->GetReceived ();
           bytesReceived[nodeIdx] = payloadSize * downlinkPacketsThroughD;
           packetsReceived[nodeIdx] = downlinkPacketsThroughD;
+        }
+    }
+
+  if (scenario == "study1")
+    {
+      uint32_t nDownlinkAppsE = downlinkServerAppE.GetN ();
+      for (uint32_t i = 0; i < nDownlinkAppsE; i++)
+        {
+          nodeIdx++;
+          uint64_t downlinkPacketsThroughE = DynamicCast<UdpServer> (downlinkServerAppE.Get (i))->GetReceived ();
+          bytesReceived[nodeIdx] = payloadSize * downlinkPacketsThroughE;
+          packetsReceived[nodeIdx] = downlinkPacketsThroughE;
+        }
+
+      uint32_t nDownlinkAppsF = downlinkServerAppF.GetN ();
+      for (uint32_t i = 0; i < nDownlinkAppsF; i++)
+        {
+          nodeIdx++;
+          uint64_t downlinkPacketsThroughF = DynamicCast<UdpServer> (downlinkServerAppF.Get (i))->GetReceived ();
+          bytesReceived[nodeIdx] = payloadSize * downlinkPacketsThroughF;
+          packetsReceived[nodeIdx] = downlinkPacketsThroughF;
+        }
+
+      uint32_t nDownlinkAppsG = downlinkServerAppG.GetN ();
+      for (uint32_t i = 0; i < nDownlinkAppsG; i++)
+        {
+          nodeIdx++;
+          uint64_t downlinkPacketsThroughG = DynamicCast<UdpServer> (downlinkServerAppG.Get (i))->GetReceived ();
+          bytesReceived[nodeIdx] = payloadSize * downlinkPacketsThroughG;
+          packetsReceived[nodeIdx] = downlinkPacketsThroughG;
         }
     }
 

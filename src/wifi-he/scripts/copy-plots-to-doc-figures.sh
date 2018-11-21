@@ -57,4 +57,6 @@ cp "./results/spatial-reuse-rx-sniff-calibration-test3-ap1-signal.png" ../doc/so
 cp "./results/spatial-reuse-rx-sniff-calibration-test3-ap2-noise.png" ../doc/source/figures/.
 cp "./results/spatial-reuse-rx-sniff-calibration-test3-ap2-signal.png" ../doc/source/figures/.
 
+# selected plots for parametric studies
+cp "./results/spatial-reuse-positions-test-study1.png" ../doc/source/figures/.
 
