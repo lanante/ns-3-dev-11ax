@@ -59,4 +59,12 @@ cp "./results/spatial-reuse-rx-sniff-calibration-test3-ap2-signal.png" ../doc/so
 
 # selected plots for parametric studies
 cp "./results/spatial-reuse-positions-test-study1.png" ../doc/source/figures/.
-
+cp "./images/png/throughput-study1.png" ../doc/source/figures/.
+cp "./images/png/area-capacity-study1.png" ../doc/source/figures/.
+cp "./images/png/spectrum-efficiency-study1.png" ../doc/source/figures/.
+cp "./results/study1-1732-10-05-0003-270-30-ap1-ecdf.png" ../doc/source/figures/.
+cp "./results/study1-1732-10-20-0003-270-30-ap1-ecdf.png" ../doc/source/figures/.
+cp "./results/spatial-reuse-rx-sniff-study1-1732-10-05-0003-270-30-ap1-signal.png" ../doc/source/figures/.
+cp "./results/spatial-reuse-rx-sniff-study1-1732-10-05-0003-270-30-ap1-noise.png" ../doc/source/figures/.
+cp "./results/spatial-reuse-rx-sniff-study1-1732-10-20-0003-270-30-ap1-signal.png" ../doc/source/figures/.
+cp "./results/spatial-reuse-rx-sniff-study1-1732-10-20-0003-270-30-ap1-noise.png" ../doc/source/figures/.

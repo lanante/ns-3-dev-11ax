@@ -13,6 +13,8 @@
 
 cd ../scripts
 
+# Sxperiments
+
 # Throughput
 rm ./results/spatial-reuse-experiments-throughput-ap1.dat
 rm ./results/spatial-reuse-experiments-throughput-ap2.dat
@@ -33,4 +35,23 @@ rm ./results/spatial-reuse-experiments-spectrum-efficiency-ap2.dat
 
 grep 'Spectrum Efficiency, AP1 Uplink' ./results/spatial-reuse-SR-stats-experiments-*.dat > ./results/spatial-reuse-experiments-spectrum-efficiency-ap1.dat
 grep 'Spectrum Efficiency, AP2 Uplink' ./results/spatial-reuse-SR-stats-experiments-*.dat > ./results/spatial-reuse-experiments-spectrum-efficiency-ap2.dat
+
+# Study 1
+
+# results for study 1 are from the perspective of AP1
+
+# Throughput
+rm ./results/spatial-reuse-study1-throughput-ap1.dat
+
+grep 'Throughput,  AP1 Uplink' ./results/spatial-reuse-SR-stats-study1-*.dat > ./results/spatial-reuse-study1-throughput-ap1.dat
+
+# Area Capacity
+rm ./results/spatial-reuse-study1-area-capacity-ap1.dat
+
+grep 'Area Capacity, AP1 Uplink' ./results/spatial-reuse-SR-stats-study1-*.dat > ./results/spatial-reuse-study1-area-capacity-ap1.dat
+
+# Spectrum Efficiency
+rm ./results/spatial-reuse-study1-spectrum-efficiency-ap1.dat
+
+grep 'Spectrum Efficiency, AP1 Uplink' ./results/spatial-reuse-SR-stats-study1-*.dat > ./results/spatial-reuse-study1-spectrum-efficiency-ap1.dat
 

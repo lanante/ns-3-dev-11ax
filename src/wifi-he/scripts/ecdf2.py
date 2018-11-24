@@ -33,6 +33,7 @@ for line in fd:
     i=i+1
 
 print(j, " matching data points.")
+# print(np.sort(x))
 
 # a = np.array(x)
 # np.set_printoptions(suppress=True)
@@ -43,7 +44,8 @@ print(j, " matching data points.")
 #     print("%.6f %.6f" % (xx, i / float(asort.size)))
 #     i = i + 1
 
-plt.plot(np.sort(x), np.linspace(0, 1, len(x), endpoint=False))
+# endpoint=True means include last point
+plt.plot(np.sort(x), np.linspace(0, 1, len(x), endpoint=True))
 plt.savefig(sys.argv[7])
 # plt.show()
 

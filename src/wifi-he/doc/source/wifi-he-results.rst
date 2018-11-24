@@ -634,16 +634,75 @@ Study 1 Results
 System Throughput
 #################
 
-(Here there will be a figure of the system throughput as a function of 
-offered load.  There will be a separate line for each combination of 
-n STAs - i.e., n=5, n=10, n=15, ..., n=40).
+The throughput as offered load is increased is shown below for 
+the center BSS of interest.  A separate line is plotted for each value
+of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
+
+.
+
+.. _throughput-study1:
+
+.. figure:: figures/throughput-study1.*
+   :align: center 
+
+   Throughput for the BSS of interest in the center of the Study 1 parametric study.
+
+Figure :ref:`throughput-study1` illustrates the system throughput for BSS1.
+
+It is observed that TBD...
+
+Distribution of Node Contributions to System Throughput
+#######################################################
+
+The ECDF of node contributions to system throughput for the offered load of
+3 Mbps is shown below for cases of n=5 and n=20 nodes.
+
+.
+
+.. _study1-05-ecdf:
+
+.. figure:: figures/study1-1732-10-05-0003-270-30-ap1-ecdf.*
+   :align: center 
+
+   ECDF of node contributions to system throughput for n=5 nodes and offered load of 3 Mbps.
+
+Figure :ref:`study1-05-ecdf` illustrates the ECDF of node contributions to system throughput for n=5 nodes.
+
+.
+
+.. _study1-20-ecdf:
+
+.. figure:: figures/study1-1732-10-20-0003-270-30-ap1-ecdf.*
+   :align: center 
+
+   ECDF of node contributions to system throughput for n=20 nodes and offered load of 3 Mbps.
+
+Figure :ref:`study1-20-ecdf` illustrates the ECDF of node contributions to system throughput for n=20 nodes.
+
+It is observed that a majority of the nodes generated no traffic
+that contributed to total system throughput.
+
+This is likely due to the BLOCK ACK issue.
 
 Area Capacity
 #############
 
-(Here there will be a figure of the area capacity as a function of 
-offered load.  There will be a separate line for each combination of 
-n STAs - i.e., n=5, n=10, n=15, ..., n=40).
+The area capacity as offered load is increased is shown below for 
+the center BSS of interest.  A separate line is plotted for each value
+of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
+
+.
+
+.. _area-capacity-study1:
+
+.. figure:: figures/area-capacity-study1.*
+   :align: center 
+
+   Area capacity for the BSS of interest in the center of the Study 1 parametric study.
+
+Figure :ref:`area-capacity-study1` illustrates the system throughput for BSS1.
+
+It is observed that TBD...
 
 Spectrum Efficiency
 ###################
@@ -652,12 +711,65 @@ Spectrum Efficiency
 offered load.  There will be a separate line for each combination of 
 n STAs - i.e., n=5, n=10, n=15, ..., n=40).
 
+
+The spectrum efficiency as offered load is increased is shown below for 
+the center BSS of interest.  A separate line is plotted for each value
+of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
+
+.
+
+.. _spectrum-efficiency-study1:
+
+.. figure:: figures/spectrum-efficiency-study1.*
+   :align: center 
+
+   Spectrum efficiency for the BSS of interest in the center of the Study 1 parametric study.
+
+Figure :ref:`spectrum-efficiency-study1` illustrates the system throughput for BSS1.
+
+It is observed that TBD...
+
 Latency
 #######
 
 (Here there will be a figure of the average latency as a function of 
 offered load.  There will be a separate line for each combination of 
 n STAs - i.e., n=5, n=10, n=15, ..., n=40).
+
+Noise and Signal Distributions
+##############################
+
+The ECDF of the signal level received at the AP of the BSS of interest is
+shown below, for the scenario of n=20 nodes, and offered load of 3 Mbps.
+
+.
+
+.. _study1-20-ap1-signal:
+
+.. figure:: figures/spatial-reuse-rx-sniff-study1-1732-10-20-0003-270-30-ap1-signal.*
+   :align: center 
+
+   ECDF of the signal level at the AP for the BSS of interest in the center of the Study 1 parametric study.
+
+Figure :ref:`study1-20-ap1-signal` illustrates the ECDF of the signal levels received for BSS1.
+
+It is observed that TBD...
+
+The ECDF of the noise level at the AP of the BSS of interest is
+shown below, for the scenario of n=20 nodes, and offered load of 3 Mbps.
+
+.
+
+.. _study1-20-ap1-noise:
+
+.. figure:: figures/spatial-reuse-rx-sniff-study1-1732-10-20-0003-270-30-ap1-noise.*
+   :align: center 
+
+   ECDF of the noise level at the AP for the BSS of interest in the center of the Study 1 parametric study.
+
+Figure :ref:`study1-20-ap1-signal` illustrates the ECDF of the noise levels at BSS1.
+
+It is observed that TBD...
 
 Study 2 - 802.11ax
 ==================

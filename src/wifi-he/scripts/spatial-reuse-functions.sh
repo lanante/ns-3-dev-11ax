@@ -4,7 +4,7 @@
 function run_one () {
   echo Running $1
   # run the test
-  ../../../waf --run "spatial-reuse --RngRun=$2 --powSta=$3 --powAp=$4 --duration=$5 --d=$6 --r=$7 --n=$8 --uplink=$9 --downlink=${10} --enableRts=${11} --standard=${12} --bw=${13} --txRange=${14} --MCS=${15} --payloadSize=${16} --txStartOffset=${17} --enableObssPd=${18} --txGain=${19} --rxGain=${20} --antennas=${21} --maxSupportedTxSpatialStreams=${22} --maxSupportedRxSpatialStreams=${23} --checkTimings=${24} --scenario=${25} --nBss=${26} --maxAmpduSize=${27} --nodePositionsFile=${28} --enablePcap=${29} --enableAscii=${30}"
+  ../../../waf --run "spatial-reuse --RngRun=$2 --powSta=$3 --powAp=$4 --duration=$5 --d=$6 --r=$7 --n=$8 --uplink=$9 --downlink=${10} --enableRts=${11} --standard=${12} --bw=${13} --txRange=${14} --MCS=${15} --payloadSizeUplink=${16} --payloadSizeDownlink=${17} --txStartOffset=${18} --enableObssPd=${19} --txGain=${20} --rxGain=${21} --antennas=${22} --maxSupportedTxSpatialStreams=${23} --maxSupportedRxSpatialStreams=${24} --checkTimings=${25} --scenario=${26} --nBss=${27} --maxAmpduSize=${28} --nodePositionsFile=${29} --enablePcap=${30} --enableAscii=${31}"
 
   # copy results files
   cd ../scripts

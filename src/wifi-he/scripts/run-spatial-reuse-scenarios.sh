@@ -19,7 +19,8 @@ enableRts=0
 # for now, just 802.11ac
 standard=11ac
 MCS=0
-payloadSize=1500
+payloadSizeUplink=1500
+payloadSizeDownlink=1500
 txStartOffset=5
 enableObssPd=1
 txGain=0
@@ -53,7 +54,7 @@ for d in 20 40 60 80 ; do
                 for uplink in 1 2 3 4 5 6 ; do
                     downlink=0
                     test=$(printf "experiments-%02d-%02d-%02d-%02d-%04d-%04d" ${d} ${r} ${nBss} ${n} ${uplink} ${downlink})
-                    run_one "$test" "$RngRun" "$powSta" "$powAp" "$duration" "$d" "$r" "$n" "$uplink" "$downlink" "$enableRts" "$standard" "$bw" "$txRange" "$MCS" "$payloadSize" "$txStartOffset" "$enableObssPd" "$txGain" "$rxGain" "$antennas" "$maxSupportedTxSpatialStreams" "$maxSupportedRxSpatialStreams" "$performTgaxTimingChecks" "$scenario" "$nBss" "$maxAmpduSize" "$nodePositionsFile" "$enablePcap" "$enableAscii"
+                    run_one "$test" "$RngRun" "$powSta" "$powAp" "$duration" "$d" "$r" "$n" "$uplink" "$downlink" "$enableRts" "$standard" "$bw" "$txRange" "$MCS" "$payloadSizeUplink" "$payloadSizeDownlink" "$txStartOffset" "$enableObssPd" "$txGain" "$rxGain" "$antennas" "$maxSupportedTxSpatialStreams" "$maxSupportedRxSpatialStreams" "$performTgaxTimingChecks" "$scenario" "$nBss" "$maxAmpduSize" "$nodePositionsFile" "$enablePcap" "$enableAscii"
                 done
             done
         done

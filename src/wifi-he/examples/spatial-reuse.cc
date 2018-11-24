@@ -404,65 +404,49 @@ SaveSpatialReuseStats (const std::string filename,
   outFile << "Distance between APs [m]: " << d << std::endl;
   outFile << "Radius [m]: " << r << std::endl;
 
-  uint32_t bytesReceivedAp1Uplink = 0.0;
-  uint32_t bytesReceivedAp1Downlink = 0.0;
-  uint32_t bytesReceivedAp2Uplink = 0.0;
-  uint32_t bytesReceivedAp2Downlink = 0.0;
-
-  double rxThroughputPerNode[numNodes];
-  uint32_t bss1LastStaIdx = 0;
-  bss1LastStaIdx = n + (nBss - 1);
-  for (uint32_t k = 0; k < numNodes; k++)
+  for (uint32_t bss = 1; bss <= nBss; bss++)
     {
-      if (k == 0)
+
+      uint32_t bytesReceivedApUplink = 0.0;
+      uint32_t bytesReceivedApDownlink = 0.0;
+
+      double rxThroughputPerNode[numNodes];
+      uint32_t bssFirstStaIdx = 0;
+      bssFirstStaIdx = (n * (bss - 1)) + (nBss);
+      uint32_t bssLastStaIdx = 0;
+      bssLastStaIdx = (n * bss) + (nBss - 1);
+
+      // uplink is the received bytes at the AP
+      bytesReceivedApUplink += bytesReceived[bss];
+
+      // downlink is the sum of the received bytes for the STAs associated with the AP
+      for (uint32_t k = bssFirstStaIdx; k < bssLastStaIdx; k++)
         {
-          bytesReceivedAp1Uplink += bytesReceived[k];
+          bytesReceivedApDownlink += bytesReceived[k];
+
+          double bitsReceived = bytesReceived[k] * 8;
+          rxThroughputPerNode[k] = static_cast<double> (bitsReceived) / 1e6 / duration;
+          outFile << "Node " << k << ", pkts " << packetsReceived[k] << ", bytes " << bytesReceived[k] << ", throughput [MMb/s] " << rxThroughputPerNode[k] << std::endl;
         }
-      else if ((k == 1) && (nBss == 2))
-        {
-          bytesReceivedAp2Uplink += bytesReceived[k];
-        }
-      else if (k <= bss1LastStaIdx)
-        {
-          bytesReceivedAp1Downlink += bytesReceived[k];
-        }
-      else
-        {
-          bytesReceivedAp2Downlink += bytesReceived[k];
-        }
-      double bitsReceived = bytesReceived[k] * 8;
-      // rxThroughputPerNode[k] = static_cast<double> (packetsReceived[k] * payloadSize * 8) / 1e6 / duration;
-      rxThroughputPerNode[k] = static_cast<double> (bitsReceived) / 1e6 / duration;
-      outFile << "Node " << k << ", pkts " << packetsReceived[k] << ", bytes " << bytesReceived[k] << ", throughput [MMb/s] " << rxThroughputPerNode[k] << std::endl;
+
+      double tputApUplink = bytesReceivedApUplink * 8 / 1e6 / duration;
+      double tputApDownlink = bytesReceivedApDownlink * 8 / 1e6 / duration;
+
+      // TODO: debug to print out t-put, can remove
+      std::cout << "Scenario: " << scenario << std::endl;
+      std::cout << "Throughput,  AP" << bss << " Uplink   [Mbps] : " << tputApUplink << std::endl;
+      std::cout << "Throughput,  AP" << bss << " Downlink [Mbps] : " << tputApDownlink << std::endl;
+
+      outFile << "Throughput,  AP" << bss << " Uplink   [Mbps] : " << tputApUplink << std::endl;
+      outFile << "Throughput,  AP" << bss << " Downlink [Mbps] : " << tputApDownlink << std::endl;
+
+      double area = M_PI * r * r;
+      outFile << "Area Capacity, AP" << bss << " Uplink   [Mbps/m^2] : " << tputApUplink / area << std::endl;
+      outFile << "Area Capacity, AP" << bss << " Downlink [Mbps/m^2] : " << tputApDownlink / area << std::endl;
+
+      outFile << "Spectrum Efficiency, AP" << bss << " Uplink   [Mbps/Hz] : " << tputApUplink / freqHz << std::endl;
+      outFile << "Spectrum Efficiency, AP" << bss << " Downlink [Mbps/Hz] : " << tputApDownlink / freqHz << std::endl;
     }
-
-  double tputAp1Uplink = bytesReceivedAp1Uplink * 8 / 1e6 / duration;
-  double tputAp1Downlink = bytesReceivedAp1Downlink * 8 / 1e6 / duration;
-  double tputAp2Uplink = bytesReceivedAp2Uplink * 8 / 1e6 / duration;
-  double tputAp2Downlink = bytesReceivedAp2Downlink * 8 / 1e6 / duration;
-
-  // TODO: debug to print out t-put, can remove
-  std::cout << "Scenario: " << scenario << std::endl;
-  std::cout << "Throughput,  AP1 Uplink   [Mbps] : " << tputAp1Uplink << std::endl;
-  std::cout << "Throughput,  AP1 Downlink [Mbps] : " << tputAp1Downlink << std::endl;
-  std::cout << "Throughput,  AP2 Uplink   [Mbps] : " << tputAp2Uplink << std::endl;
-  std::cout << "Throughput,  AP2 Downlink [Mbps] : " << tputAp2Downlink << std::endl;
-
-  outFile << "Throughput,  AP1 Uplink   [Mbps] : " << tputAp1Uplink << std::endl;
-  outFile << "Throughput,  AP1 Downlink [Mbps] : " << tputAp1Downlink << std::endl;
-  outFile << "Throughput,  AP2 Uplink   [Mbps] : " << tputAp2Uplink << std::endl;
-  outFile << "Throughput,  AP2 Downlink [Mbps] : " << tputAp2Downlink << std::endl;
-
-  double area = M_PI * r * r;
-  outFile << "Area Capacity, AP1 Uplink   [Mbps/m^2] : " << tputAp1Uplink / area << std::endl;
-  outFile << "Area Capacity, AP1 Downlink [Mbps/m^2] : " << tputAp1Downlink / area << std::endl;
-  outFile << "Area Capacity, AP2 Uplink   [Mbps/m^2] : " << tputAp2Uplink / area << std::endl;
-  outFile << "Area Capacity, AP2 Downlink [Mbps/m^2] : " << tputAp2Downlink / area << std::endl;
-
-  outFile << "Spectrum Efficiency, AP1 Uplink   [Mbps/Hz] : " << tputAp1Uplink / freqHz << std::endl;
-  outFile << "Spectrum Efficiency, AP1 Downlink [Mbps/Hz] : " << tputAp1Downlink / freqHz << std::endl;
-  outFile << "Spectrum Efficiency, AP2 Uplink   [Mbps/Hz] : " << tputAp2Uplink / freqHz << std::endl;
-  outFile << "Spectrum Efficiency, AP2 Downlink [Mbps/Hz] : " << tputAp2Downlink / freqHz << std::endl;
 
   outFile << "Avg. RSSI:" << std::endl;
   for (uint32_t rxNodeId = 0; rxNodeId < numNodes; rxNodeId++)
@@ -687,7 +671,8 @@ main (int argc, char *argv[])
 
   // local variables
   std::string outputFilePrefix = "spatial-reuse";
-  uint32_t payloadSize = 1500; // bytes
+  uint32_t payloadSizeUplink = 1500; // bytes
+  uint32_t payloadSizeDownlink = 300; // bytes
   uint32_t mcs = 0; // MCS value
   Time interval = MicroSeconds (1000);
   bool enableObssPd = false;
@@ -720,7 +705,8 @@ main (int argc, char *argv[])
   cmd.AddValue ("enableRts", "Enable or disable RTS/CTS", enableRts);
   cmd.AddValue ("maxSlrc", "MaxSlrc", maxSlrc);
   cmd.AddValue ("txRange", "Max TX range [m]", txRange);
-  cmd.AddValue ("payloadSize", "Payload size of 1 packet [bytes]", payloadSize);
+  cmd.AddValue ("payloadSizeUplink", "Payload size of 1 uplink packet [bytes]", payloadSizeUplink);
+  cmd.AddValue ("payloadSizeDownlink", "Payload size of 1 downlink packet [bytes]", payloadSizeDownlink);
   cmd.AddValue ("MCS", "Modulation and Coding Scheme (MCS) index (default=0)", mcs);
   cmd.AddValue ("txStartOffset", "N(0, mu) offset for each node's start of packet transmission.  Default mu=5 [ns]", txStartOffset);
   cmd.AddValue ("obssPdThreshold", "Energy threshold (dBm) of received signal below which the PHY layer can avoid declaring CCA BUSY for inter-BSS frames.", obssPdThreshold);
@@ -1927,8 +1913,8 @@ main (int argc, char *argv[])
 
   double perNodeUplinkMbps = aggregateUplinkMbps / n;
   double perNodeDownlinkMbps = aggregateDownlinkMbps / n;
-  Time intervalUplink = MicroSeconds (payloadSize * 8 / perNodeUplinkMbps);
-  Time intervalDownlink = MicroSeconds (payloadSize * 8 / perNodeDownlinkMbps);
+  Time intervalUplink = MicroSeconds (payloadSizeUplink * 8 / perNodeUplinkMbps);
+  Time intervalDownlink = MicroSeconds (payloadSizeDownlink * 8 / perNodeDownlinkMbps);
   std::cout << "Uplink interval:" << intervalUplink << " Downlink interval:" << intervalDownlink << std::endl;
 
   Ptr<UniformRandomVariable> urv = CreateObject<UniformRandomVariable> ();
@@ -2045,7 +2031,7 @@ main (int argc, char *argv[])
   ApplicationContainer uplinkClientAppG;
   ApplicationContainer downlinkClientAppG;
 
-  if (payloadSize > 0)
+  if ((payloadSizeUplink > 0) || (payloadSizeDownlink > 0))
     {
       //BSS 1
 
@@ -2062,7 +2048,7 @@ main (int argc, char *argv[])
                 {
                   next_rng = urv->GetValue ();
                 }
-              AddClient (uplinkClientAppA, ApInterfaceA.GetAddress (0), stasA.Get (i), uplinkPortA, Time (intervalUplink + NanoSeconds (next_rng)), payloadSize);
+              AddClient (uplinkClientAppA, ApInterfaceA.GetAddress (0), stasA.Get (i), uplinkPortA, Time (intervalUplink + NanoSeconds (next_rng)), payloadSizeUplink);
             }
           // one server (receiver) for each AP-STA pair
           AddServer (downlinkServerA, downlinkServerAppA, stasA.Get (i));
@@ -2074,12 +2060,12 @@ main (int argc, char *argv[])
                 {
                   next_rng = urv->GetValue ();
                 }
-              AddClient (downlinkClientAppA, StaInterfaceA.GetAddress (i), ap1, downlinkPortA, Time (intervalDownlink + NanoSeconds (next_rng)), payloadSize);
+              AddClient (downlinkClientAppA, StaInterfaceA.GetAddress (i), ap1, downlinkPortA, Time (intervalDownlink + NanoSeconds (next_rng)), payloadSizeDownlink);
             }
         }
     }
 
-  if ((payloadSize > 0) && ((nBss >= 2) || (scenario == "study1")))
+  if (((payloadSizeUplink > 0) || (payloadSizeDownlink > 0)) && ((nBss >= 2) || (scenario == "study1")))
     {
       // BSS 2
 
@@ -2096,7 +2082,7 @@ main (int argc, char *argv[])
                 {
                   next_rng = urv->GetValue ();
                 }
-              AddClient (uplinkClientAppB, ApInterfaceB.GetAddress (0), stasB.Get (i), uplinkPortB, Time (intervalUplink + NanoSeconds (next_rng)), payloadSize);
+              AddClient (uplinkClientAppB, ApInterfaceB.GetAddress (0), stasB.Get (i), uplinkPortB, Time (intervalUplink + NanoSeconds (next_rng)), payloadSizeUplink);
             }
           // one server (receiver) for each AP-STA pair
           AddServer (downlinkServerB, downlinkServerAppB, stasB.Get (i));
@@ -2108,12 +2094,12 @@ main (int argc, char *argv[])
                 {
                   next_rng = urv->GetValue ();
                 }
-              AddClient (downlinkClientAppB, StaInterfaceB.GetAddress (i), ap2, downlinkPortB, Time (intervalDownlink + NanoSeconds (next_rng)), payloadSize);
+              AddClient (downlinkClientAppB, StaInterfaceB.GetAddress (i), ap2, downlinkPortB, Time (intervalDownlink + NanoSeconds (next_rng)), payloadSizeDownlink);
             }
         }
     }
 
-  if ((payloadSize > 0) && ((nBss >= 3) || (scenario == "study1")))
+  if (((payloadSizeUplink > 0) || (payloadSizeDownlink > 0)) && ((nBss >= 3) || (scenario == "study1")))
     {
       // BSS 3
 
@@ -2130,7 +2116,7 @@ main (int argc, char *argv[])
                 {
                   next_rng = urv->GetValue();
                 }
-              AddClient (uplinkClientAppC, ApInterfaceC.GetAddress (0), stasC.Get (i), uplinkPortC, Time (intervalUplink + NanoSeconds (next_rng)), payloadSize);
+              AddClient (uplinkClientAppC, ApInterfaceC.GetAddress (0), stasC.Get (i), uplinkPortC, Time (intervalUplink + NanoSeconds (next_rng)), payloadSizeUplink);
             }
           // one server (receiver) for each AP-STA pair
           AddServer (downlinkServerC, downlinkServerAppC, stasC.Get (i));
@@ -2142,12 +2128,12 @@ main (int argc, char *argv[])
                 {
                   next_rng = urv->GetValue();
                 }
-              AddClient (downlinkClientAppC, StaInterfaceC.GetAddress (i), ap3, downlinkPortC, Time (intervalDownlink + NanoSeconds (next_rng)), payloadSize);
+              AddClient (downlinkClientAppC, StaInterfaceC.GetAddress (i), ap3, downlinkPortC, Time (intervalDownlink + NanoSeconds (next_rng)), payloadSizeDownlink);
             }
         }
     }
 
-  if ((payloadSize > 0) && ((nBss >= 4) || (scenario == "study1")))
+  if (((payloadSizeUplink > 0) || (payloadSizeDownlink > 0)) && ((nBss >= 4) || (scenario == "study1")))
     {
       // BSS 4
 
@@ -2164,7 +2150,7 @@ main (int argc, char *argv[])
                 {
                   next_rng = urv->GetValue();
                 }
-              AddClient (uplinkClientAppD, ApInterfaceD.GetAddress (0), stasD.Get (i), uplinkPortD, Time (intervalUplink + NanoSeconds (next_rng)), payloadSize);
+              AddClient (uplinkClientAppD, ApInterfaceD.GetAddress (0), stasD.Get (i), uplinkPortD, Time (intervalUplink + NanoSeconds (next_rng)), payloadSizeUplink);
             }
           // one server (receiver) for each AP-STA pair
           AddServer (downlinkServerD, downlinkServerAppD, stasD.Get (i));
@@ -2176,7 +2162,7 @@ main (int argc, char *argv[])
                 {
                   next_rng = urv->GetValue();
                 }
-              AddClient (downlinkClientAppD, StaInterfaceD.GetAddress (i), ap4, downlinkPortD, Time (intervalDownlink + NanoSeconds (next_rng)), payloadSize);
+              AddClient (downlinkClientAppD, StaInterfaceD.GetAddress (i), ap4, downlinkPortD, Time (intervalDownlink + NanoSeconds (next_rng)), payloadSizeDownlink);
             }
         }
     }
@@ -2198,7 +2184,7 @@ main (int argc, char *argv[])
                 {
                   next_rng = urv->GetValue();
                 }
-              AddClient (uplinkClientAppE, ApInterfaceE.GetAddress (0), stasE.Get (i), uplinkPortE, Time (intervalUplink + NanoSeconds (next_rng)), payloadSize);
+              AddClient (uplinkClientAppE, ApInterfaceE.GetAddress (0), stasE.Get (i), uplinkPortE, Time (intervalUplink + NanoSeconds (next_rng)), payloadSizeUplink);
             }
           // one server (receiver) for each AP-STA pair
           AddServer (downlinkServerE, downlinkServerAppE, stasE.Get (i));
@@ -2210,7 +2196,7 @@ main (int argc, char *argv[])
                 {
                   next_rng = urv->GetValue();
                 }
-              AddClient (downlinkClientAppE, StaInterfaceE.GetAddress (i), ap5, downlinkPortE, Time (intervalDownlink + NanoSeconds (next_rng)), payloadSize);
+              AddClient (downlinkClientAppE, StaInterfaceE.GetAddress (i), ap5, downlinkPortE, Time (intervalDownlink + NanoSeconds (next_rng)), payloadSizeDownlink);
             }
         }
 
@@ -2229,7 +2215,7 @@ main (int argc, char *argv[])
                 {
                   next_rng = urv->GetValue();
                 }
-              AddClient (uplinkClientAppF, ApInterfaceF.GetAddress (0), stasF.Get (i), uplinkPortF, Time (intervalUplink + NanoSeconds (next_rng)), payloadSize);
+              AddClient (uplinkClientAppF, ApInterfaceF.GetAddress (0), stasF.Get (i), uplinkPortF, Time (intervalUplink + NanoSeconds (next_rng)), payloadSizeUplink);
             }
           // one server (receiver) for each AP-STA pair
           AddServer (downlinkServerF, downlinkServerAppF, stasF.Get (i));
@@ -2241,7 +2227,7 @@ main (int argc, char *argv[])
                 {
                   next_rng = urv->GetValue();
                 }
-              AddClient (downlinkClientAppF, StaInterfaceF.GetAddress (i), ap6, downlinkPortF, Time (intervalDownlink + NanoSeconds (next_rng)), payloadSize);
+              AddClient (downlinkClientAppF, StaInterfaceF.GetAddress (i), ap6, downlinkPortF, Time (intervalDownlink + NanoSeconds (next_rng)), payloadSizeDownlink);
             }
         }
 
@@ -2260,7 +2246,7 @@ main (int argc, char *argv[])
                 {
                   next_rng = urv->GetValue();
                 }
-              AddClient (uplinkClientAppG, ApInterfaceG.GetAddress (0), stasG.Get (i), uplinkPortG, Time (intervalUplink + NanoSeconds (next_rng)), payloadSize);
+              AddClient (uplinkClientAppG, ApInterfaceG.GetAddress (0), stasG.Get (i), uplinkPortG, Time (intervalUplink + NanoSeconds (next_rng)), payloadSizeUplink);
             }
           // one server (receiver) for each AP-STA pair
           AddServer (downlinkServerG, downlinkServerAppG, stasG.Get (i));
@@ -2272,7 +2258,7 @@ main (int argc, char *argv[])
                 {
                   next_rng = urv->GetValue();
                 }
-              AddClient (downlinkClientAppG, StaInterfaceG.GetAddress (i), ap7, downlinkPortG, Time (intervalDownlink + NanoSeconds (next_rng)), payloadSize);
+              AddClient (downlinkClientAppG, StaInterfaceG.GetAddress (i), ap7, downlinkPortG, Time (intervalDownlink + NanoSeconds (next_rng)), payloadSizeDownlink);
             }
         }
     }
@@ -2384,7 +2370,7 @@ main (int argc, char *argv[])
     {
       totalUplinkPacketsThroughA += DynamicCast<UdpServer> (uplinkServerAppA.Get (i))->GetReceived ();
     }
-  bytesReceived[nodeIdx] = payloadSize * totalUplinkPacketsThroughA;
+  bytesReceived[nodeIdx] = payloadSizeUplink * totalUplinkPacketsThroughA;
   packetsReceived[nodeIdx] = totalUplinkPacketsThroughA;
 
   if ((nBss >= 2) || (scenario == "study1"))
@@ -2397,7 +2383,7 @@ main (int argc, char *argv[])
         {
           totalUplinkPacketsThroughB += DynamicCast<UdpServer> (uplinkServerAppB.Get (i))->GetReceived ();
         }
-      bytesReceived[nodeIdx] = payloadSize * totalUplinkPacketsThroughB;
+      bytesReceived[nodeIdx] = payloadSizeUplink * totalUplinkPacketsThroughB;
       packetsReceived[nodeIdx] = totalUplinkPacketsThroughB;
     }
 
@@ -2411,7 +2397,7 @@ main (int argc, char *argv[])
         {
           totalUplinkPacketsThroughC += DynamicCast<UdpServer> (uplinkServerAppC.Get (i))->GetReceived ();
         }
-      bytesReceived[nodeIdx] = payloadSize * totalUplinkPacketsThroughC;
+      bytesReceived[nodeIdx] = payloadSizeUplink * totalUplinkPacketsThroughC;
       packetsReceived[nodeIdx] = totalUplinkPacketsThroughC;
     }
 
@@ -2425,7 +2411,7 @@ main (int argc, char *argv[])
         {
           totalUplinkPacketsThroughD += DynamicCast<UdpServer> (uplinkServerAppD.Get (i))->GetReceived ();
         }
-      bytesReceived[nodeIdx] = payloadSize * totalUplinkPacketsThroughD;
+      bytesReceived[nodeIdx] = payloadSizeUplink * totalUplinkPacketsThroughD;
       packetsReceived[nodeIdx] = totalUplinkPacketsThroughD;
     }
 
@@ -2439,7 +2425,7 @@ main (int argc, char *argv[])
         {
           totalUplinkPacketsThroughE += DynamicCast<UdpServer> (uplinkServerAppE.Get (i))->GetReceived ();
         }
-      bytesReceived[nodeIdx] = payloadSize * totalUplinkPacketsThroughE;
+      bytesReceived[nodeIdx] = payloadSizeUplink * totalUplinkPacketsThroughE;
       packetsReceived[nodeIdx] = totalUplinkPacketsThroughE;
 
       nodeIdx++;
@@ -2450,7 +2436,7 @@ main (int argc, char *argv[])
         {
           totalUplinkPacketsThroughF += DynamicCast<UdpServer> (uplinkServerAppF.Get (i))->GetReceived ();
         }
-      bytesReceived[nodeIdx] = payloadSize * totalUplinkPacketsThroughF;
+      bytesReceived[nodeIdx] = payloadSizeUplink * totalUplinkPacketsThroughF;
       packetsReceived[nodeIdx] = totalUplinkPacketsThroughF;
 
       nodeIdx++;
@@ -2461,7 +2447,7 @@ main (int argc, char *argv[])
         {
           totalUplinkPacketsThroughG += DynamicCast<UdpServer> (uplinkServerAppG.Get (i))->GetReceived ();
         }
-      bytesReceived[nodeIdx] = payloadSize * totalUplinkPacketsThroughG;
+      bytesReceived[nodeIdx] = payloadSizeUplink * totalUplinkPacketsThroughG;
       packetsReceived[nodeIdx] = totalUplinkPacketsThroughG;
     }
 
@@ -2470,7 +2456,7 @@ main (int argc, char *argv[])
     {
       nodeIdx++;
       uint64_t downlinkPacketsThroughA = DynamicCast<UdpServer> (downlinkServerAppA.Get (i))->GetReceived ();
-      bytesReceived[nodeIdx] = payloadSize * downlinkPacketsThroughA;
+      bytesReceived[nodeIdx] = payloadSizeUplink * downlinkPacketsThroughA;
       packetsReceived[nodeIdx] = downlinkPacketsThroughA;
     }
 
@@ -2481,7 +2467,7 @@ main (int argc, char *argv[])
         {
           nodeIdx++;
           uint64_t downlinkPacketsThroughB = DynamicCast<UdpServer> (downlinkServerAppB.Get (i))->GetReceived ();
-          bytesReceived[nodeIdx] = payloadSize * downlinkPacketsThroughB;
+          bytesReceived[nodeIdx] = payloadSizeUplink * downlinkPacketsThroughB;
           packetsReceived[nodeIdx] = downlinkPacketsThroughB;
         }
     }
@@ -2493,7 +2479,7 @@ main (int argc, char *argv[])
         {
           nodeIdx++;
           uint64_t downlinkPacketsThroughC = DynamicCast<UdpServer> (downlinkServerAppC.Get (i))->GetReceived ();
-          bytesReceived[nodeIdx] = payloadSize * downlinkPacketsThroughC;
+          bytesReceived[nodeIdx] = payloadSizeUplink * downlinkPacketsThroughC;
           packetsReceived[nodeIdx] = downlinkPacketsThroughC;
         }
     }
@@ -2505,7 +2491,7 @@ main (int argc, char *argv[])
         {
           nodeIdx++;
           uint64_t downlinkPacketsThroughD = DynamicCast<UdpServer> (downlinkServerAppD.Get (i))->GetReceived ();
-          bytesReceived[nodeIdx] = payloadSize * downlinkPacketsThroughD;
+          bytesReceived[nodeIdx] = payloadSizeUplink * downlinkPacketsThroughD;
           packetsReceived[nodeIdx] = downlinkPacketsThroughD;
         }
     }
@@ -2517,7 +2503,7 @@ main (int argc, char *argv[])
         {
           nodeIdx++;
           uint64_t downlinkPacketsThroughE = DynamicCast<UdpServer> (downlinkServerAppE.Get (i))->GetReceived ();
-          bytesReceived[nodeIdx] = payloadSize * downlinkPacketsThroughE;
+          bytesReceived[nodeIdx] = payloadSizeUplink * downlinkPacketsThroughE;
           packetsReceived[nodeIdx] = downlinkPacketsThroughE;
         }
 
@@ -2526,7 +2512,7 @@ main (int argc, char *argv[])
         {
           nodeIdx++;
           uint64_t downlinkPacketsThroughF = DynamicCast<UdpServer> (downlinkServerAppF.Get (i))->GetReceived ();
-          bytesReceived[nodeIdx] = payloadSize * downlinkPacketsThroughF;
+          bytesReceived[nodeIdx] = payloadSizeUplink * downlinkPacketsThroughF;
           packetsReceived[nodeIdx] = downlinkPacketsThroughF;
         }
 
@@ -2535,7 +2521,7 @@ main (int argc, char *argv[])
         {
           nodeIdx++;
           uint64_t downlinkPacketsThroughG = DynamicCast<UdpServer> (downlinkServerAppG.Get (i))->GetReceived ();
-          bytesReceived[nodeIdx] = payloadSize * downlinkPacketsThroughG;
+          bytesReceived[nodeIdx] = payloadSizeUplink * downlinkPacketsThroughG;
           packetsReceived[nodeIdx] = downlinkPacketsThroughG;
         }
     }
