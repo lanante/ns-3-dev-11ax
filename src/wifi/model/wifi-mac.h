@@ -312,11 +312,6 @@ public:
    */
   void ConfigureStandard (WifiPhyStandard standard);
 
-
-  /**
-   * \param heConfiguration return pointer to HeConfiguration
-   */
-  void SetHeConfiguration (Ptr<HeConfiguration> heConfiguration);
 protected:
   /**
    * \param dcf the DCF to be configured

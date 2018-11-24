@@ -61,7 +61,6 @@
 #include "ns3/node-list.h"
 #include "ns3/ieee-80211ax-indoor-propagation-loss-model.h"
 #include "ns3/obss-pd-algorithm.h"
-#include "ns3/wifi-he-helper.h"
 
 using namespace ns3;
 
@@ -575,14 +574,15 @@ WifiHeTestCase::RunOne (void)
 
   if (m_enableHeConfiguration)
     {
-      // Wifi-He helper
-      WifiHeHelper staHeHelper;
-      staHeHelper.SetObssPdAlgorithm ("ns3::ConstantObssPdAlgorithm");
-      // STA determines BSS Color from associated AP
-      staHeHelper.SetHeConfigurationAttribute ("ObssPdThreshold", DoubleValue (-99.0));
-      staHeHelper.SetHeConfigurationAttribute ("ObssPdThresholdMin", DoubleValue (-82.0));
-      staHeHelper.SetHeConfigurationAttribute ("ObssPdThresholdMax", DoubleValue (-62.0));
-      staHeHelper.Install (wifiStaNodes);
+      for (uint32_t i = 0; i < m_staDevices.GetN (); i++)
+        {
+          Ptr<WifiNetDevice> wifiNetDevice = DynamicCast<WifiNetDevice> (m_staDevices.Get (i));
+          Ptr<HeConfiguration> heConfiguration = wifiNetDevice->GetHeConfiguration ();
+          
+          heConfiguration->SetAttribute ("ObssPdThreshold", DoubleValue (-99.0));
+          heConfiguration->SetAttribute ("ObssPdThresholdMin", DoubleValue (-82.0));
+          heConfiguration->SetAttribute ("ObssPdThresholdMax", DoubleValue (-62.0));
+        }
     }
 
   wifi.AssignStreams (m_staDevices, streamNumber);
@@ -599,14 +599,16 @@ WifiHeTestCase::RunOne (void)
 
   if (m_enableHeConfiguration)
     {
-      // Wifi-He helper
-      WifiHeHelper apHeHelper;
-      apHeHelper.SetObssPdAlgorithm ("ns3::ConstantObssPdAlgorithm");
-      apHeHelper.SetHeConfigurationAttribute ("BssColor", UintegerValue (m_expectedBssColor));
-      apHeHelper.SetHeConfigurationAttribute ("ObssPdThreshold", DoubleValue (-99.0));
-      apHeHelper.SetHeConfigurationAttribute ("ObssPdThresholdMin", DoubleValue (-82.0));
-      apHeHelper.SetHeConfigurationAttribute ("ObssPdThresholdMax", DoubleValue (-62.0));
-      apHeHelper.Install (wifiApNodes);
+      for (uint32_t i = 0; i < m_apDevices.GetN (); i++)
+        {
+          Ptr<WifiNetDevice> wifiNetDevice = DynamicCast<WifiNetDevice> (m_apDevices.Get (i));
+          Ptr<HeConfiguration> heConfiguration = wifiNetDevice->GetHeConfiguration ();
+          
+          heConfiguration->SetAttribute ("BssColor", UintegerValue (m_expectedBssColor));
+          heConfiguration->SetAttribute ("ObssPdThreshold", DoubleValue (-99.0));
+          heConfiguration->SetAttribute ("ObssPdThresholdMin", DoubleValue (-82.0));
+          heConfiguration->SetAttribute ("ObssPdThresholdMax", DoubleValue (-62.0));
+        }
     }
 
   // fixed positions

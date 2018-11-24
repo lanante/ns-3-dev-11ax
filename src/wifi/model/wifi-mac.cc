@@ -487,19 +487,5 @@ WifiMac::GetHeConfiguration (void) const
       return device->GetHeConfiguration ();
 }
 
-void
-WifiMac::SetHeConfiguration (Ptr<HeConfiguration> heConfiguration)
-{
-      Ptr<WifiNetDevice> device = DynamicCast<WifiNetDevice> (GetDevice ());
-      if (device->GetHeConfiguration ())
-        {
-          device->GetHeConfiguration () = CopyObject<HeConfiguration> (heConfiguration);
-        }
-      else
-        {
-          device->AggregateObject (CopyObject<HeConfiguration> (heConfiguration));
-        }
-}
-
 } //namespace ns3
 

@@ -482,9 +482,10 @@ public:
    * \param [in,out] info A pointer to the TypeId::AttributeInformation
    *              data structure where the result value of this method
    *              will be stored.
+   * \param [in] quiet If true, suppress warning about deprecation
    * \returns \c true if the requested attribute could be found.
    */
-  bool LookupAttributeByName (std::string name, struct AttributeInformation *info) const;
+  bool LookupAttributeByName (std::string name, struct AttributeInformation *info, bool quiet = false) const;
   /**
    * Find a TraceSource by name.
    *

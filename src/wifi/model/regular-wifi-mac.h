@@ -32,7 +32,6 @@ class MacRxMiddle;
 class MacTxMiddle;
 class ChannelAccessManager;
 class ExtendedCapabilities;
-class HeConfiguration;
 
 // Parameters for receive HE Beacon
 struct HeBeaconReceptionParameters
@@ -697,7 +696,6 @@ private:
 
   bool m_shortSlotTimeSupported; ///< flag whether short slot time is supported
   bool m_rifsSupported; ///< flag whether RIFS is supported (deprecated)
-  Ptr<HeConfiguration> m_heConfiguration; ///< Ptr to HeConfiguration
 };
 
 } //namespace ns3

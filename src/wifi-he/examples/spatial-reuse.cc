@@ -1173,12 +1173,11 @@ main (int argc, char *argv[])
   // The below statements may be simplified in a future HeConfigurationHelper
   if ((enableObssPd))
     {
-      Ptr<HeConfiguration> heConfiguration = CreateObject<HeConfiguration> ();
+      Ptr<HeConfiguration> heConfiguration = apDevice->GetHeConfiguration ();
       heConfiguration->SetAttribute ("BssColor", UintegerValue (1));
       heConfiguration->SetAttribute ("ObssPdThreshold", DoubleValue (obssPdThreshold));
       heConfiguration->SetAttribute ("ObssPdThresholdMin", DoubleValue (obssPdThresholdMin));
       heConfiguration->SetAttribute ("ObssPdThresholdMax", DoubleValue (obssPdThresholdMax));
-      apWifiMac->SetHeConfiguration (heConfiguration);
     }
 
   NetDeviceContainer apDeviceB;
@@ -1227,12 +1226,11 @@ main (int argc, char *argv[])
       apWifiMac = ap2Device->GetMac ()->GetObject<ApWifiMac> ();
       if (enableObssPd)
         {
-          Ptr <HeConfiguration> heConfiguration = CreateObject<HeConfiguration> ();
+          Ptr <HeConfiguration> heConfiguration = ap2Device->GetHeConfiguration ();
           heConfiguration->SetAttribute ("BssColor", UintegerValue (2));
           heConfiguration->SetAttribute ("ObssPdThreshold", DoubleValue (obssPdThreshold));
           heConfiguration->SetAttribute ("ObssPdThresholdMin", DoubleValue (obssPdThresholdMin));
           heConfiguration->SetAttribute ("ObssPdThresholdMax", DoubleValue (obssPdThresholdMax));
-          apWifiMac->SetHeConfiguration (heConfiguration);
         }
     }
 
@@ -1282,12 +1280,11 @@ main (int argc, char *argv[])
       apWifiMac = ap3Device->GetMac ()->GetObject<ApWifiMac> ();
       if (enableObssPd)
         {
-          Ptr <HeConfiguration> heConfiguration = CreateObject<HeConfiguration> ();
+          Ptr <HeConfiguration> heConfiguration = ap3Device->GetHeConfiguration ();
           heConfiguration->SetAttribute ("BssColor", UintegerValue (3));
           heConfiguration->SetAttribute ("ObssPdThreshold", DoubleValue(obssPdThreshold));
           heConfiguration->SetAttribute ("ObssPdThresholdMin", DoubleValue(obssPdThresholdMin));
           heConfiguration->SetAttribute ("ObssPdThresholdMax", DoubleValue(obssPdThresholdMax));
-          apWifiMac->SetHeConfiguration (heConfiguration);
         }
     }
 
@@ -1337,12 +1334,11 @@ main (int argc, char *argv[])
       apWifiMac = ap4Device->GetMac ()->GetObject<ApWifiMac> ();
       if (enableObssPd)
         {
-          Ptr <HeConfiguration> heConfiguration = CreateObject<HeConfiguration> ();
+          Ptr <HeConfiguration> heConfiguration = ap4Device->GetHeConfiguration ();
           heConfiguration->SetAttribute ("BssColor", UintegerValue (4));
           heConfiguration->SetAttribute ("ObssPdThreshold", DoubleValue(obssPdThreshold));
           heConfiguration->SetAttribute ("ObssPdThresholdMin", DoubleValue(obssPdThresholdMin));
           heConfiguration->SetAttribute ("ObssPdThresholdMax", DoubleValue(obssPdThresholdMax));
-          apWifiMac->SetHeConfiguration (heConfiguration);
         }
     }
 
@@ -1396,12 +1392,11 @@ main (int argc, char *argv[])
       apWifiMac = ap5Device->GetMac ()->GetObject<ApWifiMac> ();
       if (enableObssPd)
         {
-          Ptr <HeConfiguration> heConfiguration = CreateObject<HeConfiguration> ();
+          Ptr <HeConfiguration> heConfiguration = ap5Device->GetHeConfiguration ();
           heConfiguration->SetAttribute ("BssColor", UintegerValue (5));
           heConfiguration->SetAttribute ("ObssPdThreshold", DoubleValue(obssPdThreshold));
           heConfiguration->SetAttribute ("ObssPdThresholdMin", DoubleValue(obssPdThresholdMin));
           heConfiguration->SetAttribute ("ObssPdThresholdMax", DoubleValue(obssPdThresholdMax));
-          apWifiMac->SetHeConfiguration (heConfiguration);
         }
 
       // Set PHY power and CCA threshold for STAs
@@ -1446,12 +1441,11 @@ main (int argc, char *argv[])
       apWifiMac = ap6Device->GetMac ()->GetObject<ApWifiMac> ();
       if (enableObssPd)
         {
-          Ptr <HeConfiguration> heConfiguration = CreateObject<HeConfiguration> ();
+          Ptr <HeConfiguration> heConfiguration = ap6Device->GetHeConfiguration ();
           heConfiguration->SetAttribute ("BssColor", UintegerValue (6));
           heConfiguration->SetAttribute ("ObssPdThreshold", DoubleValue(obssPdThreshold));
           heConfiguration->SetAttribute ("ObssPdThresholdMin", DoubleValue(obssPdThresholdMin));
           heConfiguration->SetAttribute ("ObssPdThresholdMax", DoubleValue(obssPdThresholdMax));
-          apWifiMac->SetHeConfiguration (heConfiguration);
         }
 
       // Network "G"
@@ -1485,12 +1479,11 @@ main (int argc, char *argv[])
       apWifiMac = ap7Device->GetMac ()->GetObject<ApWifiMac> ();
       if (enableObssPd)
         {
-          Ptr <HeConfiguration> heConfiguration = CreateObject<HeConfiguration> ();
+          Ptr <HeConfiguration> heConfiguration = ap7Device->GetHeConfiguration ();
           heConfiguration->SetAttribute ("BssColor", UintegerValue (7));
           heConfiguration->SetAttribute ("ObssPdThreshold", DoubleValue(obssPdThreshold));
           heConfiguration->SetAttribute ("ObssPdThresholdMin", DoubleValue(obssPdThresholdMin));
           heConfiguration->SetAttribute ("ObssPdThresholdMax", DoubleValue(obssPdThresholdMax));
-          apWifiMac->SetHeConfiguration (heConfiguration);
         }
     }
 

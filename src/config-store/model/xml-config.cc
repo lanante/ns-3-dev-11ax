@@ -154,7 +154,7 @@ public:
 private:
     virtual void DoVisitAttribute (Ptr<Object> object, std::string name) {
       StringValue str;
-      object->GetAttribute (name, str);
+      object->GetAttributeFailSafe (name, str);
       int rc;
       rc = xmlTextWriterStartElement (m_writer, BAD_CAST "value");
       if (rc < 0) 
