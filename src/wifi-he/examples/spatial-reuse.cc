@@ -1971,18 +1971,21 @@ main (int argc, char *argv[])
   StaInterfaceD = address.Assign (staDevicesD);
   Ipv4InterfaceContainer ApInterfaceD;
   ApInterfaceD = address.Assign (apDeviceD);
+  // an additional address help to prevent address overflow
+  Ipv4AddressHelper address2;
+  address2.SetBase ("192.168.2.0", "255.255.255.0");
   Ipv4InterfaceContainer StaInterfaceE;
-  StaInterfaceE = address.Assign (staDevicesE);
+  StaInterfaceE = address2.Assign (staDevicesE);
   Ipv4InterfaceContainer ApInterfaceE;
-  ApInterfaceE = address.Assign (apDeviceE);
+  ApInterfaceE = address2.Assign (apDeviceE);
   Ipv4InterfaceContainer StaInterfaceF;
-  StaInterfaceF = address.Assign (staDevicesF);
+  StaInterfaceF = address2.Assign (staDevicesF);
   Ipv4InterfaceContainer ApInterfaceF;
-  ApInterfaceF = address.Assign (apDeviceF);
+  ApInterfaceF = address2.Assign (apDeviceF);
   Ipv4InterfaceContainer StaInterfaceG;
-  StaInterfaceG = address.Assign (staDevicesG);
+  StaInterfaceG = address2.Assign (staDevicesG);
   Ipv4InterfaceContainer ApInterfaceG;
-  ApInterfaceG = address.Assign (apDeviceG);
+  ApInterfaceG = address2.Assign (apDeviceG);
 
   /* Setting applications */
   uint16_t uplinkPortA = 9;

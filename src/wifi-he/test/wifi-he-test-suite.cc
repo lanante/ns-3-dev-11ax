@@ -1204,7 +1204,7 @@ TestSinglePacketEndOfHePreambleNoBssColor::NotifyEndOfHePreamble (std::string co
 
   //  uint32_t idx = ContextToNodeId (context);
 
-  NS_TEST_ASSERT_MSG_EQ (m_expectedBssColor, params.bssColor, "The received packet HE BSS Color is not the expected color!");
+  NS_TEST_ASSERT_MSG_EQ (m_expectedBssColor, (uint32_t) params.bssColor, "The received packet HE BSS Color is not the expected color!");
 }
 
 void
@@ -1340,14 +1340,14 @@ TestSinglePacketEndOfHePreambleCorrectBssColor::NotifyEndOfHePreamble (std::stri
   if (idx == 1)
     {
       // The AP should have the expected BSS color
-      NS_TEST_ASSERT_MSG_EQ (m_expectedBssColor, params.bssColor, "The AP received packet HE BSS Color is not the expected color!");
+      NS_TEST_ASSERT_MSG_EQ (m_expectedBssColor, (uint32_t) params.bssColor, "The AP received packet HE BSS Color is not the expected color!");
     }
   else
     {
       if (m_totalReceivedPackets < 1 )
         {
           // the STA's first received packet will have a color of 0, since the BSS color association is not complete
-          NS_TEST_ASSERT_MSG_EQ (0, params.bssColor, "The STA received packet HE BSS Color is not the expected color!");
+          NS_TEST_ASSERT_MSG_EQ (0, (uint32_t) params.bssColor, "The STA received packet HE BSS Color is not the expected color!");
         }
       else
         {
@@ -1357,7 +1357,7 @@ TestSinglePacketEndOfHePreambleCorrectBssColor::NotifyEndOfHePreamble (std::stri
           if (now > Seconds (0.25))
             {
               // Also, each STA should have the expected BSS color
-              NS_TEST_ASSERT_MSG_EQ (m_expectedBssColor, params.bssColor, "The STA received packet HE BSS Color is not the expected color!");
+              NS_TEST_ASSERT_MSG_EQ (m_expectedBssColor, (uint32_t) params.bssColor, "The STA received packet HE BSS Color is not the expected color!");
             }
         }
     }
@@ -1497,7 +1497,7 @@ TestSinglePacketEndOfHePreambleResetPhyOnMagicBssColor::NotifyEndOfHePreamble (s
   if (idx == 1)
     {
       // The AP should have the expected BSS color
-      NS_TEST_ASSERT_MSG_EQ (m_expectedBssColor, params.bssColor, "The AP received packet HE BSS Color is not the expected color!");
+      NS_TEST_ASSERT_MSG_EQ (m_expectedBssColor, (uint32_t) params.bssColor, "The AP received packet HE BSS Color is not the expected color!");
       if (params.bssColor == 54)
         {
 
@@ -1519,7 +1519,7 @@ TestSinglePacketEndOfHePreambleResetPhyOnMagicBssColor::NotifyEndOfHePreamble (s
       if (m_totalReceivedPackets < 1 )
         {
           // the STA's first received packet will have a color of 0, since the BSS color association is not complete
-          NS_TEST_ASSERT_MSG_EQ (0, params.bssColor, "The STA received packet HE BSS Color is not the expected color!");
+          NS_TEST_ASSERT_MSG_EQ (0, (uint32_t) params.bssColor, "The STA received packet HE BSS Color is not the expected color!");
         }
       else
         {
@@ -1529,7 +1529,7 @@ TestSinglePacketEndOfHePreambleResetPhyOnMagicBssColor::NotifyEndOfHePreamble (s
           if (now > Seconds (0.25))
             {
               // Also, each STA should have the expected BSS color
-              NS_TEST_ASSERT_MSG_EQ (m_expectedBssColor, params.bssColor, "The STA received packet HE BSS Color is not the expected color!");
+              NS_TEST_ASSERT_MSG_EQ (m_expectedBssColor, (uint32_t) params.bssColor, "The STA received packet HE BSS Color is not the expected color!");
             }
         }
     }
