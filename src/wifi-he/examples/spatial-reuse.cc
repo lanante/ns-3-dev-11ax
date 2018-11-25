@@ -128,7 +128,7 @@ SocketRecvStats (std::string context, Ptr<const Packet> p, const Address &addr)
 {
   uint32_t nodeId = ContextToNodeId (context);
   uint32_t pktSize = p->GetSize ();
-  //  std::cout << "Node ID: " << nodeId << " RX addr=" << addr << " size=" << pktSize << std::endl;
+  // std::cout << "Node ID: " << nodeId << " RX addr=" << addr << " size=" << pktSize << std::endl;
   bytesReceived[nodeId] += pktSize;
   packetsReceived[nodeId]++;
 }
@@ -404,36 +404,33 @@ SaveSpatialReuseStats (const std::string filename,
   outFile << "Distance between APs [m]: " << d << std::endl;
   outFile << "Radius [m]: " << r << std::endl;
 
+  // TODO: debug to print out t-put, can remove
+  std::cout << "Scenario: " << scenario << std::endl;
+
   for (uint32_t bss = 1; bss <= nBss; bss++)
     {
 
       uint32_t bytesReceivedApUplink = 0.0;
       uint32_t bytesReceivedApDownlink = 0.0;
 
-      double rxThroughputPerNode[numNodes];
       uint32_t bssFirstStaIdx = 0;
       bssFirstStaIdx = (n * (bss - 1)) + (nBss);
       uint32_t bssLastStaIdx = 0;
-      bssLastStaIdx = (n * bss) + (nBss - 1);
+      bssLastStaIdx = bssFirstStaIdx + n;
 
       // uplink is the received bytes at the AP
-      bytesReceivedApUplink += bytesReceived[bss];
+      bytesReceivedApUplink += bytesReceived[bss - 1];
 
       // downlink is the sum of the received bytes for the STAs associated with the AP
       for (uint32_t k = bssFirstStaIdx; k < bssLastStaIdx; k++)
         {
           bytesReceivedApDownlink += bytesReceived[k];
-
-          double bitsReceived = bytesReceived[k] * 8;
-          rxThroughputPerNode[k] = static_cast<double> (bitsReceived) / 1e6 / duration;
-          outFile << "Node " << k << ", pkts " << packetsReceived[k] << ", bytes " << bytesReceived[k] << ", throughput [MMb/s] " << rxThroughputPerNode[k] << std::endl;
         }
 
       double tputApUplink = bytesReceivedApUplink * 8 / 1e6 / duration;
       double tputApDownlink = bytesReceivedApDownlink * 8 / 1e6 / duration;
 
       // TODO: debug to print out t-put, can remove
-      std::cout << "Scenario: " << scenario << std::endl;
       std::cout << "Throughput,  AP" << bss << " Uplink   [Mbps] : " << tputApUplink << std::endl;
       std::cout << "Throughput,  AP" << bss << " Downlink [Mbps] : " << tputApDownlink << std::endl;
 
@@ -447,6 +444,15 @@ SaveSpatialReuseStats (const std::string filename,
       outFile << "Spectrum Efficiency, AP" << bss << " Uplink   [Mbps/Hz] : " << tputApUplink / freqHz << std::endl;
       outFile << "Spectrum Efficiency, AP" << bss << " Downlink [Mbps/Hz] : " << tputApDownlink / freqHz << std::endl;
     }
+
+    double rxThroughputPerNode[numNodes];
+    // output for all nodes
+    for (uint32_t k = 0; k < numNodes; k++)
+      {
+        double bitsReceived = bytesReceived[k] * 8;
+        rxThroughputPerNode[k] = static_cast<double> (bitsReceived) / 1e6 / duration;
+        outFile << "Node " << k << ", pkts " << packetsReceived[k] << ", bytes " << bytesReceived[k] << ", throughput [MMb/s] " << rxThroughputPerNode[k] << std::endl;
+      }
 
   outFile << "Avg. RSSI:" << std::endl;
   for (uint32_t rxNodeId = 0; rxNodeId < numNodes; rxNodeId++)
@@ -1316,7 +1322,7 @@ main (int argc, char *argv[])
 
       // AP4
       apDeviceD = wifi.Install (spectrumPhy, mac, ap4);
-      Ptr<WifiNetDevice> ap4Device = apDeviceC.Get (0)->GetObject<WifiNetDevice> ();
+      Ptr<WifiNetDevice> ap4Device = apDeviceD.Get (0)->GetObject<WifiNetDevice> ();
       apWifiMac = ap4Device->GetMac ()->GetObject<ApWifiMac> ();
       if (enableObssPd)
         {
@@ -1374,7 +1380,7 @@ main (int argc, char *argv[])
 
       // AP5
       apDeviceE = wifi.Install (spectrumPhy, mac, ap5);
-      Ptr<WifiNetDevice> ap5Device = apDeviceC.Get (0)->GetObject<WifiNetDevice> ();
+      Ptr<WifiNetDevice> ap5Device = apDeviceE.Get (0)->GetObject<WifiNetDevice> ();
       apWifiMac = ap5Device->GetMac ()->GetObject<ApWifiMac> ();
       if (enableObssPd)
         {
@@ -1423,7 +1429,7 @@ main (int argc, char *argv[])
 
       // AP6
       apDeviceF = wifi.Install (spectrumPhy, mac, ap6);
-      Ptr<WifiNetDevice> ap6Device = apDeviceC.Get (0)->GetObject<WifiNetDevice> ();
+      Ptr<WifiNetDevice> ap6Device = apDeviceF.Get (0)->GetObject<WifiNetDevice> ();
       apWifiMac = ap6Device->GetMac ()->GetObject<ApWifiMac> ();
       if (enableObssPd)
         {
@@ -1461,7 +1467,7 @@ main (int argc, char *argv[])
 
       // AP7
       apDeviceG = wifi.Install (spectrumPhy, mac, ap7);
-      Ptr<WifiNetDevice> ap7Device = apDeviceC.Get (0)->GetObject<WifiNetDevice> ();
+      Ptr<WifiNetDevice> ap7Device = apDeviceG.Get (0)->GetObject<WifiNetDevice> ();
       apWifiMac = ap7Device->GetMac ()->GetObject<ApWifiMac> ();
       if (enableObssPd)
         {
@@ -2265,45 +2271,73 @@ main (int argc, char *argv[])
 
   uplinkServerAppA.Start (Seconds (0.0));
   uplinkServerAppA.Stop (Seconds (duration + applicationTxStart));
-  // client transmissions may start after some delay
   uplinkClientAppA.Start (Seconds (applicationTxStart));
   uplinkClientAppA.Stop (Seconds (duration + applicationTxStart));
 
   uplinkServerAppB.Start (Seconds (0.0));
   uplinkServerAppB.Stop (Seconds (duration + applicationTxStart));
-  // client transmissions may start after some delay
   uplinkClientAppB.Start (Seconds (applicationTxStart));
   uplinkClientAppB.Stop (Seconds (duration + applicationTxStart));
 
   uplinkServerAppC.Start (Seconds (0.0));
   uplinkServerAppC.Stop (Seconds (duration + applicationTxStart));
-  // client transmissions may start after some delay
   uplinkClientAppC.Start (Seconds (applicationTxStart));
   uplinkClientAppC.Stop (Seconds (duration + applicationTxStart));
 
   uplinkServerAppD.Start (Seconds (0.0));
   uplinkServerAppD.Stop (Seconds (duration + applicationTxStart));
-  // client transmissions may start after some delay
   uplinkClientAppD.Start (Seconds (applicationTxStart));
   uplinkClientAppD.Stop (Seconds (duration + applicationTxStart));
 
   uplinkServerAppE.Start (Seconds (0.0));
   uplinkServerAppE.Stop (Seconds (duration + applicationTxStart));
-  // client transmissions may start after some delay
   uplinkClientAppE.Start (Seconds (applicationTxStart));
   uplinkClientAppE.Stop (Seconds (duration + applicationTxStart));
 
   uplinkServerAppF.Start (Seconds (0.0));
   uplinkServerAppF.Stop (Seconds (duration + applicationTxStart));
-  // client transmissions may start after some delay
   uplinkClientAppF.Start (Seconds (applicationTxStart));
   uplinkClientAppF.Stop (Seconds (duration + applicationTxStart));
 
   uplinkServerAppG.Start (Seconds (0.0));
   uplinkServerAppG.Stop (Seconds (duration + applicationTxStart));
-  // client transmissions may start after some delay
   uplinkClientAppG.Start (Seconds (applicationTxStart));
   uplinkClientAppG.Stop (Seconds (duration + applicationTxStart));
+
+  downlinkServerAppA.Start (Seconds (0.0));
+  downlinkServerAppA.Stop (Seconds (duration + applicationTxStart));
+  downlinkClientAppA.Start (Seconds (applicationTxStart));
+  downlinkClientAppA.Stop (Seconds (duration + applicationTxStart));
+
+  downlinkServerAppB.Start (Seconds (0.0));
+  downlinkServerAppB.Stop (Seconds (duration + applicationTxStart));
+  downlinkClientAppB.Start (Seconds (applicationTxStart));
+  downlinkClientAppB.Stop (Seconds (duration + applicationTxStart));
+
+  downlinkServerAppC.Start (Seconds (0.0));
+  downlinkServerAppC.Stop (Seconds (duration + applicationTxStart));
+  downlinkClientAppC.Start (Seconds (applicationTxStart));
+  downlinkClientAppC.Stop (Seconds (duration + applicationTxStart));
+
+  downlinkServerAppD.Start (Seconds (0.0));
+  downlinkServerAppD.Stop (Seconds (duration + applicationTxStart));
+  downlinkClientAppD.Start (Seconds (applicationTxStart));
+  downlinkClientAppD.Stop (Seconds (duration + applicationTxStart));
+
+  downlinkServerAppE.Start (Seconds (0.0));
+  downlinkServerAppE.Stop (Seconds (duration + applicationTxStart));
+  downlinkClientAppE.Start (Seconds (applicationTxStart));
+  downlinkClientAppE.Stop (Seconds (duration + applicationTxStart));
+
+  downlinkServerAppF.Start (Seconds (0.0));
+  downlinkServerAppF.Stop (Seconds (duration + applicationTxStart));
+  downlinkClientAppF.Start (Seconds (applicationTxStart));
+  downlinkClientAppF.Stop (Seconds (duration + applicationTxStart));
+
+  downlinkServerAppG.Start (Seconds (0.0));
+  downlinkServerAppG.Stop (Seconds (duration + applicationTxStart));
+  downlinkClientAppG.Start (Seconds (applicationTxStart));
+  downlinkClientAppG.Stop (Seconds (duration + applicationTxStart));
 
   Config::Connect ("/NodeList/*/DeviceList/*/Phy/MonitorSnifferRx", MakeCallback (&MonitorSniffRx));
 
