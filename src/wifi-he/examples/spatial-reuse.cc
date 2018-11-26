@@ -1422,7 +1422,7 @@ main (int argc, char *argv[])
       spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrAp));
       spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-92.0));
       mac.SetType ("ns3::ApWifiMac",
-                   "Ssid", SsidValue (ssidE),
+                   "Ssid", SsidValue (ssidF),
                    "BE_MaxAmpduSize", UintegerValue(maxAmpduSize));
       // Do we also want to allow Amsdu Size to be modified?
       //              "BE_MaxAmsduSize", UintegerValue(maxAmsduSize));

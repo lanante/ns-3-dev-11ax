@@ -453,8 +453,15 @@ and LAA nodes.
 Study 1 - 802.11ac (baseline)
 =============================
 
-The objective of this scenario is "to capture the issues and be representative
-of real-world deployments with high density of APs and STAs" [TGax15].  
+The objective of the configuration of this scenario is "to capture the issues 
+and be representative of real-world deployments with high density of 
+APs and STAs" [TGax15].  
+
+This simulation study configures the node placements and network simulation
+parameters according to those defined in [TGax15] (see Scenario 3 - Indoor
+BSSs Scenario).  However, to collect baseline measures, Study 1 configures
+all nodes to operate in 802.11ac mode, whereas Study 2 evaluates 802.11ax 
+features.
 
 Topology / Environment Description
 ##################################
@@ -462,17 +469,17 @@ Topology / Environment Description
 BSSs are place a regular and symmetric grid as in Figure X
 for spatial resue with reuse frequency of N=3.
 
-The node positions for Study 1 are given below.
+The node positions for n=5 STAs per BSS in Study 1 are given below.
 
 .. _positions-test-study1:
 
 .. figure:: figures/spatial-reuse-positions-test-study1.*
    :align: center 
 
-   Node positions for Study 1.
+   Node positions for n=5 STAs per BSS in Study 1.
 
 Figure :ref:`positions-test-study1` illustrates the node positions 
-for Study 1.
+for n=5 STAs per BSS in Study 1.
 
 The BSSs are arranged with one BSS of high interest centered in the 
 topology, with six other BSSs surrounding the high-interest BSS and
@@ -480,7 +487,7 @@ arranged in a hexagonal pattern.  As outlined in [TGax15] for the
 Indoor Small BSSs Scenario, STAs are associated with each BSS within 
 a radius of r=10m.  
 
-The figure shown illustrates a scenario in which each BSS has 30 STAs
+The figure shown illustrates a scenario in which each BSS has 5 STAs
 allocated randomly within its dropping radius (solid lines).  Dashed 
 lines indicate nomial Carrier Sense Range (CSR) limits of 15m.
 
@@ -628,6 +635,31 @@ as given earlier):
 
 * latency
 
+To run the Study 1 scenarios, plot results, and transfer those results to the 
+documentation figures, the following scripts should be executed in order:
+
+1) run-spatial-reuse-study1.sh - this generates a script file "./study1.sh".
+
+2) ./study1.sh - this is the script generate by (1), and should be run to generate all results.
+
+3) make-data-files.sh - this creates data files for plotting, from the set of all simulation results.
+
+4) plot-study1.sh - this generates plots of results.
+
+5) plot-study1-ecdf.sh - this generates additional plots (ECDFs) from results.
+
+6) copy-plots-to-doc-figures.sh - this copies a subset of plots generated into
+the doc/figures folder, for inclusion of those results into the documentation
+
+After the above have been executed, the doc/figures folder should contain the newly
+generated plots for inclusion in the documenation.  The documenation can then be
+regeneated, e.g.:
+
+cd doc
+make latexpdf
+
+
+
 Study 1 Results
 ===============
 
@@ -749,9 +781,9 @@ shown below, for the scenario of n=20 nodes, and offered load of 3 Mbps.
 .. figure:: figures/spatial-reuse-rx-sniff-study1-1732-10-20-0003-270-30-ap1-signal.*
    :align: center 
 
-   ECDF of the signal level at the AP for the BSS of interest in the center of the Study 1 parametric study.
+   ECDF of the signal level at the AP for the BSS of interest in the center of the Study 1 parametric study, with n=20 STAs per BSS.
 
-Figure :ref:`study1-20-ap1-signal` illustrates the ECDF of the signal levels received for BSS1.
+Figure :ref:`study1-20-ap1-signal` illustrates the ECDF of the signal levels received for BSS1 with n=20 STAs per BSS..
 
 It is observed that TBD...
 
@@ -765,9 +797,9 @@ shown below, for the scenario of n=20 nodes, and offered load of 3 Mbps.
 .. figure:: figures/spatial-reuse-rx-sniff-study1-1732-10-20-0003-270-30-ap1-noise.*
    :align: center 
 
-   ECDF of the noise level at the AP for the BSS of interest in the center of the Study 1 parametric study.
+   ECDF of the noise level at the AP for the BSS of interest in the center of the Study 1 parametric study, with n=20 STAs per BSS..
 
-Figure :ref:`study1-20-ap1-signal` illustrates the ECDF of the noise levels at BSS1.
+Figure :ref:`study1-20-ap1-signal` illustrates the ECDF of the noise levels at BSS1 with n=20 STAs per BSS.
 
 It is observed that TBD...
 
@@ -918,4 +950,11 @@ Latency
 (Here there will be a figure of the average latency as a function of 
 offered load.  There will be a separate line for each combination of 
 n STAs - i.e., n=5, n=10, n=15, ..., n=40).
+
+Other things to do:
+===================
+
+* BLOCK ACK restart preventing several nodes from receiving packets
+
+* add latency plots
 
