@@ -191,7 +191,7 @@ LbtAccessManagerEdThresholdTest::DoRun (void)
 
   // Send a packet above threshold and see if it causes Lbt state to go BUSY
   // just for the duration of the packet, then return to IDLE
-  m_phy->SetAttribute ("CcaMode1Threshold", DoubleValue (-62.0));
+  m_phy->SetAttribute ("CcaEdThreshold", DoubleValue (-62.0));
   Simulator::Schedule (Seconds (1), &LbtAccessManagerEdThresholdTest::SendSignal, this, txPowerWatts);
   Simulator::Schedule (MicroSeconds (1001399), &LbtAccessManagerEdThresholdTest::CheckState, this, LbtAccessManager::BUSY);
   Simulator::Schedule (MicroSeconds (1001401), &LbtAccessManagerEdThresholdTest::CheckState, this, LbtAccessManager::IDLE);

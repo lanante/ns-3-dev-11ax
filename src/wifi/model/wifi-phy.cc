@@ -184,15 +184,24 @@ WifiPhy::GetTypeId (void)
     .AddAttribute ("EnergyDetectionThreshold",
                    "The energy of a received signal should be higher than "
                    "this threshold (dbm) to allow the PHY layer to detect the signal.",
-                   DoubleValue (-96.0),
+                   DoubleValue (-101.0),
                    MakeDoubleAccessor (&WifiPhy::SetEdThreshold),
-                   MakeDoubleChecker<double> ())
-    .AddAttribute ("CcaMode1Threshold",
+                   MakeDoubleChecker<double> (),
+                   TypeId::DEPRECATED, "Replaced by RxSensitivity, this attribute has no effect.")
+    .AddAttribute ("RxSensitivity",
                    "The energy of a received signal should be higher than "
-                   "this threshold (dbm) to allow the PHY layer to declare CCA BUSY state.",
-                   DoubleValue (-99.0),
-                   MakeDoubleAccessor (&WifiPhy::SetCcaMode1Threshold,
-                                       &WifiPhy::GetCcaMode1Threshold),
+                   "this threshold (dBm) for the PHY to detect the signal.",
+                   DoubleValue (-101.0),
+                   MakeDoubleAccessor (&WifiPhy::SetRxSensitivity,
+                                       &WifiPhy::GetRxSensitivity),
+                   MakeDoubleChecker<double> ())
+    .AddAttribute ("CcaEdThreshold",
+                   "The energy of a non Wi-Fi received signal should be higher than "
+                   "this threshold (dbm) to allow the PHY layer to declare CCA BUSY state. "
+                   "This check is performed on the 20 MHz primary channel only.",
+                   DoubleValue (-62.0),
+                   MakeDoubleAccessor (&WifiPhy::SetCcaEdThreshold,
+                                       &WifiPhy::GetCcaEdThreshold),
                    MakeDoubleChecker<double> ())
     .AddAttribute ("CcaCsThreshold",
                    "CCA-CS (carrier sense) threshold (dBm); the minimum modulation and coding "
@@ -429,6 +438,12 @@ WifiPhy::DoInitialize (void)
   InitializeFrequencyChannelNumber ();
 }
 
+Ptr<WifiPhyStateHelper>
+WifiPhy::GetState (void) const
+{
+  return m_state;
+}
+
 void
 WifiPhy::SetReceiveOkCallback (RxOkCallback callback)
 {
@@ -490,27 +505,33 @@ WifiPhy::InitializeFrequencyChannelNumber (void)
 void
 WifiPhy::SetEdThreshold (double threshold)
 {
-  NS_LOG_FUNCTION (this << threshold);
-  m_edThresholdW = DbmToW (threshold);
-}
-
-double
-WifiPhy::GetEdThreshold (void) const
-{
-  return WToDbm (m_edThresholdW);
+  SetRxSensitivity (threshold);
 }
 
 void
-WifiPhy::SetCcaMode1Threshold (double threshold)
+WifiPhy::SetRxSensitivity (double threshold)
 {
   NS_LOG_FUNCTION (this << threshold);
-  m_ccaMode1ThresholdW = DbmToW (threshold);
+  m_rxSensitivityW = DbmToW (threshold);
 }
 
 double
-WifiPhy::GetCcaMode1Threshold (void) const
+WifiPhy::GetRxSensitivity (void) const
 {
-  return WToDbm (m_ccaMode1ThresholdW);
+  return WToDbm (m_rxSensitivityW);
+}
+
+void
+WifiPhy::SetCcaEdThreshold (double threshold)
+{
+  NS_LOG_FUNCTION (this << threshold);
+  m_ccaEdThresholdW = DbmToW (threshold);
+}
+
+double
+WifiPhy::GetCcaEdThreshold (void) const
+{
+  return WToDbm (m_ccaEdThresholdW);
 }
 
 void
@@ -1686,7 +1707,7 @@ WifiPhy::ResumeFromSleep (void)
     case WifiPhyState::SLEEP:
       {
         NS_LOG_DEBUG ("resuming from sleep mode");
-        Time delayUntilCcaEnd = m_interference.GetEnergyDuration (m_ccaMode1ThresholdW);
+        Time delayUntilCcaEnd = m_interference.GetEnergyDuration (m_ccaEdThresholdW);
         m_state->SwitchFromSleep (delayUntilCcaEnd);
         break;
       }
@@ -1717,7 +1738,7 @@ WifiPhy::ResumeFromOff (void)
     case WifiPhyState::OFF:
       {
         NS_LOG_DEBUG ("resuming from off mode");
-        Time delayUntilCcaEnd = m_interference.GetEnergyDuration (DbmToW (GetCcaMode1Threshold ()));
+        Time delayUntilCcaEnd = m_interference.GetEnergyDuration (DbmToW (GetCcaEdThreshold ()));
         m_state->SwitchFromOff (delayUntilCcaEnd);
         break;
       }
@@ -2447,13 +2468,23 @@ WifiPhy::SendPacket (Ptr<const Packet> packet, WifiTxVector txVector, MpduType m
   Time txDuration = CalculateTxDuration (packet->GetSize (), txVector, GetFrequency (), mpdutype, 1);
   NS_ASSERT (txDuration.IsStrictlyPositive ());
 
-  if ((m_state->IsStateRx ()) || (m_state->IsStateIdle ()))
+  if (m_endPlcpRxEvent.IsRunning ())
     {
       m_endPlcpRxEvent.Cancel ();
+    }
+  if (m_endRxEvent.IsRunning ())
+    {
       m_endRxEvent.Cancel ();
+    }
+  if (m_endPacketDetectionEvent.IsRunning ())
+    {
       m_endPacketDetectionEvent.Cancel ();
+    }
+  if (m_state->IsStateRx ())
+    {
       m_interference.NotifyRxEnd ();
     }
+
   NotifyTxBegin (packet);
   if ((mpdutype == MPDU_IN_AGGREGATE) && (txVector.GetPreambleType () != WIFI_PREAMBLE_NONE))
     {
@@ -2505,7 +2536,7 @@ WifiPhy::SendPacket (Ptr<const Packet> packet, WifiTxVector txVector, MpduType m
 void
 WifiPhy::StartReceivePreambleAndHeader (Ptr<Packet> packet, double rxPowerW, Time rxDuration)
 {
-  NS_LOG_FUNCTION (this);
+  NS_LOG_FUNCTION (this << packet << rxPowerW << rxDuration);
   WifiPhyTag tag;
   bool found = packet->RemovePacketTag (tag);
   if (!found)
@@ -2642,7 +2673,7 @@ WifiPhy::MaybeCcaBusyDuration ()
   //In this model, CCA becomes busy when the aggregation of all signals as
   //tracked by the InterferenceHelper class is higher than the CcaBusyThreshold
 
-  Time delayUntilCcaEnd = m_interference.GetEnergyDuration (DbmToW (GetCcaMode1Threshold ()));
+  Time delayUntilCcaEnd = m_interference.GetEnergyDuration (DbmToW (GetCcaEdThreshold ()));
   if (!delayUntilCcaEnd.IsZero ())
     {
       m_state->SwitchMaybeToCcaBusy (delayUntilCcaEnd);
@@ -3806,7 +3837,7 @@ WifiPhy::SwitchMaybeToCcaBusy (void)
   //In this model, CCA becomes busy when the aggregation of all signals as
   //tracked by the InterferenceHelper class is higher than the CcaBusyThreshold
 
-  Time delayUntilCcaEnd = m_interference.GetEnergyDuration (DbmToW (GetCcaMode1Threshold ()));
+  Time delayUntilCcaEnd = m_interference.GetEnergyDuration (DbmToW (GetCcaEdThreshold ()));
   if (!delayUntilCcaEnd.IsZero ())
     {
       NS_LOG_DEBUG ("Calling SwitchMaybeToCcaBusy for " << delayUntilCcaEnd.As (Time::S));
@@ -3849,92 +3880,82 @@ void
 WifiPhy::StartRx (Ptr<Packet> packet, WifiTxVector txVector, MpduType mpdutype, double rxPowerW, Time rxDuration, Ptr<Event> event)
 {
   NS_LOG_FUNCTION (this << packet << txVector << +mpdutype << rxPowerW << rxDuration);
-  if (rxPowerW > m_edThresholdW) //checked here, no need to check in the payload reception (current implementation assumes constant rx power over the packet duration)
+
+  AmpduTag ampduTag;
+  WifiPreamble preamble = txVector.GetPreambleType ();
+  if (preamble == WIFI_PREAMBLE_NONE && (m_mpdusNum == 0 || m_plcpSuccess == false))
     {
-      AmpduTag ampduTag;
-      WifiPreamble preamble = txVector.GetPreambleType ();
-      if (preamble == WIFI_PREAMBLE_NONE && (m_mpdusNum == 0 || m_plcpSuccess == false))
-        {
-          m_plcpSuccess = false;
-          m_mpdusNum = 0;
-          NS_LOG_DEBUG ("drop packet because no PLCP preamble/header has been received");
-          NotifyRxDrop (packet);
-          MaybeCcaBusyDuration ();
-          return;
-        }
-      else if (preamble != WIFI_PREAMBLE_NONE && packet->PeekPacketTag (ampduTag) && m_mpdusNum == 0)
-        {
-          //received the first MPDU in an MPDU
-          m_mpdusNum = ampduTag.GetRemainingNbOfMpdus ();
-          m_rxMpduReferenceNumber++;
-        }
-      else if (preamble == WIFI_PREAMBLE_NONE && packet->PeekPacketTag (ampduTag) && m_mpdusNum > 0)
-        {
-          //received the other MPDUs that are part of the A-MPDU
-          if (ampduTag.GetRemainingNbOfMpdus () < (m_mpdusNum - 1))
-            {
-              NS_LOG_DEBUG ("Missing MPDU from the A-MPDU " << m_mpdusNum - ampduTag.GetRemainingNbOfMpdus ());
-              m_mpdusNum = ampduTag.GetRemainingNbOfMpdus ();
-            }
-          else
-            {
-              m_mpdusNum--;
-            }
-        }
-      else if (preamble != WIFI_PREAMBLE_NONE && packet->PeekPacketTag (ampduTag) && m_mpdusNum > 0)
-        {
-          NS_LOG_DEBUG ("New A-MPDU started while " << m_mpdusNum << " MPDUs from previous are lost");
-          m_mpdusNum = ampduTag.GetRemainingNbOfMpdus ();
-        }
-      else if (preamble != WIFI_PREAMBLE_NONE && m_mpdusNum > 0 )
-        {
-          NS_LOG_DEBUG ("Didn't receive the last MPDUs from an A-MPDU " << m_mpdusNum);
-          m_mpdusNum = 0;
-        }
-
-      NS_LOG_DEBUG ("sync to signal (power=" << rxPowerW << "W)");
-      m_currentEvent = event;
-      if (preamble == WIFI_PREAMBLE_NONE)
-        {
-          m_state->SwitchToRx (rxDuration);
-        }
-      NS_ASSERT (m_endPlcpRxEvent.IsExpired ());
-      NotifyRxBegin (packet);
-      m_interference.NotifyRxStart ();
-
-      if (preamble != WIFI_PREAMBLE_NONE)
-        {
-          NS_ASSERT (m_endPlcpRxEvent.IsExpired ());
-
-          if (m_endPacketDetectionEvent.IsRunning ())
-            {
-              m_endPacketDetectionEvent.Cancel ();
-            }
-
-          NS_ASSERT (m_endPacketDetectionEvent.IsExpired ());
-          // Actual packet detection starts only if preamble is successfully detected.
-          Time startOfPacketDuration = GetStartOfPacketDuration (txVector);
-          Time residualRxDuration = rxDuration - startOfPacketDuration;
-          m_endPacketDetectionEvent = Simulator::Schedule (startOfPacketDuration, &WifiPhy::PacketDetection, this,
-                                                    packet, txVector, mpdutype, event, residualRxDuration);
-          if (m_endRxEvent.IsRunning ())
-            {
-              m_endRxEvent.Cancel ();
-            }
-        }
-
-      NS_ASSERT (m_endRxEvent.IsExpired ());
-      m_endRxEvent = Simulator::Schedule (rxDuration, &WifiPhy::EndReceive, this,
-                                          packet, preamble, mpdutype, event);
-    }
-  else
-    {
-      NS_LOG_DEBUG ("drop packet because signal power too Small (" <<
-                    rxPowerW << "<" << m_edThresholdW << ")");
-      NotifyRxDrop (packet);
       m_plcpSuccess = false;
+      m_mpdusNum = 0;
+      NS_LOG_DEBUG ("drop packet because no PLCP preamble/header has been received");
+      NotifyRxDrop (packet);
       MaybeCcaBusyDuration ();
+      return;
     }
+  else if (preamble != WIFI_PREAMBLE_NONE && packet->PeekPacketTag (ampduTag) && m_mpdusNum == 0)
+    {
+      //received the first MPDU in an MPDU
+      m_mpdusNum = ampduTag.GetRemainingNbOfMpdus ();
+      m_rxMpduReferenceNumber++;
+    }
+  else if (preamble == WIFI_PREAMBLE_NONE && packet->PeekPacketTag (ampduTag) && m_mpdusNum > 0)
+    {
+      //received the other MPDUs that are part of the A-MPDU
+      if (ampduTag.GetRemainingNbOfMpdus () < (m_mpdusNum - 1))
+        {
+          NS_LOG_DEBUG ("Missing MPDU from the A-MPDU " << m_mpdusNum - ampduTag.GetRemainingNbOfMpdus ());
+          m_mpdusNum = ampduTag.GetRemainingNbOfMpdus ();
+        }
+      else
+        {
+          m_mpdusNum--;
+        }
+    }
+  else if (preamble != WIFI_PREAMBLE_NONE && packet->PeekPacketTag (ampduTag) && m_mpdusNum > 0)
+    {
+      NS_LOG_DEBUG ("New A-MPDU started while " << m_mpdusNum << " MPDUs from previous are lost");
+      m_mpdusNum = ampduTag.GetRemainingNbOfMpdus ();
+    }
+  else if (preamble != WIFI_PREAMBLE_NONE && m_mpdusNum > 0 )
+    {
+      NS_LOG_DEBUG ("Didn't receive the last MPDUs from an A-MPDU " << m_mpdusNum);
+      m_mpdusNum = 0;
+    }
+
+  NS_LOG_DEBUG ("sync to signal (power=" << rxPowerW << "W)");
+  m_currentEvent = event;
+  if (preamble == WIFI_PREAMBLE_NONE)
+    {
+      m_state->SwitchToRx (rxDuration);
+    }
+  NS_ASSERT (m_endPlcpRxEvent.IsExpired ());
+  NotifyRxBegin (packet);
+  m_interference.NotifyRxStart ();
+
+  if (preamble != WIFI_PREAMBLE_NONE)
+    {
+      NS_ASSERT (m_endPlcpRxEvent.IsExpired ());
+
+      if (m_endPacketDetectionEvent.IsRunning ())
+        {
+          m_endPacketDetectionEvent.Cancel ();
+        }
+
+      NS_ASSERT (m_endPacketDetectionEvent.IsExpired ());
+      // Actual packet detection starts only if preamble is successfully detected.
+      Time startOfPacketDuration = GetStartOfPacketDuration (txVector);
+      Time residualRxDuration = rxDuration - startOfPacketDuration;
+      m_endPacketDetectionEvent = Simulator::Schedule (startOfPacketDuration, &WifiPhy::PacketDetection, this,
+                                                       packet, txVector, mpdutype, event, residualRxDuration);
+      if (m_endRxEvent.IsRunning ())
+        {
+          m_endRxEvent.Cancel ();
+        }
+    }
+
+  NS_ASSERT (m_endRxEvent.IsExpired ());
+  m_endRxEvent = Simulator::Schedule (rxDuration, &WifiPhy::EndReceive, this,
+                                      packet, preamble, mpdutype, event);
 }
 
 int64_t

@@ -231,7 +231,7 @@ LbtAccessManager::SetWifiPhy (Ptr<SpectrumWifiPhy> phy)
   // Configure the WifiPhy to treat each incoming signal as a foreign signal
   // (energy detection only)
   m_wifiPhy->SetAttribute ("DisableWifiReception", BooleanValue (true));
-  m_wifiPhy->SetAttribute ("CcaMode1Threshold", DoubleValue (m_edThreshold));
+  m_wifiPhy->SetAttribute ("CcaEdThreshold", DoubleValue (m_edThreshold));
   // Initialization of post-attribute-construction variables can be done here
   m_cw = m_cwMin;
 }
