@@ -455,7 +455,7 @@ public:
    */
   void NotifyTxAmpdu (Ptr<const Packet>, const WifiMacHeader &);
   /**
-   * This function announces the start of an Block ACK receptionn.
+   * This function announces the start of an Block ACK reception.
    */
   void NotifyRxBlockAck (Ptr<const Packet>, const WifiMacHeader &);
   //TODO
