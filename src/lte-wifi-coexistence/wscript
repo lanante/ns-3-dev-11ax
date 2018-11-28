@@ -7,7 +7,7 @@
 #     conf.check_nonfatal(header_name='stdint.h', define_name='HAVE_STDINT_H')
 
 def build(bld):
-    module = bld.create_ns3_module('lte-wifi-coexistence', ['lte','spectrum', 'wifi', 'internet-apps', 'flow-monitor', 'wifi-he'])
+    module = bld.create_ns3_module('lte-wifi-coexistence', ['lte','spectrum', 'wifi', 'internet-apps', 'flow-monitor'])
     module.source = [
         'helper/lte-wifi-coexistence-helper.cc',
         'helper/scenario-helper.cc',
