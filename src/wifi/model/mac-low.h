@@ -38,9 +38,11 @@
 
 class TwoLevelAggregationTest;
 class AmpduAggregationTest;
+class HeAggregationTest;
 
 namespace ns3 {
 
+class WifiMac;
 class WifiPhy;
 class Txop;
 class QosTxop;
@@ -61,8 +63,9 @@ class MacLow : public Object
 public:
   /// Allow test cases to access private members
   friend class ::TwoLevelAggregationTest;
-  /// Allow test cases to access private members
   friend class ::AmpduAggregationTest;
+  friend class ::HeAggregationTest;
+
   /**
    * typedef for a callback for MacLowRx
    */
@@ -91,6 +94,12 @@ public:
    * Remove WifiPhy associated with this MacLow.
    */
   void ResetPhy (void);
+  /**
+   * Set up WifiMac associated with this MacLow.
+   *
+   * \param mac WifiMac associated with this MacLow
+   */
+  void SetMac (const Ptr<WifiMac> mac);
   /**
    * Set up WifiRemoteStationManager associated with this MacLow.
    *
@@ -409,17 +418,6 @@ public:
    */
   void DeaggregateAmpduAndReceive (Ptr<Packet> aggregatedPacket, double rxSnr, double rxPower, WifiTxVector txVector);
   /**
-   * \param peekedPacket the packet to be aggregated
-   * \param peekedHdr the WifiMacHeader for the packet.
-   * \param aggregatedPacket the current A-MPDU
-   * \param blockAckSize the size of a piggybacked block ack request
-   * \return false if the given packet can be added to an A-MPDU, true otherwise
-   *
-   * This function decides if a given packet can be added to an A-MPDU or not
-   *
-   */
-  bool StopMpduAggregation (Ptr<const Packet> peekedPacket, WifiMacHeader peekedHdr, Ptr<Packet> aggregatedPacket, uint8_t blockAckSize) const;
-  /**
    *
    * This function is called to flush the aggregate queue, which is used for A-MPDU
    * \param tid the Traffic ID
@@ -460,6 +458,10 @@ public:
    * This function announces the start of an Block ACK receptionn.
    */
   void NotifyRxBlockAck (Ptr<const Packet>, const WifiMacHeader &);
+  //TODO
+  uint16_t GetMaxAmsduSize (AcIndex ac) const;
+  //TODO
+  uint32_t GetMaxAmpduSize (AcIndex ac) const;
 
   /**
    * TracedCallback signature for Start Tx A-MPDU events
@@ -504,6 +506,17 @@ private:
    * \param mpdutype the MPDU type
    */
   void SendMpdu (Ptr<const Packet> packet, WifiTxVector txVector, MpduType mpdutype);
+  /**
+   * \param peekedPacket the packet to be aggregated
+   * \param peekedHdr the WifiMacHeader for the packet.
+   * \param aggregatedPacket the current A-MPDU
+   * \param blockAckSize the size of a piggybacked block ack request
+   * \return false if the given packet can be added to an A-MPDU, true otherwise
+   *
+   * This function decides if a given packet can be added to an A-MPDU or not
+   *
+   */
+  bool StopMpduAggregation (Ptr<const Packet> peekedPacket, WifiMacHeader peekedHdr, Ptr<Packet> aggregatedPacket, uint8_t blockAckSize) const;
   /**
    * Return a TXVECTOR for the RTS frame given the destination.
    * The function consults WifiRemoteStationManager, which controls the rate
@@ -825,8 +838,8 @@ private:
    * \param blockAckReqTxVector the transmit vector
    * \param rxSnr the receive SNR
    */
-  void SendBlockAckAfterAmpdu (uint8_t tid, Mac48Address originator,
-                               Time duration, WifiTxVector blockAckReqTxVector, double rxSnr);
+  void SendBlockAckAfterAmpdu (uint8_t tid, Mac48Address originator, Time duration,
+                               WifiTxVector blockAckReqTxVector, double rxSnr);
   /**
    * This method creates block ack frame with header equals to <i>blockAck</i> and start its transmission.
    *
@@ -893,6 +906,7 @@ private:
   Ptr<Packet> PerformMsduAggregation (Ptr<const Packet> packet, WifiMacHeader *hdr, Time *tstamp, Ptr<Packet> currentAmpduPacket, uint8_t blockAckSize);
 
   Ptr<WifiPhy> m_phy; //!< Pointer to WifiPhy (actually send/receives frames)
+  Ptr<WifiMac> m_mac; //!< Pointer to WifiMac (to fetch configuration)
   Ptr<WifiRemoteStationManager> m_stationManager; //!< Pointer to WifiRemoteStationManager (rate control)
   MacLowRxCallback m_rxCallback; //!< Callback to pass packet up
 

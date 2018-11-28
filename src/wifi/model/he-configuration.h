@@ -46,6 +46,14 @@ public:
    * \return the supported HE guard interval
    */
   Time GetGuardInterval (void) const;
+  /**
+   * \param size the MPDU buffer size to receive A-MPDUs
+   */
+  void SetMpduBufferSize (uint16_t size);
+  /**
+   * \return the MPDU buffer size to receive A-MPDUs
+   */
+  uint16_t GetMpduBufferSize (void) const;
 
 private:
   uint8_t m_bssColor; //!< BSS color
@@ -53,6 +61,17 @@ private:
   double m_obssPdThreshold;  //!< OBSS_PD threshold (dBm)
   double m_obssPdThresholdMin; //!< OBSS_PD threshold minimum (dBm)
   double m_obssPdThresholdMax; //!< OBSS_PD threshold maximum (dBm)
+  uint16_t m_mpduBufferSize; //!< MPDU buffer size
+
+  uint16_t m_voMaxAmsduSize; ///< maximum A-MSDU size for AC_VO
+  uint16_t m_viMaxAmsduSize; ///< maximum A-MSDU size for AC_VI
+  uint16_t m_beMaxAmsduSize; ///< maximum A-MSDU size for AC_BE
+  uint16_t m_bkMaxAmsduSize; ///< maximum A-MSDU size for AC_BK
+
+  uint32_t m_voMaxAmpduSize; ///< maximum A-MPDU size for AC_VO
+  uint32_t m_viMaxAmpduSize; ///< maximum A-MPDU size for AC_VI
+  uint32_t m_beMaxAmpduSize; ///< maximum A-MPDU size for AC_BE
+  uint32_t m_bkMaxAmpduSize; ///< maximum A-MPDU size for AC_BK
 };
 
 } //namespace ns3
