@@ -681,40 +681,51 @@ of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
 
 Figure :ref:`throughput-study1` illustrates the system throughput for BSS1.
 
-It is observed that TBD...
+It is observed that system throughput increases as offered load increases, and plateaus
+generally in the range of 0.25 - 0.35 Mbps.  Furthermore, system throughput decreases
+as the number of nodes, n, per BSS increases.
 
-Distribution of Node Contributions to System Throughput
-#######################################################
+Distribution of Node Contributions to Downlink Throughput
+#########################################################
 
-The ECDF of node contributions to system throughput for the offered load of
+Total throughput of the system is divided into uplink and downlink portions.
+The downlink portions (from the AP to  the STAs) are then further divided equally
+among the STAs.  For example, for a total system throughput target of 0.6 Mbps
+per BSS that is divided into 90% uplink and 10% downlink, then 0.6 Mbps x 0.1 = 0.06 Mbps
+is allocated in downlink traffic.  If there are 5 STAs in the BSS, then the AP 
+attemps to deliver 0.06 Mbps / 5 = 0.012 Mbps from the AP to each of the 5 STAs.
+However, the packet performance measure of each STA, in terms of actual downlink 
+throughput, may vary from one STA to another.  The per-STA performance of the 
+ability to successfully receive packets is a measure that can provide insights
+into the distribution of the behaviors among the nodes.
+
+The ECDF of node contributions to downlink throughput for the offered load of
 3 Mbps is shown below for cases of n=5 and n=20 nodes.
 
 .
 
 .. _study1-05-ecdf:
 
-.. figure:: figures/study1-1732-10-05-0003-270-30-ap1-ecdf.*
+.. figure:: figures/study1-1732-10-05-0.6-54-6-ap1-ecdf.*
    :align: center 
 
-   ECDF of node contributions to system throughput for n=5 nodes and offered load of 3 Mbps.
+   ECDF of node contributions to downlink throughput for n=5 nodes and offered load of 3 Mbps.
 
-Figure :ref:`study1-05-ecdf` illustrates the ECDF of node contributions to system throughput for n=5 nodes.
+Figure :ref:`study1-05-ecdf` illustrates the ECDF of node contributions to downlink throughput for n=5 nodes.
 
+It is observed that the throughput per node varies, and that no nodes received 0 packets.
 .
 
 .. _study1-20-ecdf:
 
-.. figure:: figures/study1-1732-10-20-0003-270-30-ap1-ecdf.*
+.. figure:: figures/study1-1732-10-20-0.6-54-6-ap1-ecdf.*
    :align: center 
 
-   ECDF of node contributions to system throughput for n=20 nodes and offered load of 3 Mbps.
+   ECDF of node contributions to downlink throughput for n=20 nodes and offered load of 3 Mbps.
 
-Figure :ref:`study1-20-ecdf` illustrates the ECDF of node contributions to system throughput for n=20 nodes.
+Figure :ref:`study1-20-ecdf` illustrates the ECDF of node contributions to downlink throughput for n=20 nodes.
 
-It is observed that a majority of the nodes generated no traffic
-that contributed to total system throughput.
-
-This is likely due to the BLOCK ACK issue.
+It is observed that the throughput per node varies, and that a small number of nodes received 0 packets.
 
 Area Capacity
 #############
@@ -778,7 +789,7 @@ shown below, for the scenario of n=20 nodes, and offered load of 3 Mbps.
 
 .. _study1-20-ap1-signal:
 
-.. figure:: figures/spatial-reuse-rx-sniff-study1-1732-10-20-0003-270-30-ap1-signal.*
+.. figure:: figures/spatial-reuse-rx-sniff-study1-1732-10-20-0.6-54-6-ap1-signal.*
    :align: center 
 
    ECDF of the signal level at the AP for the BSS of interest in the center of the Study 1 parametric study, with n=20 STAs per BSS.
@@ -794,7 +805,7 @@ shown below, for the scenario of n=20 nodes, and offered load of 3 Mbps.
 
 .. _study1-20-ap1-noise:
 
-.. figure:: figures/spatial-reuse-rx-sniff-study1-1732-10-20-0003-270-30-ap1-noise.*
+.. figure:: figures/spatial-reuse-rx-sniff-study1-1732-10-20-0.6-54-6-ap1-noise.*
    :align: center 
 
    ECDF of the noise level at the AP for the BSS of interest in the center of the Study 1 parametric study, with n=20 STAs per BSS..
@@ -953,8 +964,6 @@ n STAs - i.e., n=5, n=10, n=15, ..., n=40).
 
 Other things to do:
 ===================
-
-* BLOCK ACK restart preventing several nodes from receiving packets
 
 * add latency plots
 

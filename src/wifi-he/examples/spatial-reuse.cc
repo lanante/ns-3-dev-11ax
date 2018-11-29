@@ -717,8 +717,9 @@ main (int argc, char *argv[])
   cmd.AddValue ("txStartOffset", "N(0, mu) offset for each node's start of packet transmission.  Default mu=5 [ns]", txStartOffset);
   cmd.AddValue ("obssPdThreshold", "Energy threshold (dBm) of received signal below which the PHY layer can avoid declaring CCA BUSY for inter-BSS frames.", obssPdThreshold);
   cmd.AddValue ("obssPdThresholdMin", "Minimum value (dBm) of OBSS_PD threshold.", obssPdThresholdMin);
+  cmd.AddValue ("obssPdThresholdMax", "Maximum value (dBm) of OBSS_PD threshold.", obssPdThresholdMax);
   cmd.AddValue ("checkTimings", "Perform TGax timings checks (for MAC simulation calibrations).", performTgaxTimingChecks);
-  cmd.AddValue ("scenario", "The spatial-reuse scenario (residential, enterprise, indoor, outdoor, study1).", scenario);
+  cmd.AddValue ("scenario", "The spatial-reuse scenario (residential, enterprise, indoor, outdoor, study1, study2).", scenario);
   cmd.AddValue ("nBss", "The number of BSSs.  Can be either 1 or 2 (default).", nBss);
   cmd.AddValue ("maxAmpduSize", "The maximum A-MPDU size (bytes).", maxAmpduSize);
   cmd.AddValue ("nodePositionsFile", "Node positions file, ns-2 format for Ns2MobilityHelper.", nodePositionsFile);
@@ -726,7 +727,7 @@ main (int argc, char *argv[])
   cmd.AddValue ("enableAscii", "Enable ASCII trace file generation.", enableAscii);
   cmd.Parse (argc, argv);
 
-  if (scenario == "study1")
+  if ((scenario == "study1") || (scenario == "study2"))
     {
       nBss = 7;
     }
@@ -963,7 +964,7 @@ main (int argc, char *argv[])
   nodesA.Add (ap1);
   nodesA.Add (stasA);
 
-  if ((nBss >= 2) || (scenario == "study1"))
+  if ((nBss >= 2) || (scenario == "study1") || (scenario == "study2"))
     {
       ap2 = CreateObject<Node> ();
       // network "B"
@@ -978,7 +979,7 @@ main (int argc, char *argv[])
       nodesB.Add (stasB);
     }
 
-  if ((nBss >= 3) || (scenario == "study1"))
+  if ((nBss >= 3) || (scenario == "study1") || (scenario == "study2"))
     {
       ap3 = CreateObject<Node> ();
       // network "C"
@@ -993,7 +994,7 @@ main (int argc, char *argv[])
       nodesC.Add (stasC);
     }
 
-  if ((nBss >= 4) || (scenario == "study1"))
+  if ((nBss >= 4) || (scenario == "study1") || (scenario == "study2"))
     {
       ap4 = CreateObject<Node> ();
       // network "D"
@@ -1008,7 +1009,7 @@ main (int argc, char *argv[])
       nodesD.Add (stasD);
     }
 
-  if (scenario == "study1")
+  if ((scenario == "study1") || (scenario == "study2"))
     {
       ap5 = CreateObject<Node> ();
       // network "E"
@@ -1082,7 +1083,7 @@ main (int argc, char *argv[])
       Ptr<Ieee80211axIndoorPropagationLossModel> lossModel = CreateObject<Ieee80211axIndoorPropagationLossModel> ();
       spectrumChannel->AddPropagationLossModel (lossModel);
     }
-  else if ((scenario == "indoor") || (scenario == "study1"))
+  else if ((scenario == "indoor") || (scenario == "study1") || (scenario == "study2"))
     {
       Config::SetDefault ("ns3::Ieee80211axIndoorPropagationLossModel::DistanceBreakpoint", DoubleValue (10.0));
       Config::SetDefault ("ns3::Ieee80211axIndoorPropagationLossModel::Walls", DoubleValue (0.0));
@@ -1174,7 +1175,7 @@ main (int argc, char *argv[])
 
   NetDeviceContainer apDeviceB;
   NetDeviceContainer staDevicesB;
-  if ((nBss >= 2) || (scenario == "study1"))
+  if ((nBss >= 2) || (scenario == "study1") || (scenario == "study2"))
     {
       // Set PHY power and CCA threshold for STAs
       spectrumPhy.Set ("TxPowerStart", DoubleValue (powSta));
@@ -1228,7 +1229,7 @@ main (int argc, char *argv[])
 
   NetDeviceContainer apDeviceC;
   NetDeviceContainer staDevicesC;
-  if ((nBss >= 3) || (scenario == "study1"))
+  if ((nBss >= 3) || (scenario == "study1") || (scenario == "study2"))
     {
       // Set PHY power and CCA threshold for STAs
       spectrumPhy.Set ("TxPowerStart", DoubleValue (powSta));
@@ -1282,7 +1283,7 @@ main (int argc, char *argv[])
 
   NetDeviceContainer apDeviceD;
   NetDeviceContainer staDevicesD;
-  if ((nBss >= 4) || (scenario == "study1"))
+  if ((nBss >= 4) || (scenario == "study1") || (scenario == "study2"))
     {
       // Set PHY power and CCA threshold for STAs
       spectrumPhy.Set ("TxPowerStart", DoubleValue (powSta));
@@ -1340,7 +1341,7 @@ main (int argc, char *argv[])
   NetDeviceContainer staDevicesF;
   NetDeviceContainer apDeviceG;
   NetDeviceContainer staDevicesG;
-  if (scenario == "study1")
+  if ((scenario == "study1") || (scenario == "study2"))
     {
       // Set PHY power and CCA threshold for STAs
       spectrumPhy.Set ("TxPowerStart", DoubleValue (powSta));
@@ -1499,7 +1500,7 @@ main (int argc, char *argv[])
 
 
   // bounding box
-  if (scenario != "study1")
+  if ((scenario != "study1") && (scenario != "study2"))
     {
       double boundingBoxExtension = 10.0;
       positionOutFile << -(r + boundingBoxExtension) <<      ", " << -d + -r - boundingBoxExtension << std::endl;
@@ -1565,7 +1566,7 @@ main (int argc, char *argv[])
       // since the post-processnig script expects there to be something here.
       positionOutFile << d << ", " << 0 << std::endl;
     }
-  else if (scenario == "study1")
+  else if ((scenario == "study1") || (scenario == "study2"))
     {
       double x1 = 0.0;
       double y1 = 0.0;
@@ -2071,7 +2072,7 @@ main (int argc, char *argv[])
         }
     }
 
-  if (((payloadSizeUplink > 0) || (payloadSizeDownlink > 0)) && ((nBss >= 2) || (scenario == "study1")))
+  if (((payloadSizeUplink > 0) || (payloadSizeDownlink > 0)) && ((nBss >= 2) || (scenario == "study1") || (scenario == "study2")))
     {
       // BSS 2
 
@@ -2105,7 +2106,7 @@ main (int argc, char *argv[])
         }
     }
 
-  if (((payloadSizeUplink > 0) || (payloadSizeDownlink > 0)) && ((nBss >= 3) || (scenario == "study1")))
+  if (((payloadSizeUplink > 0) || (payloadSizeDownlink > 0)) && ((nBss >= 3) || (scenario == "study1") || (scenario == "study2")))
     {
       // BSS 3
 
@@ -2139,7 +2140,7 @@ main (int argc, char *argv[])
         }
     }
 
-  if (((payloadSizeUplink > 0) || (payloadSizeDownlink > 0)) && ((nBss >= 4) || (scenario == "study1")))
+  if (((payloadSizeUplink > 0) || (payloadSizeDownlink > 0)) && ((nBss >= 4) || (scenario == "study1") || (scenario == "study2")))
     {
       // BSS 4
 
@@ -2173,7 +2174,7 @@ main (int argc, char *argv[])
         }
     }
 
-  if (scenario == "study1")
+  if ((scenario == "study1") || (scenario == "study2"))
     {
       // BSS 5
 
@@ -2407,7 +2408,7 @@ main (int argc, char *argv[])
   bytesReceived[nodeIdx] = payloadSizeUplink * totalUplinkPacketsThroughA;
   packetsReceived[nodeIdx] = totalUplinkPacketsThroughA;
 
-  if ((nBss >= 2) || (scenario == "study1"))
+  if ((nBss >= 2) || (scenario == "study1") || (scenario == "study2"))
     {
       nodeIdx++;
 
@@ -2421,7 +2422,7 @@ main (int argc, char *argv[])
       packetsReceived[nodeIdx] = totalUplinkPacketsThroughB;
     }
 
-  if ((nBss >= 3) || (scenario == "study1"))
+  if ((nBss >= 3) || (scenario == "study1") || (scenario == "study2"))
     {
       nodeIdx++;
 
@@ -2435,7 +2436,7 @@ main (int argc, char *argv[])
       packetsReceived[nodeIdx] = totalUplinkPacketsThroughC;
     }
 
-  if ((nBss >= 4) || (scenario == "study1"))
+  if ((nBss >= 4) || (scenario == "study1") || (scenario == "study2"))
     {
       nodeIdx++;
 
@@ -2449,7 +2450,7 @@ main (int argc, char *argv[])
       packetsReceived[nodeIdx] = totalUplinkPacketsThroughD;
     }
 
-  if (scenario == "study1")
+  if ((scenario == "study1") || (scenario == "study2"))
     {
       nodeIdx++;
 
@@ -2490,54 +2491,54 @@ main (int argc, char *argv[])
     {
       nodeIdx++;
       uint64_t downlinkPacketsThroughA = DynamicCast<UdpServer> (downlinkServerAppA.Get (i))->GetReceived ();
-      bytesReceived[nodeIdx] = payloadSizeUplink * downlinkPacketsThroughA;
+      bytesReceived[nodeIdx] = payloadSizeDownlink * downlinkPacketsThroughA;
       packetsReceived[nodeIdx] = downlinkPacketsThroughA;
     }
 
-  if ((nBss >= 2) || (scenario == "study1"))
+  if ((nBss >= 2) || (scenario == "study1") || (scenario == "study2"))
     {
       uint32_t nDownlinkAppsB = downlinkServerAppB.GetN ();
       for (uint32_t i = 0; i < nDownlinkAppsB; i++)
         {
           nodeIdx++;
           uint64_t downlinkPacketsThroughB = DynamicCast<UdpServer> (downlinkServerAppB.Get (i))->GetReceived ();
-          bytesReceived[nodeIdx] = payloadSizeUplink * downlinkPacketsThroughB;
+          bytesReceived[nodeIdx] = payloadSizeDownlink * downlinkPacketsThroughB;
           packetsReceived[nodeIdx] = downlinkPacketsThroughB;
         }
     }
 
-  if ((nBss >= 3) || (scenario == "study1"))
+  if ((nBss >= 3) || (scenario == "study1") || (scenario == "study2"))
     {
       uint32_t nDownlinkAppsC = downlinkServerAppC.GetN ();
       for (uint32_t i = 0; i < nDownlinkAppsC; i++)
         {
           nodeIdx++;
           uint64_t downlinkPacketsThroughC = DynamicCast<UdpServer> (downlinkServerAppC.Get (i))->GetReceived ();
-          bytesReceived[nodeIdx] = payloadSizeUplink * downlinkPacketsThroughC;
+          bytesReceived[nodeIdx] = payloadSizeDownlink * downlinkPacketsThroughC;
           packetsReceived[nodeIdx] = downlinkPacketsThroughC;
         }
     }
 
-  if ((nBss >= 4) || (scenario == "study1"))
+  if ((nBss >= 4) || (scenario == "study1") || (scenario == "study2"))
     {
       uint32_t nDownlinkAppsD = downlinkServerAppD.GetN ();
       for (uint32_t i = 0; i < nDownlinkAppsD; i++)
         {
           nodeIdx++;
           uint64_t downlinkPacketsThroughD = DynamicCast<UdpServer> (downlinkServerAppD.Get (i))->GetReceived ();
-          bytesReceived[nodeIdx] = payloadSizeUplink * downlinkPacketsThroughD;
+          bytesReceived[nodeIdx] = payloadSizeDownlink * downlinkPacketsThroughD;
           packetsReceived[nodeIdx] = downlinkPacketsThroughD;
         }
     }
 
-  if (scenario == "study1")
+  if ((scenario == "study1") || (scenario == "study2"))
     {
       uint32_t nDownlinkAppsE = downlinkServerAppE.GetN ();
       for (uint32_t i = 0; i < nDownlinkAppsE; i++)
         {
           nodeIdx++;
           uint64_t downlinkPacketsThroughE = DynamicCast<UdpServer> (downlinkServerAppE.Get (i))->GetReceived ();
-          bytesReceived[nodeIdx] = payloadSizeUplink * downlinkPacketsThroughE;
+          bytesReceived[nodeIdx] = payloadSizeDownlink * downlinkPacketsThroughE;
           packetsReceived[nodeIdx] = downlinkPacketsThroughE;
         }
 
@@ -2546,7 +2547,7 @@ main (int argc, char *argv[])
         {
           nodeIdx++;
           uint64_t downlinkPacketsThroughF = DynamicCast<UdpServer> (downlinkServerAppF.Get (i))->GetReceived ();
-          bytesReceived[nodeIdx] = payloadSizeUplink * downlinkPacketsThroughF;
+          bytesReceived[nodeIdx] = payloadSizeDownlink * downlinkPacketsThroughF;
           packetsReceived[nodeIdx] = downlinkPacketsThroughF;
         }
 
@@ -2555,7 +2556,7 @@ main (int argc, char *argv[])
         {
           nodeIdx++;
           uint64_t downlinkPacketsThroughG = DynamicCast<UdpServer> (downlinkServerAppG.Get (i))->GetReceived ();
-          bytesReceived[nodeIdx] = payloadSizeUplink * downlinkPacketsThroughG;
+          bytesReceived[nodeIdx] = payloadSizeDownlink * downlinkPacketsThroughG;
           packetsReceived[nodeIdx] = downlinkPacketsThroughG;
         }
     }
