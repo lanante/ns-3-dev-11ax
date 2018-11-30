@@ -4,7 +4,7 @@
 function run_one () {
   echo Running $1
   # run the test
-  ../../../waf --run "spatial-reuse --RngRun=$2 --powSta=$3 --powAp=$4 --duration=$5 --d=$6 --r=$7 --n=$8 --uplink=$9 --downlink=${10} --enableRts=${11} --standard=${12} --bw=${13} --txRange=${14} --MCS=${15} --payloadSizeUplink=${16} --payloadSizeDownlink=${17} --txStartOffset=${18} --enableObssPd=${19} --txGain=${20} --rxGain=${21} --antennas=${22} --maxSupportedTxSpatialStreams=${23} --maxSupportedRxSpatialStreams=${24} --checkTimings=${25} --scenario=${26} --nBss=${27} --maxAmpduSize=${28} --nodePositionsFile=${29} --enablePcap=${30} --enableAscii=${31}"
+  ../../../waf --run "spatial-reuse --RngRun=$2 --powSta=$3 --powAp=$4 --duration=$5 --d=$6 --r=$7 --n=$8 --uplink=$9 --downlink=${10} --enableRts=${11} --standard=${12} --bw=${13} --txRange=${14} --MCS=${15} --payloadSizeUplink=${16} --payloadSizeDownlink=${17} --txStartOffset=${18} --enableObssPd=${19} --txGain=${20} --rxGain=${21} --antennas=${22} --maxSupportedTxSpatialStreams=${23} --maxSupportedRxSpatialStreams=${24} --checkTimings=${25} --scenario=${26} --nBss=${27} --maxAmpduSize=${28} --nodePositionsFile=${29} --enablePcap=${30} --enableAscii=${31} --obssPdThreshold=${32}"
 
   # copy results files
   cd ../scripts
@@ -41,13 +41,13 @@ function run_one () {
   sta2_n="$((sta2_1+($8)-1))"
   # note:  only getting received packets > 1500b (last parameter below...)
   # AP1 signal
-  python ecdf2.py spatial-reuse-rx-sniff.dat "$signal" 0 "$ap1" "$sta1_1" "$sta1_n" "spatial-reuse-rx-sniff-$1-ap1-signal" 1500
+  python ecdf2.py spatial-reuse-rx-sniff.dat "$signal" 0 "$ap1" "$sta1_1" "$sta1_n" "spatial-reuse-rx-sniff-$1-ap1-signal.png" 1500
   # AP2 noise
-  python ecdf2.py spatial-reuse-rx-sniff.dat "$noise"  0 "$ap1" "$sta1_1" "$sta1_n" "spatial-reuse-rx-sniff-$1-ap1-noise" 1500
+  python ecdf2.py spatial-reuse-rx-sniff.dat "$noise"  0 "$ap1" "$sta1_1" "$sta1_n" "spatial-reuse-rx-sniff-$1-ap1-noise.png" 1500
   # AP2 signal
-  python ecdf2.py spatial-reuse-rx-sniff.dat "$signal" 1 "$ap2" "$sta2_1" "$sta2_n" "spatial-reuse-rx-sniff-$1-ap2-signal" 1500
+  python ecdf2.py spatial-reuse-rx-sniff.dat "$signal" 1 "$ap2" "$sta2_1" "$sta2_n" "spatial-reuse-rx-sniff-$1-ap2-signal.png" 1500
   # AP2 noise
-  python ecdf2.py spatial-reuse-rx-sniff.dat "$noise"  1 "$ap2" "$sta2_1" "$sta2_n" "spatial-reuse-rx-sniff-$1-ap2-noise" 1500
+  python ecdf2.py spatial-reuse-rx-sniff.dat "$noise"  1 "$ap2" "$sta2_1" "$sta2_n" "spatial-reuse-rx-sniff-$1-ap2-noise.png" 1500
   cp *.png ./results/.
   rm *.png
   cd ../examples

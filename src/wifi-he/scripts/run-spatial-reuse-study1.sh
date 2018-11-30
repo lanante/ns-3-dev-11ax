@@ -37,6 +37,7 @@ bw=20
 # for starters, base everything off of the Residential Scenerio
 scenario=study1
 txRange=15
+obssPdThreshold=-82
 
 cd ../examples
 
@@ -55,7 +56,8 @@ echo "" >> ../scripts/study1.sh
 # params that will vary
 # vary n from 5 to 40  in steps of 5
 for n in 5 10 15 20 25 30 35 40 ; do
-    for offeredLoad in 1 2 3 4 5 6 ; do
+    for offeredLoad in 0.2 0.4 0.6 0.8 1.0 1.2 ; do
+        ol1=$(awk "BEGIN {print $offeredLoad*1}")
         # uplink is 90% of total offered load
         uplink=$(awk "BEGIN {print $offeredLoad*0.9}")
         # downlink is 10% of total offered load
@@ -63,9 +65,9 @@ for n in 5 10 15 20 25 30 35 40 ; do
         d1=$(awk "BEGIN {print $d*100}")
         ul1=$(awk "BEGIN {print $uplink*100}")
         dl1=$(awk "BEGIN {print $downlink*100}")
-        test=$(printf "study1-%0.f-%02d-%02d-%04d-%0.f-%0.f\n" ${d1} ${r} ${n} ${offeredLoad} ${ul1} ${dl1})
+        test=$(printf "study1-%0.f-%02d-%02d-%0.1f-%0.f-%0.f\n" ${d1} ${r} ${n} ${ol1} ${ul1} ${dl1})
         echo "# run $test" >> ../scripts/study1.sh
-        echo "run_one $test $RngRun $powSta $powAp $duration $d $r $n $uplink $downlink $enableRts $standard $bw $txRange $MCS $payloadSizeUplink $payloadSizeDownlink $txStartOffset $enableObssPd $txGain $rxGain $antennas $maxSupportedTxSpatialStreams $maxSupportedRxSpatialStreams $performTgaxTimingChecks $scenario $nBss $maxAmpduSize $nodePositionsFile $enablePcap $enableAscii" >> ../scripts/study1.sh
+        echo "run_one $test $RngRun $powSta $powAp $duration $d $r $n $uplink $downlink $enableRts $standard $bw $txRange $MCS $payloadSizeUplink $payloadSizeDownlink $txStartOffset $enableObssPd $txGain $rxGain $antennas $maxSupportedTxSpatialStreams $maxSupportedRxSpatialStreams $performTgaxTimingChecks $scenario $nBss $maxAmpduSize $nodePositionsFile $enablePcap $enableAscii $obssPdThreshold" >> ../scripts/study1.sh
         echo "" >> ../scripts/study1.sh
     done
 done
