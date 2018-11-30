@@ -458,9 +458,19 @@ public:
    * This function announces the start of an Block ACK reception.
    */
   void NotifyRxBlockAck (Ptr<const Packet>, const WifiMacHeader &);
-  //TODO
+  /*
+   * Return the maximum A-MSDU size in bytes for a given AC.
+   *
+   * \param ac the AC index
+   * \return the maximum A-MSDU size (in bytes)
+   */
   uint16_t GetMaxAmsduSize (AcIndex ac) const;
-  //TODO
+  /**
+   * Return the maximum A-MPDU size in bytes for a given AC.
+   *
+   * \param ac the AC index
+   * \return the maximum A-MPDU size (in bytes)
+   */
   uint32_t GetMaxAmpduSize (AcIndex ac) const;
 
   /**
