@@ -17,12 +17,11 @@
  *
  */
 
-#include "constant-obss-pd-algorithm.h"
-#include "ns3/uinteger.h"
-#include "ns3/double.h"
 #include "ns3/log.h"
-#include "ns3/wifi-net-device.h"
-#include "ns3/he-configuration.h"
+#include "constant-obss-pd-algorithm.h"
+#include "wifi-phy.h"
+#include "wifi-net-device.h"
+#include "he-configuration.h"
 
 namespace ns3 {
 
@@ -30,8 +29,7 @@ NS_LOG_COMPONENT_DEFINE ("ConstantObssPdAlgorithm");
 NS_OBJECT_ENSURE_REGISTERED (ConstantObssPdAlgorithm);
 
 ConstantObssPdAlgorithm::ConstantObssPdAlgorithm ()
-  : ObssPdAlgorithm (),
-    m_constantObssPdLevel (-82.0)
+  : ObssPdAlgorithm ()
 {
   NS_LOG_FUNCTION (this);
 }
@@ -59,7 +57,6 @@ void
 ConstantObssPdAlgorithm::SetConstantObssPdLevel (double level)
 {
   NS_LOG_FUNCTION (this << level);
-
   m_constantObssPdLevel = level;
 }
 

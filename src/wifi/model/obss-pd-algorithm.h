@@ -21,12 +21,17 @@
 #define OBSS_PD_ALGORITHM_H
 
 #include "ns3/object.h"
-#include "ns3/wifi-phy.h"
-#include "ns3/regular-wifi-mac.h"
-#include "ns3/wifi-net-device.h"
-#include "ns3/he-configuration.h"
+#include "ns3/traced-value.h"
 
 namespace ns3 {
+
+struct HeSigAParameters;
+struct HeBeaconReceptionParameters;
+
+class HeConfiguration;
+class WifiNetDevice;
+class WifiMac;
+class WifiPhy;
 
 /**
  * \brief OBSS PD algorithm interface
@@ -74,7 +79,6 @@ public:
    */
   void SetupCallbacks ();
 
-
   /**
    * Return the WifiNetDevce aggregated to this object.
    *
@@ -87,14 +91,14 @@ public:
    *
    * \return the Ptr<WifiPhy> associated with this object
    */
-  Ptr<WifiPhy> GetWifiPhy (void) const;
+  Ptr<WifiPhy> GetPhy (void) const;
 
   /**
-   * Return the RegularWifiMac associated with this object.
+   * Return the WifiMac associated with this object.
    *
-   * \return the Ptr<RegularWifiMac> associated with this object
+   * \return the Ptr<WifiMac> associated with this object
    */
-  Ptr<RegularWifiMac> GetRegularWifiMac (void) const;
+  Ptr<WifiMac> GetMac (void) const;
 
   /**
    * Return the HeConfiguration object associated with this object.
@@ -116,6 +120,8 @@ public:
    * Evaluate the receipt of a beacon.
    */
   void ReceiveBeacon (HeBeaconReceptionParameters params);
+
+
 private:
   TracedValue<double> m_obssPdLevel;
   TracedValue<double> m_txPwr;

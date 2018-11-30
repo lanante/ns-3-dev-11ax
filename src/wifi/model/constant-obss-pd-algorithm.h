@@ -20,10 +20,7 @@
 #ifndef CONSTANT_OBSS_PD_ALGORITHM_H
 #define CONSTANT_OBSS_PD_ALGORITHM_H
 
-#include "ns3/object.h"
-#include "ns3/wifi-phy.h"
-#include "ns3/regular-wifi-mac.h"
-#include "ns3/obss-pd-algorithm.h"
+#include "obss-pd-algorithm.h"
 
 namespace ns3 {
 
@@ -60,6 +57,7 @@ public:
    * Evaluate the algorithm.
    */
   void ReceiveHeSigA (HeSigAParameters params);
+
 
 private:
   TracedValue<double> m_constantObssPdLevel;

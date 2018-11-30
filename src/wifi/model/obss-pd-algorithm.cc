@@ -17,12 +17,14 @@
  *
  */
 
-#include "obss-pd-algorithm.h"
-#include "ns3/uinteger.h"
-#include "ns3/double.h"
 #include "ns3/log.h"
 #include "ns3/node.h"
 #include "ns3/config.h"
+#include "obss-pd-algorithm.h"
+#include "wifi-phy.h"
+#include "regular-wifi-mac.h"
+#include "wifi-net-device.h"
+#include "he-configuration.h"
 
 namespace ns3 {
 
@@ -30,8 +32,6 @@ NS_LOG_COMPONENT_DEFINE ("ObssPdAlgorithm");
 NS_OBJECT_ENSURE_REGISTERED (ObssPdAlgorithm);
 
 ObssPdAlgorithm::ObssPdAlgorithm ()
-  : m_obssPdLevel (-82.0),
-    m_txPwr (10.0)
 {
   NS_LOG_FUNCTION (this);
 }
@@ -48,15 +48,15 @@ ObssPdAlgorithm::GetTypeId (void)
                    DoubleValue (-82.0),
                    MakeDoubleAccessor (&ObssPdAlgorithm::GetObssPdLevel),
                    MakeDoubleChecker<double> ())
-    .AddTraceSource ("ObssPdLevel",
-                     "The OBSS PD level.",
-                     MakeTraceSourceAccessor (&ObssPdAlgorithm::m_obssPdLevel),
-                     "ns3::TracedValueCallback::Double")
     .AddAttribute ("TxPwr",
                    "The TxPwr.",
                    DoubleValue (10.0),
                    MakeDoubleAccessor (&ObssPdAlgorithm::GetTxPwr),
                    MakeDoubleChecker<double> ())
+    .AddTraceSource ("ObssPdLevel",
+                     "The OBSS PD level.",
+                     MakeTraceSourceAccessor (&ObssPdAlgorithm::m_obssPdLevel),
+                     "ns3::TracedValueCallback::Double")
     .AddTraceSource ("TxPwr",
                      "The TxPwr.",
                      MakeTraceSourceAccessor (&ObssPdAlgorithm::m_txPwr),
@@ -120,7 +120,7 @@ ObssPdAlgorithm::GetWifiNetDevice (void) const
 }
 
 Ptr<WifiPhy>
-ObssPdAlgorithm::GetWifiPhy (void) const
+ObssPdAlgorithm::GetPhy (void) const
 {
   Ptr<WifiNetDevice> wifiNetDevice = GetWifiNetDevice ();
   Ptr<WifiPhy> wifiPhy = DynamicCast<WifiPhy> (wifiNetDevice->GetPhy ());
@@ -141,7 +141,6 @@ void
 ObssPdAlgorithm::ReceiveHeSigA (HeSigAParameters params)
 {
   NS_LOG_FUNCTION (this);
-
   DoReceiveHeSigA (params);
 }
 
@@ -149,7 +148,6 @@ void
 ObssPdAlgorithm::ReceiveBeacon (HeBeaconReceptionParameters params)
 {
   NS_LOG_FUNCTION (this);
-
   DoReceiveBeacon (params);
 }
 
