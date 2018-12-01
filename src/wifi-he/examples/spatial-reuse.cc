@@ -87,6 +87,8 @@
 #include <ns3/propagation-module.h>
 #include <ns3/ieee-80211ax-indoor-propagation-loss-model.h>
 #include <ns3/itu-umi-propagation-loss-model.h>
+#include <ns3/flow-monitor-module.h>
+#include <ns3/flow-monitor-helper.h>
 
 using namespace ns3;
 
@@ -632,6 +634,60 @@ void MonitorSniffRx (std::string context,
     }
 }
 
+void
+SaveUdpFlowMonitorStats (std::string filename, std::string simulationParams, Ptr<FlowMonitor> monitor, FlowMonitorHelper& flowmonHelper, double duration)
+{
+  std::ofstream outFile;
+  outFile.open (filename.c_str (), std::ofstream::out | std::ofstream::app);
+  if (!outFile.is_open ())
+    {
+      NS_LOG_ERROR ("Can't open file " << filename);
+      return;
+    }
+  outFile.setf (std::ios_base::fixed);
+
+  // Print per-flow statistics
+  monitor->CheckForLostPackets ();
+  Ptr<Ipv4FlowClassifier> classifier = DynamicCast<Ipv4FlowClassifier> (flowmonHelper.GetClassifier ());
+  FlowMonitor::FlowStatsContainer stats = monitor->GetFlowStats ();
+  for (std::map<FlowId, FlowMonitor::FlowStats>::const_iterator i = stats.begin (); i != stats.end (); ++i)
+    {
+      Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow (i->first);
+//      NS_ASSERT_MSG (t.sourceAddress < t.destinationAddress ,
+//                 "Flow " << t.sourceAddress << ":" << t.sourcePort << " --> " << t.destinationAddress << ":" << t.destinationPort
+//                 << " is probably not downlink");
+
+      outFile << i->first
+              << " " << t.sourceAddress << ":" << t.sourcePort
+              << " " << t.destinationAddress << ":" << t.destinationPort
+              << " " << i->second.txPackets
+              << " " << i->second.txBytes
+              // Mb/s
+              << " " << (i->second.txBytes * 8.0 / duration) / 1e6;
+      if (i->second.rxPackets > 0)
+        {
+          // Measure the duration of the flow from receiver's perspective
+          double rxDuration = i->second.timeLastRxPacket.GetSeconds () - i->second.timeFirstTxPacket.GetSeconds ();
+          // Mb/s
+          outFile << " " << i->second.rxBytes
+                  // Mb/s
+                  << " " << (i->second.rxBytes * 8.0 / rxDuration) / 1e6
+                  // milliseconds
+                  << " " << 1000 * i->second.delaySum.GetSeconds () / i->second.rxPackets
+                  << " " << 1000 * i->second.jitterSum.GetSeconds () / i->second.rxPackets;
+        }
+      else
+        {
+          outFile << "  0" // rxBytes
+                  << "  0" // throughput
+                  << "  0" // delaySum
+                  << "  0"; // jitterSum
+        }
+      outFile << " " << i->second.rxPackets << std::endl;
+    }
+  outFile.close ();
+}
+
 // main script
 int
 main (int argc, char *argv[])
@@ -953,6 +1009,8 @@ main (int argc, char *argv[])
   NodeContainer stasF, nodesF;
   NodeContainer stasG, nodesG;
 
+  FlowMonitorHelper flowmonHelperA;
+
   // network "A"
   for (uint32_t i = 0; i < n; i++)
     {
@@ -1128,7 +1186,7 @@ main (int argc, char *argv[])
   spectrumPhy.Set ("Antennas", UintegerValue (antennas));
   spectrumPhy.Set ("MaxSupportedTxSpatialStreams", UintegerValue (maxSupportedTxSpatialStreams));
   spectrumPhy.Set ("MaxSupportedRxSpatialStreams", UintegerValue (maxSupportedRxSpatialStreams));
-  spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrSta));
+  // spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrSta));
   //PHY energy threshold -92 dBm
   spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-92.0));
 
@@ -1150,7 +1208,7 @@ main (int argc, char *argv[])
   spectrumPhy.Set ("Antennas", UintegerValue (antennas));
   spectrumPhy.Set ("MaxSupportedTxSpatialStreams", UintegerValue (maxSupportedTxSpatialStreams));
   spectrumPhy.Set ("MaxSupportedRxSpatialStreams", UintegerValue (maxSupportedRxSpatialStreams));
-  spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrAp));
+  // spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrAp));
   spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-92.0));
   mac.SetType ("ns3::ApWifiMac",
                "Ssid", SsidValue (ssidA),
@@ -1185,7 +1243,7 @@ main (int argc, char *argv[])
       spectrumPhy.Set ("Antennas", UintegerValue (antennas));
       spectrumPhy.Set ("MaxSupportedTxSpatialStreams", UintegerValue (maxSupportedTxSpatialStreams));
       spectrumPhy.Set ("MaxSupportedRxSpatialStreams", UintegerValue (maxSupportedRxSpatialStreams));
-      spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrSta));
+      // spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrSta));
       spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-92.0));
 
       // Network "B"
@@ -1205,7 +1263,7 @@ main (int argc, char *argv[])
       spectrumPhy.Set ("Antennas", UintegerValue (antennas));
       spectrumPhy.Set ("MaxSupportedTxSpatialStreams", UintegerValue (maxSupportedTxSpatialStreams));
       spectrumPhy.Set ("MaxSupportedRxSpatialStreams", UintegerValue (maxSupportedRxSpatialStreams));
-      spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrAp));
+      // spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrAp));
       spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-92.0));
       mac.SetType ("ns3::ApWifiMac",
                    "Ssid", SsidValue (ssidB),
@@ -1239,7 +1297,7 @@ main (int argc, char *argv[])
       spectrumPhy.Set ("Antennas", UintegerValue (antennas));
       spectrumPhy.Set ("MaxSupportedTxSpatialStreams", UintegerValue (maxSupportedTxSpatialStreams));
       spectrumPhy.Set ("MaxSupportedRxSpatialStreams", UintegerValue (maxSupportedRxSpatialStreams));
-      spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrSta));
+      // spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrSta));
       spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-92.0));
 
       // Network "C"
@@ -1259,7 +1317,7 @@ main (int argc, char *argv[])
       spectrumPhy.Set ("Antennas", UintegerValue (antennas));
       spectrumPhy.Set ("MaxSupportedTxSpatialStreams", UintegerValue (maxSupportedTxSpatialStreams));
       spectrumPhy.Set ("MaxSupportedRxSpatialStreams", UintegerValue (maxSupportedRxSpatialStreams));
-      spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrAp));
+      // spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrAp));
       spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-92.0));
       mac.SetType ("ns3::ApWifiMac",
                    "Ssid", SsidValue (ssidC),
@@ -1293,7 +1351,7 @@ main (int argc, char *argv[])
       spectrumPhy.Set ("Antennas", UintegerValue (antennas));
       spectrumPhy.Set ("MaxSupportedTxSpatialStreams", UintegerValue (maxSupportedTxSpatialStreams));
       spectrumPhy.Set ("MaxSupportedRxSpatialStreams", UintegerValue (maxSupportedRxSpatialStreams));
-      spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrSta));
+      // spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrSta));
       spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-92.0));
 
       // Network "D"
@@ -1313,7 +1371,7 @@ main (int argc, char *argv[])
       spectrumPhy.Set ("Antennas", UintegerValue (antennas));
       spectrumPhy.Set ("MaxSupportedTxSpatialStreams", UintegerValue (maxSupportedTxSpatialStreams));
       spectrumPhy.Set ("MaxSupportedRxSpatialStreams", UintegerValue (maxSupportedRxSpatialStreams));
-      spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrAp));
+      // spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrAp));
       spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-92.0));
       mac.SetType ("ns3::ApWifiMac",
                    "Ssid", SsidValue (ssidD),
@@ -1351,7 +1409,7 @@ main (int argc, char *argv[])
       spectrumPhy.Set ("Antennas", UintegerValue (antennas));
       spectrumPhy.Set ("MaxSupportedTxSpatialStreams", UintegerValue (maxSupportedTxSpatialStreams));
       spectrumPhy.Set ("MaxSupportedRxSpatialStreams", UintegerValue (maxSupportedRxSpatialStreams));
-      spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrSta));
+      // spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrSta));
       spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-92.0));
 
       // Network "E"
@@ -1371,7 +1429,7 @@ main (int argc, char *argv[])
       spectrumPhy.Set ("Antennas", UintegerValue (antennas));
       spectrumPhy.Set ("MaxSupportedTxSpatialStreams", UintegerValue (maxSupportedTxSpatialStreams));
       spectrumPhy.Set ("MaxSupportedRxSpatialStreams", UintegerValue (maxSupportedRxSpatialStreams));
-      spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrAp));
+      // spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrAp));
       spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-92.0));
       mac.SetType ("ns3::ApWifiMac",
                    "Ssid", SsidValue (ssidE),
@@ -1400,7 +1458,7 @@ main (int argc, char *argv[])
       spectrumPhy.Set ("Antennas", UintegerValue (antennas));
       spectrumPhy.Set ("MaxSupportedTxSpatialStreams", UintegerValue (maxSupportedTxSpatialStreams));
       spectrumPhy.Set ("MaxSupportedRxSpatialStreams", UintegerValue (maxSupportedRxSpatialStreams));
-      spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrSta));
+      // spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrSta));
       spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-92.0));
 
       // Network "F"
@@ -1420,7 +1478,7 @@ main (int argc, char *argv[])
       spectrumPhy.Set ("Antennas", UintegerValue (antennas));
       spectrumPhy.Set ("MaxSupportedTxSpatialStreams", UintegerValue (maxSupportedTxSpatialStreams));
       spectrumPhy.Set ("MaxSupportedRxSpatialStreams", UintegerValue (maxSupportedRxSpatialStreams));
-      spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrAp));
+      // spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrAp));
       spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-92.0));
       mac.SetType ("ns3::ApWifiMac",
                    "Ssid", SsidValue (ssidF),
@@ -1458,7 +1516,7 @@ main (int argc, char *argv[])
       spectrumPhy.Set ("Antennas", UintegerValue (antennas));
       spectrumPhy.Set ("MaxSupportedTxSpatialStreams", UintegerValue (maxSupportedTxSpatialStreams));
       spectrumPhy.Set ("MaxSupportedRxSpatialStreams", UintegerValue (maxSupportedRxSpatialStreams));
-      spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrAp));
+      // spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrAp));
       spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-92.0));
       mac.SetType ("ns3::ApWifiMac",
                    "Ssid", SsidValue (ssidG),
@@ -2270,6 +2328,14 @@ main (int argc, char *argv[])
         }
     }
 
+  Ptr<FlowMonitor> monitorA = flowmonHelperA.Install (nodesA);
+  if (monitorA != 0)
+    {
+      monitorA->SetAttribute ("DelayBinWidth", DoubleValue (0.001));
+      monitorA->SetAttribute ("JitterBinWidth", DoubleValue (0.001));
+      monitorA->SetAttribute ("PacketSizeBinWidth", DoubleValue (20));
+    }
+
   uplinkServerAppA.Start (Seconds (0.0));
   uplinkServerAppA.Stop (Seconds (duration + applicationTxStart));
   uplinkClientAppA.Start (Seconds (applicationTxStart));
@@ -2574,6 +2640,23 @@ main (int argc, char *argv[])
 
   // Save spatial reuse statistics to an output file
   SaveSpatialReuseStats (outputFilePrefix + "-SR-stats.dat", packetsReceived, bytesReceived, nBss, duration, d,  r, freq, csr, scenario);
+
+  // save flow-monitor results
+  std::stringstream stmp;
+  stmp << outputFilePrefix + "-A.flowmon";
+
+  if (monitorA != 0)
+    {
+std::cout << "writing flowmon results to " << stmp.str ().c_str () << std::endl;
+      monitorA->SerializeToXmlFile (stmp.str ().c_str (), true, true);
+    }
+  else
+    {
+std::cout << "there is no monitorA" << std::endl;
+    }
+
+  SaveUdpFlowMonitorStats (outputFilePrefix + "_operatorA", "simulationParams", monitorA, flowmonHelperA, durationTime.GetSeconds ());
+
 
   return 0;
 }
