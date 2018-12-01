@@ -22,45 +22,23 @@
  *          Scott Carpenter <scarpenter44@windstream.net>
  */
 
-#include "ns3/spectrum-phy.h"
-#include "ns3/spectrum-wifi-helper.h"
-#include "ns3/wifi-spectrum-value-helper.h"
-#include "ns3/spectrum-wifi-phy.h"
-#include "ns3/nist-error-rate-model.h"
-#include "ns3/wifi-mac-header.h"
-#include "ns3/wifi-mac-trailer.h"
-#include "ns3/wifi-phy-tag.h"
-#include "ns3/wifi-spectrum-signal-parameters.h"
-#include "ns3/wifi-phy-listener.h"
 #include "ns3/log.h"
-
+#include "ns3/test.h"
+#include "ns3/uinteger.h"
+#include "ns3/boolean.h"
+#include "ns3/double.h"
 #include "ns3/string.h"
-#include "ns3/yans-wifi-helper.h"
+#include "ns3/pointer.h"
+#include "ns3/config.h"
+#include "ns3/ssid.h"
+#include "ns3/wifi-phy-listener.h"
 #include "ns3/mobility-helper.h"
 #include "ns3/wifi-net-device.h"
-#include "ns3/adhoc-wifi-mac.h"
-#include "ns3/ap-wifi-mac.h"
-#include "ns3/sta-wifi-mac.h"
-#include "ns3/regular-wifi-mac.h"
-#include "ns3/propagation-loss-model.h"
-#include "ns3/yans-error-rate-model.h"
-#include "ns3/constant-position-mobility-model.h"
-#include "ns3/test.h"
-#include "ns3/pointer.h"
-#include "ns3/rng-seed-manager.h"
-#include "ns3/config.h"
-#include "ns3/packet-socket-server.h"
-#include "ns3/packet-socket-client.h"
-#include "ns3/packet-socket-helper.h"
 #include "ns3/spectrum-wifi-helper.h"
 #include "ns3/multi-model-spectrum-channel.h"
-#include "ns3/wifi-spectrum-signal-parameters.h"
-#include "ns3/wifi-phy-tag.h"
-#include "ns3/yans-wifi-phy.h"
-#include "ns3/mgt-headers.h"
-#include "ns3/node-list.h"
 #include "ns3/ieee-80211ax-indoor-propagation-loss-model.h"
-#include "ns3/obss-pd-algorithm.h"
+#include "ns3/constant-obss-pd-algorithm.h"
+#include "ns3/he-configuration.h"
 
 using namespace ns3;
 
@@ -109,16 +87,16 @@ ContextToNodeId (std::string context)
  * \ingroup wifi-test
  * \ingroup tests
  *
- * \brief Test Phy Listener
+ * \brief HE Phy Listener
  */
-class TestPhyListener : public ns3::WifiPhyListener
+class HePhyListener : public ns3::WifiPhyListener
 {
 public:
   /**
    * Create a test PhyListener
    *
    */
-  TestPhyListener (void)
+  HePhyListener (void)
     : m_notifyRxStart (0),
       m_notifyRxEndOk (0),
       m_notifyRxEndError (0),
@@ -129,8 +107,9 @@ public:
   {
   }
 
-  virtual ~TestPhyListener ()
+  virtual ~HePhyListener ()
   {
+    m_phy = 0;
   }
 
   WifiPhyState GetState (void)
@@ -207,8 +186,6 @@ public:
   uint32_t m_notifyTxStart; ///< notify trasnmit start
   Ptr<WifiPhy> m_phy; ///< the PHY being listened to
   // WifiPhyState m_currentState; ///< the current WifiPhyState
-
-private:
 };
 
 /**
@@ -262,7 +239,7 @@ protected:
   uint32_t m_expectedBssColor;
   NodeContainer m_allNodes;
 
-  TestPhyListener* m_listener; ///< listener
+  HePhyListener* m_listener; ///< listener
 
   /**
    * Notify Phy transmit begin
@@ -625,7 +602,7 @@ WifiHeTestCase::RunOne (void)
 
   // Create a PHY listener for the AP's PHY.  This will track state changes and be used
   // to confirm at certain times that the AP is in the right state
-  m_listener = new TestPhyListener;
+  m_listener = new HePhyListener;
   Ptr<WifiPhy> apPhy = DynamicCast<WifiPhy> (ap_device->GetPhy ());
   m_listener->m_phy = apPhy;
   apPhy->RegisterListener (m_listener);
@@ -652,7 +629,7 @@ WifiHeTestCase::RunOne (void)
 void
 WifiHeTestCase::DoSetup (void)
 {
-  // m_listener = new TestPhyListener;
+  // m_listener = new HePhyListener;
   // m_phy.m_state->RegisterListener (m_listener);
 }
 
@@ -1571,10 +1548,10 @@ TestSinglePacketEndOfHePreambleResetPhyOnMagicBssColor::CheckResults ()
  * This class sets up generic information for Wifi-He test cases
  * so that they are all configured similarly and run consistently
  */
-class ObssPdAlgorithmTestCase : public TestCase
+class ConstantObssPdAlgorithmTestCase : public TestCase
 {
 public:
-  ObssPdAlgorithmTestCase ();
+  ConstantObssPdAlgorithmTestCase ();
 
   virtual void DoRun (void);
 
@@ -1584,22 +1561,22 @@ protected:
 protected:
 };
 
-ObssPdAlgorithmTestCase::ObssPdAlgorithmTestCase ()
+ConstantObssPdAlgorithmTestCase::ConstantObssPdAlgorithmTestCase ()
   : TestCase ("WifiHe")
 {
 }
 
 void
-ObssPdAlgorithmTestCase::DoSetup (void)
+ConstantObssPdAlgorithmTestCase::DoSetup (void)
 {
 }
 
 void
-ObssPdAlgorithmTestCase::DoRun (void)
+ConstantObssPdAlgorithmTestCase::DoRun (void)
 {
-  // construct ObssPdAlgorithm object, test setting and getting values
+  // construct ConstantObssPdAlgorithm object, test setting and getting values
 
-  Ptr<ObssPdAlgorithm> obssPdAlgorithm = CreateObject<ObssPdAlgorithm> ();
+  Ptr<ConstantObssPdAlgorithm> obssPdAlgorithm = CreateObject<ConstantObssPdAlgorithm> ();
   NS_ASSERT (obssPdAlgorithm);
 
   // test that the default ObssPdLevel is as expected
@@ -1631,15 +1608,14 @@ ObssPdAlgorithmTestCase::DoRun (void)
   currentObssPdLevel = obssPdAlgorithm->GetObssPdLevel ();
   NS_TEST_ASSERT_MSG_EQ (currentObssPdLevel, -10.0, "The value of the OBSS PD level is not correct!");
 
-  // test that the default TxPWr is as expected
-  double currentTxPwr = obssPdAlgorithm->GetTxPwr ();
-  NS_TEST_ASSERT_MSG_EQ (currentTxPwr, 10.0, "The default value of the TxPwr is not correct!");
+  // test that the default Tx power is as expected
+  double currentTxPower = obssPdAlgorithm->GetTxPower ();
+  NS_TEST_ASSERT_MSG_EQ (currentTxPower, 10.0, "The default value of the TxPwr is not correct!");
 
-  // test that the default TxPWr can be changed
-  obssPdAlgorithm->SetTxPwr (20.0);
-  currentTxPwr = obssPdAlgorithm->GetTxPwr ();
-  NS_TEST_ASSERT_MSG_EQ (currentTxPwr, 20.0, "The value of the TxPwr is not correct!");
-
+  // test that the default Tx power can be changed
+  obssPdAlgorithm->SetTxPower (20.0);
+  currentTxPower = obssPdAlgorithm->GetTxPower ();
+  NS_TEST_ASSERT_MSG_EQ (currentTxPower, 20.0, "The value of the TxPwr is not correct!");
 }
 
 /**
@@ -1814,10 +1790,9 @@ WifiHeTestSuite::WifiHeTestSuite ()
   AddTestCase (new TestSinglePacketEndOfHePreambleNoBssColor, TestCase::QUICK);
   AddTestCase (new TestSinglePacketEndOfHePreambleCorrectBssColor, TestCase::QUICK);
   AddTestCase (new TestSinglePacketEndOfHePreambleResetPhyOnMagicBssColor, TestCase::QUICK);
-  AddTestCase (new ObssPdAlgorithmTestCase, TestCase::QUICK);
+  AddTestCase (new ConstantObssPdAlgorithmTestCase, TestCase::QUICK);
   AddTestCase (new TestInterBss, TestCase::QUICK);
 }
 
 // Do not forget to allocate an instance of this TestSuite
 static WifiHeTestSuite wifiHeTestSuite;
-

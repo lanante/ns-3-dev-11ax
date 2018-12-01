@@ -24,6 +24,11 @@
 
 namespace ns3 {
 
+class HeConfiguration;
+class WifiNetDevice;
+class WifiMac;
+class WifiPhy;
+
 /**
  * \brief Constant OBSS PD algorithm
  * \ingroup wifi
@@ -43,13 +48,25 @@ public:
     *
     * \param level the OBSS PD level in dBm
     */
-  void SetConstantObssPdLevel (double level);
+  void SetObssPdLevel (double level);
   /**
    * Return the OBSS PD level (dBm).
    *
    * \return the OBSS PD level in dBm
    */
-  double GetConstantObssPdLevel (void) const;
+  double GetObssPdLevel (void) const;
+  /**
+    * Sets the TX power (in dBm).
+    *
+    * \param txPower the TX power in dBm
+    */
+  void SetTxPower (double txPower);
+  /**
+   * Return TX power (in dBm).
+   *
+   * \return the TX power in dBm
+   */
+  double GetTxPower (void) const;
 
   /**
    * \param params the HE SIG A parameters
@@ -57,10 +74,51 @@ public:
    * Evaluate the algorithm.
    */
   void ReceiveHeSigA (HeSigAParameters params);
+  /**
+   * \param params the HE Beacon parameters
+   *
+   * Evaluate the receipt of a beacon.
+   */
+  void ReceiveBeacon (HeBeaconReceptionParameters params);
 
 
 private:
-  TracedValue<double> m_constantObssPdLevel;
+  /**
+   * Setup callbacks.
+   *
+   */
+  void SetupCallbacks ();
+
+  /**
+   * Return the WifiNetDevce aggregated to this object.
+   *
+   * \return the Ptr<WifiNetDevice> aggregated to this object
+   */
+  Ptr<WifiNetDevice> GetWifiNetDevice (void) const;
+
+  /**
+   * Return the WifiPhy associated with this object.
+   *
+   * \return the Ptr<WifiPhy> associated with this object
+   */
+  Ptr<WifiPhy> GetPhy (void) const;
+
+  /**
+   * Return the WifiMac associated with this object.
+   *
+   * \return the Ptr<WifiMac> associated with this object
+   */
+  Ptr<WifiMac> GetMac (void) const;
+
+  /**
+   * Return the HeConfiguration object associated with this object.
+   *
+   * \return the Ptr<RegularWifiMac> assocaited with this object
+   */
+  Ptr<HeConfiguration> GetHeConfiguration (void) const;
+
+  double m_obssPdLevel; ///< OBSS PD level
+  double m_txPower;     ///< TX power
 };
 
 } //namespace ns3
