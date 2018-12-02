@@ -2714,6 +2714,9 @@ WifiPhy::PacketDetection (Ptr<Packet> packet,
     Time remainingPreambleHeaderDuration = CalculatePlcpPreambleAndHeaderDuration (txVector) - GetStartOfPacketDuration (txVector);
     m_endPlcpRxEvent = Simulator::Schedule (remainingPreambleHeaderDuration, &WifiPhy::StartReceivePacket, this,
                                             packet, txVector, mpdutype, event);
+    NS_ASSERT (m_endRxEvent.IsExpired ());
+    m_endRxEvent = Simulator::Schedule (rxDuration, &WifiPhy::EndReceive, this,
+                                        packet, txVector.GetPreambleType (), mpdutype, event);
   }
   else
   {
@@ -3933,27 +3936,22 @@ WifiPhy::StartRx (Ptr<Packet> packet, WifiTxVector txVector, MpduType mpdutype, 
   if (preamble != WIFI_PREAMBLE_NONE)
     {
       NS_ASSERT (m_endPlcpRxEvent.IsExpired ());
-
-      if (m_endPacketDetectionEvent.IsRunning ())
+      if (!m_endPacketDetectionEvent.IsRunning ())
         {
-          m_endPacketDetectionEvent.Cancel ();
-        }
-
-      NS_ASSERT (m_endPacketDetectionEvent.IsExpired ());
-      // Actual packet detection starts only if preamble is successfully detected.
-      Time startOfPacketDuration = GetStartOfPacketDuration (txVector);
-      Time residualRxDuration = rxDuration - startOfPacketDuration;
-      m_endPacketDetectionEvent = Simulator::Schedule (startOfPacketDuration, &WifiPhy::PacketDetection, this,
-                                                       packet, txVector, mpdutype, event, residualRxDuration);
-      if (m_endRxEvent.IsRunning ())
-        {
-          m_endRxEvent.Cancel ();
+          NS_ASSERT (m_endPacketDetectionEvent.IsExpired ());
+          // Actual packet detection starts only if preamble is successfully detected.
+          Time startOfPacketDuration = GetStartOfPacketDuration (txVector);
+          Time residualRxDuration = rxDuration - startOfPacketDuration;
+          m_endPacketDetectionEvent = Simulator::Schedule (startOfPacketDuration, &WifiPhy::PacketDetection, this,
+                                                           packet, txVector, mpdutype, event, residualRxDuration);
         }
     }
-
-  NS_ASSERT (m_endRxEvent.IsExpired ());
-  m_endRxEvent = Simulator::Schedule (rxDuration, &WifiPhy::EndReceive, this,
-                                      packet, preamble, mpdutype, event);
+  else
+    {
+      NS_ASSERT (m_endRxEvent.IsExpired ());
+      m_endRxEvent = Simulator::Schedule (rxDuration, &WifiPhy::EndReceive, this,
+                                          packet, preamble, mpdutype, event);
+    }
 }
 
 int64_t
