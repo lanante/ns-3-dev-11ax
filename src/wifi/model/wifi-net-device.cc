@@ -32,6 +32,7 @@
 #include "ht-configuration.h"
 #include "vht-configuration.h"
 #include "he-configuration.h"
+#include "ns3/obss-pd-algorithm.h"
 
 namespace ns3 {
 
@@ -120,6 +121,7 @@ WifiNetDevice::DoDispose (void)
       m_stationManager->Dispose ();
       m_stationManager = 0;
     }
+  m_obssPdAlgorithm = 0;
   NetDevice::DoDispose ();
 }
 
@@ -173,6 +175,12 @@ WifiNetDevice::SetRemoteStationManager (const Ptr<WifiRemoteStationManager> mana
 {
   m_stationManager = manager;
   CompleteConfig ();
+}
+
+void
+WifiNetDevice::SetObssPdAlgorithm (const Ptr<ObssPdAlgorithm> algorithm)
+{
+  m_obssPdAlgorithm = algorithm;
 }
 
 Ptr<WifiMac>
