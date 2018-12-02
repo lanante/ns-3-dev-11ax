@@ -3868,11 +3868,9 @@ WifiPhy::AbortCurrentReception ()
 }
 
 void
-WifiPhy::ForceCcaReset ()
+WifiPhy::ResetCca ()
 {
   NS_LOG_FUNCTION (this);
-
-  // TODO
   AbortCurrentReception ();
 }
 

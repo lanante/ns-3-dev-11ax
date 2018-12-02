@@ -15,12 +15,20 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
+ * Author: Sébastien Deronne <sebastien.deronne@gmail.com>
  */
 
+#include "ns3/log.h"
+#include "ns3/node.h"
+#include "ns3/config.h"
 #include "obss-pd-algorithm.h"
+#include "wifi-net-device.h"
+#include "regular-wifi-mac.h"
+#include "wifi-phy.h"
 
 namespace ns3 {
 
+NS_LOG_COMPONENT_DEFINE ("ObssPdAlgorithm");
 NS_OBJECT_ENSURE_REGISTERED (ObssPdAlgorithm);
 
 TypeId
@@ -31,6 +39,40 @@ ObssPdAlgorithm::GetTypeId (void)
     .SetGroupName ("Wifi")
   ;
   return tid;
+}
+
+void
+ObssPdAlgorithm::DoDispose (void)
+{
+  NS_LOG_FUNCTION (this);
+  m_device = 0;
+}
+
+void
+ObssPdAlgorithm::SetWifiNetDevice (const Ptr<WifiNetDevice> device)
+{
+  NS_LOG_FUNCTION (this << device);
+  m_device = device;
+}
+
+Ptr<WifiNetDevice>
+ObssPdAlgorithm::GetWifiNetDevice (void) const
+{
+  return m_device;
+}
+
+void
+ObssPdAlgorithm::SetupCallbacks ()
+{
+  uint32_t nodeid = GetWifiNetDevice ()->GetNode ()->GetId ();
+
+  std::ostringstream oss;
+  oss.str ("");
+  oss << "/NodeList/" << nodeid << "/DeviceList/*/";
+  std::string devicepath = oss.str ();
+
+  // PhyEndOfHePreamble - used to test that the PHY EndOfHePreamble event has fired
+  Config::ConnectWithoutContext (devicepath + "$ns3::WifiNetDevice/Phy/EndOfHePreamble", MakeCallback (&ObssPdAlgorithm::ReceiveHeSigA, this));
 }
 
 } //namespace ns3

@@ -1486,8 +1486,7 @@ TestSinglePacketEndOfHePreambleResetPhyOnMagicBssColor::NotifyEndOfHePreamble (s
 
           // this is the AP, and we have received notification of End of HE Preamble, and the BSS color is our
           // magic number.  Reset the PHY, and then check that the  PHY returns to IDLE shortly thereafter
-          // std::cout << "Forcing Reset" << std::endl;
-          m_listener->m_phy->ForceCcaReset ();
+          m_listener->m_phy->ResetCca ();
 
           // at 4us, AP PHY STATE should be IDLE
           Simulator::Schedule (MicroSeconds (4.0), &TestSinglePacketEndOfHePreambleResetPhyOnMagicBssColor::CheckPhyState, this, 1, WifiPhyState::IDLE);
@@ -1579,43 +1578,35 @@ ConstantObssPdAlgorithmTestCase::DoRun (void)
   Ptr<ConstantObssPdAlgorithm> obssPdAlgorithm = CreateObject<ConstantObssPdAlgorithm> ();
   NS_ASSERT (obssPdAlgorithm);
 
+  DoubleValue currentObssPdLevel;
   // test that the default ObssPdLevel is as expected
-  double currentObssPdLevel = obssPdAlgorithm->GetObssPdLevel ();
-  NS_TEST_ASSERT_MSG_EQ (currentObssPdLevel, -82.0, "The default value of the OBSS PD level is not correct!");
+  obssPdAlgorithm->GetAttribute ("ObssPdLevel", currentObssPdLevel);
+  NS_TEST_ASSERT_MSG_EQ (currentObssPdLevel.Get (), -82.0, "The default value of the OBSS PD level is not correct!");
 
   // set the value to a min
-  obssPdAlgorithm->SetObssPdLevel (-82.0);
-  currentObssPdLevel = obssPdAlgorithm->GetObssPdLevel ();
-  NS_TEST_ASSERT_MSG_EQ (currentObssPdLevel, -82.0, "The value of the OBSS PD level is not correct!");
+  obssPdAlgorithm->SetAttribute ("ObssPdLevel", DoubleValue (-82.0));
+  obssPdAlgorithm->GetAttribute ("ObssPdLevel", currentObssPdLevel);
+  NS_TEST_ASSERT_MSG_EQ (currentObssPdLevel.Get (), -82.0, "The value of the OBSS PD level is not correct!");
 
   // set the value to a max
-  obssPdAlgorithm->SetObssPdLevel (-62.0);
-  currentObssPdLevel = obssPdAlgorithm->GetObssPdLevel ();
-  NS_TEST_ASSERT_MSG_EQ (currentObssPdLevel, -62.0, "The value of the OBSS PD level is not correct!");
+  obssPdAlgorithm->SetAttribute ("ObssPdLevel", DoubleValue (-62.0));
+  obssPdAlgorithm->GetAttribute ("ObssPdLevel", currentObssPdLevel);
+  NS_TEST_ASSERT_MSG_EQ (currentObssPdLevel.Get (), -62.0, "The value of the OBSS PD level is not correct!");
 
   // set the value to an inbetween value
-  obssPdAlgorithm->SetObssPdLevel (-72.0);
-  currentObssPdLevel = obssPdAlgorithm->GetObssPdLevel ();
-  NS_TEST_ASSERT_MSG_EQ (currentObssPdLevel, -72.0, "The value of the OBSS PD level is not correct!");
+  obssPdAlgorithm->SetAttribute ("ObssPdLevel", DoubleValue (-72.0));
+  obssPdAlgorithm->GetAttribute ("ObssPdLevel", currentObssPdLevel);
+  NS_TEST_ASSERT_MSG_EQ (currentObssPdLevel.Get (), -72.0, "The value of the OBSS PD level is not correct!");
 
   // set the value to a value that is out of range (allowed)
-  obssPdAlgorithm->SetObssPdLevel (-200.0);
-  currentObssPdLevel = obssPdAlgorithm->GetObssPdLevel ();
-  NS_TEST_ASSERT_MSG_EQ (currentObssPdLevel, -200.0, "The value of the OBSS PD level is not correct!");
+  obssPdAlgorithm->SetAttribute ("ObssPdLevel", DoubleValue (-200.0));
+  obssPdAlgorithm->GetAttribute ("ObssPdLevel", currentObssPdLevel);
+  NS_TEST_ASSERT_MSG_EQ (currentObssPdLevel.Get (), -200.0, "The value of the OBSS PD level is not correct!");
 
   // set the value to a value that is out of range (allowed)
-  obssPdAlgorithm->SetObssPdLevel (-10.0);
-  currentObssPdLevel = obssPdAlgorithm->GetObssPdLevel ();
-  NS_TEST_ASSERT_MSG_EQ (currentObssPdLevel, -10.0, "The value of the OBSS PD level is not correct!");
-
-  // test that the default Tx power is as expected
-  double currentTxPower = obssPdAlgorithm->GetTxPower ();
-  NS_TEST_ASSERT_MSG_EQ (currentTxPower, 10.0, "The default value of the TxPwr is not correct!");
-
-  // test that the default Tx power can be changed
-  obssPdAlgorithm->SetTxPower (20.0);
-  currentTxPower = obssPdAlgorithm->GetTxPower ();
-  NS_TEST_ASSERT_MSG_EQ (currentTxPower, 20.0, "The value of the TxPwr is not correct!");
+  obssPdAlgorithm->SetAttribute ("ObssPdLevel", DoubleValue (-10.0));
+  obssPdAlgorithm->GetAttribute ("ObssPdLevel", currentObssPdLevel);
+  NS_TEST_ASSERT_MSG_EQ (currentObssPdLevel.Get (), -10.0, "The value of the OBSS PD level is not correct!");
 }
 
 /**

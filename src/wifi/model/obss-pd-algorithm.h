@@ -15,6 +15,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
+ * Author: Sébastien Deronne <sebastien.deronne@gmail.com>
  */
 
 #ifndef OBSS_PD_ALGORITHM_H
@@ -26,6 +27,8 @@ namespace ns3 {
 
 struct HeSigAParameters;
 struct HeBeaconReceptionParameters;
+
+class WifiNetDevice;
 
 /**
  * \brief OBSS PD algorithm interface
@@ -41,6 +44,19 @@ public:
   static TypeId GetTypeId (void);
 
   /**
+   * Sets the WifiNetDevice this PHY is associated with.
+   *
+   * \param device the WifiNetDevice this PHY is associated with
+   */
+  void SetWifiNetDevice (const Ptr<WifiNetDevice> device);
+  /**
+   * Returns the WifiNetDevice this PHY is associated with.
+   *
+   * \return the WifiNetDevice this PHY is associated with
+   */
+  Ptr<WifiNetDevice> GetWifiNetDevice (void) const;
+
+  /**
    * \param params the HE SIG A parameters
    *
    * Evaluate the receipt of HE SIG-A.
@@ -53,6 +69,20 @@ public:
    * Evaluate the receipt of a beacon.
    */
   virtual void ReceiveBeacon (HeBeaconReceptionParameters params) = 0;
+
+
+protected:
+  virtual void DoDispose (void);
+
+  /**
+   * Setup callbacks.
+   *
+   */
+  virtual void SetupCallbacks ();
+
+
+private:
+  Ptr<WifiNetDevice> m_device; //!< Pointer to the WifiNetDevice
 };
 
 } //namespace ns3

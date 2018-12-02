@@ -121,7 +121,11 @@ WifiNetDevice::DoDispose (void)
       m_stationManager->Dispose ();
       m_stationManager = 0;
     }
-  m_obssPdAlgorithm = 0;
+  if (m_stationManager)
+    {
+      m_obssPdAlgorithm->Dispose ();
+      m_obssPdAlgorithm = 0;
+    }
   NetDevice::DoDispose ();
 }
 
@@ -181,6 +185,7 @@ void
 WifiNetDevice::SetObssPdAlgorithm (const Ptr<ObssPdAlgorithm> algorithm)
 {
   m_obssPdAlgorithm = algorithm;
+  m_obssPdAlgorithm->SetWifiNetDevice (this);
 }
 
 Ptr<WifiMac>
