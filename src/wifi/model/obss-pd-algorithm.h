@@ -15,23 +15,20 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
+ * Author: Sébastien Deronne <sebastien.deronne@gmail.com>
  */
 
 #ifndef OBSS_PD_ALGORITHM_H
 #define OBSS_PD_ALGORITHM_H
 
 #include "ns3/object.h"
-#include "ns3/traced-value.h"
 
 namespace ns3 {
 
 struct HeSigAParameters;
 struct HeBeaconReceptionParameters;
 
-class HeConfiguration;
 class WifiNetDevice;
-class WifiMac;
-class WifiPhy;
 
 /**
  * \brief OBSS PD algorithm interface
@@ -44,100 +41,48 @@ class WifiPhy;
 class ObssPdAlgorithm : public Object
 {
 public:
-  ObssPdAlgorithm ();
   static TypeId GetTypeId (void);
 
   /**
-    * Sets the OBSS PD level.
-    *
-    * \param level the OBSS PD level in dBm
-    */
-  void SetObssPdLevel (double level);
-  /**
-   * Return the OBSS PD level (dBm).
+   * Sets the WifiNetDevice this PHY is associated with.
    *
-   * \return the OBSS PD level in dBm
+   * \param device the WifiNetDevice this PHY is associated with
    */
-  double GetObssPdLevel (void) const;
-
+  void SetWifiNetDevice (const Ptr<WifiNetDevice> device);
   /**
-    * Sets the TxPwr.
-    *
-    * \param txPwr the TxPwr in dBm
-    */
-  void SetTxPwr (double txPwr);
-  /**
-   * Return the TxPwr (dBm).
+   * Returns the WifiNetDevice this PHY is associated with.
    *
-   * \return the TxPwr in dBm
-   */
-  double GetTxPwr (void) const;
-
-  /**
-   * Setup callbacks.
-   *
-   */
-  void SetupCallbacks ();
-
-  /**
-   * Return the WifiNetDevce aggregated to this object.
-   *
-   * \return the Ptr<WifiNetDevice> aggregated to this object
+   * \return the WifiNetDevice this PHY is associated with
    */
   Ptr<WifiNetDevice> GetWifiNetDevice (void) const;
-
-  /**
-   * Return the WifiPhy associated with this object.
-   *
-   * \return the Ptr<WifiPhy> associated with this object
-   */
-  Ptr<WifiPhy> GetPhy (void) const;
-
-  /**
-   * Return the WifiMac associated with this object.
-   *
-   * \return the Ptr<WifiMac> associated with this object
-   */
-  Ptr<WifiMac> GetMac (void) const;
-
-  /**
-   * Return the HeConfiguration object associated with this object.
-   *
-   * \return the Ptr<RegularWifiMac> assocaited with this object
-   */
-  Ptr<HeConfiguration> GetHeConfiguration (void) const;
 
   /**
    * \param params the HE SIG A parameters
    *
    * Evaluate the receipt of HE SIG-A.
    */
-  void ReceiveHeSigA (HeSigAParameters params);
+  virtual void ReceiveHeSigA (HeSigAParameters params) = 0;
 
   /**
    * \param params the HE Beacon parameters
    *
    * Evaluate the receipt of a beacon.
    */
-  void ReceiveBeacon (HeBeaconReceptionParameters params);
+  virtual void ReceiveBeacon (HeBeaconReceptionParameters params) = 0;
+
+
+protected:
+  virtual void DoDispose (void);
+
+  /**
+   * Setup callbacks.
+   *
+   */
+  virtual void SetupCallbacks ();
 
 
 private:
-  TracedValue<double> m_obssPdLevel;
-  TracedValue<double> m_txPwr;
-
-  /**
-   * \param params the HE SIG A parameters
-   *
-   * Evaluate the algorithm.
-   */
-  virtual void DoReceiveHeSigA (HeSigAParameters params);
-
-  /**
-   *
-   * Receive beacon.
-   */
-  virtual void DoReceiveBeacon (HeBeaconReceptionParameters params);
+  Ptr<WifiNetDevice> m_device; //!< Pointer to the WifiNetDevice
 };
 
 } //namespace ns3

@@ -1566,10 +1566,10 @@ public:
   double GetPowerDbm (uint8_t power) const;
 
   /**
-   * Force PHY to reset (abandon current reception) if CCA busy state
+   * Reset PHY to IDLE
    *
    */
-  void ForceCcaReset (void);
+  void ResetCca (void);
 
 
 protected:

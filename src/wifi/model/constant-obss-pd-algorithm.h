@@ -15,6 +15,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
+ * Author: Sébastien Deronne <sebastien.deronne@gmail.com>
  */
 
 #ifndef CONSTANT_OBSS_PD_ALGORITHM_H
@@ -36,20 +37,8 @@ class ConstantObssPdAlgorithm : public ObssPdAlgorithm
 {
 public:
   ConstantObssPdAlgorithm ();
-  static TypeId GetTypeId (void);
 
-  /**
-    * Sets the OBSS PD level.
-    *
-    * \param level the OBSS PD level in dBm
-    */
-  void SetConstantObssPdLevel (double level);
-  /**
-   * Return the OBSS PD level (dBm).
-   *
-   * \return the OBSS PD level in dBm
-   */
-  double GetConstantObssPdLevel (void) const;
+  static TypeId GetTypeId (void);
 
   /**
    * \param params the HE SIG A parameters
@@ -57,10 +46,16 @@ public:
    * Evaluate the algorithm.
    */
   void ReceiveHeSigA (HeSigAParameters params);
+  /**
+   * \param params the HE Beacon parameters
+   *
+   * Evaluate the receipt of a beacon.
+   */
+  void ReceiveBeacon (HeBeaconReceptionParameters params);
 
 
 private:
-  TracedValue<double> m_constantObssPdLevel;
+  double m_obssPdLevel; ///< OBSS PD level
 };
 
 } //namespace ns3
