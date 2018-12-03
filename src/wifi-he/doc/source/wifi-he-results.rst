@@ -706,7 +706,7 @@ The ECDF of node contributions to downlink throughput for the offered load of
 
 .. _study1-05-ecdf:
 
-.. figure:: figures/study1-1732-10-05-0.6-54-6-ap1-ecdf.*
+.. figure:: figures/study1-1732-10-05-3.0-270-30-ap1-ecdf.*
    :align: center 
 
    ECDF of node contributions to downlink throughput for n=5 nodes and offered load of 3 Mbps.
@@ -718,7 +718,7 @@ It is observed that the throughput per node varies, and that no nodes received 0
 
 .. _study1-20-ecdf:
 
-.. figure:: figures/study1-1732-10-20-0.6-54-6-ap1-ecdf.*
+.. figure:: figures/study1-1732-10-20-3.0-270-30-ap1-ecdf.*
    :align: center 
 
    ECDF of node contributions to downlink throughput for n=20 nodes and offered load of 3 Mbps.
@@ -789,7 +789,7 @@ shown below, for the scenario of n=20 nodes, and offered load of 3 Mbps.
 
 .. _study1-20-ap1-signal:
 
-.. figure:: figures/spatial-reuse-rx-sniff-study1-1732-10-20-0.6-54-6-ap1-signal.*
+.. figure:: figures/spatial-reuse-rx-sniff-study1-1732-10-20-3.0-270-30-ap1-signal.*
    :align: center 
 
    ECDF of the signal level at the AP for the BSS of interest in the center of the Study 1 parametric study, with n=20 STAs per BSS.
@@ -805,7 +805,7 @@ shown below, for the scenario of n=20 nodes, and offered load of 3 Mbps.
 
 .. _study1-20-ap1-noise:
 
-.. figure:: figures/spatial-reuse-rx-sniff-study1-1732-10-20-0.6-54-6-ap1-noise.*
+.. figure:: figures/spatial-reuse-rx-sniff-study1-1732-10-20-3.0-270-30-ap1-noise.*
    :align: center 
 
    ECDF of the noise level at the AP for the BSS of interest in the center of the Study 1 parametric study, with n=20 STAs per BSS..

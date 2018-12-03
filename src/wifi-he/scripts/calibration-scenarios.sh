@@ -1,34 +1,42 @@
 #!/bin/bash
 
+trap ctrl_c INT
+
+function ctrl_c() {
+         echo "Trapped CTRL-C, exiting..."
+         exit 1
+}
+
 source spatial-reuse-functions.sh
 
 # Run the test(s) for Scenarios for calibration of MAC simulator
 # common parameters
-RngRun=1
-powSta=15
-powAp=20
-duration=10.0
-enableRts=0
-standard=11ax_5GHZ
-bw=20
-MCS=0
-payloadSizeUplink=1500
-payloadSizeDownlink=1500
-txStartOffset=5
-enableObssPd=1
-txGain=0
-rxGain=0
-antennas=1
-maxSupportedTxSpatialStreams=1
-maxSupportedRxSpatialStreams=1
-performTgaxTimings=1
-scenario=residential
-nBss=2
-maxAmpduSize=3140
-nodePositionsFile=NONE
-enablePcap=0
-enableAscii=0
-obssPdThreshold=-82
+export RngRun=1
+export powSta=15
+export powAp=20
+export duration=10.0
+export enableRts=0
+export standard=11ax_5GHZ
+export bw=20
+export MCS=0
+export payloadSizeUplink=1500
+export payloadSizeDownlink=1500
+export txStartOffset=5
+export enableObssPd=1
+export txGain=0
+export rxGain=0
+export antennas=1
+export maxSupportedTxSpatialStreams=1
+export maxSupportedRxSpatialStreams=1
+export performTgaxTimingChecks=1
+export scenario=residential
+export nBss=2
+export maxAmpduSize=3140
+export nodePositionsFile=NONE
+export enablePcap=0
+export enableAscii=0
+export obssPdThreshold=-82
+export useIdealWifiManager=0
 
 cd ../examples
 
@@ -41,60 +49,60 @@ cd ../examples
 # PER = 0%
 
 # Test 1a - MAC overhead w/o RTS/CTS
-test=calibration-test1a
-d=1000
-r=50
-n=1
-uplink=10.0
-downlink=0.0
-txRange=54
-run_one "$test" "$RngRun" "$powSta" "$powAp" "$duration" "$d" "$r" "$n" "$uplink" "$downlink" "$enableRts" "$standard" "$bw" "$txRange" "$MCS" "$payloadSizeUplink" "$payloadSizeDownlink" "$txStartOffset" "$enableObssPd" "$txGain" "$rxGain" "$antennas" "$maxSupportedTxSpatialStreams" "$maxSupportedRxSpatialStreams" "$performTgaxTimings" "$scenario" "$nBss" "$maxAmpduSize" "$nodePositionsFile" "$enablePcap" "$enableAscii" "$obssPdThreshold"
+export test=calibration-test1a
+export d=1000
+export r=50
+export n=1
+export uplink=10.0
+export downlink=0.0
+export txRange=54
+run_one
 
 # Test 1b - MAC overhead w/o RTS/CTS
-test=calibration-test1b
-d=1000
-r=50
-n=1
-uplink=10.0
-downlink=0.0
-enableRts=1
-txRange=54
-run_one "$test" "$RngRun" "$powSta" "$powAp" "$duration" "$d" "$r" "$n" "$uplink" "$downlink" "$enableRts" "$standard" "$bw" "$txRange" "$MCS" "$payloadSizeUplink" "$payloadSizeDownlink" "$txStartOffset" "$enableObssPd" "$txGain" "$rxGain" "$antennas" "$maxSupportedTxSpatialStreams" "$maxSupportedRxSpatialStreams" "$performTgaxTimings" "$scenario" "$nBss" "$maxAmpduSize" "$nodePositionsFile" "$enablePcap" "$enableAscii" "$obssPdThreshold"
+export test=calibration-test1b
+export d=1000
+export r=50
+export n=1
+export uplink=10.0
+export downlink=0.0
+export enableRts=1
+export txRange=54
+run_one
 
 # Test 2a - Deferral Test 1
-test=calibration-test2a
-d=10
-r=10
-n=1
-uplink=10.0
-downlink=0.0
+export test=calibration-test2a
+export d=10
+export r=10
+export n=1
+export uplink=10.0
+export downlink=0.0
 # RTS=[OFF, ON]
-enableRts=0
-txRange=54
-run_one "$test" "$RngRun" "$powSta" "$powAp" "$duration" "$d" "$r" "$n" "$uplink" "$downlink" "$enableRts" "$standard" "$bw" "$txRange" "$MCS" "$payloadSizeUplink" "$payloadSizeDownlink" "$txStartOffset" "$enableObssPd" "$txGain" "$rxGain" "$antennas" "$maxSupportedTxSpatialStreams" "$maxSupportedRxSpatialStreams" "$performTgaxTimings" "$scenario" "$nBss" "$maxAmpduSize" "$nodePositionsFile" "$enablePcap" "$enableAscii" "$obssPdThreshold"
+export enableRts=0
+export txRange=54
+run_one
 
 # Test 2b - Deferral Test 2
-test=calibration-test2b
-d=20
-r=10
-n=1
-uplink=10.0
-downlink=0.0
+export test=calibration-test2b
+export d=20
+export r=10
+export n=1
+export uplink=10.0
+export downlink=0.0
 # RTS=OFF for this test
-enableRts=0
-txRange=54
-run_one "$test" "$RngRun" "$powSta" "$powAp" "$duration" "$d" "$r" "$n" "$uplink" "$downlink" "$enableRts" "$standard" "$bw" "$txRange" "$MCS" "$payloadSizeUplink" "$payloadSizeDownlink" "$txStartOffset" "$enableObssPd" "$txGain" "$rxGain" "$antennas" "$maxSupportedTxSpatialStreams" "$maxSupportedRxSpatialStreams" "$performTgaxTimings" "$scenario" "$nBss" "$maxAmpduSize" "$nodePositionsFile" "$enablePcap" "$enableAscii" "$obssPdThreshold"
+export enableRts=0
+export txRange=54
+run_one
 
 # Test 3 - NAV Deferral
 # same as Test 2b, but with RTS/CTS ON
-test=calibration-test3
-d=20
-r=10
-n=1
-uplink=10.0
-downlink=0.0
+export test=calibration-test3
+export d=20
+export r=10
+export n=1
+export uplink=10.0
+export downlink=0.0
 # RTS=ON for this test
-enableRts=1
-txRange=54
-run_one "$test" "$RngRun" "$powSta" "$powAp" "$duration" "$d" "$r" "$n" "$uplink" "$downlink" "$enableRts" "$standard" "$bw" "$txRange" "$MCS" "$payloadSizeUplink" "$payloadSizeDownlink" "$txStartOffset" "$enableObssPd" "$txGain" "$rxGain" "$antennas" "$maxSupportedTxSpatialStreams" "$maxSupportedRxSpatialStreams" "$performTgaxTimings" "$scenario" "$nBss" "$maxAmpduSize" "$nodePositionsFile" "$enablePcap" "$enableAscii" "$obssPdThreshold"
+export enableRts=1
+export txRange=54
+run_one
 

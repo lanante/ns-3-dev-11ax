@@ -21,7 +21,7 @@ for n in 5 20 ; do
     for ap in ap1 ; do
 #        for offeredLoad in 1.0 2.0 3.0 4.0 5.0 6.0 ; do
         # arbitrarily pick the total offered load = 3 Mbps scenario
-        for offeredLoad in 0.6 ; do
+        for offeredLoad in 3.0 ; do
             ol1=$(awk "BEGIN {print $offeredLoad*1}")
             # uplink is 90% of total offered load
             uplink=$(awk "BEGIN {print $offeredLoad*0.9}")

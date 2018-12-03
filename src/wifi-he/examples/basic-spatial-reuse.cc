@@ -339,8 +339,8 @@ main (int argc, char *argv[])
 
   spectrumPhy.Set ("TxPowerStart", DoubleValue (powSta1));
   spectrumPhy.Set ("TxPowerEnd", DoubleValue (powSta1));
-  spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrSta1));
-  spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-92.0));
+  spectrumPhy.Set ("CcaEdThreshold", DoubleValue (ccaTrSta1));
+  spectrumPhy.Set ("RxSensitivity", DoubleValue (-92.0));
   Ssid ssidA = Ssid ("A");
   mac.SetType ("ns3::StaWifiMac",
                "Ssid", SsidValue (ssidA));
@@ -349,8 +349,8 @@ main (int argc, char *argv[])
 
   spectrumPhy.Set ("TxPowerStart", DoubleValue (powAp1));
   spectrumPhy.Set ("TxPowerEnd", DoubleValue (powAp1));
-  spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrAp1));
-  spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-92.0));
+  spectrumPhy.Set ("CcaEdThreshold", DoubleValue (ccaTrAp1));
+  spectrumPhy.Set ("RxSensitivity", DoubleValue (-92.0));
   mac.SetType ("ns3::ApWifiMac",
                "Ssid", SsidValue (ssidA));
 
@@ -365,8 +365,8 @@ main (int argc, char *argv[])
 
   spectrumPhy.Set ("TxPowerStart", DoubleValue (powSta3));
   spectrumPhy.Set ("TxPowerEnd", DoubleValue (powSta3));
-  spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrSta3));
-  spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-92.0));
+  spectrumPhy.Set ("CcaEdThreshold", DoubleValue (ccaTrSta3));
+  spectrumPhy.Set ("RxSensitivity", DoubleValue (-92.0));
 
   Ssid ssidB = Ssid ("B");
   mac.SetType ("ns3::StaWifiMac",
@@ -376,8 +376,8 @@ main (int argc, char *argv[])
 
   spectrumPhy.Set ("TxPowerStart", DoubleValue (powAp2));
   spectrumPhy.Set ("TxPowerEnd", DoubleValue (powAp2));
-  spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrAp2));
-  spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-92.0));
+  spectrumPhy.Set ("CcaEdThreshold", DoubleValue (ccaTrAp2));
+  spectrumPhy.Set ("RxSensitivity", DoubleValue (-92.0));
   mac.SetType ("ns3::ApWifiMac",
                "Ssid", SsidValue (ssidB));
 

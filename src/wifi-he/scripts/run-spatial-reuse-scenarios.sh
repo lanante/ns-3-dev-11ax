@@ -5,36 +5,44 @@
 rm ./results/spatial-reuse-experiments*.*
 rm ./results/spatial-reuse-SR-stats-experiments*.*
 
+trap ctrl_c INT
+
+function ctrl_c() {
+         echo "Trapped CTRL-C, exiting..."
+         exit 1
+}
+
 source spatial-reuse-functions.sh
 
 # Run the test(s) for Spatial-Reuse experiments
 
 # common parameters
-RngRun=1
-powSta=15
-powAp=20
+export RngRun=1
+export powSta=15
+export powAp=20
 # to be changed. set to "3" for now, for testing
-duration=3.0
-enableRts=0
+export duration=3.0
+export enableRts=0
 # for now, just 802.11ac
-standard=11ac
-MCS=0
-payloadSizeUplink=1500
-payloadSizeDownlink=1500
-txStartOffset=5
-enableObssPd=1
-txGain=0
-rxGain=0
-antennas=1
-maxSupportedTxSpatialStreams=1
-maxSupportedRxSpatialStreams=1
-performTgaxTimingChecks=0
-maxAmpduSize=3140
-nodePositionsFile=NONE
-enablePcap=0
-enableAscii=0
-bw=20
-obssPdThreshold=-82
+export standard=11ac
+export MCS=0
+export payloadSizeUplink=1500
+export payloadSizeDownlink=1500
+export txStartOffset=5
+export enableObssPd=1
+export txGain=0
+export rxGain=0
+export antennas=1
+export maxSupportedTxSpatialStreams=1
+export maxSupportedRxSpatialStreams=1
+export performTgaxTimingChecks=0
+export maxAmpduSize=3140
+export nodePositionsFile=NONE
+export enablePcap=0
+export enableAscii=0
+export bw=20
+export obssPdThreshold=-82
+export useIdealWifiManager=0
 
 cd ../examples
 
@@ -43,8 +51,8 @@ cd ../examples
 
 # Test: spatial-reuse-residential
 # params that will not vary
-scenario=residential
-txRange=54
+export scenario=residential
+export txRange=54
 
 # params that will vary
 for d in 20 40 60 80 ; do
@@ -55,7 +63,7 @@ for d in 20 40 60 80 ; do
                 for uplink in 1 2 3 4 5 6 ; do
                     downlink=0
                     test=$(printf "experiments-%02d-%02d-%02d-%02d-%04d-%04d" ${d} ${r} ${nBss} ${n} ${uplink} ${downlink})
-                    run_one "$test" "$RngRun" "$powSta" "$powAp" "$duration" "$d" "$r" "$n" "$uplink" "$downlink" "$enableRts" "$standard" "$bw" "$txRange" "$MCS" "$payloadSizeUplink" "$payloadSizeDownlink" "$txStartOffset" "$enableObssPd" "$txGain" "$rxGain" "$antennas" "$maxSupportedTxSpatialStreams" "$maxSupportedRxSpatialStreams" "$performTgaxTimingChecks" "$scenario" "$nBss" "$maxAmpduSize" "$nodePositionsFile" "$enablePcap" "$enableAscii" "$obssPdThreshold"
+                    run_one
                 done
             done
         done

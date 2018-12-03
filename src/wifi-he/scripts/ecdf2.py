@@ -44,6 +44,8 @@ print(j, " matching data points.")
 #     print("%.6f %.6f" % (xx, i / float(asort.size)))
 #     i = i + 1
 
+# plot 2"x2" plot area
+plt.figure(figsize=(2.5,2.5))
 # endpoint=True means include last point
 plt.plot(np.sort(x), np.linspace(0, 1, len(x), endpoint=True))
 plt.savefig(sys.argv[7])

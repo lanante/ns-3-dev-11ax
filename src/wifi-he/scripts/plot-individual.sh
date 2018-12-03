@@ -18,6 +18,8 @@ BASE_OPTIONS="${BASE_OPTIONS} ; set style increment ;"
 
 BASE_OPTIONS="${BASE_OPTIONS} ; set pointsize 2 ; set grid;"
 
+PNG_OPTIONS="size 350, 300 font \",9\""
+
 set -o errexit
 
 # below value is used for thumbnail page

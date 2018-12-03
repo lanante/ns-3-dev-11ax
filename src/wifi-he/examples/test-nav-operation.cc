@@ -332,8 +332,8 @@ main (int argc, char *argv[])
   spectrumPhy.Set ("Frequency", UintegerValue (5180)); // channel 36 at 20 MHz
   spectrumPhy.Set ("TxPowerStart", DoubleValue (powSta1));
   spectrumPhy.Set ("TxPowerEnd", DoubleValue (powSta1));
-  spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrSta1));
-  spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-82.0));
+  spectrumPhy.Set ("CcaEdThreshold", DoubleValue (ccaTrSta1));
+  spectrumPhy.Set ("RxSensitivity", DoubleValue (-82.0));
 
   WifiMacHelper mac;
   Ssid ssidA = Ssid ("A");
@@ -343,8 +343,8 @@ main (int argc, char *argv[])
 
   spectrumPhy.Set ("TxPowerStart", DoubleValue (powAp1));
   spectrumPhy.Set ("TxPowerEnd", DoubleValue (powAp1));
-  spectrumPhy.Set ("CcaMode1Threshold", DoubleValue (ccaTrAp1));
-  spectrumPhy.Set ("EnergyDetectionThreshold", DoubleValue (-82.0));
+  spectrumPhy.Set ("CcaEdThreshold", DoubleValue (ccaTrAp1));
+  spectrumPhy.Set ("RxSensitivity", DoubleValue (-82.0));
   mac.SetType ("ns3::ApWifiMac","Ssid", SsidValue (ssidA));
 
   NetDeviceContainer apDeviceA;

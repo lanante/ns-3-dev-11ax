@@ -1,12 +1,13 @@
 #
-set term pngcairo dashed
+set term pngcairo dashed size 400, 300 font ",8"
 set output "spatial-reuse-positions.png"
 set title "Spatial Reuse Example\nPlot of node positions"
-set key outside
+set key outside font ",8"
 set grid
 set pointsize
-# set size 1, .6 
+#set size 1, .6 
 set size ratio -1.0
+#set size 1, 1
 #set size ratio 0.5
 datafile = 'spatial-reuse-positions.csv'
 set parametric
