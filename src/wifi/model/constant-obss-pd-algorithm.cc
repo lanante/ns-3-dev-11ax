@@ -56,7 +56,7 @@ ConstantObssPdAlgorithm::GetTypeId (void)
 }
 
 void
-ConstantObssPdAlgorithm::ReceiveHeSigA (HeSigAParameters params)
+ConstantObssPdAlgorithm::ReceiveHeSigA (HePreambleParameters params)
 {
   NS_LOG_FUNCTION (this);
 

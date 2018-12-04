@@ -25,7 +25,7 @@
 
 namespace ns3 {
 
-struct HeSigAParameters;
+struct HePreambleParameters;
 struct HeBeaconReceptionParameters;
 
 class WifiNetDevice;
@@ -61,7 +61,7 @@ public:
    *
    * Evaluate the receipt of HE SIG-A.
    */
-  virtual void ReceiveHeSigA (HeSigAParameters params) = 0;
+  virtual void ReceiveHeSigA (HePreambleParameters params) = 0;
 
   /**
    * \param params the HE Beacon parameters

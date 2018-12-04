@@ -42,6 +42,7 @@ class NetDevice;
 class MobilityModel;
 class WifiPhyStateHelper;
 class FrameCaptureModel;
+class PreambleDetectionModel;
 class WifiRadioEnergyModel;
 class UniformRandomVariable;
 
@@ -52,18 +53,18 @@ struct SignalNoiseDbm
   double noise; ///< in dBm
 };
 
-// Parameters for receive HE SIG-A
-struct HeSigAParameters
-{
-  double rssiW; ///< RSSI in W
-  uint8_t bssColor; ///< BSS color
-};
-
 /// MpduInfo structure
 struct MpduInfo
 {
   MpduType type; ///< type
   uint32_t mpduRefNumber; ///< MPDU ref number
+};
+
+// Parameters for receive HE preamble
+struct HePreambleParameters
+{
+  double rssiW; ///< RSSI in W
+  uint8_t bssColor; ///< BSS color
 };
 
 /**
@@ -122,29 +123,29 @@ public:
   void SetCapabilitiesChangedCallback (Callback<void> callback);
 
   /**
-   * Starting receiving the plcp of a packet (i.e. the first bit of the preamble has arrived).
+   * Starting receiving the PHY preamble of a packet (i.e. the first bit of the preamble has arrived).
    *
    * \param packet the arriving packet
    * \param rxPowerW the receive power in W
    * \param rxDuration the duration needed for the reception of the packet
    */
-  void StartReceivePreambleAndHeader (Ptr<Packet> packet,
-                                      double rxPowerW,
-                                      Time rxDuration);
+  void StartReceivePreamble (Ptr<Packet> packet,
+                             double rxPowerW,
+                             Time rxDuration);
 
   /**
-   * Starting receiving the header of a packet (i.e. after the end of receiving the preamble).
+   * Starting receiving the PHY header of a packet (i.e. after the end of receiving the preamble).
    *
    * \param packet the arriving packet
    * \param txVector the TXVECTOR of the arriving packet
    * \param mpdutype the type of the MPDU as defined in WifiPhy::MpduType.
    * \param event the corresponding event of the first time the packet arrives
    */
-  void PacketDetection (Ptr<Packet> packet,
-                        WifiTxVector txVector,
-                        MpduType mpdutype,
-                        Ptr<Event> event,
-                        Time rxDuration);
+  void StartReceiveHeader (Ptr<Packet> packet,
+                           WifiTxVector txVector,
+                           MpduType mpdutype,
+                           Ptr<Event> event,
+                           Time rxDuration);
 
   /**
    * Starting receiving the payload of a packet (i.e. the first bit of the packet has arrived).
@@ -158,15 +159,6 @@ public:
                            WifiTxVector txVector,
                            MpduType mpdutype,
                            Ptr<Event> event);
-
-  /**
-   * Check if the preamble is successfully detected.  Should be done after L-SIG received.
-   *
-   * \param snr the signal-to-noise ratio
-   * \param channelWidth the width of the channel (MHz), e.g., 5/10/20/80.
-   */
-  bool PreambleDetected (double snr,
-			 double channelWidth);
 
   /**
    * The last bit of the packet has arrived.
@@ -282,6 +274,12 @@ public:
    * \return the total amount of time this PHY will stay busy for the transmission of the PLCP preamble and PLCP header.
    */
   static Time CalculatePlcpPreambleAndHeaderDuration (WifiTxVector txVector);
+
+  /**
+   *
+   * \return the preamble detection duration, which is the time correletion needs to detect the start of an incoming frame.
+   */
+  Time GetPreambleDetectionDuration (void);
 
   /**
    * \param txVector the transmission parameters used for this packet
@@ -1234,20 +1232,19 @@ public:
                                             MpduInfo aMpdu);
 
   /**
-   * Public method used to fire a EndOfHePreamble trace for end of a wifi packet preamble being received.
-   * Implemented for encapsulation purposes.
+   * Public method used to fire a EndOfHePreamble trace once both HE SIG fields have been received, as well as training fields.
    *
-   * \param params the HE SIG-A parameters
+   * \param params the HE preamble parameters
    */
-  void NotifyEndOfHePreamble (HeSigAParameters params);
+  void NotifyEndOfHePreamble (HePreambleParameters params);
 
   /**
-   * TracedCallback signature for end of HE preamble events.
+   * TracedCallback signature for end of HE-SIG-A events.
    *
    *
-   * \param params the HE SIG-A parameters
+   * \param params the HE preamble parameters
    */
-  typedef void (* EndOfHePreambleCallback)(HeSigAParameters params);
+  typedef void (* EndOfHePreambleCallback)(HePreambleParameters params);
 
   /**
    * Assign a fixed random variable stream number to the random variables
@@ -1532,6 +1529,12 @@ public:
    */
   void SetFrameCaptureModel (const Ptr<FrameCaptureModel> frameCaptureModel);
   /**
+   * Sets the preamble detection model.
+   *
+   * \param preambleDetectionModel the preamble detection model
+   */
+  void SetPreambleDetectionModel (const Ptr<PreambleDetectionModel> preambleDetectionModel);
+  /**
    * Sets the wifi radio energy model.
    *
    * \param wifiRadioEnergyModel the wifi radio energy model
@@ -1615,9 +1618,10 @@ protected:
   uint32_t m_txMpduReferenceNumber;    //!< A-MPDU reference number to identify all transmitted subframes belonging to the same received A-MPDU
   uint32_t m_rxMpduReferenceNumber;    //!< A-MPDU reference number to identify all received subframes belonging to the same received A-MPDU
 
-  EventId m_endRxEvent;                //!< the end reeive event
-  EventId m_endPlcpRxEvent;            //!< the end PLCP receive event
-  EventId m_endPacketDetectionEvent;   //!< the end packet detection event
+  EventId m_endRxEvent;                //!< the end of receive event
+  EventId m_endPlcpRxEvent;            //!< the end of PLCP receive event
+  EventId m_endPreambleDetectionEvent; //!< the end of preamble detection event
+
 
 private:
   /**
@@ -1804,13 +1808,6 @@ private:
   TracedCallback<Ptr<const Packet>, uint16_t, WifiTxVector, MpduInfo, SignalNoiseDbm> m_phyMonitorSniffRxTrace;
 
   /**
-   * A trace source that emulates end of HE preamble for a packet received
-   *
-   * \see class CallBackTraceSource
-   */
-  TracedCallback<HeSigAParameters> m_phyEndOfHePreambleTrace;
-
-  /**
    * A trace source that emulates a wifi device in monitor mode
    * sniffing a packet being transmitted.
    *
@@ -1823,6 +1820,13 @@ private:
    * of its size.
    */
   TracedCallback<Ptr<const Packet>, uint16_t, WifiTxVector, MpduInfo> m_phyMonitorSniffTxTrace;
+
+  /**
+   * A trace source that indiates the end of both HE SIG fields as well as training fields for received 802.11ax packets
+   *
+   * \see class CallBackTraceSource
+   */
+  TracedCallback<HePreambleParameters> m_phyEndOfHePreambleTrace;
 
   /**
    * This vector holds the set of transmission modes that this
@@ -1908,6 +1912,7 @@ private:
 
   Ptr<Event> m_currentEvent; //!< Hold the current event
   Ptr<FrameCaptureModel> m_frameCaptureModel; //!< Frame capture model
+  Ptr<PreambleDetectionModel> m_preambleDetectionModel; //!< Preamble detection model
   Ptr<WifiRadioEnergyModel> m_wifiRadioEnergyModel; //!< Wifi radio energy model
   Ptr<ErrorModel> m_postReceptionErrorModel; //!< Error model for receive packet events
 

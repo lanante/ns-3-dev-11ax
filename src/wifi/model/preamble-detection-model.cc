@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2007 University of Washington
+ * Copyright (c) 2018 University of Washington
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -14,15 +14,23 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ * Author: Sébastien Deronne <sebastien.deronne@gmail.com>
  */
 
-#include "drop-tail-queue.h"
+#include "preamble-detection-model.h"
 
 namespace ns3 {
 
-NS_LOG_COMPONENT_DEFINE ("DropTailQueue");
+NS_OBJECT_ENSURE_REGISTERED (PreambleDetectionModel);
 
-NS_OBJECT_TEMPLATE_CLASS_DEFINE (DropTailQueue,Packet);
-NS_OBJECT_TEMPLATE_CLASS_DEFINE (DropTailQueue,QueueDiscItem);
+TypeId PreambleDetectionModel::GetTypeId (void)
+{
+  static TypeId tid = TypeId ("ns3::PreambleDetectionModel")
+    .SetParent<Object> ()
+    .SetGroupName ("Wifi")
+  ;
+  return tid;
+}
 
-} // namespace ns3
+} //namespace ns3

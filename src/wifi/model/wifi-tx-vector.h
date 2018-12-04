@@ -75,7 +75,7 @@ public:
    * \param channelWidth the channel width in MHz
    * \param aggregation enable or disable MPDU aggregation
    * \param stbc enable or disable STBC
-   * \param bssColor BSS color
+   * \param bssColor the BSS color
    */
   WifiTxVector (WifiMode mode,
                 uint8_t powerLevel,
@@ -194,14 +194,6 @@ public:
    */
   void SetStbc (bool stbc);
   /**
-   * The standard disallows certain combinations of WifiMode, number of
-   * spatial streams, and channel widths.  This method can be used to
-   * check whether this WifiTxVector contains an invalid combination.
-   *
-   * \return true if the WifiTxVector parameters are allowed by the standard
-   */
-   bool IsValid (void) const;
-  /**
    * Set the BSS color
    * \param color the BSS color
    */
@@ -211,6 +203,14 @@ public:
    * \return the BSS color
    */
   uint8_t GetBssColor (void) const;
+  /**
+   * The standard disallows certain combinations of WifiMode, number of
+   * spatial streams, and channel widths.  This method can be used to
+   * check whether this WifiTxVector contains an invalid combination.
+   *
+   * \return true if the WifiTxVector parameters are allowed by the standard
+   */
+   bool IsValid (void) const;
 
   enum HeSigA_UlDl
   {
@@ -261,11 +261,9 @@ private:
   uint16_t m_guardInterval;      /**< guard interval duration in nanoseconds */
   uint8_t  m_nTx;                /**< number of TX antennas */
   uint8_t  m_nss;                /**< number of spatial streams */
-  // HT-SIG2 configuration fields
   uint8_t  m_ness;               /**< number of spatial streams in beamforming */
   bool     m_aggregation;        /**< Flag whether the PSDU contains A-MPDU. */
   bool     m_stbc;               /**< STBC used or not */
-  // HE-SIG-A configuration fields
   uint8_t  m_bssColor;           /**< BSS color */
   enum HeSigA_UlDl m_uplinkDownlinkBit;  /**< UL/DL (1 bit)  */
   enum HeSigA_SpatialReuse m_spatialReuse;  /**< Spatial Result parameter (4 bits) */

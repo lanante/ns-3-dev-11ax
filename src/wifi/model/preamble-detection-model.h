@@ -1,4 +1,4 @@
-/* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
+/* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
  * Copyright (c) 2018 University of Washington
  *
@@ -18,46 +18,41 @@
  * Author: Sébastien Deronne <sebastien.deronne@gmail.com>
  */
 
-#ifndef CONSTANT_OBSS_PD_ALGORITHM_H
-#define CONSTANT_OBSS_PD_ALGORITHM_H
+#ifndef PREAMBLE_DETECTION_MODEL_H
+#define PREAMBLE_DETECTION_MODEL_H
 
-#include "obss-pd-algorithm.h"
+#include "ns3/object.h"
 
 namespace ns3 {
 
 /**
- * \brief Constant OBSS PD algorithm
  * \ingroup wifi
- *
- * This object executes an algorithm for OBSS PD to evalute if a receiving
- * signal should be accepted or rejected.
+ * \brief the interface for Wifi's preamble detection models
  *
  */
-class ConstantObssPdAlgorithm : public ObssPdAlgorithm
+class PreambleDetectionModel : public Object
 {
 public:
-  ConstantObssPdAlgorithm ();
-
+  /**
+   * \brief Get the type ID.
+   * \return the object TypeId
+   */
   static TypeId GetTypeId (void);
 
   /**
-   * \param params the HE SIG A parameters
+   * A pure virtual method that must be implemented in the subclass.
+   * This method returns whether the preamble detection was successful.
    *
-   * Evaluate the algorithm.
-   */
-  void ReceiveHeSigA (HePreambleParameters params);
-  /**
-   * \param params the HE Beacon parameters
+   * \param snr the SNR of the received signal.
+   * \param channelWidth the channel width of the received signal in MHz.
    *
-   * Evaluate the receipt of a beacon.
+   * \return true if the preamble has been detected,
+   *         false otherwise
    */
-  void ReceiveBeacon (HeBeaconReceptionParameters params);
-
-
-private:
-  double m_obssPdLevel; ///< OBSS PD level
+  virtual bool IsPreambleDetected (double snr, double channelWidth) const = 0;
 };
 
 } //namespace ns3
 
-#endif /* CONSTANT_OBSS_PD_ALGORITHM_H */
+#endif /* PREAMBLE_DETECTION_MODEL_H */
+

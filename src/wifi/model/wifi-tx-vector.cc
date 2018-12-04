@@ -195,6 +195,18 @@ WifiTxVector::SetStbc (bool stbc)
   m_stbc = stbc;
 }
 
+void
+WifiTxVector::SetBssColor (uint8_t color)
+{
+  m_bssColor = color;
+}
+
+uint8_t
+WifiTxVector::GetBssColor (void) const
+{
+  return m_bssColor;
+}
+
 bool
 WifiTxVector::IsValid (void) const
 {
@@ -225,18 +237,6 @@ WifiTxVector::IsValid (void) const
         }
     }
   return true;
-}
-
-void
-WifiTxVector::SetBssColor (uint8_t color)
-{
-  m_bssColor = color;
-}
-
-uint8_t
-WifiTxVector::GetBssColor (void) const
-{
-  return m_bssColor;
 }
 
 void
