@@ -41,6 +41,13 @@ public:
   static TypeId GetTypeId (void);
 
   /**
+   * Sets the OBSS PD level (in dBm).
+   *
+   * \param level the OBSS PD level in dBm
+   */
+  void SetObssPdLevel (double level);
+
+  /**
    * \param params the HE SIG A parameters
    *
    * Evaluate the algorithm.

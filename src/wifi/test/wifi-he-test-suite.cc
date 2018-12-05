@@ -18,7 +18,7 @@
  *
  * Authors: Mathieu Lacage <mathieu.lacage@sophia.inria.fr>
  *          Quincy Tse <quincy.tse@nicta.com.au>
- *          Sbastien Deronne <sebastien.deronne@gmail.com>
+ *          Sébastien Deronne <sebastien.deronne@gmail.com>
  *          Scott Carpenter <scarpenter44@windstream.net>
  */
 
@@ -1541,77 +1541,6 @@ TestSinglePacketEndOfHePreambleResetPhyOnMagicBssColor::CheckResults ()
  * \ingroup wifi-test
  * \ingroup tests
  *
- * \brief Wifi-He Test Case base class
- *
- * This class sets up generic information for Wifi-He test cases
- * so that they are all configured similarly and run consistently
- */
-class ConstantObssPdAlgorithmTestCase : public TestCase
-{
-public:
-  ConstantObssPdAlgorithmTestCase ();
-
-  virtual void DoRun (void);
-
-protected:
-  virtual void DoSetup (void);
-
-protected:
-};
-
-ConstantObssPdAlgorithmTestCase::ConstantObssPdAlgorithmTestCase ()
-  : TestCase ("WifiHe")
-{
-}
-
-void
-ConstantObssPdAlgorithmTestCase::DoSetup (void)
-{
-}
-
-void
-ConstantObssPdAlgorithmTestCase::DoRun (void)
-{
-  // construct ConstantObssPdAlgorithm object, test setting and getting values
-
-  Ptr<ConstantObssPdAlgorithm> obssPdAlgorithm = CreateObject<ConstantObssPdAlgorithm> ();
-  NS_ASSERT (obssPdAlgorithm);
-
-  DoubleValue currentObssPdLevel;
-  // test that the default ObssPdLevel is as expected
-  obssPdAlgorithm->GetAttribute ("ObssPdLevel", currentObssPdLevel);
-  NS_TEST_ASSERT_MSG_EQ (currentObssPdLevel.Get (), -82.0, "The default value of the OBSS PD level is not correct!");
-
-  // set the value to a min
-  obssPdAlgorithm->SetAttribute ("ObssPdLevel", DoubleValue (-82.0));
-  obssPdAlgorithm->GetAttribute ("ObssPdLevel", currentObssPdLevel);
-  NS_TEST_ASSERT_MSG_EQ (currentObssPdLevel.Get (), -82.0, "The value of the OBSS PD level is not correct!");
-
-  // set the value to a max
-  obssPdAlgorithm->SetAttribute ("ObssPdLevel", DoubleValue (-62.0));
-  obssPdAlgorithm->GetAttribute ("ObssPdLevel", currentObssPdLevel);
-  NS_TEST_ASSERT_MSG_EQ (currentObssPdLevel.Get (), -62.0, "The value of the OBSS PD level is not correct!");
-
-  // set the value to an inbetween value
-  obssPdAlgorithm->SetAttribute ("ObssPdLevel", DoubleValue (-72.0));
-  obssPdAlgorithm->GetAttribute ("ObssPdLevel", currentObssPdLevel);
-  NS_TEST_ASSERT_MSG_EQ (currentObssPdLevel.Get (), -72.0, "The value of the OBSS PD level is not correct!");
-
-  // set the value to a value that is out of range (allowed)
-  obssPdAlgorithm->SetAttribute ("ObssPdLevel", DoubleValue (-200.0));
-  obssPdAlgorithm->GetAttribute ("ObssPdLevel", currentObssPdLevel);
-  NS_TEST_ASSERT_MSG_EQ (currentObssPdLevel.Get (), -200.0, "The value of the OBSS PD level is not correct!");
-
-  // set the value to a value that is out of range (allowed)
-  obssPdAlgorithm->SetAttribute ("ObssPdLevel", DoubleValue (-10.0));
-  obssPdAlgorithm->GetAttribute ("ObssPdLevel", currentObssPdLevel);
-  NS_TEST_ASSERT_MSG_EQ (currentObssPdLevel.Get (), -10.0, "The value of the OBSS PD level is not correct!");
-}
-
-/**
- * \ingroup wifi-test
- * \ingroup tests
- *
  * \brief Wifi Test
  *
  * This test case tests the transmission of a inter-BSS cases
@@ -1779,7 +1708,6 @@ WifiHeTestSuite::WifiHeTestSuite ()
   AddTestCase (new TestSinglePacketEndOfHePreambleNoBssColor, TestCase::QUICK);
   AddTestCase (new TestSinglePacketEndOfHePreambleCorrectBssColor, TestCase::QUICK);
   //AddTestCase (new TestSinglePacketEndOfHePreambleResetPhyOnMagicBssColor, TestCase::QUICK);
-  AddTestCase (new ConstantObssPdAlgorithmTestCase, TestCase::QUICK);
   AddTestCase (new TestInterBss, TestCase::QUICK);
 }
 

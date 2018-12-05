@@ -37,6 +37,16 @@ ObssPdAlgorithm::GetTypeId (void)
   static ns3::TypeId tid = ns3::TypeId ("ns3::ObssPdAlgorithm")
     .SetParent<Object> ()
     .SetGroupName ("Wifi")
+    .AddAttribute ("ObssPdLevelMin",
+                   "Minimum value (dBm) of OBSS_PD level",
+                   DoubleValue (-82.0),
+                   MakeDoubleAccessor (&ObssPdAlgorithm::m_obssPdLevelMin),
+                   MakeDoubleChecker<double> ())
+    .AddAttribute ("ObssPdLevelMax",
+                   "Maximum value (dBm) of OBSS_PD level",
+                   DoubleValue (-62.0),
+                   MakeDoubleAccessor (&ObssPdAlgorithm::m_obssPdLevelMax),
+                   MakeDoubleChecker<double> ())
   ;
   return tid;
 }
@@ -73,6 +83,12 @@ ObssPdAlgorithm::SetupCallbacks ()
 
   // PhyEndOfHePreamble - used to test that the PHY EndOfHePreamble event has fired
   Config::ConnectWithoutContext (devicepath + "$ns3::WifiNetDevice/Phy/EndOfHePreamble", MakeCallback (&ObssPdAlgorithm::ReceiveHeSigA, this));
+}
+
+bool
+ObssPdAlgorithm::IsObssPdLevelAllowed (double level)
+{
+  return ((level >= m_obssPdLevelMin) && (level <= m_obssPdLevelMax));
 }
 
 } //namespace ns3

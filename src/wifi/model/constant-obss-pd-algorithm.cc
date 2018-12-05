@@ -47,12 +47,19 @@ ConstantObssPdAlgorithm::GetTypeId (void)
     .SetGroupName ("Wifi")
     .AddConstructor<ConstantObssPdAlgorithm> ()
     .AddAttribute ("ObssPdLevel",
-                   "The OBSS PD level.",
+                   "The constant OBSS PD level.",
                    DoubleValue (-82.0),
-                   MakeDoubleAccessor (&ConstantObssPdAlgorithm::m_obssPdLevel),
+                   MakeDoubleAccessor (&ConstantObssPdAlgorithm::SetObssPdLevel),
                    MakeDoubleChecker<double> ())
   ;
   return tid;
+}
+
+void
+ConstantObssPdAlgorithm::SetObssPdLevel (double level)
+{
+  NS_ABORT_MSG_IF (!IsObssPdLevelAllowed (level), "Configured OBSS PD level " << level <<" is not in the allowed range");
+  m_obssPdLevel = level;
 }
 
 void
@@ -79,7 +86,7 @@ ConstantObssPdAlgorithm::ReceiveHeSigA (HePreambleParameters params)
     {
       NS_LOG_DEBUG ("BSS color is 0: OBSS_PD SR is not allowed!");
     }
-  //TODO: SRP_AND_NON-SRG _OBSS-PD_PROHIBITED=1 => OBSS_PD SR is not allowed
+  //TODO: SRP_AND_NON-SRG_OBSS-PD_PROHIBITED=1 => OBSS_PD SR is not allowed
 
   bool isObss = (bssColor != params.bssColor);
   if (isObss && (WToDbm (params.rssiW) < m_obssPdLevel))
