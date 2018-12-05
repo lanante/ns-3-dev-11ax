@@ -68,13 +68,13 @@ protected:
    * \param rxPower the rx power (W)
    * \param txVector the transmit vector
    */
-  void SpectrumWifiPhyRxSuccess (Ptr<Packet> p, double snr, double rxPower, WifiTxVector txVector);
+  void RxSuccess (Ptr<Packet> p, double snr, double rxPower, WifiTxVector txVector);
   /**
    * Spectrum wifi receive failure function
    * \param p the packet
    * \param snr the SNR
    */
-  void SpectrumWifiPhyRxFailure (Ptr<Packet> p, double snr);
+  void RxFailure (Ptr<Packet> p, double snr);
   uint32_t m_countRxSuccess; ///< count RX success
   uint32_t m_countRxFailure; ///< count RX failure
 
@@ -150,14 +150,14 @@ TestThresholdPreambleDetectionWithoutFrameCapture::CheckRxPacketCount (uint32_t 
 }
 
 void
-TestThresholdPreambleDetectionWithoutFrameCapture::SpectrumWifiPhyRxSuccess (Ptr<Packet> p, double snr, double rxPower, WifiTxVector txVector)
+TestThresholdPreambleDetectionWithoutFrameCapture::RxSuccess (Ptr<Packet> p, double snr, double rxPower, WifiTxVector txVector)
 {
   NS_LOG_FUNCTION (this << p << snr << txVector);
   m_countRxSuccess++;
 }
 
 void
-TestThresholdPreambleDetectionWithoutFrameCapture::SpectrumWifiPhyRxFailure (Ptr<Packet> p, double snr)
+TestThresholdPreambleDetectionWithoutFrameCapture::RxFailure (Ptr<Packet> p, double snr)
 {
   NS_LOG_FUNCTION (this << p << snr);
   m_countRxFailure++;
@@ -176,8 +176,8 @@ TestThresholdPreambleDetectionWithoutFrameCapture::DoSetup (void)
   m_phy->SetErrorRateModel (error);
   m_phy->SetChannelNumber (CHANNEL_NUMBER);
   m_phy->SetFrequency (FREQUENCY);
-  m_phy->SetReceiveOkCallback (MakeCallback (&TestThresholdPreambleDetectionWithoutFrameCapture::SpectrumWifiPhyRxSuccess, this));
-  m_phy->SetReceiveErrorCallback (MakeCallback (&TestThresholdPreambleDetectionWithoutFrameCapture::SpectrumWifiPhyRxFailure, this));
+  m_phy->SetReceiveOkCallback (MakeCallback (&TestThresholdPreambleDetectionWithoutFrameCapture::RxSuccess, this));
+  m_phy->SetReceiveErrorCallback (MakeCallback (&TestThresholdPreambleDetectionWithoutFrameCapture::RxFailure, this));
 
   Ptr<ThresholdPreambleDetectionModel> preambleDetectionModel = CreateObject<ThresholdPreambleDetectionModel> ();
   m_phy->SetPreambleDetectionModel (preambleDetectionModel);
