@@ -58,7 +58,7 @@ ConstantObssPdAlgorithm::GetTypeId (void)
 void
 ConstantObssPdAlgorithm::SetObssPdLevel (double level)
 {
-  NS_ABORT_MSG_IF (!IsObssPdLevelAllowed (level), "Configured OBSS PD level " << level <<" is not in the allowed range");
+  //NS_ABORT_MSG_IF (!IsObssPdLevelAllowed (level), "Configured OBSS PD level " << level <<" is not in the allowed range");
   m_obssPdLevel = level;
 }
 
