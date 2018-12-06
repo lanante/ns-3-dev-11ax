@@ -36,27 +36,30 @@ function run_one () {
 	--enablePcap=${enablePcap} \
 	--enableAscii=${enableAscii} \
 	--obssPdThreshold=${obssPdThreshold} \
-        --useIdealWifiManager=${useIdealWifiManager}"
+        --useIdealWifiManager=${useIdealWifiManager} \
+        --test=${test}"
 
   # copy results files
   cd ../scripts
   mkdir -p results
-  cp ../../../spatial-reuse-positions.csv "results/spatial-reuse-positions-$test.csv"
-  cp ../../../spatial-reuse-rx-sniff.dat  "results/spatial-reuse-rx-sniff-$test.dat"
-  cp ../../../spatial-reuse-SR-stats.dat  "results/spatial-reuse-SR-stats-$test.dat"
+  cp "../../../spatial-reuse-positions-$test.csv" "results/spatial-reuse-positions-$test.csv"
+  cp "../../../spatial-reuse-rx-sniff-$test.dat"  "results/spatial-reuse-rx-sniff-$test.dat"
+  cp "../../../spatial-reuse-SR-stats-$test.dat"  "results/spatial-reuse-SR-stats-$test.dat"
+  cp "../../../spatial-reuse-A-$test.flowmon"  "results/spatial-reuse-A-$test.flowmon"
+  cp "../../../spatial-reuse-operatorA-$test"  "results/spatial-reuse-operatorA-$test"
   if (("${performTgaxTimingChecks}" == "1")); then
-    cp ../../../spatial-reuse-tgax-calibration-timings.dat  "results/spatial-reuse-tgax-calibration-timings-${test}.dat"
+    cp "../../../spatial-reuse-tgax-calibration-timings-$test.dat"  "results/spatial-reuse-tgax-calibration-timings-${test}.dat"
   fi
 
   # positions file
   cd ../scripts
-  cp ../../../spatial-reuse-positions.csv spatial-reuse-positions.csv
-  gnuplot spatial-reuse-positions.plt
+  cp "../../../spatial-reuse-positions-$test.csv" "spatial-reuse-positions.csv"
+  gnuplot -c spatial-reuse-positions.plt "${nBss}"
   cp spatial-reuse-positions.png "results/spatial-reuse-positions-${test}.png"
 
   # rx-sniff file
   cd ../scripts
-  cp ../../../spatial-reuse-rx-sniff.dat spatial-reuse-rx-sniff.dat
+  cp "../../../spatial-reuse-rx-sniff-$test.dat" "spatial-reuse-rx-sniff-$test.dat"
   # in the *rx-sniff.dat file, column 7 is the signal, column 6 is the noise
   signal=7
   noise=6
@@ -74,13 +77,14 @@ function run_one () {
   sta2_n="$((sta2_1+($n)-1))"
   # note:  only getting received packets > 1500b (last parameter below...)
   # AP1 signal
-  python ecdf2.py spatial-reuse-rx-sniff.dat "$signal" 0 "$ap1" "$sta1_1" "$sta1_n" "spatial-reuse-rx-sniff-$test-ap1-signal.png" 1500
+  python ecdf2.py "spatial-reuse-rx-sniff-$test.dat" "$signal" 0 "$ap1" "$sta1_1" "$sta1_n" "spatial-reuse-rx-sniff-$test-ap1-signal.png" 1500 &
   # AP2 noise
-  python ecdf2.py spatial-reuse-rx-sniff.dat "$noise"  0 "$ap1" "$sta1_1" "$sta1_n" "spatial-reuse-rx-sniff-$test-ap1-noise.png" 1500
+  python ecdf2.py "spatial-reuse-rx-sniff-$test.dat" "$noise"  0 "$ap1" "$sta1_1" "$sta1_n" "spatial-reuse-rx-sniff-$test-ap1-noise.png" 1500 &
   # AP2 signal
-  python ecdf2.py spatial-reuse-rx-sniff.dat "$signal" 1 "$ap2" "$sta2_1" "$sta2_n" "spatial-reuse-rx-sniff-$test-ap2-signal.png" 1500
+  python ecdf2.py "spatial-reuse-rx-sniff-$test.dat" "$signal" 1 "$ap2" "$sta2_1" "$sta2_n" "spatial-reuse-rx-sniff-$test-ap2-signal.png" 1500 &
   # AP2 noise
-  python ecdf2.py spatial-reuse-rx-sniff.dat "$noise"  1 "$ap2" "$sta2_1" "$sta2_n" "spatial-reuse-rx-sniff-$test-ap2-noise.png" 1500
+  python ecdf2.py "spatial-reuse-rx-sniff-$test.dat" "$noise"  1 "$ap2" "$sta2_1" "$sta2_n" "spatial-reuse-rx-sniff-$test-ap2-noise.png" 1500 &
+  wait
   cp *.png ./results/.
   rm *.png
   cd ../examples
