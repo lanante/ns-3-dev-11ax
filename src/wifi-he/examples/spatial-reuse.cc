@@ -730,6 +730,7 @@ main (int argc, char *argv[])
   uint32_t performTgaxTimingChecks = 0;
   // the scenario - should be one of: residential, enterprise, indoor, or outdoor
   std::string scenario ("residential");
+  std::string testname ("test");
 
   // local variables
   std::string outputFilePrefix = "spatial-reuse";
@@ -783,6 +784,7 @@ main (int argc, char *argv[])
   cmd.AddValue ("enablePcap", "Enable PCAP trace file generation.", enablePcap);
   cmd.AddValue ("enableAscii", "Enable ASCII trace file generation.", enableAscii);
   cmd.AddValue ("useIdealWifiManager", "Use IdealWifiManager instead of ConstantRateWifiManager", useIdealWifiManager);
+  cmd.AddValue ("test", "The testname.", testname);
   cmd.Parse (argc, argv);
 
   if ((scenario == "study1") || (scenario == "study2"))
@@ -1553,7 +1555,7 @@ main (int argc, char *argv[])
 
   // allocate in the order of AP_A, STAs_A, AP_B, STAs_B
 
-  std::string filename = outputFilePrefix + "-positions.csv";
+  std::string filename = outputFilePrefix + "-positions-" + testname + ".csv";
   std::ofstream positionOutFile;
   positionOutFile.open (filename.c_str (), std::ofstream::out | std::ofstream::trunc);
   positionOutFile.setf (std::ios_base::fixed);
@@ -2427,20 +2429,20 @@ main (int argc, char *argv[])
   if (enableAscii)
     {
       AsciiTraceHelper ascii;
-      spectrumPhy.EnableAsciiAll (ascii.CreateFileStream (outputFilePrefix + ".tr"));
+      spectrumPhy.EnableAsciiAll (ascii.CreateFileStream (outputFilePrefix + "-" + testname + ".tr"));
     }
 
   // This enabling function could be scheduled later in simulation if desired
   SchedulePhyLogConnect ();
-  g_stateFile.open (outputFilePrefix + "-state.dat", std::ofstream::out | std::ofstream::trunc);
+  g_stateFile.open (outputFilePrefix + "-state-" + testname + ".dat", std::ofstream::out | std::ofstream::trunc);
   g_stateFile.setf (std::ios_base::fixed);
   ScheduleStateLogConnect ();
 
-  g_rxSniffFile.open (outputFilePrefix + "-rx-sniff.dat", std::ofstream::out | std::ofstream::trunc);
+  g_rxSniffFile.open (outputFilePrefix + "-rx-sniff-" + testname + ".dat", std::ofstream::out | std::ofstream::trunc);
   g_rxSniffFile.setf (std::ios_base::fixed);
   g_rxSniffFile << "RxNodeId, DstNodeId, SrcNodeId, RxNodeAddr, DA, SA, Noise, Signal " << std::endl;
 
-  g_TGaxCalibrationTimingsFile.open (outputFilePrefix + "-tgax-calibration-timings.dat", std::ofstream::out | std::ofstream::trunc);
+  g_TGaxCalibrationTimingsFile.open (outputFilePrefix + "-tgax-calibration-timings-" + testname + ".dat", std::ofstream::out | std::ofstream::trunc);
   g_TGaxCalibrationTimingsFile.setf (std::ios_base::fixed);
 
   // Save attribute configuration
@@ -2643,16 +2645,16 @@ main (int argc, char *argv[])
 
   g_TGaxCalibrationTimingsFile.close ();
 
-  SaveSpectrumPhyStats (outputFilePrefix + "-phy-log.dat", g_arrivals);
+  SaveSpectrumPhyStats (outputFilePrefix + "-phy-log-" + testname + ".dat", g_arrivals);
 
   Simulator::Destroy ();
 
   // Save spatial reuse statistics to an output file
-  SaveSpatialReuseStats (outputFilePrefix + "-SR-stats.dat", packetsReceived, bytesReceived, nBss, duration, d,  r, freq, csr, scenario);
+  SaveSpatialReuseStats (outputFilePrefix + "-SR-stats-" + testname + ".dat", packetsReceived, bytesReceived, nBss, duration, d,  r, freq, csr, scenario);
 
   // save flow-monitor results
   std::stringstream stmp;
-  stmp << outputFilePrefix + "-A.flowmon";
+  stmp << outputFilePrefix + "-A-" + testname + ".flowmon";
 
   if (monitorA != 0)
     {
@@ -2664,7 +2666,7 @@ std::cout << "writing flowmon results to " << stmp.str ().c_str () << std::endl;
 std::cout << "there is no monitorA" << std::endl;
     }
 
-  SaveUdpFlowMonitorStats (outputFilePrefix + "_operatorA", "simulationParams", monitorA, flowmonHelperA, durationTime.GetSeconds ());
+  SaveUdpFlowMonitorStats (outputFilePrefix + "-operatorA-" + testname, "simulationParams", monitorA, flowmonHelperA, durationTime.GetSeconds ());
 
 
   return 0;
