@@ -49,18 +49,19 @@ echo "export bw=20" >> ../scripts/study1.sh
 echo "export scenario=study1" >> ../scripts/study1.sh
 echo "export txRange=15" >> ../scripts/study1.sh
 echo "export obssPdThreshold=-82" >> ../scripts/study1.sh
-echo "export useIdealWifiManager=0" >> ../scripts/study1.sh
+echo "export useIdealWifiManager=1" >> ../scripts/study1.sh
 
 cd ../examples
 
 # Run the test(s) for Spatial-Reuse study1
 d=17.32
+r=10
 echo "export d=${d}" >> ../scripts/study1.sh
 echo "export r=10" >> ../scripts/study1.sh
 echo "export nBss=7" >> ../scripts/study1.sh
 
-# TBD - use ideal channel model.  for now use MCS=7
-echo "export MCS=7" >> ../scripts/study1.sh
+# use ideal channel model.  MCS will be ignored
+echo "export MCS=0" >> ../scripts/study1.sh
 # need to have payload1 and payload2, percentage of each
 #maxAmpduSize=3140
 # increasae max ampdu size to maximum to maximize throughput
@@ -69,12 +70,10 @@ echo "export maxAmpduSize=65535" >> ../scripts/study1.sh
 # params that will vary
 # vary n from 5 to 40  in steps of 5
 for n in 5 10 15 20 25 30 35 40 ; do
-#    for offeredLoad in 0.2 0.4 0.6 0.8 1.0 1.2 ; do
-    # offered load for higher mcs
     echo "export n=${n}" >> ../scripts/study1.sh
-    for offeredLoad in 1.0 2.0 3.0 4.0 5.0 ; do
+    for offeredLoad in 1.0 1.5 2.0 2.5 3.0 ; do
         echo "export offeredLoad=${offeredLoad}" >> ../scripts/study1.sh
-        ol1=$(awk "BEGIN {print $offeredLoad*1}")
+        ol1=$(awk "BEGIN {print $offeredLoad*1.0}")
         # uplink is 90% of total offered load
         uplink=$(awk "BEGIN {print $offeredLoad*0.9}")
         echo "export uplink=${uplink}" >> ../scripts/study1.sh
@@ -84,12 +83,15 @@ for n in 5 10 15 20 25 30 35 40 ; do
         d1=$(awk "BEGIN {print $d*100}")
         ul1=$(awk "BEGIN {print $uplink*100}")
         dl1=$(awk "BEGIN {print $downlink*100}")
-        test=$(printf "study1-%0.f-%02d-%02d-%0.1f-%0.f-%0.f\n" ${d1} ${r} ${n} ${ol1} ${ul1} ${dl1})
+        test=$(printf "study1-%0.f-%02d-%02d-%0.2g-%0.1f-%0.1f\n" ${d1} ${r} ${n} ${ol1} ${ul1} ${dl1})
         echo "export test=${test}" >> ../scripts/study1.sh
         echo "# run $test" >> ../scripts/study1.sh
-        echo "run_one" >> ../scripts/study1.sh
+        # fork each simluation for parallelism
+        echo "run_one &" >> ../scripts/study1.sh
         echo "" >> ../scripts/study1.sh
     done
+    # fork and wait
+    echo "wait" >> ../scripts/study1.sh
 done
 
 chmod +x ../scripts/study1.sh

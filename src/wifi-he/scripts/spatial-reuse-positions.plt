@@ -22,7 +22,7 @@ if (ARG1 == "1") {
   plot \
   'spatial-reuse-positions.csv' i 0 with points ps 0 pt 13 lc rgb "black" notitle, \
   'spatial-reuse-positions.csv' i 1 with points ps 2 pt 13 lc rgb "red" title 'AP A', \
-  'spatial-reuse-positions.csv' i 8 with points pt 28 lc rgb "red" title 'STA A', \
+  'spatial-reuse-positions.csv' i 5 with points pt 28 lc rgb "red" title 'STA A', \
   'spatial-reuse-positions.csv' i 1 using 1:2:3 with circles lc rgb "red" notitle, \
   'spatial-reuse-positions.csv' i 1 using 1:4 with points ps 0 pt -1 lc rgb "red" notitle, \
   'spatial-reuse-positions.csv' i 1 using 1:(-$4) with points ps 0 pt -1 lc rgb "red" notitle, \
@@ -35,8 +35,8 @@ if (ARG1 == "2") {
   'spatial-reuse-positions.csv' i 0 with points ps 0 pt 13 lc rgb "black" notitle, \
   'spatial-reuse-positions.csv' i 1 with points ps 2 pt 13 lc rgb "red" title 'AP A', \
   'spatial-reuse-positions.csv' i 2 with points ps 2 pt 12 lc rgb "blue" title 'AP B', \
-  'spatial-reuse-positions.csv' i 8 with points pt 28 lc rgb "red" title 'STA A', \
-  'spatial-reuse-positions.csv' i 9 with points pt 27 lc rgb "blue" title 'STA B', \
+  'spatial-reuse-positions.csv' i 5 with points pt 28 lc rgb "red" title 'STA A', \
+  'spatial-reuse-positions.csv' i 6 with points pt 27 lc rgb "blue" title 'STA B', \
   'spatial-reuse-positions.csv' i 1 using 1:2:3 with circles lc rgb "red" notitle, \
   'spatial-reuse-positions.csv' i 2 using 1:2:3 with circles lc rgb "blue" notitle, \
   'spatial-reuse-positions.csv' i 1 using 1:4 with points ps 0 pt -1 lc rgb "red" notitle, \
@@ -54,9 +54,9 @@ if (ARG1 == "3") {
   'spatial-reuse-positions.csv' i 1 with points ps 2 pt 13 lc rgb "red" title 'AP A', \
   'spatial-reuse-positions.csv' i 2 with points ps 2 pt 12 lc rgb "blue" title 'AP B', \
   'spatial-reuse-positions.csv' i 3 with points ps 2 pt 12 lc rgb "blue" title 'AP C', \
-  'spatial-reuse-positions.csv' i 8 with points pt 28 lc rgb "red" title 'STA A', \
-  'spatial-reuse-positions.csv' i 9 with points pt 27 lc rgb "blue" title 'STA B', \
-  'spatial-reuse-positions.csv' i 10 with points pt 27 lc rgb "blue" title 'STA C', \
+  'spatial-reuse-positions.csv' i 5 with points pt 28 lc rgb "red" title 'STA A', \
+  'spatial-reuse-positions.csv' i 6 with points pt 27 lc rgb "blue" title 'STA B', \
+  'spatial-reuse-positions.csv' i 7 with points pt 27 lc rgb "blue" title 'STA C', \
   'spatial-reuse-positions.csv' i 1 using 1:2:3 with circles lc rgb "red" notitle, \
   'spatial-reuse-positions.csv' i 2 using 1:2:3 with circles lc rgb "blue" notitle, \
   'spatial-reuse-positions.csv' i 3 using 1:2:3 with circles lc rgb "blue" notitle, \
@@ -79,10 +79,10 @@ if (ARG1 == "4") {
   'spatial-reuse-positions.csv' i 2 with points ps 2 pt 12 lc rgb "blue" title 'AP B', \
   'spatial-reuse-positions.csv' i 3 with points ps 2 pt 12 lc rgb "blue" title 'AP C', \
   'spatial-reuse-positions.csv' i 4 with points ps 2 pt 12 lc rgb "black" title 'AP D', \
-  'spatial-reuse-positions.csv' i 8 with points pt 28 lc rgb "red" title 'STA A', \
-  'spatial-reuse-positions.csv' i 9 with points pt 27 lc rgb "blue" title 'STA B', \
-  'spatial-reuse-positions.csv' i 10 with points pt 27 lc rgb "blue" title 'STA C', \
-  'spatial-reuse-positions.csv' i 11 with points pt 27 lc rgb "black" title 'STA D', \
+  'spatial-reuse-positions.csv' i 5 with points pt 28 lc rgb "red" title 'STA A', \
+  'spatial-reuse-positions.csv' i 6 with points pt 27 lc rgb "blue" title 'STA B', \
+  'spatial-reuse-positions.csv' i 7 with points pt 27 lc rgb "blue" title 'STA C', \
+  'spatial-reuse-positions.csv' i 8 with points pt 27 lc rgb "black" title 'STA D', \
   'spatial-reuse-positions.csv' i 1 using 1:2:3 with circles lc rgb "red" notitle, \
   'spatial-reuse-positions.csv' i 2 using 1:2:3 with circles lc rgb "blue" notitle, \
   'spatial-reuse-positions.csv' i 3 using 1:2:3 with circles lc rgb "blue" notitle, \

@@ -57,6 +57,32 @@ cp "./results/spatial-reuse-rx-sniff-calibration-test3-ap1-signal.png" ../doc/so
 cp "./results/spatial-reuse-rx-sniff-calibration-test3-ap2-noise.png" ../doc/source/figures/.
 cp "./results/spatial-reuse-rx-sniff-calibration-test3-ap2-signal.png" ../doc/source/figures/.
 
+# TGax Scenarios
+# TGax-test1 Residential Scenario
+cp "./results/spatial-reuse-positions-TGax-test1.png" ../doc/source/figures/.
+cp "./results/spatial-reuse-rx-sniff-TGax-test1-ap1-noise.png" ../doc/source/figures/.
+cp "./results/spatial-reuse-rx-sniff-TGax-test1-ap1-signal.png" ../doc/source/figures/.
+cp "./results/spatial-reuse-rx-sniff-TGax-test1-ap2-noise.png" ../doc/source/figures/.
+cp "./results/spatial-reuse-rx-sniff-TGax-test1-ap2-signal.png" ../doc/source/figures/.
+# TGax-test2 Enterprise Scenario
+cp "./results/spatial-reuse-positions-TGax-test2.png" ../doc/source/figures/.
+cp "./results/spatial-reuse-rx-sniff-TGax-test2-ap1-noise.png" ../doc/source/figures/.
+cp "./results/spatial-reuse-rx-sniff-TGax-test2-ap1-signal.png" ../doc/source/figures/.
+cp "./results/spatial-reuse-rx-sniff-TGax-test2-ap2-noise.png" ../doc/source/figures/.
+cp "./results/spatial-reuse-rx-sniff-TGax-test2-ap2-signal.png" ../doc/source/figures/.
+# TGax-test3 Indoor Small BSSs Scenario
+cp "./results/spatial-reuse-positions-TGax-test3.png" ../doc/source/figures/.
+cp "./results/spatial-reuse-rx-sniff-TGax-test3-ap1-noise.png" ../doc/source/figures/.
+cp "./results/spatial-reuse-rx-sniff-TGax-test3-ap1-signal.png" ../doc/source/figures/.
+cp "./results/spatial-reuse-rx-sniff-TGax-test3-ap2-noise.png" ../doc/source/figures/.
+cp "./results/spatial-reuse-rx-sniff-TGax-test3-ap2-signal.png" ../doc/source/figures/.
+# TGax-test4 Outdoor Large BSS Scenario
+cp "./results/spatial-reuse-positions-TGax-test4.png" ../doc/source/figures/.
+cp "./results/spatial-reuse-rx-sniff-TGax-test4-ap1-noise.png" ../doc/source/figures/.
+cp "./results/spatial-reuse-rx-sniff-TGax-test4-ap1-signal.png" ../doc/source/figures/.
+cp "./results/spatial-reuse-rx-sniff-TGax-test4-ap2-noise.png" ../doc/source/figures/.
+cp "./results/spatial-reuse-rx-sniff-TGax-test4-ap2-signal.png" ../doc/source/figures/.
+
 # selected plots for parametric studies
 cp "./results/spatial-reuse-positions-test-study1.png" ../doc/source/figures/.
 cp "./images/png/throughput-study1.png" ../doc/source/figures/.

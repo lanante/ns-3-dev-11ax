@@ -51,58 +51,65 @@ cd ../examples
 # Test 1a - MAC overhead w/o RTS/CTS
 export test=calibration-test1a
 export d=1000
-export r=50
+export r=30
+export nBss=1
 export n=1
 export uplink=10.0
 export downlink=0.0
 export txRange=54
-run_one
+run_one &
 
 # Test 1b - MAC overhead w/o RTS/CTS
 export test=calibration-test1b
 export d=1000
-export r=50
+export r=30
+export nBss=1
 export n=1
 export uplink=10.0
 export downlink=0.0
 export enableRts=1
 export txRange=54
-run_one
+run_one &
 
 # Test 2a - Deferral Test 1
 export test=calibration-test2a
 export d=10
 export r=10
+export nBss=2
 export n=1
 export uplink=10.0
 export downlink=0.0
 # RTS=[OFF, ON]
 export enableRts=0
 export txRange=54
-run_one
+run_one &
 
 # Test 2b - Deferral Test 2
 export test=calibration-test2b
 export d=20
 export r=10
+export nBss=2
 export n=1
 export uplink=10.0
 export downlink=0.0
 # RTS=OFF for this test
 export enableRts=0
 export txRange=54
-run_one
+run_one &
 
 # Test 3 - NAV Deferral
 # same as Test 2b, but with RTS/CTS ON
 export test=calibration-test3
 export d=20
 export r=10
+export nBss=2
 export n=1
 export uplink=10.0
 export downlink=0.0
 # RTS=ON for this test
 export enableRts=1
 export txRange=54
-run_one
+run_one &
+
+wait
 

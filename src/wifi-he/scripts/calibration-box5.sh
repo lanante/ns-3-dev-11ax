@@ -64,7 +64,7 @@ export n=5
 export uplink=0.0
 export downlink=500.0
 export txRange=54
-run_one
+run_one &
 
 # Box5 - 1BSS UL only 1 STA
 export test=calibration-box5-1bss-ul-1sta
@@ -75,7 +75,7 @@ export n=5
 export uplink=500.0
 export downlink=0.0
 export txRange=54
-run_one
+run_one &
 
 # Box5 - 1BSS UL only 2 STA
 export test=calibration-box5-1bss-ul-2sta
@@ -87,7 +87,7 @@ export n=2
 export uplink=200.0
 export downlink=0.0
 export txRange=54
-run_one
+run_one &
 
 # Box5 - 1BSS UL only 3 STA
 export test=calibration-box5-1bss-ul-3sta
@@ -99,7 +99,9 @@ export n=3
 export uplink=300.0
 export downlink=0.0
 export txRange=54
-run_one
+run_one &
+
+wait
 
 # Box5 - 1BSS DL and UL
 export test=calibration-box5-1bss-dl-and-ul
@@ -110,7 +112,7 @@ export n=5
 export uplink=100.0
 export downlink=100.0
 export txRange=54
-run_one
+run_one &
 
 # Box5 - 2BSS Both DL only
 export test=calibration-box5-2bss-dl-only
@@ -121,7 +123,7 @@ export n=5
 export uplink=0.0
 export downlink=500.0
 export txRange=54
-run_one
+run_one &
 
 # Box5 - 2BSS Both UL only
 export test=calibration-box5-2bss-ul-only
@@ -132,7 +134,7 @@ export n=5
 export uplink=500.0
 export downlink=0.0
 export txRange=54
-run_one
+run_one &
 
 # TODO - need to handle the cases where BSS1 is UL while BSS2 is DL
 
@@ -145,7 +147,7 @@ export n=5
 export uplink=500.0
 export downlink=0.0
 export txRange=54
-run_one
+run_one &
 
 # Box5 - 2BSS A UL and B DL
 export test=calibration-box5-2bss-a-dl-b-ul
@@ -156,5 +158,7 @@ export n=5
 export uplink=500.0
 export downlink=0.0
 export txRange=54
-run_one
+run_one &
+
+wait
 
