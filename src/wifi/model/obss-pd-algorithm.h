@@ -55,13 +55,6 @@ public:
    * \return the WifiNetDevice this PHY is associated with
    */
   Ptr<WifiNetDevice> GetWifiNetDevice (void) const;
-  /**
-   * Returns whether the selected OBSS PD level is in the allowed range.
-   *
-   * \param level the level that we want to verify
-   * \return whether the selected OBSS PD level is in the allowed range
-   */
-  bool IsObssPdLevelAllowed (double level);
 
   /**
    * \param params the HE SIG A parameters

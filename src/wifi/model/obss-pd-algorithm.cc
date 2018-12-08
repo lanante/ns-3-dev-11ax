@@ -85,10 +85,4 @@ ObssPdAlgorithm::SetupCallbacks ()
   Config::ConnectWithoutContext (devicepath + "$ns3::WifiNetDevice/Phy/EndOfHePreamble", MakeCallback (&ObssPdAlgorithm::ReceiveHeSigA, this));
 }
 
-bool
-ObssPdAlgorithm::IsObssPdLevelAllowed (double level)
-{
-  return ((level >= m_obssPdLevelMin) && (level <= m_obssPdLevelMax));
-}
-
 } //namespace ns3

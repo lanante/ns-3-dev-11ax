@@ -49,17 +49,10 @@ ConstantObssPdAlgorithm::GetTypeId (void)
     .AddAttribute ("ObssPdLevel",
                    "The constant OBSS PD level.",
                    DoubleValue (-82.0),
-                   MakeDoubleAccessor (&ConstantObssPdAlgorithm::SetObssPdLevel),
+                   MakeDoubleAccessor (&ConstantObssPdAlgorithm::m_obssPdLevel),
                    MakeDoubleChecker<double> ())
   ;
   return tid;
-}
-
-void
-ConstantObssPdAlgorithm::SetObssPdLevel (double level)
-{
-  //NS_ABORT_MSG_IF (!IsObssPdLevelAllowed (level), "Configured OBSS PD level " << level <<" is not in the allowed range");
-  m_obssPdLevel = level;
 }
 
 void
