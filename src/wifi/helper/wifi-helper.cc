@@ -688,8 +688,6 @@ WifiHelper::Install (const WifiPhyHelper &phyHelper,
         {
           Ptr<HeConfiguration> heConfiguration = CreateObject<HeConfiguration> ();
           device->SetHeConfiguration (heConfiguration);
-          Ptr<ObssPdAlgorithm> obssPdAlgorithm = m_obssPdAlgorithm.Create<ObssPdAlgorithm> ();
-          device->SetObssPdAlgorithm (obssPdAlgorithm);
         }
       Ptr<WifiRemoteStationManager> manager = m_stationManager.Create<WifiRemoteStationManager> ();
       Ptr<WifiMac> mac = macHelper.Create (device);
@@ -701,6 +699,11 @@ WifiHelper::Install (const WifiPhyHelper &phyHelper,
       device->SetPhy (phy);
       device->SetRemoteStationManager (manager);
       node->AddDevice (device);
+      if (m_standard >= WIFI_PHY_STANDARD_80211ax_2_4GHZ)
+        {
+          Ptr<ObssPdAlgorithm> obssPdAlgorithm = m_obssPdAlgorithm.Create<ObssPdAlgorithm> ();
+          device->SetObssPdAlgorithm (obssPdAlgorithm);
+        }
       devices.Add (device);
       NS_LOG_DEBUG ("node=" << node << ", mob=" << node->GetObject<MobilityModel> ());
       // Aggregate a NetDeviceQueueInterface object if a RegularWifiMac is installed

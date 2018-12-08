@@ -57,6 +57,11 @@ public:
   Ptr<WifiNetDevice> GetWifiNetDevice (void) const;
 
   /**
+   * Setup callbacks.
+   */
+  virtual void SetupCallbacks ();
+
+  /**
    * \param params the HE SIG A parameters
    *
    * Evaluate the receipt of HE SIG-A.
@@ -73,12 +78,6 @@ public:
 
 protected:
   virtual void DoDispose (void);
-
-  /**
-   * Setup callbacks.
-   *
-   */
-  virtual void SetupCallbacks ();
 
 
 private:

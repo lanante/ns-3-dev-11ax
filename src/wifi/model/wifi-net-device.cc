@@ -186,6 +186,7 @@ WifiNetDevice::SetObssPdAlgorithm (const Ptr<ObssPdAlgorithm> algorithm)
 {
   m_obssPdAlgorithm = algorithm;
   m_obssPdAlgorithm->SetWifiNetDevice (this);
+  m_obssPdAlgorithm->SetupCallbacks ();
 }
 
 Ptr<WifiMac>
