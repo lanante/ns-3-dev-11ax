@@ -48,7 +48,7 @@ export downlink=0.0
 export bw=80
 export txRange=54
 export scenario=residential
-run_one
+run_one &
 
 # Test: 2 - Enterprise Scenario
 export test=TGax-test2
@@ -62,7 +62,7 @@ export txRange=68
 # TODO - because this runs so slow.
 export duration=2
 export scenario=enterprise
-run_one
+run_one &
 # TODO restore duration for next test
 export duration=10
 
@@ -76,7 +76,7 @@ export downlink=0.0
 export bw=80
 export txRange=107
 export scenario=indoor
-run_one
+run_one &
 
 # Test: 4 - Outdoor Large BSS Hotspot Scenario
 export test=TGax-test4
@@ -88,4 +88,6 @@ export downlink=0.0
 export bw=80
 export txRange=50
 export scenario=outdoor
-run_one
+run_one &
+
+wait

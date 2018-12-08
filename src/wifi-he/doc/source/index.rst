@@ -12,15 +12,18 @@
    ============= Subsection (#.#.#)
    ############# Paragraph (no number)
 
-ns-3 Wi-Fi HE module documentation
-----------------------------------
+ns-3 Wi-Fi 11ax project
+-----------------------
 
-This is the stand-alone version of the ns-3 Wi-Fi HE module documentation. 
+Documentation about the Wi-Fi 11ax project.
 
 .. toctree::
    :maxdepth: 2
 
+   wifi-he-introduction
    wifi-he-design
-   wifi-he-user
-   wifi-he-testing
+   wifi-he-usage
+   wifi-he-validation
+   wifi-he-results
+   wifi-he-open-issues-and-future-work
    wifi-he-references
