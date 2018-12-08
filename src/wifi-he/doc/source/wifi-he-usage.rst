@@ -21,7 +21,7 @@ Several examples are provided.
 spatial-reuse.cc
 ================
 
-Here will be documented the spatial-resuse.cc script.
+Placeholder to document the spatial-reuse.cc script.
 
 Attributes
 ##########
