@@ -785,6 +785,7 @@ WifiHelper::EnableLogComponents (void)
   LogComponentEnable ("BlockAckCache", LOG_LEVEL_ALL);
   LogComponentEnable ("BlockAckManager", LOG_LEVEL_ALL);
   LogComponentEnable ("CaraWifiManager", LOG_LEVEL_ALL);
+  LogComponentEnable ("ConstantObssPdAlgorithm", LOG_LEVEL_ALL);
   LogComponentEnable ("ConstantRateWifiManager", LOG_LEVEL_ALL);
   LogComponentEnable ("Txop", LOG_LEVEL_ALL);
   LogComponentEnable ("ChannelAccessManager", LOG_LEVEL_ALL);
@@ -801,6 +802,7 @@ WifiHelper::EnableLogComponents (void)
   LogComponentEnable ("MpduAggregator", LOG_LEVEL_ALL);
   LogComponentEnable ("MsduAggregator", LOG_LEVEL_ALL);
   LogComponentEnable ("NistErrorRateModel", LOG_LEVEL_ALL);
+  LogComponentEnable ("ObssPdAlgorithm", LOG_LEVEL_ALL);
   LogComponentEnable ("OnoeWifiManager", LOG_LEVEL_ALL);
   LogComponentEnable ("ParfWifiManager", LOG_LEVEL_ALL);
   LogComponentEnable ("RegularWifiMac", LOG_LEVEL_ALL);
