@@ -22,13 +22,11 @@
 #include "ns3/log.h"
 #include "ns3/test.h"
 #include "ns3/uinteger.h"
-#include "ns3/boolean.h"
 #include "ns3/double.h"
 #include "ns3/string.h"
 #include "ns3/pointer.h"
 #include "ns3/config.h"
 #include "ns3/ssid.h"
-#include "ns3/wifi-phy-listener.h"
 #include "ns3/mobility-helper.h"
 #include "ns3/wifi-net-device.h"
 #include "ns3/spectrum-wifi-helper.h"
@@ -41,112 +39,6 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("InterBssTestSuite");
 
-/**
- * \ingroup wifi-test
- * \ingroup tests
- *
- * \brief HE Phy Listener
- */
-class InterBssPhyListener : public ns3::WifiPhyListener
-{
-public:
-  /**
-   * Create a test PhyListener
-   *
-   */
-  InterBssPhyListener (void)
-    : m_notifyRxStart (0),
-      m_notifyRxEndOk (0),
-      m_notifyRxEndError (0),
-      m_notifyMaybeCcaBusyStart (0),
-      m_notifyTxStart (0),
-      m_phy (0)
-      // ,m_currentState (WifiPhyState::IDLE)
-  {
-  }
-
-  virtual ~InterBssPhyListener ()
-  {
-    m_phy = 0;
-  }
-
-  WifiPhyState GetState (void)
-  {
-    if (m_phy != 0)
-      {
-        PointerValue ptr;
-        m_phy->GetAttribute ("State", ptr);
-        Ptr <WifiPhyStateHelper> state = DynamicCast <WifiPhyStateHelper> (ptr.Get<WifiPhyStateHelper> ());
-        // std::cout << "At " << Simulator::Now() << " PHY state is " << state->GetState () << std::endl;
-        return state->GetState ();
-      }
-    else
-      {
-        // ERROR
-        return WifiPhyState::IDLE;
-      }
-  }
-
-  virtual void NotifyRxStart (Time duration)
-  {
-    NS_LOG_FUNCTION (this << duration);
-    ++m_notifyRxStart;
-  }
-
-  virtual void NotifyRxEndOk (void)
-  {
-    NS_LOG_FUNCTION (this);
-    ++m_notifyRxEndOk;
-  }
-
-  virtual void NotifyRxEndError (void)
-  {
-    NS_LOG_FUNCTION (this);
-    ++m_notifyRxEndError;
-  }
-
-  virtual void NotifyTxStart (Time duration, double txPowerDbm)
-  {
-    NS_LOG_FUNCTION (this << duration << txPowerDbm);
-    ++m_notifyTxStart;
-  }
-
-  virtual void NotifyMaybeCcaBusyStart (Time duration)
-  {
-    NS_LOG_FUNCTION (this);
-    ++m_notifyMaybeCcaBusyStart;
-  }
-
-  virtual void NotifySwitchingStart (Time duration)
-  {
-  }
-
-  virtual void NotifySleep (void)
-  {
-  }
-
-  virtual void NotifyOff (void)
-  {
-  }
-
-  virtual void NotifyWakeup (void)
-  {
-  }
-
-  virtual void NotifyOn (void)
-  {
-  }
-
-  uint32_t m_notifyRxStart; ///< notify receive start
-  uint32_t m_notifyRxEndOk; ///< notify receive end OK
-  uint32_t m_notifyRxEndError; ///< notify receive end error
-  uint32_t m_notifyMaybeCcaBusyStart; ///< notify maybe CCA busy start
-  uint32_t m_notifyTxStart; ///< notify trasnmit start
-  Ptr<WifiPhy> m_phy; ///< the PHY being listened to
-};
-
-// Parse context strings of the form "/NodeList/3/DeviceList/1/Mac/Assoc"
-// to extract the NodeId
 uint32_t
 ConvertContextToNodeId (std::string context)
 {
@@ -193,6 +85,7 @@ public:
 
   virtual void DoRun (void);
 
+private:
   /**
    * Send one packet function
    * \param tx_dev the transmitting device
@@ -201,21 +94,13 @@ public:
    */
   void SendOnePacket (Ptr<WifiNetDevice> tx_dev, Ptr<WifiNetDevice> rx_dev, uint32_t payloadSize);
 
-private:
-  /**
-   * Get the number of STAs
-   */
-  uint32_t GetNumberOfStas ();
-
-  /**
-   * Get the number of APs
-   */
-  uint32_t GetNumberOfAps ();
-
   /**
    * Allocate the node positions
+   * \param d1 distance d1 (in meters)
+   * \param d2 distance d2 (in meters)
+   * \param d3 distance d3 (in meters)
    */
-  Ptr<ListPositionAllocator> AllocatePositions ();
+  Ptr<ListPositionAllocator> AllocatePositions (double d1, double d2, double d3);
 
   /**
    * Setup the simulation
@@ -227,30 +112,20 @@ private:
    */
   void CheckResults ();
 
-  /// Run one function
-  void RunOne (void);
+  /**
+   * Reset the results
+   */
+  void ResetResults ();
 
   /**
-   * Check if the Phy State for a node is an expected value
-   * \param idx is 1 for AP, 0 for STA
-   * \param idx expectedState the expected WifiPhyState
+   * Run one function
    */
-  void CheckPhyState (uint32_t idx, WifiPhyState expectedState);
+  void RunOne ();
 
-  unsigned int m_numStaPacketsSent; ///< number of sent packets
-  unsigned int m_numApPacketsSent; ///< number of sent packets
-  unsigned int m_totalReceivedPackets; ///< total number of recevied packets, regardless of pkt size
-  unsigned int m_payloadSize1; ///< size in bytes of packet #1 payload
-  unsigned int m_payloadSize2; ///< size in bytes of packet #2 payload
-  Time m_firstTransmissionTime; ///< first transmission time
-  SpectrumWifiPhyHelper m_phy; ///< the PHY
-  NetDeviceContainer m_staDevices;
-  NetDeviceContainer m_apDevices;
-  bool m_receivedPayload1;
-  bool m_receivedPayload2;
-  NodeContainer m_allNodes;
-
-  InterBssPhyListener* m_listener; ///< listener
+  /**
+   * Check if the Phy State for a device is an expected value
+   */
+  void CheckPhyState (Ptr<WifiNetDevice> device, WifiPhyState expectedState);
 
   /**
    * Notify Phy transmit begin
@@ -266,31 +141,46 @@ private:
    */
   void NotifyPhyRxEnd (std::string context, Ptr<const Packet> p);
 
-  /**
-   * Notify end of HE preamble
-   * \param rssi the rssi of the received packet
-   * \param bssColor the BSS color
-   */
-  void NotifyEndOfHePreamble (std::string context, HePreambleParameters params);
+  unsigned int m_numSta1PacketsSent; ///< number of sent packets from STA1
+  unsigned int m_numSta2PacketsSent; ///< number of sent packets from STA2
+  unsigned int m_numAp1PacketsSent; ///< number of sent packets from AP1
+  unsigned int m_numAp2PacketsSent; ///< number of sent packets from AP2
 
-  /**
-   * Get ptr to the OBB PD algorithm object
-   */
-  Ptr<ObssPdAlgorithm> GetObssPdAlgorithm (Ptr<Node>);
+  unsigned int m_numSta1PacketsReceived; ///< number of received packets from STA1
+  unsigned int m_numSta2PacketsReceived; ///< number of received packets from STA2
+  unsigned int m_numAp1PacketsReceived; ///< number of received packets from AP1
+  unsigned int m_numAp2PacketsReceived; ///< number of received packets from AP2
+
+  unsigned int m_payloadSize1; ///< size in bytes of packet payload in BSS 1
+  unsigned int m_payloadSize2; ///< size in bytes of packet payload in BSS 2
+
+  NetDeviceContainer m_staDevices;
+  NetDeviceContainer m_apDevices;
+
+  double m_distance1;
+  double m_distance2;
+  double m_distance3;
+
+  double m_obssPdLevel;
 };
 
 TestInterBssConstantObssPdAlgo::TestInterBssConstantObssPdAlgo ()
   : TestCase ("InterBssConstantObssPd"),
-    m_numStaPacketsSent (0),
-    m_numApPacketsSent (0),
-    m_totalReceivedPackets (0),
-    m_payloadSize1 (1500),
-    m_payloadSize2 (1510),
-    m_receivedPayload1 (false),
-    m_receivedPayload2 (false)
+    m_numSta1PacketsSent (0),
+    m_numSta2PacketsSent (0),
+    m_numAp1PacketsSent (0),
+    m_numAp2PacketsSent (0),
+    m_numSta1PacketsReceived (0),
+    m_numSta2PacketsReceived (0),
+    m_numAp1PacketsReceived (0),
+    m_numAp2PacketsReceived (0),
+    m_payloadSize1 (1000),
+    m_payloadSize2 (1500),
+    m_distance1 (10),
+    m_distance2 (50),
+    m_distance3 (10),
+    m_obssPdLevel (-72)
 {
-  m_firstTransmissionTime = Seconds (0);
-  m_phy = SpectrumWifiPhyHelper::Default ();
 }
 
 // The topology for this test case is 2 STAs and 2 APs:
@@ -310,32 +200,13 @@ TestInterBssConstantObssPdAlgo::TestInterBssConstantObssPdAlgo ()
 // distance, d2, and then each AP sends just 1 packet.  This test case will therefore
 // need to be enhanced to send packets full stream, and check throughput.
 
-uint32_t
-TestInterBssConstantObssPdAlgo::GetNumberOfStas ()
-{
-  uint32_t nStas = 2;
-  return nStas;
-}
-
-uint32_t
-TestInterBssConstantObssPdAlgo::GetNumberOfAps ()
-{
-  uint32_t nAps = 2;
-  return nAps;
-}
-
 Ptr<ListPositionAllocator>
-TestInterBssConstantObssPdAlgo::AllocatePositions ()
+TestInterBssConstantObssPdAlgo::AllocatePositions (double d1, double d2, double d3)
 {
   Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator> ();
-
-  double d1 = 10.0;
-  double d2 = 100.0;
-  double d3 = 10.0;
-
-  positionAlloc->Add (Vector (d1,       0.0, 0.0));  // AP1
-  positionAlloc->Add (Vector (d1 + d2,    0.0, 0.0));  // AP1
-  positionAlloc->Add (Vector (0.0,      0.0, 0.0));  // STA1
+  positionAlloc->Add (Vector (d1, 0.0, 0.0));  // AP1
+  positionAlloc->Add (Vector (d1 + d2, 0.0, 0.0));  // AP2
+  positionAlloc->Add (Vector (0.0, 0.0, 0.0));  // STA1
   positionAlloc->Add (Vector (d1 + d2 + d3, 0.0, 0.0));  // STA2
 
   return positionAlloc;
@@ -349,123 +220,116 @@ TestInterBssConstantObssPdAlgo::SetupSimulation ()
   Ptr<WifiNetDevice> sta_device1 = DynamicCast<WifiNetDevice> (m_staDevices.Get (0));
   Ptr<WifiNetDevice> sta_device2 = DynamicCast<WifiNetDevice> (m_staDevices.Get (1));
 
-  // the STA will send packet #1 after 1s (allowing the Wifi network to reach some steady state)
-  Simulator::Schedule (Seconds (1.0), &TestInterBssConstantObssPdAlgo::SendOnePacket, this, ap_device1, sta_device1, m_payloadSize1);
+  // AP1 sends packet #1 after 0.25s. The purpose is to have addba handshake established.
+  Simulator::Schedule (Seconds (0.25), &TestInterBssConstantObssPdAlgo::SendOnePacket, this, ap_device1, sta_device1, m_payloadSize1);
+  // STA1 sends packet #2 after 0.5s. The purpose is to have addba handshake established.
+  Simulator::Schedule (Seconds (0.5), &TestInterBssConstantObssPdAlgo::SendOnePacket, this, sta_device1, ap_device1, m_payloadSize1);
 
-  // the STA will send packet #2 0.5s later, does not lead to a collision
+  // AP2 sends packet #3 after 0.75s. The purpose is to have addba handshake established.
+  Simulator::Schedule (Seconds (0.75), &TestInterBssConstantObssPdAlgo::SendOnePacket, this, ap_device2, sta_device2, m_payloadSize2);
+  // STA2 sends packet #4 after 1.0s. The purpose is to have addba handshake established.
+  Simulator::Schedule (Seconds (1), &TestInterBssConstantObssPdAlgo::SendOnePacket, this, sta_device2, ap_device2, m_payloadSize2);
+
+  // AP2 sends packet #5 0.5s later.
   Simulator::Schedule (Seconds (1.5), &TestInterBssConstantObssPdAlgo::SendOnePacket, this, ap_device2, sta_device2, m_payloadSize2);
+  Simulator::Schedule (Seconds (1.5) + MicroSeconds (1), &TestInterBssConstantObssPdAlgo::CheckPhyState, this, ap_device2, WifiPhyState::TX);
+  // All other PHYs should have stay idle until 4us (preamble detection time).
+  Simulator::Schedule (Seconds (1.5) + MicroSeconds (2), &TestInterBssConstantObssPdAlgo::CheckPhyState, this, sta_device1, WifiPhyState::IDLE);
+  Simulator::Schedule (Seconds (1.5) + MicroSeconds (2), &TestInterBssConstantObssPdAlgo::CheckPhyState, this, sta_device2, WifiPhyState::IDLE);
+  Simulator::Schedule (Seconds (1.5) + MicroSeconds (2), &TestInterBssConstantObssPdAlgo::CheckPhyState, this, ap_device1, WifiPhyState::IDLE);
+  // All PHYs should be reeiving the PHY header if preamble has been detected (always the case in this test).
+  Simulator::Schedule (Seconds (1.5) + MicroSeconds (10), &TestInterBssConstantObssPdAlgo::CheckPhyState, this, sta_device1, WifiPhyState::RX);
+  Simulator::Schedule (Seconds (1.5) + MicroSeconds (10), &TestInterBssConstantObssPdAlgo::CheckPhyState, this, sta_device2, WifiPhyState::RX);
+  Simulator::Schedule (Seconds (1.5) + MicroSeconds (10), &TestInterBssConstantObssPdAlgo::CheckPhyState, this, ap_device1, WifiPhyState::RX);
+  // PHYs of AP1 and STA1 should be idle since it was reset by OBSS PD.
+  Simulator::Schedule (Seconds (1.5) + MicroSeconds (50), &TestInterBssConstantObssPdAlgo::CheckPhyState, this, sta_device1, WifiPhyState::IDLE);
+  Simulator::Schedule (Seconds (1.5) + MicroSeconds (50), &TestInterBssConstantObssPdAlgo::CheckPhyState, this, ap_device1, WifiPhyState::IDLE);
+  // STA2 should be receiving
+  Simulator::Schedule (Seconds (1.5) + MicroSeconds (50), &TestInterBssConstantObssPdAlgo::CheckPhyState, this, sta_device2, WifiPhyState::RX);
 
-  Simulator::Stop (Seconds (1.6));
+  // AP2 sends another packet #6 0.1s later.
+  Simulator::Schedule (Seconds (1.6), &TestInterBssConstantObssPdAlgo::SendOnePacket, this, ap_device2, sta_device2, m_payloadSize2);
+  // STA1 sends a packet #7 100us later. Even though AP2 is still transmitting, STA1 can transmit simultaneously because of OBSS PD SR.
+  Simulator::Schedule (Seconds (1.6) + MicroSeconds (100), &TestInterBssConstantObssPdAlgo::SendOnePacket, this, sta_device1, ap_device1, m_payloadSize1);
+  // Check simultaneous transmissions
+  Simulator::Schedule (Seconds (1.6) + MicroSeconds (350), &TestInterBssConstantObssPdAlgo::CheckPhyState, this, sta_device1, WifiPhyState::TX);
+  Simulator::Schedule (Seconds (1.6) + MicroSeconds (350), &TestInterBssConstantObssPdAlgo::CheckPhyState, this, ap_device1, WifiPhyState::RX);
+  Simulator::Schedule (Seconds (1.6) + MicroSeconds (350), &TestInterBssConstantObssPdAlgo::CheckPhyState, this, sta_device2, WifiPhyState::RX);
+  Simulator::Schedule (Seconds (1.6) + MicroSeconds (350), &TestInterBssConstantObssPdAlgo::CheckPhyState, this, ap_device2, WifiPhyState::TX);
+
+  Simulator::Stop (Seconds (1.7));
+}
+
+void
+TestInterBssConstantObssPdAlgo::ResetResults ()
+{
+  m_numSta1PacketsSent = 0;
+  m_numSta2PacketsSent = 0;
+  m_numAp1PacketsSent = 0;
+  m_numAp2PacketsSent = 0;
+  m_numSta1PacketsReceived = 0;
+  m_numSta2PacketsReceived = 0;
+  m_numAp1PacketsReceived = 0;
+  m_numAp2PacketsReceived = 0;
 }
 
 void
 TestInterBssConstantObssPdAlgo::CheckResults ()
 {
-  // TODO
-  // Test case is not fully complete.  For now, each AP sends only 1 packet.  The inter-node
-  // distances are such that the sent packet is received by one STA (e.g., AP1 --> STA1, and AP2 --> STA2).
-  // Further implementation of OBSS_PD algorithm is needed so that pkts get "dropped" under the correct
-  // conditions, in order to further these test cases.
+  NS_TEST_ASSERT_MSG_EQ (m_numSta1PacketsSent, 2, "The number of packets sent by STA1 is not correct!");
+  NS_TEST_ASSERT_MSG_EQ (m_numSta2PacketsSent, 1, "The number of packets sent by STA2 is not correct!");
+  NS_TEST_ASSERT_MSG_EQ (m_numAp1PacketsSent, 1, "The number of packets sent by AP1 is not correct!");
+  NS_TEST_ASSERT_MSG_EQ (m_numAp2PacketsSent, 3, "The number of packets sent by AP2 is not correct!");
 
-  // expect 2 packets successfully sent, one by each AP
-  NS_TEST_ASSERT_MSG_EQ (m_numStaPacketsSent, 0, "The number of packets sent by STAs is not correct!");
-  NS_TEST_ASSERT_MSG_EQ (m_numApPacketsSent, 2, "The number of packets sent by APs is not correct!");
-  NS_TEST_ASSERT_MSG_EQ (m_receivedPayload1, false, "The payload for STA1 was received, and should not have been!");
-  NS_TEST_ASSERT_MSG_EQ (m_receivedPayload2, false, "The payload for STA2 was received, and should not have been!");
+  NS_TEST_ASSERT_MSG_EQ (m_numSta1PacketsReceived, 1, "The number of packets received by STA1 is not correct!");
+  NS_TEST_ASSERT_MSG_EQ (m_numSta2PacketsReceived, 3, "The number of packets received by STA2 is not correct!");
+  NS_TEST_ASSERT_MSG_EQ (m_numAp1PacketsReceived, 2, "The number of packets received by AP1 is not correct!");
+  NS_TEST_ASSERT_MSG_EQ (m_numAp2PacketsReceived, 1, "The number of packets received by AP2 is not correct!");
 }
 
 void
 TestInterBssConstantObssPdAlgo::NotifyPhyTxBegin (std::string context, Ptr<const Packet> p)
 {
   uint32_t idx = ConvertContextToNodeId (context);
-  // get the packet size
-  uint32_t pktSize = p->GetSize ();
-
-  // only count packets originated from the STAs that match our payloadSize
-  uint32_t nStas = GetNumberOfStas ();
-  if ((idx < nStas) && (pktSize >= m_payloadSize1))
+  uint32_t pktSize = p->GetSize () - 42;
+  if ((idx == 0) && (pktSize == m_payloadSize1))
     {
-      if (m_numStaPacketsSent == 0)
-        {
-          // this is the first packet
-          m_firstTransmissionTime = Simulator::Now ();
-          NS_ASSERT_MSG (m_firstTransmissionTime >= Time (Seconds (1)), "Packet 0 not transmitted at 1 second");
-
-          // relative to the start of receiving the packet...
-          // The PHY will remain in the IDLE state from 0..4 us
-          // After the preamble is received (takes 24us), then the PHY will switch to RX
-          // The PHY will remain in RX after the headeer is successfully decoded
-
-          // at 4us, AP PHY STATE should be IDLE
-          Simulator::Schedule (MicroSeconds (4.0), &TestInterBssConstantObssPdAlgo::CheckPhyState, this, 1, WifiPhyState::IDLE);
-
-          // at 20us, AP PHY STATE should be in RX if the preamble detection succeeded
-          Simulator::Schedule (MicroSeconds (20.0), &TestInterBssConstantObssPdAlgo::CheckPhyState, this, 1, WifiPhyState::RX);
-
-          // in 40us, AP PHY STATE should be in RX if the header decoded successfully (IDLE if not)
-          Simulator::Schedule (MicroSeconds (40.0), &TestInterBssConstantObssPdAlgo::CheckPhyState, this, 1, WifiPhyState::RX);
-        }
-
-      m_numStaPacketsSent++;
+      m_numSta1PacketsSent++;
     }
-  else
+  else if ((idx == 1) && (pktSize == m_payloadSize2))
     {
-      if (pktSize >= m_payloadSize1)
-        {
-          m_numApPacketsSent++;
-        }
+      m_numSta2PacketsSent++;
+    }
+  else if ((idx == 2) && (pktSize == m_payloadSize1))
+    {
+      m_numAp1PacketsSent++;
+    }
+  else if ((idx == 3) && (pktSize == m_payloadSize2))
+    {
+      m_numAp2PacketsSent++;
     }
 }
 
 void
 TestInterBssConstantObssPdAlgo::NotifyPhyRxEnd (std::string context, Ptr<const Packet> p)
 {
-  m_totalReceivedPackets++;
-
   uint32_t idx = ConvertContextToNodeId (context);
-  // get the packet size
-  uint32_t pktSize = p->GetSize ();
-
-  // only count packets originated from the STAs that are received at the AP and that match our payloadSize
-  uint32_t nStas = GetNumberOfStas ();
-  if ((idx == nStas) && (pktSize >= m_payloadSize1))
+  uint32_t pktSize = p->GetSize () - 42;
+  if ((idx == 0) && (pktSize == m_payloadSize1))
     {
-      if (pktSize == (m_payloadSize1 + 42))
-        {
-          m_receivedPayload1 = true;
-        }
-      else if (pktSize == (m_payloadSize2 + 42))
-        {
-          m_receivedPayload2 = true;
-        }
+      m_numSta1PacketsReceived++;
     }
-}
-
-Ptr <ObssPdAlgorithm>
-TestInterBssConstantObssPdAlgo::GetObssPdAlgorithm (Ptr<Node> node)
-{
-  NS_ASSERT (node != 0);
-  // get ptr to the node's device
-  Ptr<WifiNetDevice> device = DynamicCast<WifiNetDevice> (node->GetDevice (0));
-  NS_ASSERT (device != 0);
-  // from the device, get ptr to the ObssPdAlgorithm
-  Ptr<ObssPdAlgorithm> obssPdAlgorithm = device->GetObject<ObssPdAlgorithm> ();
-  return obssPdAlgorithm;
-}
-
-void
-TestInterBssConstantObssPdAlgo::NotifyEndOfHePreamble (std::string context, HePreambleParameters params)
-{
-  // get the node id from context
-  uint32_t idx = ConvertContextToNodeId (context);
-  // get ptr to the node
-  Ptr<Node> node = m_allNodes.Get (idx);
-  // get the ptr to the OBSS PD algorithm object for this node
-  Ptr<ObssPdAlgorithm> obssPdAlgorithm = GetObssPdAlgorithm (node);
-  if (obssPdAlgorithm)
+  else if ((idx == 1) && (pktSize == m_payloadSize2))
     {
-      // call the OBSS PD algorithm for evaluation
-      obssPdAlgorithm->ReceiveHeSigA (params);
+      m_numSta2PacketsReceived++;
+    }
+  else if ((idx == 2) && (pktSize == m_payloadSize1))
+    {
+      m_numAp1PacketsReceived++;
+    }
+  else if ((idx == 3) && (pktSize == m_payloadSize2))
+    {
+      m_numAp2PacketsReceived++;
     }
 }
 
@@ -477,128 +341,74 @@ TestInterBssConstantObssPdAlgo::SendOnePacket (Ptr<WifiNetDevice> tx_dev, Ptr<Wi
 }
 
 void
-TestInterBssConstantObssPdAlgo::CheckPhyState (uint32_t idx, WifiPhyState expectedState)
+TestInterBssConstantObssPdAlgo::CheckPhyState (Ptr<WifiNetDevice> device, WifiPhyState expectedState)
 {
-  if (idx == 1) // AP
-    {
-      WifiPhyState state = m_listener->GetState ();
-      std::ostringstream ossMsg;
-      ossMsg << "PHY State " << state << " does not match expected state " << expectedState << " at " << Simulator::Now ();
-      NS_TEST_ASSERT_MSG_EQ (state, expectedState, ossMsg.str ());
-    }
+  WifiPhyState currentState;
+  PointerValue ptr;
+  Ptr<WifiPhy> phy = DynamicCast<WifiPhy> (device->GetPhy ());
+  phy->GetAttribute ("State", ptr);
+  Ptr <WifiPhyStateHelper> state = DynamicCast <WifiPhyStateHelper> (ptr.Get<WifiPhyStateHelper> ());
+  currentState = state->GetState ();
+  NS_TEST_ASSERT_MSG_EQ (currentState, expectedState, "PHY State " << currentState << " does not match expected state " << expectedState << " at " << Simulator::Now ());
 }
 
 void
 TestInterBssConstantObssPdAlgo::RunOne (void)
 {
-  // initializations
-  m_numStaPacketsSent = 0;
-  m_firstTransmissionTime = Seconds (0);
+  ResetResults ();
 
-  // 1 STA
-  uint32_t nStas = GetNumberOfStas ();
   NodeContainer wifiStaNodes;
-  wifiStaNodes.Create (nStas);
+  wifiStaNodes.Create (2);
 
-  // 1 AP
-  uint32_t nAps = GetNumberOfAps ();
   NodeContainer wifiApNodes;
-  wifiApNodes.Create (nAps);
+  wifiApNodes.Create (2);
 
-  m_allNodes.Add (wifiStaNodes);
-  m_allNodes.Add (wifiApNodes);
+  SpectrumWifiPhyHelper phy = SpectrumWifiPhyHelper::Default ();
+  Ptr<MultiModelSpectrumChannel> channel = CreateObject<MultiModelSpectrumChannel> ();
+  channel->SetPropagationDelayModel (CreateObject<ConstantSpeedPropagationDelayModel> ());
+  channel->AddPropagationLossModel (CreateObject<Ieee80211axIndoorPropagationLossModel> ());
+  phy.SetChannel (channel);
 
-  // PHY setup
-  Ptr<MultiModelSpectrumChannel> channel
-    = CreateObject<MultiModelSpectrumChannel> ();
-  Ptr<ConstantSpeedPropagationDelayModel> delayModel
-    = CreateObject<ConstantSpeedPropagationDelayModel> ();
-  channel->SetPropagationDelayModel (delayModel);
-
-  // Ideally we do not need to use the Ieee80211ax loss models.  But, the combination
-  // of which propagation model and the stream number causes the test cases to otherwise fail,
-  // mainly the two packet tests in which the second packet should not be received incurs a backoff and
-  // then IS received.  For now, am leaving the Ieee80211ax loss model in place, and will debug further
-  // later.
-
-  // Use TGax Indoor propagation loss model
-  Config::SetDefault ("ns3::Ieee80211axIndoorPropagationLossModel::DistanceBreakpoint", DoubleValue (10.0));
-  Config::SetDefault ("ns3::Ieee80211axIndoorPropagationLossModel::Walls", DoubleValue (0.0));
-  Config::SetDefault ("ns3::Ieee80211axIndoorPropagationLossModel::WallsFactor", DoubleValue (0.0));
-
-  uint32_t streamNumber = 100;
-
-  Ptr<Ieee80211axIndoorPropagationLossModel> lossModel = CreateObject<Ieee80211axIndoorPropagationLossModel> ();
-  streamNumber += lossModel->AssignStreams (streamNumber);
-  channel->AddPropagationLossModel (lossModel);
-  m_phy.SetChannel (channel);
-
-  // 802.11ax
   WifiHelper wifi;
   wifi.SetStandard (WIFI_PHY_STANDARD_80211ax_5GHZ);
   wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager",
                                 "DataMode", StringValue ("HeMcs0"),
                                 "ControlMode", StringValue ("HeMcs0"));
 
-  // assign STA MAC
   WifiMacHelper mac;
   Ssid ssid = Ssid ("ns-3-ssid");
   mac.SetType ("ns3::StaWifiMac",
-               "Ssid", SsidValue (ssid),
-               "ActiveProbing", BooleanValue (false));
+               "Ssid", SsidValue (ssid));
+  m_staDevices = wifi.Install (phy, mac, wifiStaNodes);
 
-  m_staDevices = wifi.Install (m_phy, mac, wifiStaNodes);
-
-  /*for (uint32_t i = 0; i < m_staDevices.GetN (); i++)
-    {
-      Ptr<WifiNetDevice> wifiNetDevice = DynamicCast<WifiNetDevice> (m_staDevices.Get (i));
-      Ptr<HeConfiguration> heConfiguration = wifiNetDevice->GetHeConfiguration ();
-          
-      heConfiguration->SetAttribute ("ObssPdThreshold", DoubleValue (-99.0));
-      heConfiguration->SetAttribute ("ObssPdThresholdMin", DoubleValue (-82.0));
-      heConfiguration->SetAttribute ("ObssPdThresholdMax", DoubleValue (-62.0));
-    }*/
-
-  wifi.AssignStreams (m_staDevices, streamNumber);
-
-  // assign AP MAC
   mac.SetType ("ns3::ApWifiMac",
-               "Ssid", SsidValue (ssid),
-               "BeaconGeneration", BooleanValue (true));
-
-  // install Wifi
-  m_apDevices = wifi.Install (m_phy, mac, wifiApNodes);
-
-  wifi.AssignStreams (m_apDevices, streamNumber);
+               "Ssid", SsidValue (ssid));
+  m_apDevices = wifi.Install (phy, mac, wifiApNodes);
 
   for (uint32_t i = 0; i < m_apDevices.GetN (); i++)
     {
-      Ptr<WifiNetDevice> wifiNetDevice = DynamicCast<WifiNetDevice> (m_apDevices.Get (i));
-      Ptr<HeConfiguration> heConfiguration = wifiNetDevice->GetHeConfiguration ();
+      Ptr<WifiNetDevice> device = DynamicCast<WifiNetDevice> (m_apDevices.Get (i));
+      Ptr<HeConfiguration> heConfiguration = device->GetHeConfiguration ();
+      heConfiguration->SetAttribute ("BeMaxAmpduSize", UintegerValue (0));
       heConfiguration->SetAttribute ("BssColor", UintegerValue (i + 1));
-      //heConfiguration->SetAttribute ("ObssPdThreshold", DoubleValue (-99.0));
-      //heConfiguration->SetAttribute ("ObssPdThresholdMin", DoubleValue (-82.0));
-      //heConfiguration->SetAttribute ("ObssPdThresholdMax", DoubleValue (-62.0));
+      Ptr<ConstantObssPdAlgorithm> obssPdAlgorithm = DynamicCast<ConstantObssPdAlgorithm> (device->GetObssPdAlgorithm ());
+      obssPdAlgorithm->SetAttribute ("ObssPdLevel", DoubleValue (m_obssPdLevel));
+    }
+  for (uint32_t i = 0; i < m_staDevices.GetN (); i++)
+    {
+      Ptr<WifiNetDevice> device = DynamicCast<WifiNetDevice> (m_staDevices.Get (i));
+      Ptr<HeConfiguration> heConfiguration = device->GetHeConfiguration ();
+      heConfiguration->SetAttribute ("BeMaxAmpduSize", UintegerValue (0));
+      Ptr<ConstantObssPdAlgorithm> obssPdAlgorithm = DynamicCast<ConstantObssPdAlgorithm> (device->GetObssPdAlgorithm ());
+      obssPdAlgorithm->SetAttribute ("ObssPdLevel", DoubleValue (m_obssPdLevel));
     }
 
-  // fixed positions
   MobilityHelper mobility;
-  Ptr<ListPositionAllocator> positionAlloc = AllocatePositions ();
-
+  Ptr<ListPositionAllocator> positionAlloc = AllocatePositions (m_distance1, m_distance2, m_distance3);
   mobility.SetPositionAllocator (positionAlloc);
-
   mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
   mobility.Install (wifiApNodes);
   mobility.Install (wifiStaNodes);
-
-  Ptr<WifiNetDevice> ap_device = DynamicCast<WifiNetDevice> (m_apDevices.Get (0));
-
-  // Create a PHY listener for the AP's PHY.  This will track state changes and be used
-  // to confirm at certain times that the AP is in the right state
-  m_listener = new InterBssPhyListener;
-  Ptr<WifiPhy> apPhy = DynamicCast<WifiPhy> (ap_device->GetPhy ());
-  m_listener->m_phy = apPhy;
-  apPhy->RegisterListener (m_listener);
 
   Config::Connect ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Phy/PhyTxBegin", MakeCallback (&TestInterBssConstantObssPdAlgo::NotifyPhyTxBegin, this));
   Config::Connect ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Phy/PhyRxEnd", MakeCallback (&TestInterBssConstantObssPdAlgo::NotifyPhyRxEnd, this));
@@ -607,7 +417,6 @@ TestInterBssConstantObssPdAlgo::RunOne (void)
 
   Simulator::Run ();
   Simulator::Destroy ();
-  delete m_listener;
 
   CheckResults ();
 }
@@ -621,9 +430,6 @@ TestInterBssConstantObssPdAlgo::DoRun (void)
   LogComponentEnable ("ObssPdAlgorithm", LOG_LEVEL_ALL);
   LogComponentEnable ("WifiPhy", LOG_LEVEL_ALL);
   LogComponentEnable ("MacLow", LOG_LEVEL_ALL);
-
-  m_payloadSize1 = 1000;
-  m_payloadSize2 = 1500;
 
   RunOne ();
 }
