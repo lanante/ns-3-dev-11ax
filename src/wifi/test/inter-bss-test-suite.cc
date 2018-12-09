@@ -159,6 +159,9 @@ private:
   double m_txPowerDbm;
   double m_obssPdLevelDbm;
   double m_obssRxPowerDbm;
+
+  uint8_t m_bssColor1;
+  uint8_t m_bssColor2;
 };
 
 TestInterBssConstantObssPdAlgo::TestInterBssConstantObssPdAlgo ()
@@ -175,7 +178,9 @@ TestInterBssConstantObssPdAlgo::TestInterBssConstantObssPdAlgo ()
     m_payloadSize2 (1500),
     m_txPowerDbm (15),
     m_obssPdLevelDbm (-72),
-    m_obssRxPowerDbm (-82)
+    m_obssRxPowerDbm (-82),
+    m_bssColor1 (1),
+    m_bssColor2 (2)
 {
 }
 
@@ -216,7 +221,7 @@ TestInterBssConstantObssPdAlgo::SetupSimulation ()
   Ptr<WifiNetDevice> sta_device1 = DynamicCast<WifiNetDevice> (m_staDevices.Get (0));
   Ptr<WifiNetDevice> sta_device2 = DynamicCast<WifiNetDevice> (m_staDevices.Get (1));
   
-  bool expectPhyReset = (m_obssPdLevelDbm >= m_obssRxPowerDbm);
+  bool expectPhyReset = (m_bssColor1 != 0) && (m_bssColor2 != 0) && (m_obssPdLevelDbm >= m_obssRxPowerDbm);
 
   // AP1 sends packet #1 after 0.25s. The purpose is to have addba handshake established.
   Simulator::Schedule (Seconds (0.25), &TestInterBssConstantObssPdAlgo::SendOnePacket, this, ap_device1, sta_device1, m_payloadSize1);
@@ -395,7 +400,14 @@ TestInterBssConstantObssPdAlgo::RunOne (void)
       Ptr<WifiNetDevice> device = DynamicCast<WifiNetDevice> (m_apDevices.Get (i));
       Ptr<HeConfiguration> heConfiguration = device->GetHeConfiguration ();
       heConfiguration->SetAttribute ("BeMaxAmpduSize", UintegerValue (0));
-      heConfiguration->SetAttribute ("BssColor", UintegerValue (i + 1));
+      if (i == 0)
+        {
+          heConfiguration->SetAttribute ("BssColor", UintegerValue (m_bssColor1));
+        }
+      else
+        {
+          heConfiguration->SetAttribute ("BssColor", UintegerValue (m_bssColor2));
+        }
       Ptr<ConstantObssPdAlgorithm> obssPdAlgorithm = DynamicCast<ConstantObssPdAlgorithm> (device->GetObssPdAlgorithm ());
       obssPdAlgorithm->SetAttribute ("ObssPdLevel", DoubleValue (m_obssPdLevelDbm));
     }
@@ -445,11 +457,36 @@ TestInterBssConstantObssPdAlgo::DoRun (void)
   //Test case 1: rx sensitivity < m_obssRxPowerDbm < m_obssPdLevelDbm
   m_obssPdLevelDbm = -72;
   m_obssRxPowerDbm = -82;
+  m_bssColor1 = 1;
+  m_bssColor2 = 2;
   RunOne ();
 
   //Test case 2: rx sensitivity < m_obssPdLevelDbm < m_obssRxPowerDbm
   m_obssPdLevelDbm = -72;
   m_obssRxPowerDbm = -62;
+  m_bssColor1 = 1;
+  m_bssColor2 = 2;
+  RunOne ();
+
+  //Test case 3: rx sensitivity < m_obssPdLevelDbm = m_obssRxPowerDbm
+  m_obssPdLevelDbm = -72;
+  m_obssRxPowerDbm = -72;
+  m_bssColor1 = 1;
+  m_bssColor2 = 2;
+  RunOne ();
+
+  //Test case 4: rx sensitivity < m_obssRxPowerDbm < m_obssPdLevelDbm with BSS color 2 set to 0
+  m_obssPdLevelDbm = -72;
+  m_obssRxPowerDbm = -82;
+  m_bssColor1 = 1;
+  m_bssColor2 = 0;
+  RunOne ();
+
+  //Test case 5: rx sensitivity < m_obssRxPowerDbm < m_obssPdLevelDbm with BSS color 1 set to 0
+  m_obssPdLevelDbm = -72;
+  m_obssRxPowerDbm = -82;
+  m_bssColor1 = 0;
+  m_bssColor2 = 2;
   RunOne ();
 }
 
