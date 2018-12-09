@@ -156,10 +156,6 @@ private:
   NetDeviceContainer m_staDevices;
   NetDeviceContainer m_apDevices;
 
-  double m_distance1;
-  double m_distance2;
-  double m_distance3;
-
   double m_txPowerDbm;
   double m_obssPdLevelDbm;
   double m_obssRxPowerDbm;
@@ -177,9 +173,6 @@ TestInterBssConstantObssPdAlgo::TestInterBssConstantObssPdAlgo ()
     m_numAp2PacketsReceived (0),
     m_payloadSize1 (1000),
     m_payloadSize2 (1500),
-    m_distance1 (10),
-    m_distance2 (50),
-    m_distance3 (10),
     m_txPowerDbm (15),
     m_obssPdLevelDbm (-72),
     m_obssRxPowerDbm (-82)
@@ -222,6 +215,8 @@ TestInterBssConstantObssPdAlgo::SetupSimulation ()
   Ptr<WifiNetDevice> ap_device2 = DynamicCast<WifiNetDevice> (m_apDevices.Get (1));
   Ptr<WifiNetDevice> sta_device1 = DynamicCast<WifiNetDevice> (m_staDevices.Get (0));
   Ptr<WifiNetDevice> sta_device2 = DynamicCast<WifiNetDevice> (m_staDevices.Get (1));
+  
+  bool expectPhyReset = (m_obssPdLevelDbm >= m_obssRxPowerDbm);
 
   // AP1 sends packet #1 after 0.25s. The purpose is to have addba handshake established.
   Simulator::Schedule (Seconds (0.25), &TestInterBssConstantObssPdAlgo::SendOnePacket, this, ap_device1, sta_device1, m_payloadSize1);
@@ -244,18 +239,18 @@ TestInterBssConstantObssPdAlgo::SetupSimulation ()
   Simulator::Schedule (Seconds (1.5) + MicroSeconds (10), &TestInterBssConstantObssPdAlgo::CheckPhyState, this, sta_device1, WifiPhyState::RX);
   Simulator::Schedule (Seconds (1.5) + MicroSeconds (10), &TestInterBssConstantObssPdAlgo::CheckPhyState, this, sta_device2, WifiPhyState::RX);
   Simulator::Schedule (Seconds (1.5) + MicroSeconds (10), &TestInterBssConstantObssPdAlgo::CheckPhyState, this, ap_device1, WifiPhyState::RX);
-  // PHYs of AP1 and STA1 should be idle since it was reset by OBSS PD.
-  Simulator::Schedule (Seconds (1.5) + MicroSeconds (50), &TestInterBssConstantObssPdAlgo::CheckPhyState, this, sta_device1, WifiPhyState::IDLE);
-  Simulator::Schedule (Seconds (1.5) + MicroSeconds (50), &TestInterBssConstantObssPdAlgo::CheckPhyState, this, ap_device1, WifiPhyState::IDLE);
+  // PHYs of AP1 and STA1 should be idle if it was reset by OBSS PD, otherwise they should be receiving
+  Simulator::Schedule (Seconds (1.5) + MicroSeconds (50), &TestInterBssConstantObssPdAlgo::CheckPhyState, this, sta_device1, expectPhyReset ? WifiPhyState::IDLE : WifiPhyState::RX);
+  Simulator::Schedule (Seconds (1.5) + MicroSeconds (50), &TestInterBssConstantObssPdAlgo::CheckPhyState, this, ap_device1, expectPhyReset ? WifiPhyState::IDLE : WifiPhyState::RX);
   // STA2 should be receiving
   Simulator::Schedule (Seconds (1.5) + MicroSeconds (50), &TestInterBssConstantObssPdAlgo::CheckPhyState, this, sta_device2, WifiPhyState::RX);
 
   // AP2 sends another packet #6 0.1s later.
   Simulator::Schedule (Seconds (1.6), &TestInterBssConstantObssPdAlgo::SendOnePacket, this, ap_device2, sta_device2, m_payloadSize2);
-  // STA1 sends a packet #7 100us later. Even though AP2 is still transmitting, STA1 can transmit simultaneously because of OBSS PD SR.
+  // STA1 sends a packet #7 100us later. Even though AP2 is still transmitting, STA1 can transmit simultaneously if it's PHY was reset by OBSS PD SR.
   Simulator::Schedule (Seconds (1.6) + MicroSeconds (100), &TestInterBssConstantObssPdAlgo::SendOnePacket, this, sta_device1, ap_device1, m_payloadSize1);
   // Check simultaneous transmissions
-  Simulator::Schedule (Seconds (1.6) + MicroSeconds (350), &TestInterBssConstantObssPdAlgo::CheckPhyState, this, sta_device1, WifiPhyState::TX);
+  Simulator::Schedule (Seconds (1.6) + MicroSeconds (350), &TestInterBssConstantObssPdAlgo::CheckPhyState, this, sta_device1, expectPhyReset ? WifiPhyState::TX : WifiPhyState::RX);
   Simulator::Schedule (Seconds (1.6) + MicroSeconds (350), &TestInterBssConstantObssPdAlgo::CheckPhyState, this, ap_device1, WifiPhyState::RX);
   Simulator::Schedule (Seconds (1.6) + MicroSeconds (350), &TestInterBssConstantObssPdAlgo::CheckPhyState, this, sta_device2, WifiPhyState::RX);
   Simulator::Schedule (Seconds (1.6) + MicroSeconds (350), &TestInterBssConstantObssPdAlgo::CheckPhyState, this, ap_device2, WifiPhyState::TX);
@@ -279,6 +274,8 @@ TestInterBssConstantObssPdAlgo::ResetResults ()
 void
 TestInterBssConstantObssPdAlgo::CheckResults ()
 {
+  bool expectPhyReset = (m_obssPdLevelDbm >= m_obssRxPowerDbm);
+
   NS_TEST_ASSERT_MSG_EQ (m_numSta1PacketsSent, 2, "The number of packets sent by STA1 is not correct!");
   NS_TEST_ASSERT_MSG_EQ (m_numSta2PacketsSent, 1, "The number of packets sent by STA2 is not correct!");
   NS_TEST_ASSERT_MSG_EQ (m_numAp1PacketsSent, 1, "The number of packets sent by AP1 is not correct!");
@@ -412,7 +409,7 @@ TestInterBssConstantObssPdAlgo::RunOne (void)
     }
 
   MobilityHelper mobility;
-  Ptr<ListPositionAllocator> positionAlloc = AllocatePositions (m_distance1, m_distance2, m_distance3);
+  Ptr<ListPositionAllocator> positionAlloc = AllocatePositions (10, 50, 10); //distances do not really matter since we set RSSI per TX-RX pair to have full control
   mobility.SetPositionAllocator (positionAlloc);
   mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
   mobility.Install (wifiApNodes);
@@ -445,6 +442,14 @@ TestInterBssConstantObssPdAlgo::DoRun (void)
   LogComponentEnable ("WifiPhy", LOG_LEVEL_ALL);
   LogComponentEnable ("MacLow", LOG_LEVEL_ALL);
 
+  //Test case 1: rx sensitivity < m_obssRxPowerDbm < m_obssPdLevelDbm
+  m_obssPdLevelDbm = -72;
+  m_obssRxPowerDbm = -82;
+  RunOne ();
+
+  //Test case 2: rx sensitivity < m_obssPdLevelDbm < m_obssRxPowerDbm
+  m_obssPdLevelDbm = -72;
+  m_obssRxPowerDbm = -62;
   RunOne ();
 }
 
