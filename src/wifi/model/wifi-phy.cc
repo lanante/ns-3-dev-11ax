@@ -3877,7 +3877,12 @@ WifiPhy::GetTxPowerForTransmission (WifiTxVector txVector) const
     }
   else
     {
-      return std::min (m_txPowerMax, GetPowerDbm (txVector.GetTxPowerLevel ()));
+      double txPowerMax = m_txPowerMax;
+      if (txVector.GetNss () > 1)
+        {
+          txPowerMax += 4; //txPowerRef is increased by 4 dB if MIMO is used
+        }
+      return std::min (txPowerMax, GetPowerDbm (txVector.GetTxPowerLevel ()));
     }
 }
 

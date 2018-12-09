@@ -1898,7 +1898,7 @@ private:
   uint8_t  m_nTxPower;            //!< Number of available transmission power levels
 
   bool m_powerRestricted; //!< Flag whether transmit power is retricted by OBSS PD SR
-  double m_txPowerMax;    //!< Maximum transmit power due to OBSS PD SR power restriction
+  double m_txPowerMax;    //!< Maximum transmit power due to OBSS PD SR power restriction (for SISO transmission)
 
   bool     m_greenfield;         //!< Flag if GreenField format is supported (deprecated)
   bool     m_shortGuardInterval; //!< Flag if HT/VHT short guard interval is supported (deprecated)

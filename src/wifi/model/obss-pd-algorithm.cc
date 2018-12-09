@@ -111,7 +111,7 @@ ObssPdAlgorithm::ResetPhy()
   Ptr<WifiPhy> phy = GetWifiNetDevice ()->GetPhy();
   if ((m_obssPdLevel > m_obssPdLevelMin) || (m_obssPdLevel >= m_obssPdLevelMax))
     {
-      double txPowerRef = phy->GetTxPowerEnd (); //correct???
+      double txPowerRef = 21; //dBm
       txPowerMax = txPowerRef - (m_obssPdLevel - m_obssPdLevelMin);
       powerRestricted = true;
     }

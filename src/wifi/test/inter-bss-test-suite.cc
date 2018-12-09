@@ -264,7 +264,8 @@ TestInterBssConstantObssPdAlgo::SetupSimulation ()
   if (expectPhyReset && (m_obssPdLevelDbm > -82))
     {
       // In this case, we check the TX power is restricted
-      Simulator::Schedule (Seconds (1.6) + MicroSeconds (100), &TestInterBssConstantObssPdAlgo::SetExpectedTxPower, this, m_txPowerDbm - (m_obssPdLevelDbm + 82));
+      double expectedTxPower = std::min (m_txPowerDbm, 21 - (m_obssPdLevelDbm + 82));
+      Simulator::Schedule (Seconds (1.6) + MicroSeconds (100), &TestInterBssConstantObssPdAlgo::SetExpectedTxPower, this, expectedTxPower);
     }
   // Check simultaneous transmissions
   Simulator::Schedule (Seconds (1.6) + MicroSeconds (350), &TestInterBssConstantObssPdAlgo::CheckPhyState, this, sta_device1, expectPhyReset ? WifiPhyState::TX : WifiPhyState::RX);
