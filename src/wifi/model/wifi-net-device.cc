@@ -86,6 +86,11 @@ WifiNetDevice::GetTypeId (void)
                    PointerValue (),
                    MakePointerAccessor (&WifiNetDevice::GetHeConfiguration),
                    MakePointerChecker<HeConfiguration> ())
+    .AddAttribute ("ObssPdAlgorithm",
+                   "The ObssPdAlgorithm object.",
+                   PointerValue (),
+                   MakePointerAccessor (&WifiNetDevice::m_obssPdAlgorithm),
+                   MakePointerChecker<ObssPdAlgorithm> ())
   ;
   return tid;
 }
@@ -205,6 +210,12 @@ Ptr<WifiRemoteStationManager>
 WifiNetDevice::GetRemoteStationManager (void) const
 {
   return m_stationManager;
+}
+
+Ptr<ObssPdAlgorithm>
+WifiNetDevice::GetObssPdAlgorithm (void) const
+{
+  return m_obssPdAlgorithm;
 }
 
 void

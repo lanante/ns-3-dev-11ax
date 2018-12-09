@@ -91,6 +91,10 @@ public:
    * \returns the remote station manager we are currently using.
    */
   Ptr<WifiRemoteStationManager> GetRemoteStationManager (void) const;
+  /**
+   * \returns the OBSS PD algorithm we are currently using.
+   */
+  Ptr<ObssPdAlgorithm> GetObssPdAlgorithm (void) const;
 
   /**
    * \param htConfiguration pointer to HtConfiguration
