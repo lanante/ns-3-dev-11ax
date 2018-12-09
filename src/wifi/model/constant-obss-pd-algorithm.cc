@@ -77,7 +77,13 @@ ConstantObssPdAlgorithm::ReceiveHeSigA (HePreambleParameters params)
 
   if (bssColor == 0)
     {
-      NS_LOG_DEBUG ("BSS color is 0: OBSS_PD SR is not allowed!");
+      NS_LOG_DEBUG ("BSS color is 0");
+      return;
+    }
+  if (params.bssColor == 0)
+    {
+      NS_LOG_DEBUG ("Received BSS color is 0");
+      return;
     }
   //TODO: SRP_AND_NON-SRG_OBSS-PD_PROHIBITED=1 => OBSS_PD SR is not allowed
 
