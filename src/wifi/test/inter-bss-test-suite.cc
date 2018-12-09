@@ -454,35 +454,35 @@ TestInterBssConstantObssPdAlgo::DoRun (void)
   LogComponentEnable ("WifiPhy", LOG_LEVEL_ALL);
   LogComponentEnable ("MacLow", LOG_LEVEL_ALL);
 
-  //Test case 1: rx sensitivity < m_obssRxPowerDbm < m_obssPdLevelDbm
+  //Test case 1: CCA CS Threshold = m_obssRxPowerDbm < m_obssPdLevelDbm
   m_obssPdLevelDbm = -72;
   m_obssRxPowerDbm = -82;
   m_bssColor1 = 1;
   m_bssColor2 = 2;
   RunOne ();
 
-  //Test case 2: rx sensitivity < m_obssPdLevelDbm < m_obssRxPowerDbm
+  //Test case 2: CCA CS Threshold < m_obssPdLevelDbm < m_obssRxPowerDbm
   m_obssPdLevelDbm = -72;
   m_obssRxPowerDbm = -62;
   m_bssColor1 = 1;
   m_bssColor2 = 2;
   RunOne ();
 
-  //Test case 3: rx sensitivity < m_obssPdLevelDbm = m_obssRxPowerDbm
+  //Test case 3: CCA CS Threshold = < m_obssPdLevelDbm = m_obssRxPowerDbm
   m_obssPdLevelDbm = -72;
   m_obssRxPowerDbm = -72;
   m_bssColor1 = 1;
   m_bssColor2 = 2;
   RunOne ();
 
-  //Test case 4: rx sensitivity < m_obssRxPowerDbm < m_obssPdLevelDbm with BSS color 2 set to 0
+  //Test case 4: CCA CS Threshold = m_obssRxPowerDbm < m_obssPdLevelDbm with BSS color 2 set to 0
   m_obssPdLevelDbm = -72;
   m_obssRxPowerDbm = -82;
   m_bssColor1 = 1;
   m_bssColor2 = 0;
   RunOne ();
 
-  //Test case 5: rx sensitivity < m_obssRxPowerDbm < m_obssPdLevelDbm with BSS color 1 set to 0
+  //Test case 5: CCA CS Threshold = m_obssRxPowerDbm < m_obssPdLevelDbm with BSS color 1 set to 0
   m_obssPdLevelDbm = -72;
   m_obssRxPowerDbm = -82;
   m_bssColor1 = 0;

@@ -1540,6 +1540,7 @@ WifiPhy::GetChannelNumber (void) const
 bool
 WifiPhy::DoChannelSwitch (uint8_t nch)
 {
+  m_powerRestricted = false;
   if (!IsInitialized ())
     {
       //this is not channel switch, this is initialization
@@ -1598,6 +1599,7 @@ switchChannel:
 bool
 WifiPhy::DoFrequencySwitch (uint16_t frequency)
 {
+  m_powerRestricted = false;
   if (!IsInitialized ())
     {
       //this is not channel switch, this is initialization
@@ -1657,6 +1659,7 @@ void
 WifiPhy::SetSleepMode (void)
 {
   NS_LOG_FUNCTION (this);
+  m_powerRestricted = false;
   switch (m_state->GetState ())
     {
     case WifiPhyState::TX:
@@ -1689,6 +1692,7 @@ void
 WifiPhy::SetOffMode (void)
 {
   NS_LOG_FUNCTION (this);
+  m_powerRestricted = false;
   m_endPlcpRxEvent.Cancel ();
   m_endRxEvent.Cancel ();
   m_endPreambleDetectionEvent.Cancel ();
@@ -2542,6 +2546,8 @@ WifiPhy::SendPacket (Ptr<const Packet> packet, WifiTxVector txVector, MpduType m
   newPacket->AddPacketTag (tag);
 
   StartTx (newPacket, txVector, txDuration);
+
+  m_powerRestricted = false;
 }
 
 void
@@ -2550,6 +2556,7 @@ WifiPhy::StartReceiveHeader (Ptr<Packet> packet, WifiTxVector txVector, MpduType
   NS_LOG_FUNCTION (this << packet << txVector.GetMode () << txVector.GetPreambleType () << +mpdutype);
   NS_ASSERT (!IsStateRx ());
   NS_ASSERT (m_endPlcpRxEvent.IsExpired ());
+  m_powerRestricted = false;
 
   InterferenceHelper::SnrPer snrPer = m_interference.CalculatePlcpHeaderSnrPer (event);
   double snr = snrPer.snr;
@@ -3853,10 +3860,25 @@ WifiPhy::AbortCurrentReception ()
 }
 
 void
-WifiPhy::ResetCca ()
+WifiPhy::ResetCca (bool powerRestricted, double txPowerMax)
 {
-  NS_LOG_FUNCTION (this);
+  NS_LOG_FUNCTION (this << powerRestricted << txPowerMax);
+  m_powerRestricted = true;
+  m_txPowerMax = txPowerMax;
   AbortCurrentReception ();
+}
+
+double
+WifiPhy::GetTxPowerForTransmission (WifiTxVector txVector) const
+{
+  if (!m_powerRestricted)
+    {
+      return GetPowerDbm (txVector.GetTxPowerLevel ());
+    }
+  else
+    {
+      return std::min (m_txPowerMax, GetPowerDbm (txVector.GetTxPowerLevel ()));
+    }
 }
 
 void

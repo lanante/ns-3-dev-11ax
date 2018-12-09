@@ -1569,10 +1569,19 @@ public:
   double GetPowerDbm (uint8_t power) const;
 
   /**
-   * Reset PHY to IDLE
+   * Reset PHY to IDLE, with some potential TX power restrictions for the next transmission.
    *
+   * \param powerRestricted flag whether the transmit power is restricted for the next transmission
+   * \param txPowerMax the transmit power retriction for the next transmission
    */
-  void ResetCca (void);
+  void ResetCca (bool powerRestricted, double txPowerMax = 0);
+  /**
+   * Compute the transmit power (in dBm) for the next transmission.
+   *
+   * \param txVector the TXVECTOR
+   * \return the transmit power in dBm for the next transmission
+   */
+  double GetTxPowerForTransmission (WifiTxVector txVector) const;
 
 
 protected:
@@ -1885,6 +1894,9 @@ private:
   double   m_txPowerBaseDbm;      //!< Minimum transmission power (dBm)
   double   m_txPowerEndDbm;       //!< Maximum transmission power (dBm)
   uint8_t  m_nTxPower;            //!< Number of available transmission power levels
+
+  bool m_powerRestricted; //!< Flag whether transmit power is retricted by OBSS PD SR
+  double m_txPowerMax;    //!< Maximum transmit power due to OBSS PD SR power restriction
 
   bool     m_greenfield;         //!< Flag if GreenField format is supported (deprecated)
   bool     m_shortGuardInterval; //!< Flag if HT/VHT short guard interval is supported (deprecated)

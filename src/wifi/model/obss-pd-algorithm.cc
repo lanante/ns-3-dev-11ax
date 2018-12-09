@@ -37,18 +37,36 @@ ObssPdAlgorithm::GetTypeId (void)
   static ns3::TypeId tid = ns3::TypeId ("ns3::ObssPdAlgorithm")
     .SetParent<Object> ()
     .SetGroupName ("Wifi")
+    .AddAttribute ("ObssPdLevel",
+                   "The current OBSS PD level.",
+                   DoubleValue (-82.0),
+                   MakeDoubleAccessor (&ObssPdAlgorithm::SetObssPdLevel),
+                   MakeDoubleChecker<double> ())
     .AddAttribute ("ObssPdLevelMin",
-                   "Minimum value (dBm) of OBSS_PD level",
+                   "Minimum value (dBm) of OBSS PD level",
                    DoubleValue (-82.0),
                    MakeDoubleAccessor (&ObssPdAlgorithm::m_obssPdLevelMin),
                    MakeDoubleChecker<double> ())
     .AddAttribute ("ObssPdLevelMax",
-                   "Maximum value (dBm) of OBSS_PD level",
+                   "Maximum value (dBm) of OBSS PD level",
                    DoubleValue (-62.0),
                    MakeDoubleAccessor (&ObssPdAlgorithm::m_obssPdLevelMax),
                    MakeDoubleChecker<double> ())
   ;
   return tid;
+}
+
+void
+ObssPdAlgorithm::SetObssPdLevel (double level)
+{
+  NS_LOG_FUNCTION (this << level);
+  m_obssPdLevel = level;
+}
+
+double
+ObssPdAlgorithm::GetObssPdLevel (void) const
+{
+  return m_obssPdLevel;
 }
 
 void
@@ -83,6 +101,21 @@ ObssPdAlgorithm::SetupCallbacks ()
 
   // PhyEndOfHePreamble - used to test that the PHY EndOfHePreamble event has fired
   Config::ConnectWithoutContext (devicepath + "$ns3::WifiNetDevice/Phy/EndOfHePreamble", MakeCallback (&ObssPdAlgorithm::ReceiveHeSigA, this));
+}
+
+void
+ObssPdAlgorithm::ResetPhy()
+{
+  double txPowerMax = 0;
+  bool powerRestricted = false;
+  Ptr<WifiPhy> phy = GetWifiNetDevice ()->GetPhy();
+  if ((m_obssPdLevel > m_obssPdLevelMin) || (m_obssPdLevel >= m_obssPdLevelMax))
+    {
+      double txPowerRef = phy->GetTxPowerEnd (); //correct???
+      txPowerMax = txPowerRef - (m_obssPdLevel - m_obssPdLevelMin);
+      powerRestricted = true;
+    }
+  phy->ResetCca (powerRestricted, txPowerMax);
 }
 
 } //namespace ns3

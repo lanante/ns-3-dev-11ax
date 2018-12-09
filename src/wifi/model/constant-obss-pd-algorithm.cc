@@ -46,11 +46,6 @@ ConstantObssPdAlgorithm::GetTypeId (void)
     .SetParent<ObssPdAlgorithm> ()
     .SetGroupName ("Wifi")
     .AddConstructor<ConstantObssPdAlgorithm> ()
-    .AddAttribute ("ObssPdLevel",
-                   "The constant OBSS PD level.",
-                   DoubleValue (-82.0),
-                   MakeDoubleAccessor (&ConstantObssPdAlgorithm::m_obssPdLevel),
-                   MakeDoubleChecker<double> ())
   ;
   return tid;
 }
@@ -90,12 +85,10 @@ ConstantObssPdAlgorithm::ReceiveHeSigA (HePreambleParameters params)
   bool isObss = (bssColor != params.bssColor);
   if (isObss)
     {
-      if (WToDbm (params.rssiW) < m_obssPdLevel)
+      if (WToDbm (params.rssiW) < GetObssPdLevel ())
         {
-          Ptr<WifiPhy> phy = GetWifiNetDevice ()->GetPhy();
           NS_LOG_DEBUG ("Frame is OBSS and RSSI is below OBSS-PD level: reset PHY to IDLE");
-          phy->ResetCca ();
-          //TODO: TX power limitation!
+          ResetPhy ();
         }
       else
         {

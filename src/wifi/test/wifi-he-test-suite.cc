@@ -1485,7 +1485,7 @@ TestSinglePacketEndOfHePreambleResetPhyOnMagicBssColor::NotifyEndOfHePreamble (s
 
           // this is the AP, and we have received notification of End of HE Preamble, and the BSS color is our
           // magic number.  Reset the PHY, and then check that the  PHY returns to IDLE shortly thereafter
-          m_listener->m_phy->ResetCca ();
+          m_listener->m_phy->ResetCca (false);
 
           // at 4us, AP PHY STATE should be IDLE
           Simulator::Schedule (MicroSeconds (4.0), &TestSinglePacketEndOfHePreambleResetPhyOnMagicBssColor::CheckPhyState, this, 1, WifiPhyState::IDLE);
