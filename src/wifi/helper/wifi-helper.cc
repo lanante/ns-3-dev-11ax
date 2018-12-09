@@ -777,6 +777,9 @@ WifiHelper::Install (const WifiPhyHelper &phy,
 void
 WifiHelper::EnableLogComponents (void)
 {
+  LogComponentEnableAll (LOG_PREFIX_TIME);
+  LogComponentEnableAll (LOG_PREFIX_NODE);
+
   LogComponentEnable ("AarfWifiManager", LOG_LEVEL_ALL);
   LogComponentEnable ("AarfcdWifiManager", LOG_LEVEL_ALL);
   LogComponentEnable ("AdhocWifiMac", LOG_LEVEL_ALL);
@@ -814,6 +817,7 @@ WifiHelper::EnableLogComponents (void)
   LogComponentEnable ("SpectrumWifiPhy", LOG_LEVEL_ALL);
   LogComponentEnable ("StaWifiMac", LOG_LEVEL_ALL);
   LogComponentEnable ("SupportedRates", LOG_LEVEL_ALL);
+  LogComponentEnable ("ThresholdPreambleDetectionModel", LOG_LEVEL_ALL);
   LogComponentEnable ("WifiMac", LOG_LEVEL_ALL);
   LogComponentEnable ("WifiMacQueueItem", LOG_LEVEL_ALL);
   LogComponentEnable ("WifiNetDevice", LOG_LEVEL_ALL);
