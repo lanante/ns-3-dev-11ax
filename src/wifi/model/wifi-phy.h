@@ -1112,8 +1112,9 @@ public:
    * Implemented for encapsulation purposes.
    *
    * \param packet the packet being transmitted
+   * \param txPowerW the transmit power in Watts
    */
-  void NotifyTxBegin (Ptr<const Packet> packet);
+  void NotifyTxBegin (Ptr<const Packet> packet, double txPowerW);
   /**
    * Public method used to fire a PhyTxEnd trace.
    * Implemented for encapsulation purposes.
@@ -1140,8 +1141,9 @@ public:
    * Implemented for encapsulation purposes.
    *
    * \param packet the packet received
+   * \param rxPowerW the receive power in Watts
    */
-  void NotifyRxEnd (Ptr<const Packet> packet);
+  void NotifyRxEnd (Ptr<const Packet> packet, double rxPowerW);
   /**
    * Public method used to fire a PhyRxDrop trace.
    * Implemented for encapsulation purposes.
@@ -1761,7 +1763,7 @@ private:
    *
    * \see class CallBackTraceSource
    */
-  TracedCallback<Ptr<const Packet> > m_phyTxBeginTrace;
+  TracedCallback<Ptr<const Packet>, double > m_phyTxBeginTrace;
 
   /**
    * The trace source fired when a packet ends the transmission process on
@@ -1793,7 +1795,7 @@ private:
    *
    * \see class CallBackTraceSource
    */
-  TracedCallback<Ptr<const Packet> > m_phyRxEndTrace;
+  TracedCallback<Ptr<const Packet>, double > m_phyRxEndTrace;
 
   /**
    * The trace source fired when the phy layer drops a packet it has received.

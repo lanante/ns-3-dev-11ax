@@ -444,8 +444,9 @@ private:
   /**
    * Notify Phy transmit begin
    * \param p the packet
+   * \param txPowerW the tx power
    */
-  void NotifyPhyTxBegin (Ptr<const Packet> p);
+  void NotifyPhyTxBegin (Ptr<const Packet> p, double txPowerW);
 };
 
 DcfImmediateAccessBroadcastTestCase::DcfImmediateAccessBroadcastTestCase ()
@@ -454,7 +455,7 @@ DcfImmediateAccessBroadcastTestCase::DcfImmediateAccessBroadcastTestCase ()
 }
 
 void
-DcfImmediateAccessBroadcastTestCase::NotifyPhyTxBegin (Ptr<const Packet> p)
+DcfImmediateAccessBroadcastTestCase::NotifyPhyTxBegin (Ptr<const Packet> p, double txPowerW)
 {
   if (m_numSentPackets == 0)
     {

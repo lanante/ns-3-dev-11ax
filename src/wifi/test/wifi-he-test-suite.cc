@@ -245,15 +245,17 @@ protected:
    * Notify Phy transmit begin
    * \param context the context
    * \param p the packet
+   * \param txPowerW the tx power
    */
-  void NotifyPhyTxBegin (std::string context, Ptr<const Packet> p);
+  void NotifyPhyTxBegin (std::string context, Ptr<const Packet> p, double txPowerW);
 
   /**
    * Notify Phy receive endsn
    * \param context the context
    * \param p the packet
+   * \param rxPowerW the rx power
    */
-  void NotifyPhyRxEnd (std::string context, Ptr<const Packet> p);
+  void NotifyPhyRxEnd (std::string context, Ptr<const Packet> p, double rxPowerW);
 
   /**
    * Notify end of HE preamble
@@ -315,7 +317,7 @@ WifiHeTestCase::WifiHeTestCase ()
 }
 
 void
-WifiHeTestCase::NotifyPhyTxBegin (std::string context, Ptr<const Packet> p)
+WifiHeTestCase::NotifyPhyTxBegin (std::string context, Ptr<const Packet> p, double txPowerW)
 {
   uint32_t idx = ContextToNodeId (context);
   // get the packet size
@@ -359,7 +361,7 @@ WifiHeTestCase::NotifyPhyTxBegin (std::string context, Ptr<const Packet> p)
 }
 
 void
-WifiHeTestCase::NotifyPhyRxEnd (std::string context, Ptr<const Packet> p)
+WifiHeTestCase::NotifyPhyRxEnd (std::string context, Ptr<const Packet> p, double rxPowerW)
 {
   m_totalReceivedPackets++;
 

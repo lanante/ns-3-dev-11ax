@@ -2399,9 +2399,9 @@ WifiPhy::CalculateTxDuration (uint32_t size, WifiTxVector txVector, uint16_t fre
 }
 
 void
-WifiPhy::NotifyTxBegin (Ptr<const Packet> packet)
+WifiPhy::NotifyTxBegin (Ptr<const Packet> packet, double txPowerW)
 {
-  m_phyTxBeginTrace (packet);
+  m_phyTxBeginTrace (packet, txPowerW);
 }
 
 void
@@ -2423,9 +2423,9 @@ WifiPhy::NotifyRxBegin (Ptr<const Packet> packet)
 }
 
 void
-WifiPhy::NotifyRxEnd (Ptr<const Packet> packet)
+WifiPhy::NotifyRxEnd (Ptr<const Packet> packet, double rxPowerW)
 {
-  m_phyRxEndTrace (packet);
+  m_phyRxEndTrace (packet, rxPowerW);
 }
 
 void
@@ -2500,7 +2500,7 @@ WifiPhy::SendPacket (Ptr<const Packet> packet, WifiTxVector txVector, MpduType m
       m_interference.NotifyRxEnd ();
     }
 
-  NotifyTxBegin (packet);
+  NotifyTxBegin (packet, DbmToW (GetTxPowerForTransmission (txVector) + GetTxGain ()));
   if ((mpdutype == MPDU_IN_AGGREGATE) && (txVector.GetPreambleType () != WIFI_PREAMBLE_NONE))
     {
       //send the first MPDU in an MPDU
@@ -2796,7 +2796,7 @@ WifiPhy::EndReceive (Ptr<Packet> packet, WifiPreamble preamble, MpduType mpdutyp
       if (m_random->GetValue () > snrPer.per &&
           !(m_postReceptionErrorModel && m_postReceptionErrorModel->IsCorrupt (packet)))
         {
-          NotifyRxEnd (packet);
+          NotifyRxEnd (packet, event->GetRxPowerW ());
           SignalNoiseDbm signalNoise;
           signalNoise.signal = WToDbm (event->GetRxPowerW ());
           signalNoise.noise = WToDbm (event->GetRxPowerW () / snrPer.snr);

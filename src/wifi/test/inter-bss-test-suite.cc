@@ -130,15 +130,17 @@ private:
    * Notify Phy transmit begin
    * \param context the context
    * \param p the packet
+   * \param txPowerW the tx power
    */
-  void NotifyPhyTxBegin (std::string context, Ptr<const Packet> p);
+  void NotifyPhyTxBegin (std::string context, Ptr<const Packet> p, double txPowerW);
 
   /**
    * Notify Phy receive endsn
    * \param context the context
    * \param p the packet
+   * \param rxPowerW the rx power
    */
-  void NotifyPhyRxEnd (std::string context, Ptr<const Packet> p);
+  void NotifyPhyRxEnd (std::string context, Ptr<const Packet> p, double rxPowerW);
 
   unsigned int m_numSta1PacketsSent; ///< number of sent packets from STA1
   unsigned int m_numSta2PacketsSent; ///< number of sent packets from STA2
@@ -279,8 +281,6 @@ TestInterBssConstantObssPdAlgo::ResetResults ()
 void
 TestInterBssConstantObssPdAlgo::CheckResults ()
 {
-  bool expectPhyReset = (m_obssPdLevelDbm >= m_obssRxPowerDbm);
-
   NS_TEST_ASSERT_MSG_EQ (m_numSta1PacketsSent, 2, "The number of packets sent by STA1 is not correct!");
   NS_TEST_ASSERT_MSG_EQ (m_numSta2PacketsSent, 1, "The number of packets sent by STA2 is not correct!");
   NS_TEST_ASSERT_MSG_EQ (m_numAp1PacketsSent, 1, "The number of packets sent by AP1 is not correct!");
@@ -293,7 +293,7 @@ TestInterBssConstantObssPdAlgo::CheckResults ()
 }
 
 void
-TestInterBssConstantObssPdAlgo::NotifyPhyTxBegin (std::string context, Ptr<const Packet> p)
+TestInterBssConstantObssPdAlgo::NotifyPhyTxBegin (std::string context, Ptr<const Packet> p, double txPowerW)
 {
   uint32_t idx = ConvertContextToNodeId (context);
   uint32_t pktSize = p->GetSize () - 42;
@@ -316,7 +316,7 @@ TestInterBssConstantObssPdAlgo::NotifyPhyTxBegin (std::string context, Ptr<const
 }
 
 void
-TestInterBssConstantObssPdAlgo::NotifyPhyRxEnd (std::string context, Ptr<const Packet> p)
+TestInterBssConstantObssPdAlgo::NotifyPhyRxEnd (std::string context, Ptr<const Packet> p, double rxPowerW)
 {
   uint32_t idx = ConvertContextToNodeId (context);
   uint32_t pktSize = p->GetSize () - 42;
