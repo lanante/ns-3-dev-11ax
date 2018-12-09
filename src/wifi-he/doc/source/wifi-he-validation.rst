@@ -585,8 +585,8 @@ separated by d=20m.  There is 1 STA for each BSS placed in
 a random position within the r=10m radius about the correponding AP.  The two
 STAs are near one another.
 
-The simulation results in throughput of 3.4416 Mbps and 3.3492 Mbps at AP1 and AP2,
-respectively.  This is 34.16% and 33.49%, respectively, of the 10 Mbps offered load.  
+The simulation results in throughput of 3.2664 Mbps and 3.2076 Mbps at AP1 and AP2,
+respectively.  This is 32.66% and 32.08%, respectively, of the 10 Mbps offered load.  
 The results indicate that this simulation scenario saturates the
 network and results in significantly lower throughput as compared to the Test 1a, 
 where only 1 STA was transmitting without any potential transmission interference from
@@ -1067,9 +1067,7 @@ The node positions for the Enterprise Scenario are given below.
 Figure :ref:`positions-TGax-test2` illustrates the node positions
 of the Enterprise Scenario.
 
-@TODO
-
-We can see that there are two BSS each with one AP at its center, 
+We can see a very dense scenario where there are two BSS each with one AP at its center, 
 each with 100 STAs at random position within the r=5m radius about the AP.  
 
 The simulation results in throughput of 6.138 Mbps and 5.766 Mbps at AP1 and AP2,
@@ -1216,9 +1214,7 @@ The node positions for the Indoor Small BSSs Scenario are given below.
 Figure :ref:`positions-TGax-test3` illustrates the node positions
 of the Indoor Small BSSs Scenario.
 
-@TODO
-
-We can see that there are two BSS each with one AP at its center, 
+We can see a dense scdnario where there are two BSS each with one AP at its center, 
 each with 30 STAs at random position 
 within the r=10m radius about the AP.  
 
@@ -1361,9 +1357,7 @@ The node positions for the Outdoor Large BSS Scenario are given below.
 Figure :ref:`positions-TGax-test4` illustrates the node positions
 of the Outdoor Large BSS Scenario.
 
-@TODO
-
-We can see that there are two BSS each with one AP at its center, 
+We can see a dense scenario where there are two BSS each with one AP at its center, 
 each with 50 STAs at random position 
 within the r=70m radius about the AP.  
 

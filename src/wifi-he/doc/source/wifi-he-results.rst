@@ -14,8 +14,8 @@ Results
 Overview
 ========
 
-In this chapter we provide some initial simulation results obtained to evaluate 
-the WiFi He features, especially spatial reuse and coexistence of 802.11ac, 
+In this chapter we provide simulation results obtained in order to evaluate 
+the WiFi HE features, especially spatial reuse and coexistence of 802.11ac, 
 802.11ax, and/or LTE networks. We first describe the framework used to launch
 simulation scenarios and process the results.  Then we present the results for
 some selected scenarios and parametric studies
@@ -144,12 +144,12 @@ Example Scenarios
 
 As an example comparison, we consider two of these scenarios:
 
-1. 80-30-02-20 and
-2. 20-10-02-05
+1. Scenario 80-30-02-20 and
+2. Scenario 20-10-02-05
 
 The first scenario separates the two networks by a distance of 80m, and 
 places 20 nodes within a radius of 30m around each AP, while the second
-scenario reducing the AP separation to 20m and also reduces the number
+scenario reducies the AP separation to 20m and also reduces the number
 of APs and the radius into which they are positioned.
 
 
@@ -192,8 +192,8 @@ The throughput as offered load is increased is shown below for AP1 (network A).
 
 Figure :ref:`throughput-80-30-02-20-ap1` illustrates the throughput for AP1.
 
-It is observed that the network reached a throughput saturation of approximately
-3.8 Mbps.
+It is observed that the network reaches a throughput saturation of approximately
+4.5 Mbps.
 
 Throughput (AP2 only)
 #####################
@@ -209,8 +209,8 @@ The throughput as offered load is increased is shown below for AP2 (network B).
 
 Figure :ref:`throughput-80-30-02-20-ap2` illustrates the throughput for AP2.
 
-It is observed that the network reached a throughput saturation of approximately
-3.95 Mbps.
+It is observed that the network reaches a throughput saturation of approximately
+4.5 Mbps.
 
 Throughput (Both AP1 and AP2 on a single plot)
 ##############################################
@@ -226,6 +226,10 @@ Both plots are combined into one single plot below.
 
 Figure :ref:`throughput-80-30-02-20-both` illustrates the throughput for AP1 and AP2.
 
+By combining system throuput for both networks onto a single plot, it is easiler to observe
+that the both networks perform similary and reach a throughput saturation of approximately
+4.5 Mbps.
+
 Area Capacity (Both AP1 and AP2 on the same plot)
 #################################################
 
@@ -240,7 +244,7 @@ The area capacity for both networks is plotted on a single plot below.
 
 Figure :ref:`area-capacity-80-30-02-20-both` illustrates the area capacity for AP1 and AP2.
 
-It is observed that the shapes of the curves in the area capacity generally plots follow
+It is observed that the shapes of the curves in the area capacity plots generally follow
 the corresponding shapes of the throughput curves for these two networks.  This is because
 the areas are identical for both networks into which the nodes have been placed.
 
@@ -267,6 +271,16 @@ simluate 802.11ac networks.
 
 Scenario 20-10-02-05
 ====================
+
+This scenario differs from the previous one by reducing the separation distance
+between the two APs, reducing the number of STAs per BSS, and reducing the radius
+into which the STAs are placed near their corresponding AP.  While several variables
+are thus changed, the evaluation of the scenario provides a comparison of performance
+between two differnt scenario configurations.
+
+In this scenario, two networks (A and B) each have one AP that are placed
+20m apart.  Each network has 5 STAs dropped within a radius of 10m from
+the AP.
 
 The node positions for the 20-10-02-05 scenario is given below.
 
@@ -302,7 +316,7 @@ The throughput as offered load is increased is shown below for both networks.
 Figure :ref:`throughput-20-10-02-05-both` illustrates the throughput for AP1 and AP2.
 
 It is observed that the networks reach a throughput saturation of approximately
-2.6 Mbps.  This is a much lower throughput than in the earlier example where
+2.8 Mbps.  This is a much lower throughput than in the earlier example where
 the APs were at a greater separation distance (80m vs. 20m), even though the number
 of STAs in each network was also greater (20 vs. 5).  In effect, the closer proximity
 of the nodes and the overlap of the networks degrades communications effectiveness,
@@ -322,6 +336,9 @@ The area capacity for both networks is plotted on a single plot below.
 
 Figure :ref:`area-capacity-20-10-02-05-both` illustrates the area capacity for AP1 and AP2.
 
+It is observed that the shapes of the curves in the area capacity plots generally follow
+the corresponding shapes of the throughput curves for these two networks.  This is because
+the areas are identical for both networks into which the nodes have been placed.
 
 Spectrum Efficiency (Both AP1 and AP2 on the same plot)
 #######################################################
@@ -337,11 +354,17 @@ The spectrum efficiency for both networks is plotted on a single plot below.
 
 Figure :ref:`spectrum-efficiency-20-10-02-05-both` illustrates the spectrum efficiency for AP1 and AP2.
 
+It is observed that the shapes of the curves in the spectrum efficiency plots generally follow
+the corresponding shapes of the throughput curves for these two networks.  This is because
+the areas are identical for both networks into which the nodes have been placed, and the 
+operating frequency (in Hz) is also identical for both networks, which 
+simluate 802.11ac networks.
 
 Area Capacity (Both Scenarios)
 ##############################
 
-The area capacity for both scenarios is plotted on a single plot below.
+In order to show an example of the performance comparison between the two scenarios,
+the area capacity for both scenarios is plotted on a single plot below.
 
 .. _area-capacity-combined1:
 
@@ -352,7 +375,7 @@ The area capacity for both scenarios is plotted on a single plot below.
 
 Figure :ref:`area-capacity-combined1` illustrates the area capacity for both scenarios.
 
-It is observed that the scenario 80-30-02-20 have a significantly higher area capacity
+It is observed that the scenario 80-30-02-20 has a significantly higher area capacity
 than the 20-10-02-05 scenario.
 
 
@@ -360,7 +383,8 @@ Sensitivity Analysis
 ====================
 
 This section presents results of the sensitiviy of key parameters (distance, radius,
-and number of nodes per network) to the resulting area capacity.
+and number of nodes per network) to the resulting area capacity, for scenarios with
+two BSSs.
 
 Distance Sensitivity
 ####################
@@ -380,6 +404,8 @@ Figure :ref:`area-capacity-distance` illustrates the area capacity for scenarios
 where the distance varies.
 
 It is observed that area capacity decreases as the distances between APs decreases.
+In effect, the closer that the two APs are to one another, the more likely there is
+to be collisions among transmitting nodes that reduces performance for both networks.
 
 
 Dropping Radius Sensitivity
@@ -399,7 +425,10 @@ the dropping radius, r={10, 20, 30}.
 Figure :ref:`area-capacity-radius` illustrates the area capacity for scenarios 
 where the radius varies.
 
-It is observed that area capacity decreases as the radius increases.
+It is observed that area capacity increases as the radius decreases.  In effect, for the
+parametric sensitivies given here, the closer that the same number of nodes are placed to
+their AP thus reduces the transmission collisions of one network with its neighboring network,
+resuling in increased performance.
 
 
 Number of STAs Sensitivity
@@ -424,11 +453,10 @@ is not saturated.  As the network reaches saturation, the area capacity generall
 increases as the number of STAs per network increases.
 
 
-
 Other things to do:
 ===================
 
-* extend / repeat with 3 BSS, 4 BSS
+* the above scenario simulations can be extended to handled cases with 3 or 4 BSSs
 
 * add latency plots
 
@@ -582,13 +610,13 @@ packet sizes to be specified.
 
 The total offered load of the entire system is specified in Mbps.  This total
 load is then allocated into uplink and downlink portions.  For example, assuming
-a total offfered load of 5.0 Mbps with an allocation of 90% downlink and 10% uplink,
-then the downlink traffic is 5.0 x 90% = 4.5 Mbps and the uplink traffic is 
+a total offfered load of 5.0 Mbps with an allocation of 90% uplink and 10% downlink,
+then the uplink traffic is 5.0 x 90% = 4.5 Mbps and the downlink traffic is 
 5.0 x 10% = 0.5 Mbps.
 
-The total load is allocated per node.  For example, if the total downlink traffic
+The total load is allocated per node.  For example, if the total uplink traffic
 is 4.5 Mbps and there are 10 STAs, then the traffic flow per link is 4.5 Mbps / 10 
-= 0.45 Mbps per downlink.
+= 0.45 Mbps per uplink.
 
 Separate payload sizes (i.e., application layer packet lengths) are specified for
 the uplink payload and the downlink payload sizes.  These payload sizes and the 
@@ -596,9 +624,9 @@ allocated traffic are used to determine the transmission interval per packet.
 
 All traffic is assumed a Constant Bit Rate (CCR) and transmissions use UDP datagrams.
 
-* Uplink payload size - 1500 bytes (or TBD)
+* Uplink payload size - 1500 bytes
 
-* Downlink payload size - 1500 bytes (or TBD)
+* Downlink payload size - 300 bytes
 
 Conducting the Study 1 Experiments
 ##################################
@@ -614,8 +642,8 @@ for each BSS.  The offered load is increased from 1 Mbps,
 in steps of 1 Mbps, until the simluation shows that the (central) BSS of 
 interest becomes saturated.
 
-The traffic mix is 90% downlink and 10% uplink, with a downlink 
-payload size of 1500 bytes, and an uplink payload size of 300 bytes.
+The traffic mix is 90% uplink and 10% dowblink, with a uplink 
+payload size of 1500 bytes, and an downlink payload size of 300 bytes.
 
 The number of STAs, n, is varied from 5 to 40 in steps of 5.
 
@@ -682,8 +710,8 @@ of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
 Figure :ref:`throughput-study1` illustrates the system throughput for BSS1.
 
 It is observed that system throughput increases as offered load increases, and plateaus
-generally in the range of 0.25 - 0.35 Mbps.  Furthermore, system throughput decreases
-as the number of nodes, n, per BSS increases.
+generally in the range of 1.2 - 2.2 Mbps.  Furthermore, system throughput decreases
+as the number of STAs, n, per BSS increases.
 
 Distribution of Node Contributions to Downlink Throughput
 #########################################################
@@ -700,32 +728,36 @@ ability to successfully receive packets is a measure that can provide insights
 into the distribution of the behaviors among the nodes.
 
 The ECDF of node contributions to downlink throughput for the offered load of
-3 Mbps is shown below for cases of n=5 and n=20 nodes.
+2 Mbps is shown below for cases of n=5 and n=20 nodes.
 
 .
 
 .. _study1-05-ecdf:
 
-.. figure:: figures/study1-1732-10-05-3.0-270-30-ap1-ecdf.*
+.. figure:: figures/study1-1732-10-05-2-180.0-20.0-ap1-ecdf.*
    :align: center 
 
-   ECDF of node contributions to downlink throughput for n=5 nodes and offered load of 3 Mbps.
+   ECDF of node contributions to downlink throughput for n=5 nodes and offered load of 2 Mbps.
 
 Figure :ref:`study1-05-ecdf` illustrates the ECDF of node contributions to downlink throughput for n=5 nodes.
 
-It is observed that the throughput per node varies, and that no nodes received 0 packets.
+It is observed that 100% of all n=5 STAs contributed the same amount of throughput per node, 
+at approximately 0.04 Mbps per node, and that no STAs delivered 0 packets.  This indicates that
+the network is not saturated, and packet delivery occurs with high success rates across all nodes.
 .
 
 .. _study1-20-ecdf:
 
-.. figure:: figures/study1-1732-10-20-3.0-270-30-ap1-ecdf.*
+.. figure:: figures/study1-1732-10-20-2-180.0-20.0-ap1-ecdf.*
    :align: center 
 
-   ECDF of node contributions to downlink throughput for n=20 nodes and offered load of 3 Mbps.
+   ECDF of node contributions to downlink throughput for n=20 nodes and offered load of 2 Mbps.
 
 Figure :ref:`study1-20-ecdf` illustrates the ECDF of node contributions to downlink throughput for n=20 nodes.
 
-It is observed that the throughput per node varies, and that a small number of nodes received 0 packets.
+It is observed that the majority of STAs contributed throughput per node of approximately 0.01 Mbps per node,
+and that a small number of STAs delivered 0 packets.  This indicates that packet delivery occurs successfully
+for most nodes. 
 
 Area Capacity
 #############
@@ -745,7 +777,9 @@ of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
 
 Figure :ref:`area-capacity-study1` illustrates the system throughput for BSS1.
 
-It is observed that TBD...
+It is observed that area capacity increases as offered load increases, and plateaus
+generally in the range of 0.0025 - 0.007 Mbps / m^2.  Furthermore, area capacity decreases
+as the number of STAs, n, per BSS increases.
 
 Spectrum Efficiency
 ###################
@@ -770,7 +804,9 @@ of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
 
 Figure :ref:`spectrum-efficiency-study1` illustrates the system throughput for BSS1.
 
-It is observed that TBD...
+It is observed that spectrum efficiency increases as offered load increases, and plateaus
+generally in the range of 0.0002 - 0.0004 Mbps / Hz / m^2.  Furthermore, spectrum efficiency decreases
+as the number of STAs, n, per BSS increases.
 
 Latency
 #######
@@ -783,13 +819,13 @@ Noise and Signal Distributions
 ##############################
 
 The ECDF of the signal level received at the AP of the BSS of interest is
-shown below, for the scenario of n=20 nodes, and offered load of 3 Mbps.
+shown below, for the scenario of n=20 nodes, and offered load of 2 Mbps.
 
 .
 
 .. _study1-20-ap1-signal:
 
-.. figure:: figures/spatial-reuse-rx-sniff-study1-1732-10-20-3.0-270-30-ap1-signal.*
+.. figure:: figures/spatial-reuse-rx-sniff-study1-1732-10-20-2-180.0-20.0-ap1-signal.*
    :align: center 
 
    ECDF of the signal level at the AP for the BSS of interest in the center of the Study 1 parametric study, with n=20 STAs per BSS.
@@ -799,13 +835,13 @@ Figure :ref:`study1-20-ap1-signal` illustrates the ECDF of the signal levels rec
 It is observed that TBD...
 
 The ECDF of the noise level at the AP of the BSS of interest is
-shown below, for the scenario of n=20 nodes, and offered load of 3 Mbps.
+shown below, for the scenario of n=20 nodes, and offered load of 2 Mbps.
 
 .
 
 .. _study1-20-ap1-noise:
 
-.. figure:: figures/spatial-reuse-rx-sniff-study1-1732-10-20-3.0-270-30-ap1-noise.*
+.. figure:: figures/spatial-reuse-rx-sniff-study1-1732-10-20-2-180.0-20.0-ap1-noise.*
    :align: center 
 
    ECDF of the noise level at the AP for the BSS of interest in the center of the Study 1 parametric study, with n=20 STAs per BSS..

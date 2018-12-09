@@ -59,6 +59,7 @@ cd ../examples
 export test=calibration-box5-1bss-dl-only
 export d=1000
 export r=18
+export nBss=1
 export n=5
 # CBR=10^8
 export uplink=0.0
@@ -70,6 +71,7 @@ run_one &
 export test=calibration-box5-1bss-ul-1sta
 export d=1000
 export r=18
+export nBss=1
 export n=5
 # CBR=10^8
 export uplink=500.0
@@ -81,6 +83,7 @@ run_one &
 export test=calibration-box5-1bss-ul-2sta
 export d=1000
 export r=18
+export nBss=1
 export n=2
 # CBR=10^8
 # total load is allocated prorata to each STA, so 100Mbps each x 2 = 200 Mbps total
@@ -93,6 +96,7 @@ run_one &
 export test=calibration-box5-1bss-ul-3sta
 export d=1000
 export r=18
+export nBss=1
 export n=3
 # CBR=10^8
 # total load is allocated prorata to each STA, so 100Mbps each x 3 = 300 Mbps total
@@ -107,6 +111,7 @@ wait
 export test=calibration-box5-1bss-dl-and-ul
 export d=1000
 export r=50
+export nBss=1
 export n=5
 # CBR=10^8
 export uplink=100.0
@@ -118,6 +123,7 @@ run_one &
 export test=calibration-box5-2bss-dl-only
 export d=1000
 export r=18
+export nBss=2
 export n=5
 # CBR=10^8
 export uplink=0.0
@@ -129,6 +135,7 @@ run_one &
 export test=calibration-box5-2bss-ul-only
 export d=1000
 export r=18
+export nBss=2
 export n=5
 # CBR=10^8
 export uplink=500.0
@@ -142,6 +149,7 @@ run_one &
 export test=calibration-box5-2bss-a-dl-b-ul
 export d=1000
 export r=18
+export nBss=2
 export n=5
 # CBR=10^8
 export uplink=500.0
@@ -153,6 +161,7 @@ run_one &
 export test=calibration-box5-2bss-a-dl-b-ul
 export d=1000
 export r=50
+export nBss=2
 export n=5
 # CBR=10^8
 export uplink=500.0

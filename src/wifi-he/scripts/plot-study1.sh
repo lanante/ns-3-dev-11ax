@@ -33,7 +33,7 @@ THROUGHPUT_CDF_RANGE="[0:150][0:1]"
 THROUGHPUT_RANGE="[1:6][1:6]"
 AREA_CAPCITY_RANGE="[1:6][0:0.02]"
 SPECTRUM_EFFICIENCY_RANGE="[1:6][0:0.002]"
-STUDY1_SPECTRUM_EFFICIENCY_RANGE="[0.2:1.2][0:0.00015]"
+STUDY1_SPECTRUM_EFFICIENCY_RANGE="[1.0:3.0][0:0.00050]"
 
 # params that remain constant
 d=17.32
@@ -44,7 +44,8 @@ nBss=7
 
 # params that will vary
 index=0
-for n in 5 10 15 20 25 30 35 40 ; do
+# for n in 5 10 15 20 25 30 35 40 ; do
+for n in 5 10 15 20 25 30 35 ; do
 # for n in 5 ; do
     for ap in ap1 ; do
 #        for offeredLoad in 1.0 2.0 3.0 4.0 5.0 6.0 ; do
@@ -71,6 +72,8 @@ for n in 5 10 15 20 25 30 35 40 ; do
                     echo "${arrF[8]}, ${arrP[2]}" >> "xxx-$patt-$ap.dat"
                 done <./results/plot_tmp.dat
 
+            # sort the data points before plotting
+            sort -o "xxx-$patt-$ap.dat" "xxx-$patt-$ap.dat"
             echo "plotting"
 
             FILES[$index]="xxx-$patt-$ap.dat"
@@ -101,7 +104,9 @@ unset XCOLS
 
 # params that will vary
 index=0
-for n in 5 10 15 20 25 30 35 40 ; do
+# for n in 5 10 15 20 25 30 35 40 ; do
+for n in 5 10 15 20 25 30 35 ; do
+# for n in 5 10 15 20 25 30 ; do
 # for n in 5 ; do
     for ap in ap1 ; do
 #        for offeredLoad in 1.0 2.0 3.0 4.0 5.0 6.0 ; do
@@ -128,6 +133,8 @@ for n in 5 10 15 20 25 30 35 40 ; do
                     echo "${arrF[8]}, ${arrP[2]}" >> "xxx-$patt-$ap.dat"
                 done <./results/plot_tmp.dat
 
+            # sort the data points before plotting
+            sort -o "xxx-$patt-$ap.dat" "xxx-$patt-$ap.dat"
             echo "plotting"
 
             FILES[$index]="xxx-$patt-$ap.dat"
@@ -158,7 +165,9 @@ unset XCOLS
 
 # params that will vary
 index=0
-for n in 5 10 15 20 25 30 35 40 ; do
+# for n in 5 10 15 20 25 30 35 40 ; do
+for n in 5 10 15 20 25 30 35 ; do
+# for n in 5 10 15 20 25 30 ; do
 # for n in 5 ; do
     for ap in ap1 ; do
 #        for offeredLoad in 1.0 2.0 3.0 4.0 5.0 6.0 ; do
@@ -185,6 +194,8 @@ for n in 5 10 15 20 25 30 35 40 ; do
                     echo "${arrF[8]}, ${arrP[2]}" >> "xxx-$patt-$ap.dat"
                 done <./results/plot_tmp.dat
 
+            # sort the data points before plotting
+            sort -o "xxx-$patt-$ap.dat" "xxx-$patt-$ap.dat"
             echo "plotting"
 
             FILES[$index]="xxx-$patt-$ap.dat"
