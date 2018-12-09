@@ -31,7 +31,6 @@
 #include "ns3/wifi-net-device.h"
 #include "ns3/spectrum-wifi-helper.h"
 #include "ns3/multi-model-spectrum-channel.h"
-#include "ns3/ieee-80211ax-indoor-propagation-loss-model.h"
 #include "ns3/constant-obss-pd-algorithm.h"
 #include "ns3/he-configuration.h"
 
@@ -161,7 +160,9 @@ private:
   double m_distance2;
   double m_distance3;
 
-  double m_obssPdLevel;
+  double m_txPowerDbm;
+  double m_obssPdLevelDbm;
+  double m_obssRxPowerDbm;
 };
 
 TestInterBssConstantObssPdAlgo::TestInterBssConstantObssPdAlgo ()
@@ -179,7 +180,9 @@ TestInterBssConstantObssPdAlgo::TestInterBssConstantObssPdAlgo ()
     m_distance1 (10),
     m_distance2 (50),
     m_distance3 (10),
-    m_obssPdLevel (-72)
+    m_txPowerDbm (15),
+    m_obssPdLevelDbm (-72),
+    m_obssRxPowerDbm (-82)
 {
 }
 
@@ -363,11 +366,16 @@ TestInterBssConstantObssPdAlgo::RunOne (void)
   NodeContainer wifiApNodes;
   wifiApNodes.Create (2);
 
+  Ptr<MatrixPropagationLossModel> lossModel = CreateObject<MatrixPropagationLossModel> ();
+  lossModel->SetDefaultLoss (200); // set default loss to 200 dB (no link)
+
   SpectrumWifiPhyHelper phy = SpectrumWifiPhyHelper::Default ();
   Ptr<MultiModelSpectrumChannel> channel = CreateObject<MultiModelSpectrumChannel> ();
   channel->SetPropagationDelayModel (CreateObject<ConstantSpeedPropagationDelayModel> ());
-  channel->AddPropagationLossModel (CreateObject<Ieee80211axIndoorPropagationLossModel> ());
+  channel->AddPropagationLossModel (lossModel);
   phy.SetChannel (channel);
+  phy.Set ("TxPowerStart", DoubleValue (m_txPowerDbm));
+  phy.Set ("TxPowerEnd", DoubleValue (m_txPowerDbm));
 
   WifiHelper wifi;
   wifi.SetStandard (WIFI_PHY_STANDARD_80211ax_5GHZ);
@@ -392,7 +400,7 @@ TestInterBssConstantObssPdAlgo::RunOne (void)
       heConfiguration->SetAttribute ("BeMaxAmpduSize", UintegerValue (0));
       heConfiguration->SetAttribute ("BssColor", UintegerValue (i + 1));
       Ptr<ConstantObssPdAlgorithm> obssPdAlgorithm = DynamicCast<ConstantObssPdAlgorithm> (device->GetObssPdAlgorithm ());
-      obssPdAlgorithm->SetAttribute ("ObssPdLevel", DoubleValue (m_obssPdLevel));
+      obssPdAlgorithm->SetAttribute ("ObssPdLevel", DoubleValue (m_obssPdLevelDbm));
     }
   for (uint32_t i = 0; i < m_staDevices.GetN (); i++)
     {
@@ -400,7 +408,7 @@ TestInterBssConstantObssPdAlgo::RunOne (void)
       Ptr<HeConfiguration> heConfiguration = device->GetHeConfiguration ();
       heConfiguration->SetAttribute ("BeMaxAmpduSize", UintegerValue (0));
       Ptr<ConstantObssPdAlgorithm> obssPdAlgorithm = DynamicCast<ConstantObssPdAlgorithm> (device->GetObssPdAlgorithm ());
-      obssPdAlgorithm->SetAttribute ("ObssPdLevel", DoubleValue (m_obssPdLevel));
+      obssPdAlgorithm->SetAttribute ("ObssPdLevel", DoubleValue (m_obssPdLevelDbm));
     }
 
   MobilityHelper mobility;
@@ -409,6 +417,12 @@ TestInterBssConstantObssPdAlgo::RunOne (void)
   mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
   mobility.Install (wifiApNodes);
   mobility.Install (wifiStaNodes);
+
+  lossModel->SetLoss (wifiStaNodes.Get (0)->GetObject<MobilityModel> (), wifiApNodes.Get (0)->GetObject<MobilityModel> (), m_txPowerDbm + 30); //Low attenuation for IBSS transmissions
+  lossModel->SetLoss (wifiStaNodes.Get (1)->GetObject<MobilityModel> (), wifiApNodes.Get (1)->GetObject<MobilityModel> (), m_txPowerDbm + 30); //Low attenuation for IBSS transmissions
+  lossModel->SetLoss (wifiStaNodes.Get (1)->GetObject<MobilityModel> (), wifiApNodes.Get (0)->GetObject<MobilityModel> (), m_txPowerDbm - m_obssRxPowerDbm); //Force received RSSI to be equal to m_obssRxPowerDbm
+  lossModel->SetLoss (wifiStaNodes.Get (0)->GetObject<MobilityModel> (), wifiApNodes.Get (1)->GetObject<MobilityModel> (), m_txPowerDbm - m_obssRxPowerDbm); //Force received RSSI to be equal to m_obssRxPowerDbm
+  lossModel->SetLoss (wifiApNodes.Get (0)->GetObject<MobilityModel> (), wifiApNodes.Get (1)->GetObject<MobilityModel> (), m_txPowerDbm - m_obssRxPowerDbm); //Force received RSSI to be equal to m_obssRxPowerDbm
 
   Config::Connect ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Phy/PhyTxBegin", MakeCallback (&TestInterBssConstantObssPdAlgo::NotifyPhyTxBegin, this));
   Config::Connect ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Phy/PhyRxEnd", MakeCallback (&TestInterBssConstantObssPdAlgo::NotifyPhyRxEnd, this));
