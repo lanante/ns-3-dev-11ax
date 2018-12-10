@@ -46,20 +46,8 @@ ConstantObssPdAlgorithm::GetTypeId (void)
     .SetParent<ObssPdAlgorithm> ()
     .SetGroupName ("Wifi")
     .AddConstructor<ConstantObssPdAlgorithm> ()
-    .AddAttribute ("ObssPdLevel",
-                   "The constant OBSS PD level.",
-                   DoubleValue (-82.0),
-                   MakeDoubleAccessor (&ConstantObssPdAlgorithm::SetObssPdLevel),
-                   MakeDoubleChecker<double> ())
   ;
   return tid;
-}
-
-void
-ConstantObssPdAlgorithm::SetObssPdLevel (double level)
-{
-  //NS_ABORT_MSG_IF (!IsObssPdLevelAllowed (level), "Configured OBSS PD level " << level <<" is not in the allowed range");
-  m_obssPdLevel = level;
 }
 
 void
@@ -68,13 +56,13 @@ ConstantObssPdAlgorithm::ReceiveHeSigA (HePreambleParameters params)
   NS_LOG_FUNCTION (this);
 
   Ptr<StaWifiMac> mac = GetWifiNetDevice ()->GetMac ()->GetObject<StaWifiMac>();
-  if (!mac || !mac->IsAssociated ())
+  if (mac && !mac->IsAssociated ())
     {
-      NS_LOG_DEBUG ("This is not an associated STA: skip OBSS_PD SR");
+      NS_LOG_DEBUG ("This is not an associated STA: skip OBSS PD algorithm");
       return;
     }
 
-  NS_LOG_DEBUG ("RSSI(dBm)=" << WToDbm (params.rssiW) << ", BSS color=" << +params.bssColor);
+  NS_LOG_DEBUG ("RSSI=" << WToDbm (params.rssiW) << " dBm , BSS color=" << +params.bssColor);
 
   Ptr<HeConfiguration> heConfiguration = GetWifiNetDevice ()->GetHeConfiguration ();
   NS_ASSERT (heConfiguration);
@@ -84,16 +72,32 @@ ConstantObssPdAlgorithm::ReceiveHeSigA (HePreambleParameters params)
 
   if (bssColor == 0)
     {
-      NS_LOG_DEBUG ("BSS color is 0: OBSS_PD SR is not allowed!");
+      NS_LOG_DEBUG ("BSS color is 0");
+      return;
+    }
+  if (params.bssColor == 0)
+    {
+      NS_LOG_DEBUG ("Received BSS color is 0");
+      return;
     }
   //TODO: SRP_AND_NON-SRG_OBSS-PD_PROHIBITED=1 => OBSS_PD SR is not allowed
 
   bool isObss = (bssColor != params.bssColor);
-  if (isObss && (WToDbm (params.rssiW) < m_obssPdLevel))
+  if (isObss)
     {
-      Ptr<WifiPhy> phy = GetWifiNetDevice ()->GetPhy();
-      NS_LOG_DEBUG ("Frame is OBSS and RSSI is below OBSS-PD level: reset PHY to IDLE");
-      phy->ResetCca ();
+      if (WToDbm (params.rssiW) < GetObssPdLevel ())
+        {
+          NS_LOG_DEBUG ("Frame is OBSS and RSSI is below OBSS-PD level: reset PHY to IDLE");
+          ResetPhy ();
+        }
+      else
+        {
+          NS_LOG_DEBUG ("Frame is OBSS and RSSI is above OBSS-PD level");
+        }
+    }
+  else
+    {
+      NS_LOG_DEBUG ("Frame is not OBSS");
     }
 }
 

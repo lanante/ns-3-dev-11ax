@@ -75,7 +75,7 @@ WifiRxTag::Deserialize (TagBuffer i)
 void
 WifiRxTag::Print (std::ostream &os) const
 {
-  os << "Snr=" << m_snr << ";RxPower=" << m_rxPower;
+  os << "Snr=" << m_snr << ", RxPower=" << m_rxPower;
 }
 
 void

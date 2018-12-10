@@ -1540,6 +1540,7 @@ WifiPhy::GetChannelNumber (void) const
 bool
 WifiPhy::DoChannelSwitch (uint8_t nch)
 {
+  m_powerRestricted = false;
   if (!IsInitialized ())
     {
       //this is not channel switch, this is initialization
@@ -1598,6 +1599,7 @@ switchChannel:
 bool
 WifiPhy::DoFrequencySwitch (uint16_t frequency)
 {
+  m_powerRestricted = false;
   if (!IsInitialized ())
     {
       //this is not channel switch, this is initialization
@@ -1657,6 +1659,7 @@ void
 WifiPhy::SetSleepMode (void)
 {
   NS_LOG_FUNCTION (this);
+  m_powerRestricted = false;
   switch (m_state->GetState ())
     {
     case WifiPhyState::TX:
@@ -1689,6 +1692,7 @@ void
 WifiPhy::SetOffMode (void)
 {
   NS_LOG_FUNCTION (this);
+  m_powerRestricted = false;
   m_endPlcpRxEvent.Cancel ();
   m_endRxEvent.Cancel ();
   m_endPreambleDetectionEvent.Cancel ();
@@ -2395,9 +2399,9 @@ WifiPhy::CalculateTxDuration (uint32_t size, WifiTxVector txVector, uint16_t fre
 }
 
 void
-WifiPhy::NotifyTxBegin (Ptr<const Packet> packet)
+WifiPhy::NotifyTxBegin (Ptr<const Packet> packet, double txPowerW)
 {
-  m_phyTxBeginTrace (packet);
+  m_phyTxBeginTrace (packet, txPowerW);
 }
 
 void
@@ -2419,9 +2423,9 @@ WifiPhy::NotifyRxBegin (Ptr<const Packet> packet)
 }
 
 void
-WifiPhy::NotifyRxEnd (Ptr<const Packet> packet)
+WifiPhy::NotifyRxEnd (Ptr<const Packet> packet, double rxPowerW)
 {
-  m_phyRxEndTrace (packet);
+  m_phyRxEndTrace (packet, rxPowerW);
 }
 
 void
@@ -2496,7 +2500,7 @@ WifiPhy::SendPacket (Ptr<const Packet> packet, WifiTxVector txVector, MpduType m
       m_interference.NotifyRxEnd ();
     }
 
-  NotifyTxBegin (packet);
+  NotifyTxBegin (packet, DbmToW (GetTxPowerForTransmission (txVector) + GetTxGain ()));
   if ((mpdutype == MPDU_IN_AGGREGATE) && (txVector.GetPreambleType () != WIFI_PREAMBLE_NONE))
     {
       //send the first MPDU in an MPDU
@@ -2542,6 +2546,8 @@ WifiPhy::SendPacket (Ptr<const Packet> packet, WifiTxVector txVector, MpduType m
   newPacket->AddPacketTag (tag);
 
   StartTx (newPacket, txVector, txDuration);
+
+  m_powerRestricted = false;
 }
 
 void
@@ -2550,6 +2556,7 @@ WifiPhy::StartReceiveHeader (Ptr<Packet> packet, WifiTxVector txVector, MpduType
   NS_LOG_FUNCTION (this << packet << txVector.GetMode () << txVector.GetPreambleType () << +mpdutype);
   NS_ASSERT (!IsStateRx ());
   NS_ASSERT (m_endPlcpRxEvent.IsExpired ());
+  m_powerRestricted = false;
 
   InterferenceHelper::SnrPer snrPer = m_interference.CalculatePlcpHeaderSnrPer (event);
   double snr = snrPer.snr;
@@ -2789,7 +2796,7 @@ WifiPhy::EndReceive (Ptr<Packet> packet, WifiPreamble preamble, MpduType mpdutyp
       if (m_random->GetValue () > snrPer.per &&
           !(m_postReceptionErrorModel && m_postReceptionErrorModel->IsCorrupt (packet)))
         {
-          NotifyRxEnd (packet);
+          NotifyRxEnd (packet, event->GetRxPowerW ());
           SignalNoiseDbm signalNoise;
           signalNoise.signal = WToDbm (event->GetRxPowerW ());
           signalNoise.noise = WToDbm (event->GetRxPowerW () / snrPer.snr);
@@ -3853,10 +3860,30 @@ WifiPhy::AbortCurrentReception ()
 }
 
 void
-WifiPhy::ResetCca ()
+WifiPhy::ResetCca (bool powerRestricted, double txPowerMax)
 {
-  NS_LOG_FUNCTION (this);
+  NS_LOG_FUNCTION (this << powerRestricted << txPowerMax);
+  m_powerRestricted = true;
+  m_txPowerMax = txPowerMax;
   AbortCurrentReception ();
+}
+
+double
+WifiPhy::GetTxPowerForTransmission (WifiTxVector txVector) const
+{
+  if (!m_powerRestricted)
+    {
+      return GetPowerDbm (txVector.GetTxPowerLevel ());
+    }
+  else
+    {
+      double txPowerMax = m_txPowerMax;
+      if (txVector.GetNss () > 1)
+        {
+          txPowerMax += 4; //txPowerRef is increased by 4 dB if MIMO is used
+        }
+      return std::min (txPowerMax, GetPowerDbm (txVector.GetTxPowerLevel ()));
+    }
 }
 
 void

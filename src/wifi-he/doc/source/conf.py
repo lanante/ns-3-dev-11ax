@@ -40,7 +40,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'Wifi-HE'
+project = u'Wifi-11ax'
 copyright = u'None'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -178,7 +178,7 @@ html_theme = 'default'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('wifi-he', 'wifi-he-module.tex', u'ns-3 Wi-Fi HE module', u'University of Washington', 'manual'),
+  ('wifi-he', 'wifi-11ax-project.tex', u'ns-3 Wi-Fi 11ax project', u'University of Washington', 'manual'),
 ]
 
 # latex_elements = {
@@ -219,6 +219,6 @@ pdf_break_level = 4
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'ns-3 PSC module', u'ns-3 PSC module',
+    ('index', 'ns-3 Wifi 11ax', u'ns-3 Wifi 11ax',
      [u'ns-3 project'], 1)
 ]

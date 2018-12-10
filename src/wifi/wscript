@@ -118,6 +118,7 @@ def build(bld):
         'test/wifi-transmit-mask-test.cc',
         'test/wifi-phy-thresholds-test.cc',
         'test/preamble-detection-test.cc',
+        'test/inter-bss-test-suite.cc',
         'test/wifi-he-test-suite.cc',
         ]
 

@@ -54,19 +54,21 @@ cd ../examples
 export scenario=residential
 export txRange=54
 
-# params that will vary
-for d in 20 40 60 80 ; do
-    for r in 10 20 30 ; do
-        for nBss in 2 ; do
-            # for n in 5 10 20 ; do
-            for n in 5 10 20 ; do
+# for n in 5 10 20 ; do
+for n in 5 10 20 ; do
+    # params that will vary
+    for d in 20 40 60 80 ; do
+        for r in 10 20 30 ; do
+            for nBss in 2 ; do
                 for uplink in 1 2 3 4 5 6 ; do
                     downlink=0
                     test=$(printf "experiments-%02d-%02d-%02d-%02d-%04d-%04d" ${d} ${r} ${nBss} ${n} ${uplink} ${downlink})
-                    run_one
+                    run_one &
                 done
             done
         done
+	wait
     done
 done
+wait
 

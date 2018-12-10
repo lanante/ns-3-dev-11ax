@@ -21,8 +21,8 @@ for n in 5 20 ; do
     for ap in ap1 ; do
 #        for offeredLoad in 1.0 2.0 3.0 4.0 5.0 6.0 ; do
         # arbitrarily pick the total offered load = 3 Mbps scenario
-        for offeredLoad in 3.0 ; do
-            ol1=$(awk "BEGIN {print $offeredLoad*1}")
+        for offeredLoad in 2.0 ; do
+            ol1=$(awk "BEGIN {print $offeredLoad*1.0}")
             # uplink is 90% of total offered load
             uplink=$(awk "BEGIN {print $offeredLoad*0.9}")
             # downlink is 10% of total offered load
@@ -30,7 +30,7 @@ for n in 5 20 ; do
             d1=$(awk "BEGIN {print $d*100}")
             ul1=$(awk "BEGIN {print $uplink*100}")
             dl1=$(awk "BEGIN {print $downlink*100}")
-            patt=$(printf "%0.f-%02d-%02d-%.1f-%0.f-%0.f\n" ${d1} ${r} ${n} ${ol1} ${ul1} ${dl1})
+            patt=$(printf "%0.f-%02d-%02d-%0.2g-%0.1f-%0.1f\n" ${d1} ${r} ${n} ${ol1} ${ul1} ${dl1})
             echo "pattern=$patt"
             rm -f ./results/plot_tmp.dat
             # Nodes 7-11 are the n=5 STAs for AP1

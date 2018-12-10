@@ -55,13 +55,29 @@ public:
    * \return the WifiNetDevice this PHY is associated with
    */
   Ptr<WifiNetDevice> GetWifiNetDevice (void) const;
+
   /**
-   * Returns whether the selected OBSS PD level is in the allowed range.
-   *
-   * \param level the level that we want to verify
-   * \return whether the selected OBSS PD level is in the allowed range
+   * Setup callbacks.
    */
-  bool IsObssPdLevelAllowed (double level);
+  void SetupCallbacks ();
+
+  /**
+   * Sets the OBSS PD level (in dBm).
+   *
+   * \param level the OBSS PD level in dBm
+   */
+  void SetObssPdLevel (double level);
+  /**
+   * Returns the OBSS PD level (in dBm).
+   *
+   * \return the OBSS PD level in dBm
+   */
+  double GetObssPdLevel (void) const;
+
+  /**
+   * Reset PHY to IDLE.
+   */
+  void ResetPhy ();
 
   /**
    * \param params the HE SIG A parameters
@@ -81,18 +97,13 @@ public:
 protected:
   virtual void DoDispose (void);
 
-  /**
-   * Setup callbacks.
-   *
-   */
-  virtual void SetupCallbacks ();
-
 
 private:
   Ptr<WifiNetDevice> m_device; //!< Pointer to the WifiNetDevice
 
   double m_obssPdLevelMin; ///< Minimum OBSS PD level
   double m_obssPdLevelMax; ///< Maximum OBSS PD level
+  double m_obssPdLevel;    ///< Current OBSS PD level
 };
 
 } //namespace ns3

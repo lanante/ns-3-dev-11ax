@@ -383,7 +383,9 @@ SaveSpatialReuseStats (const std::string filename,
                        const double r,
                        const int freqHz,
                        const double csr,
-                       const std::string scenario)
+                       const std::string scenario,
+                       double uplink,
+                       double downlink)
 {
   std::ofstream outFile;
   outFile.open (filename.c_str (), std::ofstream::out | std::ofstream::trunc);
@@ -431,6 +433,31 @@ SaveSpatialReuseStats (const std::string filename,
 
       double tputApUplink = bytesReceivedApUplink * 8 / 1e6 / duration;
       double tputApDownlink = bytesReceivedApDownlink * 8 / 1e6 / duration;
+
+      if (bss == 1)
+        {
+          // the efficiency, throughput / offeredLoad
+          double uplinkEfficiency = 0.0;
+          if (uplink > 0)
+            {
+              uplinkEfficiency = tputApUplink / uplink * 100.0;
+            }
+          if (uplinkEfficiency > 100.0)
+            {
+              uplinkEfficiency = 100.0;
+            }
+          double downlinkEfficiency = 0.0;
+          if (downlink > 0)
+            {
+              downlinkEfficiency = tputApDownlink / downlink * 100.0;
+            }
+          if (downlinkEfficiency > 100.0)
+            {
+              downlinkEfficiency = 100.0;
+            }
+          std::cout << "Uplink Efficiency   " << uplinkEfficiency   << " [%]" << std::endl;
+          std::cout << "Downlink Efficiency " << downlinkEfficiency << " [%]" << std::endl;
+        }
 
       // TODO: debug to print out t-put, can remove
       std::cout << "Throughput,  AP" << bss << " Uplink   [Mbps] : " << tputApUplink << std::endl;
@@ -1572,9 +1599,20 @@ main (int argc, char *argv[])
   if ((scenario != "study1") && (scenario != "study2"))
     {
       double boundingBoxExtension = 10.0;
-      positionOutFile << -(r + boundingBoxExtension) <<      ", " << -d + -r - boundingBoxExtension << std::endl;
-      positionOutFile << (d + r + boundingBoxExtension) << ", " << -d + -r - boundingBoxExtension << std::endl;
-      positionOutFile << (d + r + boundingBoxExtension) << ", " <<  r + boundingBoxExtension << std::endl;
+      double dx = d;
+      double dy = d;
+      if (nBss == 1)
+        {
+          dx = 0;
+          dy = 0;
+        }
+      else if (nBss == 2)
+        {
+          dy = 0;
+        }
+      positionOutFile << -(r + boundingBoxExtension) <<      ", " << -dy + -r - boundingBoxExtension << std::endl;
+      positionOutFile << (dx + r + boundingBoxExtension) << ", " << -dy + -r - boundingBoxExtension << std::endl;
+      positionOutFile << (dx + r + boundingBoxExtension) << ", " <<  r + boundingBoxExtension << std::endl;
       positionOutFile << -(r + boundingBoxExtension) <<      ", " <<  r + boundingBoxExtension << std::endl;
     }
   else
@@ -2650,7 +2688,7 @@ main (int argc, char *argv[])
   Simulator::Destroy ();
 
   // Save spatial reuse statistics to an output file
-  SaveSpatialReuseStats (outputFilePrefix + "-SR-stats-" + testname + ".dat", packetsReceived, bytesReceived, nBss, duration, d,  r, freq, csr, scenario);
+  SaveSpatialReuseStats (outputFilePrefix + "-SR-stats-" + testname + ".dat", packetsReceived, bytesReceived, nBss, duration, d,  r, freq, csr, scenario, aggregateUplinkMbps, aggregateDownlinkMbps);
 
   // save flow-monitor results
   std::stringstream stmp;

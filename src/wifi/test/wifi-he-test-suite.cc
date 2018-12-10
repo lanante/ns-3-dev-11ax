@@ -245,15 +245,17 @@ protected:
    * Notify Phy transmit begin
    * \param context the context
    * \param p the packet
+   * \param txPowerW the tx power
    */
-  void NotifyPhyTxBegin (std::string context, Ptr<const Packet> p);
+  void NotifyPhyTxBegin (std::string context, Ptr<const Packet> p, double txPowerW);
 
   /**
    * Notify Phy receive endsn
    * \param context the context
    * \param p the packet
+   * \param rxPowerW the rx power
    */
-  void NotifyPhyRxEnd (std::string context, Ptr<const Packet> p);
+  void NotifyPhyRxEnd (std::string context, Ptr<const Packet> p, double rxPowerW);
 
   /**
    * Notify end of HE preamble
@@ -315,7 +317,7 @@ WifiHeTestCase::WifiHeTestCase ()
 }
 
 void
-WifiHeTestCase::NotifyPhyTxBegin (std::string context, Ptr<const Packet> p)
+WifiHeTestCase::NotifyPhyTxBegin (std::string context, Ptr<const Packet> p, double txPowerW)
 {
   uint32_t idx = ContextToNodeId (context);
   // get the packet size
@@ -359,7 +361,7 @@ WifiHeTestCase::NotifyPhyTxBegin (std::string context, Ptr<const Packet> p)
 }
 
 void
-WifiHeTestCase::NotifyPhyRxEnd (std::string context, Ptr<const Packet> p)
+WifiHeTestCase::NotifyPhyRxEnd (std::string context, Ptr<const Packet> p, double rxPowerW)
 {
   m_totalReceivedPackets++;
 
@@ -1485,7 +1487,7 @@ TestSinglePacketEndOfHePreambleResetPhyOnMagicBssColor::NotifyEndOfHePreamble (s
 
           // this is the AP, and we have received notification of End of HE Preamble, and the BSS color is our
           // magic number.  Reset the PHY, and then check that the  PHY returns to IDLE shortly thereafter
-          m_listener->m_phy->ResetCca ();
+          m_listener->m_phy->ResetCca (false);
 
           // at 4us, AP PHY STATE should be IDLE
           Simulator::Schedule (MicroSeconds (4.0), &TestSinglePacketEndOfHePreambleResetPhyOnMagicBssColor::CheckPhyState, this, 1, WifiPhyState::IDLE);
@@ -1538,154 +1540,6 @@ TestSinglePacketEndOfHePreambleResetPhyOnMagicBssColor::CheckResults ()
 }
 
 /**
- * \ingroup wifi-test
- * \ingroup tests
- *
- * \brief Wifi Test
- *
- * This test case tests the transmission of a inter-BSS cases
- * Specifically:
- * There are two networks, each with one AP and one STA, with topology as:
- * The topology for this test case is 2 STAs and 2 APs:
- *  STA1  --d1--  AP1  --d2--  AP2  --d3-- STA2
- *  RX1           TX1          TX2         RX2
- *
- * Goal: This test case is designed to verify whether the simulator can correctly reset
- * the PHY when receiving an InterBSS PPDU.
- *
- * Assumptions: TX1 and TX2 are full buffer.
- *
- * Parameters:
- *  OBSS_PD level = -72dbm
- *  Received Power by TX1 from TX2 = [-62dbm, -82dbm]
- *  Received SINR by RX1 from TX1 > 3dB (enough to pass MCS0 reception)
- *  Received SINR by RX2 from TX2 > 3dB (enough to pass MCS0 reception)
- *  TX1/RX1 BSS Color =1
- *  TX2/RX2 transmission PPDU BSS Color =[ 2 0]
- *  PHY = 11ax, MCS 0, 80MHz
- *  TX2 PHY header SR Field SRP_AND_NON-SRG _OBSS-PD_PROHIBITED = [ 0 1]
- *
- */
-
-class TestInterBss : public WifiHeTestCase
-{
-public:
-  TestInterBss ();
-
-protected:
-  /**
-   * Get the number of STAs
-   */
-  virtual uint32_t GetNumberOfStas ();
-
-  /**
-   * Get the number of APs
-   */
-  virtual uint32_t GetNumberOfAps ();
-
-  /**
-   * Allocate the node positions
-   */
-  virtual Ptr<ListPositionAllocator> AllocatePositions ();
-
-  /**
-   * Setup the simulation
-   */
-  virtual void SetupSimulation ();
-
-  /**
-   * Check the results
-   */
-  virtual void CheckResults ();
-
-};
-
-TestInterBss::TestInterBss ()
-  : WifiHeTestCase ()
-{
-}
-
-// The topology for this test case is 2 STAs and 2 APs:
-//  STA1  --d1--  AP1  --d2--  AP2  --d3-- STA2
-//  RX1           TX1          TX2         RX2
-//
-//  TX1 and TX2 are full buffer
-//
-// this test case confirms TBD
-
-// @TODO:
-// This is intended to be the base class for the test suite of OBSS PD test cases
-// as defined by Leonardo Lanante.  The basics of Test1a is given here, although
-// is may need to be ported to another derived class, if there is a need to separate
-// the functionality among those tests.
-// For now, this test only sets up 2 APs and 2 STAs, with the APs separated by some
-// distance, d2, and then each AP sends just 1 packet.  This test case will therefore
-// need to be enhanced to send packets full stream, and check throughput.
-
-uint32_t
-TestInterBss::GetNumberOfStas ()
-{
-  uint32_t nStas = 2;
-  return nStas;
-}
-
-uint32_t
-TestInterBss::GetNumberOfAps ()
-{
-  uint32_t nAps = 2;
-  return nAps;
-}
-
-Ptr<ListPositionAllocator>
-TestInterBss::AllocatePositions ()
-{
-  Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator> ();
-
-  double d1 = 10.0;
-  double d2 = 5000.0;
-  double d3 = 10.0;
-
-  positionAlloc->Add (Vector (d1,       0.0, 0.0));  // AP1
-  positionAlloc->Add (Vector (d1 + d2,    0.0, 0.0));  // AP1
-  positionAlloc->Add (Vector (0.0,      0.0, 0.0));  // STA2
-  positionAlloc->Add (Vector (d1 + d2 + d3, 0.0, 0.0));  // STA2
-
-  return positionAlloc;
-}
-
-void
-TestInterBss::SetupSimulation ()
-{
-  Ptr<WifiNetDevice> ap_device1 = DynamicCast<WifiNetDevice> (m_apDevices.Get (0));
-  Ptr<WifiNetDevice> ap_device2 = DynamicCast<WifiNetDevice> (m_apDevices.Get (1));
-
-  // the STA will send packet #1 after 1s (allowing the Wifi network to reach some steady state)
-  Simulator::Schedule (MicroSeconds (4000000), &TestInterBss::SendOnePacket, this, ap_device1, m_payloadSize1);
-
-  // the STA will send packet #2 0.5s later, does not lead to a collision
-  Simulator::Schedule (MicroSeconds (4500000), &TestInterBss::SendOnePacket, this, ap_device2, m_payloadSize2);
-
-  // 2s should be enough time to complete the simulation...
-  Simulator::Stop (Seconds (5.0));
-}
-
-void
-TestInterBss::CheckResults ()
-{
-  // TODO
-  // Test case is not fully complete.  For now, each AP sends only 1 packet.  The inter-node
-  // distances are such that the sent packet is received by one STA (e.g., AP1 --> STA1, and AP2 --> STA2).
-  // Further implementation of OBSS_PD algorithm is needed so that pkts get "dropped" under the correct
-  // conditions, in order to further these test cases.
-
-  // expect 2 packets successfully sent, one by each AP
-  NS_TEST_ASSERT_MSG_EQ (m_numStaPacketsSent, 0, "The number of packets sent by STAs is not correct!");
-  NS_TEST_ASSERT_MSG_EQ (m_numApPacketsSent, 2, "The number of packets sent by APs is not correct!");
-  NS_TEST_ASSERT_MSG_EQ (m_receivedPayload1, false, "The payload for STA1 was received, and should not have been!");
-  NS_TEST_ASSERT_MSG_EQ (m_receivedPayload2, false, "The payload for STA2 was received, and should not have been!");
-}
-
-/**
  * \ingroup wifi-he-test-suite
  * \ingroup tests
  *
@@ -1707,8 +1561,6 @@ WifiHeTestSuite::WifiHeTestSuite ()
   AddTestCase (new TestTwoPacketsCollisionWeakFirstFrame, TestCase::QUICK);
   AddTestCase (new TestSinglePacketEndOfHePreambleNoBssColor, TestCase::QUICK);
   AddTestCase (new TestSinglePacketEndOfHePreambleCorrectBssColor, TestCase::QUICK);
-  //AddTestCase (new TestSinglePacketEndOfHePreambleResetPhyOnMagicBssColor, TestCase::QUICK);
-  AddTestCase (new TestInterBss, TestCase::QUICK);
 }
 
 // Do not forget to allocate an instance of this TestSuite

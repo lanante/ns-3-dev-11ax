@@ -59,80 +59,89 @@ cd ../examples
 export test=calibration-box5-1bss-dl-only
 export d=1000
 export r=18
+export nBss=1
 export n=5
 # CBR=10^8
 export uplink=0.0
 export downlink=500.0
 export txRange=54
-run_one
+run_one &
 
 # Box5 - 1BSS UL only 1 STA
 export test=calibration-box5-1bss-ul-1sta
 export d=1000
 export r=18
+export nBss=1
 export n=5
 # CBR=10^8
 export uplink=500.0
 export downlink=0.0
 export txRange=54
-run_one
+run_one &
 
 # Box5 - 1BSS UL only 2 STA
 export test=calibration-box5-1bss-ul-2sta
 export d=1000
 export r=18
+export nBss=1
 export n=2
 # CBR=10^8
 # total load is allocated prorata to each STA, so 100Mbps each x 2 = 200 Mbps total
 export uplink=200.0
 export downlink=0.0
 export txRange=54
-run_one
+run_one &
 
 # Box5 - 1BSS UL only 3 STA
 export test=calibration-box5-1bss-ul-3sta
 export d=1000
 export r=18
+export nBss=1
 export n=3
 # CBR=10^8
 # total load is allocated prorata to each STA, so 100Mbps each x 3 = 300 Mbps total
 export uplink=300.0
 export downlink=0.0
 export txRange=54
-run_one
+run_one &
+
+wait
 
 # Box5 - 1BSS DL and UL
 export test=calibration-box5-1bss-dl-and-ul
 export d=1000
 export r=50
+export nBss=1
 export n=5
 # CBR=10^8
 export uplink=100.0
 export downlink=100.0
 export txRange=54
-run_one
+run_one &
 
 # Box5 - 2BSS Both DL only
 export test=calibration-box5-2bss-dl-only
 export d=1000
 export r=18
+export nBss=2
 export n=5
 # CBR=10^8
 export uplink=0.0
 export downlink=500.0
 export txRange=54
-run_one
+run_one &
 
 # Box5 - 2BSS Both UL only
 export test=calibration-box5-2bss-ul-only
 export d=1000
 export r=18
+export nBss=2
 export n=5
 # CBR=10^8
 export uplink=500.0
 export downlink=0.0
 export txRange=54
-run_one
+run_one &
 
 # TODO - need to handle the cases where BSS1 is UL while BSS2 is DL
 
@@ -140,21 +149,25 @@ run_one
 export test=calibration-box5-2bss-a-dl-b-ul
 export d=1000
 export r=18
+export nBss=2
 export n=5
 # CBR=10^8
 export uplink=500.0
 export downlink=0.0
 export txRange=54
-run_one
+run_one &
 
 # Box5 - 2BSS A UL and B DL
 export test=calibration-box5-2bss-a-dl-b-ul
 export d=1000
 export r=50
+export nBss=2
 export n=5
 # CBR=10^8
 export uplink=500.0
 export downlink=0.0
 export txRange=54
-run_one
+run_one &
+
+wait
 
