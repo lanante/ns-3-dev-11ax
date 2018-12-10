@@ -22,9 +22,9 @@ simulation output of the modeule.
 Calibration Process
 ===================
 
-To validate the 11ax model implementations, several experiements were conducted
+To validate the 11ax model implementations, several experiments were conducted
 using ns-3 scripts to repeat the calibration tests and scenarios outlines in
-[TGax15].  The parameters as noted in [TGax15] are used to set up ns-3
+[TGax15]. The parameters as noted in [TGax15] are used to set up ns-3
 simulations, and any deviations from these parameters are noted below.
 
 The document [TGax15] defines simulation scenarios to be used for
@@ -736,7 +736,7 @@ The following parameters are set for all all calibration scenarios.
 * ``useIdealWifiManager`` = 0
 
 
-@TODO the box5 scenarios need to be reun to generate results.
+@TODO the box5 scenarios need to be rerun to generate results.
 
 @TODO suggest just documenting results for brevity of one of 
 those scenarios, such as Test 7 for 2BB UL only.

@@ -17,8 +17,8 @@ This section provides an overview of an example script that simulates
 an 802.11ax spatial reuse scenario, spatial-reuse.cc, and describes
 how parameters can be controlled and changed, and what output is produced.
 
-Additionally, utilities and supporting scripts are also described.  These 
-scripts are used to generate experiements that simulate various scenarios
+Additionally, utilities and supporting scripts are also described. These
+scripts are used to generate experiments that simulate various scenarios
 and to plot results from those experiments.
 
 spatial-reuse.cc
@@ -64,12 +64,12 @@ Spatial Reuse Stats written to: spatial-reuse-SR-stats-test.dat
 
 writing flowmon results to spatial-reuse-A-test.flowmon
 
-These results show the the network with AP2 was successful in delivering
-the inteneded uplink and downlink aggregated offered loads of 1 Mbps, while
+These results show that the network with AP2 was successful in delivering
+the intended uplink and downlink aggregated offered loads of 1 Mbps, while
 the first network with AP1 did not achieve any successful data deliveries.
-This is because of the randomized node placements of the STAs.  For the first
-network, the STA is positioned beyoond the transmission range of AP1, whereas 
-the STA for second network is within AP2's transmission range.  This
+This is because of the randomized node placements of the STAs. For the first
+network, the STA is positioned beyond the transmission range of AP1, whereas
+the STA for second network is within AP2's transmission range. This
 shows that the indoor propagation loss model has limited transmission
 range.
 

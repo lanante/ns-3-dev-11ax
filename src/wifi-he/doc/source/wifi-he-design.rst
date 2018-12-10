@@ -25,7 +25,7 @@ module from ns-3's ``wifi`` module, but later we made the decision that
 The implementation includes the following support:
 
 1. A new ``HeConfiguration`` object to manage 802.11ax-specific configuration;
-   in particular, BSS color and OBSS_PD-related parameters.
+   in particular, BSS color parameter.
 
 2. Extensions to the ``WifiPreamble`` object to carry the BSS color.
 
