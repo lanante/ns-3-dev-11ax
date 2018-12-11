@@ -43,14 +43,19 @@ ObssPdAlgorithm::GetTypeId (void)
                    MakeDoubleAccessor (&ObssPdAlgorithm::SetObssPdLevel),
                    MakeDoubleChecker<double> ())
     .AddAttribute ("ObssPdLevelMin",
-                   "Minimum value (dBm) of OBSS PD level",
+                   "Minimum value (dBm) of OBSS PD level.",
                    DoubleValue (-82.0),
-                   MakeDoubleAccessor (&ObssPdAlgorithm::m_obssPdLevelMin),
+                   MakeDoubleAccessor (&ObssPdAlgorithm::SetObssPdLevelMin),
                    MakeDoubleChecker<double> ())
     .AddAttribute ("ObssPdLevelMax",
-                   "Maximum value (dBm) of OBSS PD level",
+                   "Maximum value (dBm) of OBSS PD level.",
                    DoubleValue (-62.0),
-                   MakeDoubleAccessor (&ObssPdAlgorithm::m_obssPdLevelMax),
+                   MakeDoubleAccessor (&ObssPdAlgorithm::SetObssPdLevelMax),
+                   MakeDoubleChecker<double> ())
+    .AddAttribute ("TxPowerRef",
+                   "The SISO reference TX power level (dBm).",
+                   DoubleValue (21),
+                   MakeDoubleAccessor (&ObssPdAlgorithm::SetTxPowerRef),
                    MakeDoubleChecker<double> ())
   ;
   return tid;
@@ -67,6 +72,45 @@ double
 ObssPdAlgorithm::GetObssPdLevel (void) const
 {
   return m_obssPdLevel;
+}
+
+void
+ObssPdAlgorithm::SetObssPdLevelMin (double level)
+{
+  NS_LOG_FUNCTION (this << level);
+  m_obssPdLevelMin = level;
+}
+
+double
+ObssPdAlgorithm::GetObssPdLevelMin (void) const
+{
+  return m_obssPdLevelMin;
+}
+
+void
+ObssPdAlgorithm::SetObssPdLevelMax (double level)
+{
+  NS_LOG_FUNCTION (this << level);
+  m_obssPdLevelMax = level;
+}
+
+double
+ObssPdAlgorithm::GetObssPdLevelMax (void) const
+{
+  return m_obssPdLevelMax;
+}
+
+void
+ObssPdAlgorithm::SetTxPowerRef (double power)
+{
+  NS_LOG_FUNCTION (this << power);
+  m_txPowerRef = power;
+}
+
+double
+ObssPdAlgorithm::GetTxPowerRef (void) const
+{
+  return m_txPowerRef;
 }
 
 void
@@ -111,8 +155,7 @@ ObssPdAlgorithm::ResetPhy()
   Ptr<WifiPhy> phy = GetWifiNetDevice ()->GetPhy();
   if ((m_obssPdLevel > m_obssPdLevelMin) || (m_obssPdLevel >= m_obssPdLevelMax))
     {
-      double txPowerRef = 21; //dBm
-      txPowerMax = txPowerRef - (m_obssPdLevel - m_obssPdLevelMin);
+      txPowerMax = m_txPowerRef - (m_obssPdLevel - m_obssPdLevelMin);
       powerRestricted = true;
     }
   phy->ResetCca (powerRestricted, txPowerMax);

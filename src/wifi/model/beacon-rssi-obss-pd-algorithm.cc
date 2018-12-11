@@ -23,6 +23,7 @@
 #include "sta-wifi-mac.h"
 #include "wifi-phy.h"
 #include "wifi-net-device.h"
+#include "he-configuration.h"
 
 namespace ns3 {
 
@@ -30,9 +31,13 @@ NS_LOG_COMPONENT_DEFINE ("BeaconRssiObssPdAlgorithm");
 NS_OBJECT_ENSURE_REGISTERED (BeaconRssiObssPdAlgorithm);
 
 BeaconRssiObssPdAlgorithm::BeaconRssiObssPdAlgorithm ()
-  : ObssPdAlgorithm ()
+  : ObssPdAlgorithm (),
+    m_beaconCount (0),
+    m_rssiAve (0),
+    m_txPower (0)
 {
   NS_LOG_FUNCTION (this);
+  memset (m_rssiArray, 0, sizeof (m_rssiArray));
 }
 
 TypeId
@@ -56,6 +61,57 @@ void
 BeaconRssiObssPdAlgorithm::ReceiveBeacon (HeBeaconReceptionParameters params)
 {
   NS_LOG_FUNCTION (this);
+  Ptr<HeConfiguration> heConfiguration = GetWifiNetDevice ()->GetHeConfiguration ();
+  NS_ASSERT (heConfiguration);
+  UintegerValue myBssColor;
+  heConfiguration->GetAttribute ("BssColor", myBssColor);
+  if (params.bssColor == myBssColor.Get ())
+    {
+      double aveRxPower = 0;
+      if (m_beaconCount < 10)
+        {
+          m_rssiArray[m_beaconCount] = WToDbm (params.rssiW);
+          for (int i = 0; i < m_beaconCount + 1; i++)
+            {
+              aveRxPower = aveRxPower + m_rssiArray[i];
+            }
+          aveRxPower = aveRxPower/(m_beaconCount + 1);
+        }
+      else
+        {
+          for (int i = 0; i < 9; i++)
+            {
+              m_rssiArray[i] = m_rssiArray[i+1];
+              aveRxPower = aveRxPower + m_rssiArray[i];
+            }
+          m_rssiArray[9] = WToDbm (params.rssiW);
+          aveRxPower = aveRxPower + m_rssiArray[9];
+          aveRxPower = aveRxPower/10;
+        }
+      if (m_beaconCount == 0)
+        {
+          m_txPower = GetWifiNetDevice ()->GetPhy()->GetTxPowerEnd ();
+        }
+      m_beaconCount++;
+      if (Abs (m_rssiAve - (aveRxPower - 5)) > 2)
+        {
+          m_rssiAve = aveRxPower-5;
+          SetObssPdLevel (m_rssiAve);
+          UpdateObssPdLevel ();
+        }
+    }
+}
+
+void
+BeaconRssiObssPdAlgorithm::UpdateObssPdLevel (void)
+{
+  NS_LOG_FUNCTION (this);
+  double tmpMax = std::max (GetObssPdLevelMin (), std::min(GetObssPdLevelMax (), GetObssPdLevelMin () + GetTxPowerRef () - m_txPower));
+  if (GetObssPdLevel () > tmpMax)
+    {
+      NS_LOG_DEBUG ("Updating ObssPdLevel value to " << tmpMax);
+      SetObssPdLevel (tmpMax);
+    }
 }
 
 } //namespace ns3

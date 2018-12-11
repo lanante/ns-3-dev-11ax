@@ -52,6 +52,18 @@ public:
    * Evaluate the receipt of a beacon.
    */
   void ReceiveBeacon (HeBeaconReceptionParameters params);
+
+
+private:
+  /**
+   * Utility function to update ObssPdLevel
+   */
+  void UpdateObssPdLevel (void);
+
+  uint16_t m_beaconCount;        ///< # of beacon for AVE
+  double m_rssiArray [10];       ///< array for beacon RSSI
+  double m_rssiAve;              ///< beacon RSSI Average
+  double m_txPower;              ///< TX Power
 };
 
 } //namespace ns3

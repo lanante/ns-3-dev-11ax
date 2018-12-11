@@ -73,6 +73,42 @@ public:
    * \return the OBSS PD level in dBm
    */
   double GetObssPdLevel (void) const;
+  /**
+   * Sets the minimum OBSS PD level (in dBm).
+   *
+   * \param level the minimum OBSS PD level in dBm
+   */
+  void SetObssPdLevelMin (double level);
+  /**
+   * Returns the minimum OBSS PD level (in dBm).
+   *
+   * \return the minimum OBSS PD level in dBm
+   */
+  double GetObssPdLevelMin (void) const;
+  /**
+   * Sets the maximum OBSS PD level (in dBm).
+   *
+   * \param level the maximum OBSS PD level in dBm
+   */
+  void SetObssPdLevelMax (double level);
+  /**
+   * Returns the maximum OBSS PD level (in dBm).
+   *
+   * \return the maximum OBSS PD level in dBm
+   */
+  double GetObssPdLevelMax (void) const;
+  /**
+   * Sets the SISO reference TX power level (in dBm).
+   *
+   * \param power the SISO reference TX power level in dBm
+   */
+  void SetTxPowerRef (double power);
+  /**
+   * Returns the SISO reference TX power level (in dBm).
+   *
+   * \return the SISO reference TX power level in dBm
+   */
+  double GetTxPowerRef (void) const;
 
   /**
    * Reset PHY to IDLE.
@@ -104,6 +140,7 @@ private:
   double m_obssPdLevelMin; ///< Minimum OBSS PD level
   double m_obssPdLevelMax; ///< Maximum OBSS PD level
   double m_obssPdLevel;    ///< Current OBSS PD level
+  double m_txPowerRef;     ///< SISO reference TX power level
 };
 
 } //namespace ns3
