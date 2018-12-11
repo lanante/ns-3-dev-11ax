@@ -38,6 +38,7 @@
 #include "regular-wifi-mac.h"
 #include "he-configuration.h"
 #include "wifi-phy-tag.h"
+#include "obss-pd-algorithm.h"
 
 namespace ns3 {
 
@@ -270,15 +271,20 @@ SpectrumWifiPhy::StartRx (Ptr<SpectrumSignalParameters> rxParams)
           SwitchMaybeToCcaBusy ();
           return;
         }
-      DoubleValue obssPdThreshold;
-      heConfiguration->GetAttribute ("ObssPdThreshold", obssPdThreshold);
-      double obssPdThresholdW = obssPdThreshold.Get () * GetChannelWidth ()/20;
-      if (txVector.GetBssColor () != bssColor.Get () && rxPowerW < obssPdThresholdW)
+      Ptr<WifiNetDevice> device = DynamicCast<WifiNetDevice> (GetDevice ());
+      Ptr<ObssPdAlgorithm> obssPdAlgorithm = device->GetObssPdAlgorithm ();
+      if (obssPdAlgorithm)
         {
-          NS_LOG_INFO ("Received OBSS Wi-Fi signal but below OBSS-PD threshold");
-          m_interference.AddForeignSignal (rxDuration, rxPowerW);
-          SwitchMaybeToCcaBusy ();
-          return;
+          DoubleValue obssPdLevel;
+          obssPdAlgorithm->GetAttribute ("ObssPdLevel", obssPdLevel);
+          double obssPdLevelW = obssPdLevel.Get () * GetChannelWidth ()/20;
+          if (txVector.GetBssColor () != bssColor.Get () && rxPowerW < obssPdLevelW)
+            {
+              NS_LOG_INFO ("Received OBSS Wi-Fi signal but below OBSS-PD threshold");
+              m_interference.AddForeignSignal (rxDuration, rxPowerW);
+              SwitchMaybeToCcaBusy ();
+              return;
+            }
         }
     }
   else // not 11ax

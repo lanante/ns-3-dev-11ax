@@ -366,9 +366,6 @@ main (int argc, char *argv[])
   spectrumPhy.Set ("TxPowerEnd", DoubleValue (powSta3));
   spectrumPhy.Set ("CcaEdThreshold", DoubleValue (ccaTrSta3));
   spectrumPhy.Set ("RxSensitivity", DoubleValue (-92.0));
-#ifdef NOTYET
-  Config::SetDefault ("ns3::StaWifiMac::ObssPdThreshold", DoubleValue (-82.0));
-#endif
   Ssid ssidB = Ssid ("B");
   mac.SetType ("ns3::StaWifiMac","Ssid", SsidValue (ssidB));
   staDevicesB = wifi.Install (spectrumPhy, mac, sta3);

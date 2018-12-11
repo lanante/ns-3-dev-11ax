@@ -40,17 +40,20 @@ ObssPdAlgorithm::GetTypeId (void)
     .AddAttribute ("ObssPdLevel",
                    "The current OBSS PD level.",
                    DoubleValue (-82.0),
-                   MakeDoubleAccessor (&ObssPdAlgorithm::SetObssPdLevel),
+                   MakeDoubleAccessor (&ObssPdAlgorithm::SetObssPdLevel,
+                                       &ObssPdAlgorithm::GetObssPdLevel),
                    MakeDoubleChecker<double> ())
     .AddAttribute ("ObssPdLevelMin",
                    "Minimum value (dBm) of OBSS PD level.",
                    DoubleValue (-82.0),
-                   MakeDoubleAccessor (&ObssPdAlgorithm::SetObssPdLevelMin),
+                   MakeDoubleAccessor (&ObssPdAlgorithm::SetObssPdLevelMin,
+                                       &ObssPdAlgorithm::GetObssPdLevelMin),
                    MakeDoubleChecker<double> ())
     .AddAttribute ("ObssPdLevelMax",
                    "Maximum value (dBm) of OBSS PD level.",
                    DoubleValue (-62.0),
-                   MakeDoubleAccessor (&ObssPdAlgorithm::SetObssPdLevelMax),
+                   MakeDoubleAccessor (&ObssPdAlgorithm::SetObssPdLevelMax,
+                                       &ObssPdAlgorithm::GetObssPdLevelMax),
                    MakeDoubleChecker<double> ())
     .AddAttribute ("TxPowerRef",
                    "The SISO reference TX power level (dBm).",

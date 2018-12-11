@@ -551,19 +551,6 @@ WifiHeTestCase::RunOne (void)
 
   m_staDevices = wifi.Install (m_phy, mac, wifiStaNodes);
 
-  if (m_enableHeConfiguration)
-    {
-      for (uint32_t i = 0; i < m_staDevices.GetN (); i++)
-        {
-          Ptr<WifiNetDevice> wifiNetDevice = DynamicCast<WifiNetDevice> (m_staDevices.Get (i));
-          Ptr<HeConfiguration> heConfiguration = wifiNetDevice->GetHeConfiguration ();
-          
-          heConfiguration->SetAttribute ("ObssPdThreshold", DoubleValue (-99.0));
-          heConfiguration->SetAttribute ("ObssPdThresholdMin", DoubleValue (-82.0));
-          heConfiguration->SetAttribute ("ObssPdThresholdMax", DoubleValue (-62.0));
-        }
-    }
-
   wifi.AssignStreams (m_staDevices, streamNumber);
 
   // assign AP MAC
@@ -584,9 +571,6 @@ WifiHeTestCase::RunOne (void)
           Ptr<HeConfiguration> heConfiguration = wifiNetDevice->GetHeConfiguration ();
           
           heConfiguration->SetAttribute ("BssColor", UintegerValue (m_expectedBssColor));
-          heConfiguration->SetAttribute ("ObssPdThreshold", DoubleValue (-99.0));
-          heConfiguration->SetAttribute ("ObssPdThresholdMin", DoubleValue (-82.0));
-          heConfiguration->SetAttribute ("ObssPdThresholdMax", DoubleValue (-62.0));
         }
     }
 

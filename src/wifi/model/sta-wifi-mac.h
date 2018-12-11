@@ -224,17 +224,6 @@ private:
    * \param newApInfo the new ApInfo to be inserted
    */
   void UpdateCandidateApList (ApInfo newApInfo);
-  /**
-   * Update OBSS_PD information from received beacon.
-   *
-   * \param bssColor BSS color of received beacon
-   * \param rxSnrW receive power of the beacon in watts
-   */
-  void UpdateObssPdInfoFromBeacon (uint8_t bssColor, double rxSnrW);
-  /**
-   * Utility function to update ObssPdThreshold
-   */
-  void ObssPdThresholdUpdate (void);
 
   /**
    * Forward a probe request packet to the DCF. The standard is not clear on the correct

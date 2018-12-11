@@ -1216,6 +1216,14 @@ main (int argc, char *argv[])
       wifi.SetRemoteStationManager ("ns3::IdealWifiManager");
     }
 
+  if (enableObssPd)
+    {
+      wifi.SetObssPdAlgorithm ("ns3::ConstantObssPdAlgorithm",
+                               "ObssPdLevel", DoubleValue (obssPdThreshold),
+                               "ObssPdLevelMin", DoubleValue (obssPdThresholdMin),
+                               "ObssPdLevelMax", DoubleValue (obssPdThresholdMax));
+    }
+
   // Set PHY power and CCA threshold for STAs
   spectrumPhy.Set ("TxPowerStart", DoubleValue (powSta));
   spectrumPhy.Set ("TxPowerEnd", DoubleValue (powSta));
@@ -1264,9 +1272,6 @@ main (int argc, char *argv[])
     {
       Ptr<HeConfiguration> heConfiguration = apDevice->GetHeConfiguration ();
       heConfiguration->SetAttribute ("BssColor", UintegerValue (1));
-      heConfiguration->SetAttribute ("ObssPdThreshold", DoubleValue (obssPdThreshold));
-      heConfiguration->SetAttribute ("ObssPdThresholdMin", DoubleValue (obssPdThresholdMin));
-      heConfiguration->SetAttribute ("ObssPdThresholdMax", DoubleValue (obssPdThresholdMax));
     }
 
   NetDeviceContainer apDeviceB;
@@ -1317,9 +1322,6 @@ main (int argc, char *argv[])
         {
           Ptr <HeConfiguration> heConfiguration = ap2Device->GetHeConfiguration ();
           heConfiguration->SetAttribute ("BssColor", UintegerValue (2));
-          heConfiguration->SetAttribute ("ObssPdThreshold", DoubleValue (obssPdThreshold));
-          heConfiguration->SetAttribute ("ObssPdThresholdMin", DoubleValue (obssPdThresholdMin));
-          heConfiguration->SetAttribute ("ObssPdThresholdMax", DoubleValue (obssPdThresholdMax));
         }
     }
 
@@ -1371,9 +1373,6 @@ main (int argc, char *argv[])
         {
           Ptr <HeConfiguration> heConfiguration = ap3Device->GetHeConfiguration ();
           heConfiguration->SetAttribute ("BssColor", UintegerValue (3));
-          heConfiguration->SetAttribute ("ObssPdThreshold", DoubleValue(obssPdThreshold));
-          heConfiguration->SetAttribute ("ObssPdThresholdMin", DoubleValue(obssPdThresholdMin));
-          heConfiguration->SetAttribute ("ObssPdThresholdMax", DoubleValue(obssPdThresholdMax));
         }
     }
 
@@ -1425,9 +1424,6 @@ main (int argc, char *argv[])
         {
           Ptr <HeConfiguration> heConfiguration = ap4Device->GetHeConfiguration ();
           heConfiguration->SetAttribute ("BssColor", UintegerValue (4));
-          heConfiguration->SetAttribute ("ObssPdThreshold", DoubleValue(obssPdThreshold));
-          heConfiguration->SetAttribute ("ObssPdThresholdMin", DoubleValue(obssPdThresholdMin));
-          heConfiguration->SetAttribute ("ObssPdThresholdMax", DoubleValue(obssPdThresholdMax));
         }
     }
 
@@ -1483,9 +1479,6 @@ main (int argc, char *argv[])
         {
           Ptr <HeConfiguration> heConfiguration = ap5Device->GetHeConfiguration ();
           heConfiguration->SetAttribute ("BssColor", UintegerValue (5));
-          heConfiguration->SetAttribute ("ObssPdThreshold", DoubleValue(obssPdThreshold));
-          heConfiguration->SetAttribute ("ObssPdThresholdMin", DoubleValue(obssPdThresholdMin));
-          heConfiguration->SetAttribute ("ObssPdThresholdMax", DoubleValue(obssPdThresholdMax));
         }
 
       // Set PHY power and CCA threshold for STAs
@@ -1532,9 +1525,6 @@ main (int argc, char *argv[])
         {
           Ptr <HeConfiguration> heConfiguration = ap6Device->GetHeConfiguration ();
           heConfiguration->SetAttribute ("BssColor", UintegerValue (6));
-          heConfiguration->SetAttribute ("ObssPdThreshold", DoubleValue(obssPdThreshold));
-          heConfiguration->SetAttribute ("ObssPdThresholdMin", DoubleValue(obssPdThresholdMin));
-          heConfiguration->SetAttribute ("ObssPdThresholdMax", DoubleValue(obssPdThresholdMax));
         }
 
       // Network "G"
@@ -1570,9 +1560,6 @@ main (int argc, char *argv[])
         {
           Ptr <HeConfiguration> heConfiguration = ap7Device->GetHeConfiguration ();
           heConfiguration->SetAttribute ("BssColor", UintegerValue (7));
-          heConfiguration->SetAttribute ("ObssPdThreshold", DoubleValue(obssPdThreshold));
-          heConfiguration->SetAttribute ("ObssPdThresholdMin", DoubleValue(obssPdThresholdMin));
-          heConfiguration->SetAttribute ("ObssPdThresholdMax", DoubleValue(obssPdThresholdMax));
         }
     }
 

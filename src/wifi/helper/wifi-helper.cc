@@ -787,6 +787,7 @@ WifiHelper::EnableLogComponents (void)
   LogComponentEnable ("ApWifiMac", LOG_LEVEL_ALL);
   LogComponentEnable ("AparfWifiManager", LOG_LEVEL_ALL);
   LogComponentEnable ("ArfWifiManager", LOG_LEVEL_ALL);
+  LogComponentEnable ("BeaconRssiObssPdAlgorithm", LOG_LEVEL_ALL);
   LogComponentEnable ("BlockAckAgreement", LOG_LEVEL_ALL);
   LogComponentEnable ("BlockAckCache", LOG_LEVEL_ALL);
   LogComponentEnable ("BlockAckManager", LOG_LEVEL_ALL);

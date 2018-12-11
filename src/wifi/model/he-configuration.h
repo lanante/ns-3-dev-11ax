@@ -58,9 +58,6 @@ public:
 private:
   uint8_t m_bssColor; //!< BSS color
   Time m_guardInterval; //!< Supported HE guard interval
-  double m_obssPdThreshold;  //!< OBSS_PD threshold (dBm)
-  double m_obssPdThresholdMin; //!< OBSS_PD threshold minimum (dBm)
-  double m_obssPdThresholdMax; //!< OBSS_PD threshold maximum (dBm)
   uint16_t m_mpduBufferSize; //!< MPDU buffer size
 
   uint16_t m_voMaxAmsduSize; ///< maximum A-MSDU size for AC_VO

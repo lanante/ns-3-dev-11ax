@@ -44,22 +44,6 @@ HeConfiguration::GetTypeId (void)
                    UintegerValue (0),
                    MakeUintegerAccessor (&HeConfiguration::m_bssColor),
                    MakeUintegerChecker<uint8_t> ())
-    .AddAttribute ("ObssPdThreshold",
-                   "Energy threshold (dBm) of received signal below which "
-                   "the PHY layer can avoid declaring CCA BUSY for inter-BSS frames.",
-                   DoubleValue (-99.0),
-                   MakeDoubleAccessor (&HeConfiguration::m_obssPdThreshold),
-                   MakeDoubleChecker<double> ())
-    .AddAttribute ("ObssPdThresholdMin",
-                   "Minimum value (dBm) of OBSS_PD threshold",
-                   DoubleValue (-82.0),
-                   MakeDoubleAccessor (&HeConfiguration::m_obssPdThresholdMin),
-                   MakeDoubleChecker<double> ())
-    .AddAttribute ("ObssPdThresholdMax",
-                   "Maximum value (dBm) of OBSS_PD threshold",
-                   DoubleValue (-62.0),
-                   MakeDoubleAccessor (&HeConfiguration::m_obssPdThresholdMax),
-                   MakeDoubleChecker<double> ())
     .AddAttribute ("GuardInterval",
                    "Specify the shortest guard interval duration that can be used for HE transmissions."
                    "Possible values are 800ns, 1600ns or 3200ns.",
