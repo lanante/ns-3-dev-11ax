@@ -814,6 +814,10 @@ main (int argc, char *argv[])
   cmd.AddValue ("test", "The testname.", testname);
   cmd.Parse (argc, argv);
 
+  Config::Set ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/HtConfiguration/BeMaxAmpduSize", UintegerValue (maxAmpduSize));
+  Config::Set ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/VhtConfiguration/BeMaxAmpduSize", UintegerValue (maxAmpduSize));
+  Config::Set ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/HeConfiguration/BeMaxAmpduSize", UintegerValue (maxAmpduSize));
+
   if ((scenario == "study1") || (scenario == "study2"))
     {
       nBss = 7;
@@ -1244,8 +1248,7 @@ main (int argc, char *argv[])
   // Network "A"
   Ssid ssidA = Ssid ("A");
   mac.SetType ("ns3::StaWifiMac",
-               "Ssid", SsidValue (ssidA),
-               "BE_MaxAmpduSize", UintegerValue (maxAmpduSize));
+               "Ssid", SsidValue (ssidA));
   // Do we also want to allow Amsdu Size to be modified?
   //              "BE_MaxAmsduSize", UintegerValue(maxAmsduSize));
   NetDeviceContainer staDevicesA;
@@ -1262,8 +1265,7 @@ main (int argc, char *argv[])
   spectrumPhy.Set ("CcaEdThreshold", DoubleValue (ccaTrAp));
   spectrumPhy.Set ("RxSensitivity", DoubleValue (-92.0));
   mac.SetType ("ns3::ApWifiMac",
-               "Ssid", SsidValue (ssidA),
-               "BE_MaxAmpduSize", UintegerValue (maxAmpduSize));
+               "Ssid", SsidValue (ssidA));
   // Do we also want to allow Amsdu Size to be modified?
   //              "BE_MaxAmsduSize", UintegerValue(maxAmsduSize));
 
@@ -1297,8 +1299,7 @@ main (int argc, char *argv[])
       // Network "B"
       Ssid ssidB = Ssid ("B");
       mac.SetType ("ns3::StaWifiMac",
-                   "Ssid", SsidValue (ssidB),
-                   "BE_MaxAmpduSize", UintegerValue (maxAmpduSize));
+                   "Ssid", SsidValue (ssidB));
       // Do we also want to allow Amsdu Size to be modified?
       //              "BE_MaxAmsduSize", UintegerValue(maxAmsduSize));
       staDevicesB = wifi.Install (spectrumPhy, mac, stasB);
@@ -1314,8 +1315,7 @@ main (int argc, char *argv[])
       spectrumPhy.Set ("CcaEdThreshold", DoubleValue (ccaTrAp));
       spectrumPhy.Set ("RxSensitivity", DoubleValue (-92.0));
       mac.SetType ("ns3::ApWifiMac",
-                   "Ssid", SsidValue (ssidB),
-                   "BE_MaxAmpduSize", UintegerValue (maxAmpduSize));
+                   "Ssid", SsidValue (ssidB));
       // Do we also want to allow Amsdu Size to be modified?
       //              "BE_MaxAmsduSize", UintegerValue(maxAmsduSize));
 
@@ -1348,8 +1348,7 @@ main (int argc, char *argv[])
       // Network "C"
       Ssid ssidC = Ssid ("C");
       mac.SetType ("ns3::StaWifiMac",
-                   "Ssid", SsidValue (ssidC),
-                   "BE_MaxAmpduSize", UintegerValue(maxAmpduSize));
+                   "Ssid", SsidValue (ssidC));
       // Do we also want to allow Amsdu Size to be modified?
       //              "BE_MaxAmsduSize", UintegerValue(maxAmsduSize));
       staDevicesC = wifi.Install (spectrumPhy, mac, stasC);
@@ -1365,8 +1364,7 @@ main (int argc, char *argv[])
       spectrumPhy.Set ("CcaEdThreshold", DoubleValue (ccaTrAp));
       spectrumPhy.Set ("RxSensitivity", DoubleValue (-92.0));
       mac.SetType ("ns3::ApWifiMac",
-                   "Ssid", SsidValue (ssidC),
-                   "BE_MaxAmpduSize", UintegerValue(maxAmpduSize));
+                   "Ssid", SsidValue (ssidC));
       // Do we also want to allow Amsdu Size to be modified?
       //              "BE_MaxAmsduSize", UintegerValue(maxAmsduSize));
 
@@ -1399,8 +1397,7 @@ main (int argc, char *argv[])
       // Network "D"
       Ssid ssidD = Ssid ("D");
       mac.SetType ("ns3::StaWifiMac",
-                   "Ssid", SsidValue (ssidD),
-                   "BE_MaxAmpduSize", UintegerValue(maxAmpduSize));
+                   "Ssid", SsidValue (ssidD));
       // Do we also want to allow Amsdu Size to be modified?
       //              "BE_MaxAmsduSize", UintegerValue(maxAmsduSize));
       staDevicesD = wifi.Install (spectrumPhy, mac, stasD);
@@ -1416,8 +1413,7 @@ main (int argc, char *argv[])
       spectrumPhy.Set ("CcaEdThreshold", DoubleValue (ccaTrAp));
       spectrumPhy.Set ("RxSensitivity", DoubleValue (-92.0));
       mac.SetType ("ns3::ApWifiMac",
-                   "Ssid", SsidValue (ssidD),
-                   "BE_MaxAmpduSize", UintegerValue(maxAmpduSize));
+                   "Ssid", SsidValue (ssidD));
       // Do we also want to allow Amsdu Size to be modified?
       //              "BE_MaxAmsduSize", UintegerValue(maxAmsduSize));
 
@@ -1454,8 +1450,7 @@ main (int argc, char *argv[])
       // Network "E"
       Ssid ssidE = Ssid ("E");
       mac.SetType ("ns3::StaWifiMac",
-                   "Ssid", SsidValue (ssidE),
-                   "BE_MaxAmpduSize", UintegerValue(maxAmpduSize));
+                   "Ssid", SsidValue (ssidE));
       // Do we also want to allow Amsdu Size to be modified?
       //              "BE_MaxAmsduSize", UintegerValue(maxAmsduSize));
       staDevicesE = wifi.Install (spectrumPhy, mac, stasE);
@@ -1471,8 +1466,7 @@ main (int argc, char *argv[])
       spectrumPhy.Set ("CcaEdThreshold", DoubleValue (ccaTrAp));
       spectrumPhy.Set ("RxSensitivity", DoubleValue (-92.0));
       mac.SetType ("ns3::ApWifiMac",
-                   "Ssid", SsidValue (ssidE),
-                   "BE_MaxAmpduSize", UintegerValue(maxAmpduSize));
+                   "Ssid", SsidValue (ssidE));
       // Do we also want to allow Amsdu Size to be modified?
       //              "BE_MaxAmsduSize", UintegerValue(maxAmsduSize));
 
@@ -1500,8 +1494,7 @@ main (int argc, char *argv[])
       // Network "F"
       Ssid ssidF = Ssid ("F");
       mac.SetType ("ns3::StaWifiMac",
-                   "Ssid", SsidValue (ssidF),
-                   "BE_MaxAmpduSize", UintegerValue(maxAmpduSize));
+                   "Ssid", SsidValue (ssidF));
       // Do we also want to allow Amsdu Size to be modified?
       //              "BE_MaxAmsduSize", UintegerValue(maxAmsduSize));
       staDevicesF = wifi.Install (spectrumPhy, mac, stasF);
@@ -1517,8 +1510,7 @@ main (int argc, char *argv[])
       spectrumPhy.Set ("CcaEdThreshold", DoubleValue (ccaTrAp));
       spectrumPhy.Set ("RxSensitivity", DoubleValue (-92.0));
       mac.SetType ("ns3::ApWifiMac",
-                   "Ssid", SsidValue (ssidF),
-                   "BE_MaxAmpduSize", UintegerValue(maxAmpduSize));
+                   "Ssid", SsidValue (ssidF));
       // Do we also want to allow Amsdu Size to be modified?
       //              "BE_MaxAmsduSize", UintegerValue(maxAmsduSize));
 
@@ -1535,8 +1527,7 @@ main (int argc, char *argv[])
       // Network "G"
       Ssid ssidG = Ssid ("G");
       mac.SetType ("ns3::StaWifiMac",
-                   "Ssid", SsidValue (ssidG),
-                   "BE_MaxAmpduSize", UintegerValue(maxAmpduSize));
+                   "Ssid", SsidValue (ssidG));
       // Do we also want to allow Amsdu Size to be modified?
       //              "BE_MaxAmsduSize", UintegerValue(maxAmsduSize));
       staDevicesG = wifi.Install (spectrumPhy, mac, stasG);
@@ -1552,8 +1543,7 @@ main (int argc, char *argv[])
       spectrumPhy.Set ("CcaEdThreshold", DoubleValue (ccaTrAp));
       spectrumPhy.Set ("RxSensitivity", DoubleValue (-92.0));
       mac.SetType ("ns3::ApWifiMac",
-                   "Ssid", SsidValue (ssidG),
-                   "BE_MaxAmpduSize", UintegerValue(maxAmpduSize));
+                   "Ssid", SsidValue (ssidG));
       // Do we also want to allow Amsdu Size to be modified?
       //              "BE_MaxAmsduSize", UintegerValue(maxAmsduSize));
 
