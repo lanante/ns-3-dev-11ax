@@ -829,11 +829,16 @@ main (int argc, char *argv[])
       Config::SetDefault ("ns3::WifiRemoteStationManager::RtsCtsThreshold", StringValue ("0"));
     }
 
+  uint32_t uMaxSlrc = 7;
   if (maxSlrc < 0)
     {
-      maxSlrc = std::numeric_limits<uint32_t>::max ();
+      uMaxSlrc = std::numeric_limits<uint32_t>::max ();
     }
-  Config::SetDefault ("ns3::WifiRemoteStationManager::MaxSlrc", UintegerValue (maxSlrc));
+  else
+    {
+      uMaxSlrc = maxSlrc;
+    }
+  Config::SetDefault ("ns3::WifiRemoteStationManager::MaxSlrc", UintegerValue (uMaxSlrc));
 
   std::ostringstream ossMcs;
   ossMcs << mcs;
@@ -2017,6 +2022,7 @@ main (int argc, char *argv[])
   Time intervalUplink = MicroSeconds (payloadSizeUplink * 8 / perNodeUplinkMbps);
   Time intervalDownlink = MicroSeconds (payloadSizeDownlink * 8 / perNodeDownlinkMbps);
   std::cout << "Uplink interval:" << intervalUplink << " Downlink interval:" << intervalDownlink << std::endl;
+  std::cout << "ApplicationTxStart: " << applicationTxStart << " Duration: " << duration << std::endl;
 
   Ptr<UniformRandomVariable> urv = CreateObject<UniformRandomVariable> ();
   urv->SetAttribute ("Min", DoubleValue (-txStartOffset));

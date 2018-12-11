@@ -2,6 +2,12 @@
 
 # function to run one test
 function run_one () {
+  if [ -z "$maxSlrc" ]; then
+    # echo "maxSlrc is not set, defaulting to 7.";
+    export maxSlrc=7
+  # else
+  #  # echo "maxSlrc is set to $maxSlrc";
+  fi
   echo Running ${test}
   # run the test
   ../../../waf --run "spatial-reuse \
@@ -37,7 +43,8 @@ function run_one () {
 	--enableAscii=${enableAscii} \
 	--obssPdThreshold=${obssPdThreshold} \
         --useIdealWifiManager=${useIdealWifiManager} \
-        --test=${test}"
+        --test=${test} \
+        --maxSlrc=${maxSlrc}"
 
   # copy results files
   cd ../scripts
