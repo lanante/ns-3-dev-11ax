@@ -715,6 +715,18 @@ SaveUdpFlowMonitorStats (std::string filename, std::string simulationParams, Ptr
   outFile.close ();
 }
 
+void SetBianchi (Ptr<WifiMac> wifi_mac)
+{
+    int cwMin = 3;
+    int cwMax = 3;
+    Ptr<QosTxop> edca;
+    PointerValue ptr;
+    wifi_mac->GetAttribute ("BE_Txop", ptr);
+    edca = ptr.Get<QosTxop> ();
+    edca->SetMinCw (cwMin);
+    edca->SetMaxCw (cwMax);
+}
+
 // main script
 int
 main (int argc, char *argv[])
@@ -814,10 +826,6 @@ main (int argc, char *argv[])
   cmd.AddValue ("test", "The testname.", testname);
   cmd.Parse (argc, argv);
 
-  Config::Set ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/HtConfiguration/BeMaxAmpduSize", UintegerValue (maxAmpduSize));
-  Config::Set ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/VhtConfiguration/BeMaxAmpduSize", UintegerValue (maxAmpduSize));
-  Config::Set ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/HeConfiguration/BeMaxAmpduSize", UintegerValue (maxAmpduSize));
-
   if ((scenario == "study1") || (scenario == "study2"))
     {
       nBss = 7;
@@ -843,6 +851,16 @@ main (int argc, char *argv[])
       uMaxSlrc = maxSlrc;
     }
   Config::SetDefault ("ns3::WifiRemoteStationManager::MaxSlrc", UintegerValue (uMaxSlrc));
+
+  // debugging - may need to set additional params specifically for Bianchi validation
+  // int bianchi = 1;
+  int bianchi = 0;
+  if (bianchi)
+  {
+    uMaxSlrc = std::numeric_limits<uint32_t>::max ();
+    Config::SetDefault ("ns3::WifiRemoteStationManager::MaxSlrc", UintegerValue (uMaxSlrc));
+    Config::SetDefault ("ns3::WifiRemoteStationManager::MaxSsrc", UintegerValue (uMaxSlrc));
+  }
 
   std::ostringstream ossMcs;
   ossMcs << mcs;
@@ -2437,6 +2455,10 @@ main (int argc, char *argv[])
   downlinkServerAppG.Stop (Seconds (duration + applicationTxStart));
   downlinkClientAppG.Start (Seconds (applicationTxStart));
   downlinkClientAppG.Stop (Seconds (duration + applicationTxStart));
+
+  Config::Set ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/HtConfiguration/BeMaxAmpduSize", UintegerValue (maxAmpduSize));
+  Config::Set ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/VhtConfiguration/BeMaxAmpduSize", UintegerValue (maxAmpduSize));
+  Config::Set ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/HeConfiguration/BeMaxAmpduSize", UintegerValue (maxAmpduSize));
 
   Config::Connect ("/NodeList/*/DeviceList/*/Phy/MonitorSnifferRx", MakeCallback (&MonitorSniffRx));
 

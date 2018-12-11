@@ -68,15 +68,15 @@ export powAp=20
 # CSR = 102m for AP - see slide 3
 export txRange=102
 
-# Slide 10
-# 1. Uncoupled BSSes with all DL throughput
+# Slide 11
+# 2. Uncoupled BSSes with all UL throughput
 # Set
 # UL traffic = 100Mbps per BSS
 # DL traffic  = 0Mbps
 # r= 10m
 # d=120m
 # nBSS=7
-# nSTA=40 per BSS
+# nSTA=5:5:40 per BSS
 # Expected Throughput = 38.6Mbps per BSS (n=1 in slide 9)
 
 export uplink=100.0
