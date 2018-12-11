@@ -51,6 +51,13 @@ struct ApInfo
   MgtProbeResponseHeader m_probeResp; ///< Probe Response header
 };
 
+// Parameters for receive HE Beacon
+struct HeBeaconReceptionParameters
+{
+  double rssiW; ///< RSSI in W
+  uint8_t bssColor; ///< BSS color
+};
+
 /**
  * \ingroup wifi
  *
@@ -355,12 +362,6 @@ private:
   Time m_beaconWatchdogEnd;    ///< beacon watchdog end
   uint32_t m_maxMissedBeacons; ///< maximum missed beacons
   bool m_activeProbing;        ///< active probing
-  uint16_t m_beaconCount;        ///< # of beacon for AVE
-  double m_rssiArray [10];       ///< array for beacon RSSI
-  double m_rssiAve;                ///< beacon RSSI Average
-  double m_obssPdThresholdLevel; ///< OBSS PD Threshold level
-  double m_txPowerObssPd;        ///< OBSS PD TX Power
-  double m_txPowerRefObssPd;     ///< OBSS PD TX Reference Power
   std::vector<ApInfo> m_candidateAps; ///< list of candidate APs to associate
   // Note: std::multiset<ApInfo> might be a candidate container to implement
   // this sorted list, but we are using a std::vector because we want to sort

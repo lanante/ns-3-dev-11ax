@@ -98,11 +98,7 @@ StaWifiMac::StaWifiMac ()
     m_waitBeaconEvent (),
     m_probeRequestEvent (),
     m_assocRequestEvent (),
-    m_beaconWatchdogEnd (Seconds (0)),
-    m_beaconCount (0),
-    m_rssiAve (0),
-    m_txPowerObssPd (0),
-    m_txPowerRefObssPd (21)
+    m_beaconWatchdogEnd (Seconds (0))
 {
   NS_LOG_FUNCTION (this);
 
@@ -631,7 +627,10 @@ StaWifiMac::Receive (Ptr<Packet> packet, const WifiMacHeader *hdr)
           if (removed && GetHeSupported ())
             {
               HeOperation heOperation = beacon.GetHeOperation ();
-              UpdateObssPdInfoFromBeacon (heOperation.GetBssColor (), wifiRxTag.GetRxPower ());
+              HeBeaconReceptionParameters params;
+              params.rssiW = wifiRxTag.GetRxPower ();
+              params.bssColor = heOperation.GetBssColor ();
+              NotifyBeaconReception (params);
             }
         }
       if (goodBeacon && m_state == WAIT_BEACON)
@@ -1107,71 +1106,6 @@ StaWifiMac::UpdateApInfoFromAssocResp (MgtAssocResponseHeader assocResp, Mac48Ad
               //here should add a control to add basic MCS when it is implemented
             }
         }
-    }
-}
-
-void
-StaWifiMac::UpdateObssPdInfoFromBeacon (uint8_t bssColor, double rxPowerW)
-{
-  NS_LOG_FUNCTION (this << bssColor << rxPowerW);
-  // using the BSS color to update OBSS_PD
-  UintegerValue myBssColor;
-  GetHeConfiguration ()->GetAttribute ("BssColor", myBssColor);
-  if (bssColor == myBssColor.Get ())
-    {
-      double aveRxPower = 0;
-      if (m_beaconCount < 10)
-        {
-          m_rssiArray[m_beaconCount] = WToDbm (rxPowerW);
-          for (int i = 0; i < m_beaconCount + 1; i++)
-            {
-              aveRxPower = aveRxPower + m_rssiArray[i];
-            }
-          aveRxPower = aveRxPower/(m_beaconCount + 1);
-        }
-      else
-        {
-          for (int i = 0; i < 9; i++)
-            {
-              m_rssiArray[i] = m_rssiArray[i+1];
-              aveRxPower = aveRxPower + m_rssiArray[i];
-            }
-          m_rssiArray[9] = WToDbm (rxPowerW);
-          aveRxPower = aveRxPower + m_rssiArray[9];
-          aveRxPower = aveRxPower/10;
-        }
-      if (m_beaconCount == 0)
-        {
-          m_txPowerObssPd = m_phy->GetTxPowerEnd ();
-        }
-
-      m_beaconCount++;
-
-      if (Abs (m_rssiAve - (aveRxPower - 5)) > 2)
-        {
-          m_rssiAve = aveRxPower-5;
-          m_obssPdThresholdLevel = m_rssiAve;
-          ObssPdThresholdUpdate ();
-          GetHeConfiguration ()->SetAttribute ("ObssPdThreshold", DoubleValue (m_obssPdThresholdLevel));
-          NS_LOG_DEBUG ("New OBSS PD level: " << m_obssPdThresholdLevel);
-        }
-    }
-}
-
-void
-StaWifiMac::ObssPdThresholdUpdate (void)
-{
-  NS_LOG_FUNCTION (this);
-  // All values are in dBm
-  DoubleValue obssPdThresholdMin;
-  DoubleValue obssPdThresholdMax;
-  GetHeConfiguration ()->GetAttribute ("ObssPdThresholdMin", obssPdThresholdMin);
-  GetHeConfiguration ()->GetAttribute ("ObssPdThresholdMax", obssPdThresholdMax);
-  double TempMax = std::max(obssPdThresholdMin.Get (), std::min(obssPdThresholdMax.Get (),obssPdThresholdMin.Get ()+ m_txPowerRefObssPd - m_txPowerObssPd));
-  if (m_obssPdThresholdLevel > TempMax)
-    {
-      NS_LOG_DEBUG ("Updating ObssPdThreshold value " << TempMax);
-      m_obssPdThresholdLevel = TempMax;
     }
 }
 

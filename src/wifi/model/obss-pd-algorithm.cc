@@ -23,7 +23,7 @@
 #include "ns3/config.h"
 #include "obss-pd-algorithm.h"
 #include "wifi-net-device.h"
-#include "regular-wifi-mac.h"
+#include "sta-wifi-mac.h"
 #include "wifi-phy.h"
 
 namespace ns3 {
@@ -143,8 +143,9 @@ ObssPdAlgorithm::SetupCallbacks ()
   oss << "/NodeList/" << nodeid << "/DeviceList/*/";
   std::string devicepath = oss.str ();
 
-  // PhyEndOfHePreamble - used to test that the PHY EndOfHePreamble event has fired
   Config::ConnectWithoutContext (devicepath + "$ns3::WifiNetDevice/Phy/EndOfHePreamble", MakeCallback (&ObssPdAlgorithm::ReceiveHeSigA, this));
+
+  Config::ConnectWithoutContext (devicepath + "$ns3::WifiNetDevice/Mac/$ns3::StaWifiMac/BeaconReception", MakeCallback (&ObssPdAlgorithm::ReceiveBeacon, this));
 }
 
 void

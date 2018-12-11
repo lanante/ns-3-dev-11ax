@@ -469,13 +469,6 @@ TestInterBssConstantObssPdAlgo::RunOne (void)
 void
 TestInterBssConstantObssPdAlgo::DoRun (void)
 {
-  LogComponentEnableAll (LOG_PREFIX_TIME);
-  LogComponentEnableAll (LOG_PREFIX_NODE);
-  LogComponentEnable ("ConstantObssPdAlgorithm", LOG_LEVEL_ALL);
-  LogComponentEnable ("ObssPdAlgorithm", LOG_LEVEL_ALL);
-  LogComponentEnable ("WifiPhy", LOG_LEVEL_ALL);
-  LogComponentEnable ("MacLow", LOG_LEVEL_ALL);
-
   //Test case 1: CCA CS Threshold = m_obssRxPowerDbm < m_obssPdLevelDbm
   m_obssPdLevelDbm = -72;
   m_obssRxPowerDbm = -82;
