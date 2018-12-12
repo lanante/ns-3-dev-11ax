@@ -47,7 +47,7 @@ export payloadSizeUplink=1500
 export payloadSizeDownlink=1500
 
 # AMPDUsize = 3140 octets (nMPDU=2)
-export maxAmpduSize=3140
+export maxAmpduSize=3142
 
 # MCS=7 (Max rate= 6.5Mbps, Ndbps=260)
 export useIdealWifiManager=0
@@ -80,14 +80,15 @@ export txRange=102
 # Expected Throughput = 38.6Mbps per BSS (n=1 in slide 9)
 
 export uplink=0.0
-export downlink=100.0
+# to saturate, need downlink per STA x n STAs
+export downlink=4000.0
 export d=120
 export d=500
 export n=40
 export test=bianchi-test1-dl-only
 
 echo "Expected Throughput = 38.6 Mbps"
-# actual throughput = 57.38 Mbps
+# actual throughput = 39.7 Mbps
 
 run_one &
 
