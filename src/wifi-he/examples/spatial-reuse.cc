@@ -717,14 +717,17 @@ SaveUdpFlowMonitorStats (std::string filename, std::string simulationParams, Ptr
 
 void SetBianchi (Ptr<WifiMac> wifi_mac)
 {
-    int cwMin = 3;
-    int cwMax = 3;
+/*
+already defaults to cwMin=15 and cwMax=1023, so no need to do anything here.
+    int cwMin = 15;
+    int cwMax = 1023;
     Ptr<QosTxop> edca;
     PointerValue ptr;
     wifi_mac->GetAttribute ("BE_Txop", ptr);
     edca = ptr.Get<QosTxop> ();
     edca->SetMinCw (cwMin);
     edca->SetMaxCw (cwMax);
+*/
 }
 
 void SetBianchiOnAllDevices (NetDeviceContainer & devices)
@@ -802,6 +805,7 @@ main (int argc, char *argv[])
 
   CommandLine cmd;
   cmd.AddValue ("duration", "Duration of simulation (s)", duration);
+  cmd.AddValue ("applicationTxStart", "Time (s) to allow network to reach steady-state before applications start sending packets.", applicationTxStart);
   cmd.AddValue ("powSta", "Power of STA (dBm)", powSta);
   cmd.AddValue ("powAp", "Power of AP (dBm)", powAp);
   cmd.AddValue ("txGain", "Transmission gain (dB)", txGain);
@@ -1219,7 +1223,6 @@ main (int argc, char *argv[])
       Config::SetDefault ("ns3::Ieee80211axIndoorPropagationLossModel::DistanceBreakpoint", DoubleValue (10.0));
       Config::SetDefault ("ns3::Ieee80211axIndoorPropagationLossModel::Walls", DoubleValue (0.0));
       Config::SetDefault ("ns3::Ieee80211axIndoorPropagationLossModel::WallsFactor", DoubleValue (0.0));
-
       Config::SetDefault ("ns3::Ieee80211axIndoorPropagationLossModel::Sigma", DoubleValue (sigma));
 
       Ptr<Ieee80211axIndoorPropagationLossModel> lossModel = CreateObject<Ieee80211axIndoorPropagationLossModel> ();
