@@ -631,7 +631,7 @@ void MonitorSniffRx (std::string context,
 {
   if (packet)
     {
-      Ptr <Packet> packetCopy = new Packet (*packet);
+      Ptr <Packet> packetCopy = packet->Copy();
       AmpduTag ampdu;
       if (packetCopy->RemovePacketTag (ampdu))
         {
@@ -842,7 +842,7 @@ main (int argc, char *argv[])
   cmd.AddValue ("test", "The testname.", testname);
   cmd.AddValue ("sigma", "Log-normal shadowing loss parameter.", sigma);
   cmd.Parse (argc, argv);
-
+    
   if ((scenario == "study1") || (scenario == "study2"))
     {
       nBss = 7;
