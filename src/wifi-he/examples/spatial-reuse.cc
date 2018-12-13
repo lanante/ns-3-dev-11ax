@@ -727,6 +727,19 @@ void SetBianchi (Ptr<WifiMac> wifi_mac)
     edca->SetMaxCw (cwMax);
 }
 
+void SetBianchiOnAllDevices (NetDeviceContainer & devices)
+{
+
+  for (uint32_t idx = 0; idx < devices.GetN (); idx++)
+    {
+      Ptr<WifiNetDevice> device = devices.Get (idx)->GetObject<WifiNetDevice> ();
+      NS_ASSERT_MSG (device != 0, "No device to set Bianchi params.");
+      Ptr<WifiMac> wifiMac = device->GetMac ()->GetObject<WifiMac> ();
+      NS_ASSERT_MSG (wifiMac != 0, "No WifiMac to set Bianchi params.");
+      SetBianchi (wifiMac);
+    }
+}
+
 // main script
 int
 main (int argc, char *argv[])
@@ -784,6 +797,8 @@ main (int argc, char *argv[])
   // brief delay (s) for the network to settle into a steady state before applications start sending packets
   double applicationTxStart = 1.0;
   bool useIdealWifiManager = false;
+  bool bianchi = false;
+  double sigma = 5.0;
 
   CommandLine cmd;
   cmd.AddValue ("duration", "Duration of simulation (s)", duration);
@@ -823,7 +838,9 @@ main (int argc, char *argv[])
   cmd.AddValue ("enablePcap", "Enable PCAP trace file generation.", enablePcap);
   cmd.AddValue ("enableAscii", "Enable ASCII trace file generation.", enableAscii);
   cmd.AddValue ("useIdealWifiManager", "Use IdealWifiManager instead of ConstantRateWifiManager", useIdealWifiManager);
+  cmd.AddValue ("bianchi", "Set parameters for Biachi validation", bianchi);
   cmd.AddValue ("test", "The testname.", testname);
+  cmd.AddValue ("sigma", "Log-normal shadowing loss parameter.", sigma);
   cmd.Parse (argc, argv);
 
   if ((scenario == "study1") || (scenario == "study2"))
@@ -853,8 +870,6 @@ main (int argc, char *argv[])
   Config::SetDefault ("ns3::WifiRemoteStationManager::MaxSlrc", UintegerValue (uMaxSlrc));
 
   // debugging - may need to set additional params specifically for Bianchi validation
-  // int bianchi = 1;
-  int bianchi = 0;
   if (bianchi)
   {
     uMaxSlrc = std::numeric_limits<uint32_t>::max ();
@@ -1205,6 +1220,8 @@ main (int argc, char *argv[])
       Config::SetDefault ("ns3::Ieee80211axIndoorPropagationLossModel::Walls", DoubleValue (0.0));
       Config::SetDefault ("ns3::Ieee80211axIndoorPropagationLossModel::WallsFactor", DoubleValue (0.0));
 
+      Config::SetDefault ("ns3::Ieee80211axIndoorPropagationLossModel::Sigma", DoubleValue (sigma));
+
       Ptr<Ieee80211axIndoorPropagationLossModel> lossModel = CreateObject<Ieee80211axIndoorPropagationLossModel> ();
       spectrumChannel->AddPropagationLossModel (lossModel);
     }
@@ -1286,12 +1303,20 @@ main (int argc, char *argv[])
                "Ssid", SsidValue (ssidA));
   // Do we also want to allow Amsdu Size to be modified?
   //              "BE_MaxAmsduSize", UintegerValue(maxAmsduSize));
+  if (bianchi)
+    {
+      SetBianchiOnAllDevices (staDevicesA);
+    }
 
   // AP1
   NetDeviceContainer apDeviceA;
   apDeviceA = wifi.Install (spectrumPhy, mac, ap1);
   Ptr<WifiNetDevice> apDevice = apDeviceA.Get (0)->GetObject<WifiNetDevice> ();
   Ptr<ApWifiMac> apWifiMac = apDevice->GetMac ()->GetObject<ApWifiMac> ();
+  if (bianchi)
+    {
+      SetBianchiOnAllDevices (apDeviceA);
+    }
   // The below statements may be simplified in a future HeConfigurationHelper
   if ((enableObssPd))
     {
@@ -1336,11 +1361,19 @@ main (int argc, char *argv[])
                    "Ssid", SsidValue (ssidB));
       // Do we also want to allow Amsdu Size to be modified?
       //              "BE_MaxAmsduSize", UintegerValue(maxAmsduSize));
+      if (bianchi)
+        {
+          SetBianchiOnAllDevices (staDevicesB);
+        }
 
       // AP2
       apDeviceB = wifi.Install (spectrumPhy, mac, ap2);
       Ptr<WifiNetDevice> ap2Device = apDeviceB.Get (0)->GetObject<WifiNetDevice> ();
       apWifiMac = ap2Device->GetMac ()->GetObject<ApWifiMac> ();
+      if (bianchi)
+        {
+          SetBianchiOnAllDevices (apDeviceB);
+        }
       if (enableObssPd)
         {
           Ptr <HeConfiguration> heConfiguration = ap2Device->GetHeConfiguration ();
@@ -1385,11 +1418,19 @@ main (int argc, char *argv[])
                    "Ssid", SsidValue (ssidC));
       // Do we also want to allow Amsdu Size to be modified?
       //              "BE_MaxAmsduSize", UintegerValue(maxAmsduSize));
+      if (bianchi)
+        {
+          SetBianchiOnAllDevices (staDevicesC);
+        }
 
       // AP3
       apDeviceC = wifi.Install (spectrumPhy, mac, ap3);
       Ptr<WifiNetDevice> ap3Device = apDeviceC.Get (0)->GetObject<WifiNetDevice> ();
       apWifiMac = ap3Device->GetMac ()->GetObject<ApWifiMac> ();
+      if (bianchi)
+        {
+          SetBianchiOnAllDevices (apDeviceC);
+        }
       if (enableObssPd)
         {
           Ptr <HeConfiguration> heConfiguration = ap3Device->GetHeConfiguration ();
@@ -1434,11 +1475,19 @@ main (int argc, char *argv[])
                    "Ssid", SsidValue (ssidD));
       // Do we also want to allow Amsdu Size to be modified?
       //              "BE_MaxAmsduSize", UintegerValue(maxAmsduSize));
+      if (bianchi)
+        {
+          SetBianchiOnAllDevices (staDevicesD);
+        }
 
       // AP4
       apDeviceD = wifi.Install (spectrumPhy, mac, ap4);
       Ptr<WifiNetDevice> ap4Device = apDeviceD.Get (0)->GetObject<WifiNetDevice> ();
       apWifiMac = ap4Device->GetMac ()->GetObject<ApWifiMac> ();
+      if (bianchi)
+        {
+          SetBianchiOnAllDevices (apDeviceD);
+        }
       if (enableObssPd)
         {
           Ptr <HeConfiguration> heConfiguration = ap4Device->GetHeConfiguration ();
@@ -1487,11 +1536,19 @@ main (int argc, char *argv[])
                    "Ssid", SsidValue (ssidE));
       // Do we also want to allow Amsdu Size to be modified?
       //              "BE_MaxAmsduSize", UintegerValue(maxAmsduSize));
+      if (bianchi)
+        {
+          SetBianchiOnAllDevices (staDevicesE);
+        }
 
       // AP5
       apDeviceE = wifi.Install (spectrumPhy, mac, ap5);
       Ptr<WifiNetDevice> ap5Device = apDeviceE.Get (0)->GetObject<WifiNetDevice> ();
       apWifiMac = ap5Device->GetMac ()->GetObject<ApWifiMac> ();
+      if (bianchi)
+        {
+          SetBianchiOnAllDevices (apDeviceE);
+        }
       if (enableObssPd)
         {
           Ptr <HeConfiguration> heConfiguration = ap5Device->GetHeConfiguration ();
@@ -1531,11 +1588,19 @@ main (int argc, char *argv[])
                    "Ssid", SsidValue (ssidF));
       // Do we also want to allow Amsdu Size to be modified?
       //              "BE_MaxAmsduSize", UintegerValue(maxAmsduSize));
+      if (bianchi)
+        {
+          SetBianchiOnAllDevices (staDevicesF);
+        }
 
       // AP6
       apDeviceF = wifi.Install (spectrumPhy, mac, ap6);
       Ptr<WifiNetDevice> ap6Device = apDeviceF.Get (0)->GetObject<WifiNetDevice> ();
       apWifiMac = ap6Device->GetMac ()->GetObject<ApWifiMac> ();
+      if (bianchi)
+        {
+          SetBianchiOnAllDevices (apDeviceF);
+        }
       if (enableObssPd)
         {
           Ptr <HeConfiguration> heConfiguration = ap6Device->GetHeConfiguration ();
@@ -1564,11 +1629,19 @@ main (int argc, char *argv[])
                    "Ssid", SsidValue (ssidG));
       // Do we also want to allow Amsdu Size to be modified?
       //              "BE_MaxAmsduSize", UintegerValue(maxAmsduSize));
+      if (bianchi)
+        {
+          SetBianchiOnAllDevices (staDevicesG);
+        }
 
       // AP7
       apDeviceG = wifi.Install (spectrumPhy, mac, ap7);
       Ptr<WifiNetDevice> ap7Device = apDeviceG.Get (0)->GetObject<WifiNetDevice> ();
       apWifiMac = ap7Device->GetMac ()->GetObject<ApWifiMac> ();
+      if (bianchi)
+        {
+          SetBianchiOnAllDevices (apDeviceG);
+        }
       if (enableObssPd)
         {
           Ptr <HeConfiguration> heConfiguration = ap7Device->GetHeConfiguration ();

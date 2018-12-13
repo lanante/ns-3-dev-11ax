@@ -85,6 +85,8 @@ export downlink=4000.0
 export d=120
 export d=500
 export n=40
+export sigma=0.0
+export bianchi=0
 export test=bianchi-test1-dl-only
 
 echo "Expected Throughput = 38.6 Mbps"

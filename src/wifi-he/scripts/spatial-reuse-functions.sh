@@ -8,6 +8,18 @@ function run_one () {
   # else
   #  # echo "maxSlrc is set to $maxSlrc";
   fi
+  if [ -z "$bianchi" ]; then
+    # echo "bianchi is not set, defaulting to 'false'.";
+    export bianchi=0
+  # else
+  #  # echo "bianchi is set to $bianchi";
+  fi
+  if [ -z "$sigma" ]; then
+    # echo "sigma is not set, defaulting to 5.0.";
+    export sigma=5.0
+  # else
+  #  # echo "sigma is set to $sigma";
+  fi
   echo Running ${test}
   # run the test
   ../../../waf --run "spatial-reuse \
@@ -44,7 +56,8 @@ function run_one () {
 	--obssPdThreshold=${obssPdThreshold} \
         --useIdealWifiManager=${useIdealWifiManager} \
         --test=${test} \
-        --maxSlrc=${maxSlrc}"
+        --maxSlrc=${maxSlrc} \
+        --bianchi=${bianchi}"
 
   # copy results files
   cd ../scripts
