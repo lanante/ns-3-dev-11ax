@@ -26,6 +26,12 @@ function run_one () {
   # else
   #   echo "applicationTxStart is set to $applicationTxStart";
   fi
+  if [ -z "$rxSensitivity" ]; then
+    # echo "rxSensitivity is not set, defaulting to -91.0.";
+    export rxSensitivity=-91.0
+  # else
+  #   echo "rxSensitivity is set to $rxSensitivity";
+  fi
   echo Running ${test}
   # run the test
   ../../../waf --run "spatial-reuse \
@@ -65,7 +71,8 @@ function run_one () {
         --maxSlrc=${maxSlrc} \
         --bianchi=${bianchi} \
         --sigma=${sigma} \
-        --applicationTxStart=${applicationTxStart}"
+        --applicationTxStart=${applicationTxStart} \
+        --rxSensitivity=${rxSensitivity}"
 
   # copy results files
   cd ../scripts
