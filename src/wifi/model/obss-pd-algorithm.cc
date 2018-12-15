@@ -19,8 +19,6 @@
  */
 
 #include "ns3/log.h"
-#include "ns3/node.h"
-#include "ns3/config.h"
 #include "obss-pd-algorithm.h"
 #include "wifi-net-device.h"
 #include "sta-wifi-mac.h"
@@ -134,21 +132,6 @@ Ptr<WifiNetDevice>
 ObssPdAlgorithm::GetWifiNetDevice (void) const
 {
   return m_device;
-}
-
-void
-ObssPdAlgorithm::SetupCallbacks ()
-{
-  uint32_t nodeid = GetWifiNetDevice ()->GetNode ()->GetId ();
-
-  std::ostringstream oss;
-  oss.str ("");
-  oss << "/NodeList/" << nodeid << "/DeviceList/*/";
-  std::string devicepath = oss.str ();
-
-  Config::ConnectWithoutContext (devicepath + "$ns3::WifiNetDevice/Phy/EndOfHePreamble", MakeCallback (&ObssPdAlgorithm::ReceiveHeSigA, this));
-
-  Config::ConnectWithoutContext (devicepath + "$ns3::WifiNetDevice/Mac/$ns3::StaWifiMac/BeaconReception", MakeCallback (&ObssPdAlgorithm::ReceiveBeacon, this));
 }
 
 void

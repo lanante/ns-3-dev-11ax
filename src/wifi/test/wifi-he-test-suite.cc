@@ -416,7 +416,7 @@ WifiHeTestCase::NotifyEndOfHePreamble (std::string context, HePreambleParameters
   if (obssPdAlgorithm)
     {
       // call the OBSS PD algorithm for evaluation
-      obssPdAlgorithm->ReceiveHeSigA (params);
+      obssPdAlgorithm->ReceiveHeSig (params);
     }
 
   // std::cout << "NotifyEndOfHePreamble has fired. rssi=" << rssi << " BSS color=" << ((uint32_t) bssColor) << std::endl;

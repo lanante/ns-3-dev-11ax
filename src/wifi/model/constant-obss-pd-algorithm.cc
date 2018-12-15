@@ -19,6 +19,8 @@
  */
 
 #include "ns3/log.h"
+#include "ns3/node.h"
+#include "ns3/config.h"
 #include "ns3/double.h"
 #include "ns3/uinteger.h"
 #include "constant-obss-pd-algorithm.h"
@@ -49,9 +51,22 @@ ConstantObssPdAlgorithm::GetTypeId (void)
   ;
   return tid;
 }
+    
+void
+ConstantObssPdAlgorithm::SetupCallbacks (void)
+{
+  uint32_t nodeid = GetWifiNetDevice ()->GetNode ()->GetId ();
+        
+  std::ostringstream oss;
+  oss.str ("");
+  oss << "/NodeList/" << nodeid << "/DeviceList/*/";
+  std::string devicepath = oss.str ();
+        
+  Config::ConnectWithoutContext (devicepath + "$ns3::WifiNetDevice/Phy/EndOfHePreamble", MakeCallback (&ConstantObssPdAlgorithm::ReceiveHeSig, this));
+}
 
 void
-ConstantObssPdAlgorithm::ReceiveHeSigA (HePreambleParameters params)
+ConstantObssPdAlgorithm::ReceiveHeSig (HePreambleParameters params)
 {
   NS_LOG_FUNCTION (this);
 

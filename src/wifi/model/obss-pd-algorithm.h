@@ -59,7 +59,7 @@ public:
   /**
    * Setup callbacks.
    */
-  void SetupCallbacks ();
+  virtual void SetupCallbacks () = 0;
 
   /**
    * Sets the OBSS PD level (in dBm).
@@ -116,11 +116,11 @@ public:
   void ResetPhy ();
 
   /**
-   * \param params the HE SIG A parameters
+   * \param params the HE SIG parameters
    *
-   * Evaluate the receipt of HE SIG-A.
+   * Evaluate the receipt of HE SIG.
    */
-  virtual void ReceiveHeSigA (HePreambleParameters params) = 0;
+  virtual void ReceiveHeSig (HePreambleParameters params) = 0;
 
   /**
    * \param params the HE Beacon parameters

@@ -41,11 +41,16 @@ public:
   static TypeId GetTypeId (void);
 
   /**
-   * \param params the HE SIG A parameters
+   * Setup callbacks.
+   */
+  void SetupCallbacks (void);
+
+  /**
+   * \param params the HE SIG parameters
    *
    * Evaluate the algorithm.
    */
-  void ReceiveHeSigA (HePreambleParameters params);
+  void ReceiveHeSig (HePreambleParameters params);
   /**
    * \param params the HE Beacon parameters
    *

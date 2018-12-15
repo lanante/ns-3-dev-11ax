@@ -19,6 +19,8 @@
  */
 
 #include "ns3/log.h"
+#include "ns3/node.h"
+#include "ns3/config.h"
 #include "beacon-rssi-obss-pd-algorithm.h"
 #include "sta-wifi-mac.h"
 #include "wifi-phy.h"
@@ -52,7 +54,20 @@ BeaconRssiObssPdAlgorithm::GetTypeId (void)
 }
 
 void
-BeaconRssiObssPdAlgorithm::ReceiveHeSigA (HePreambleParameters params)
+BeaconRssiObssPdAlgorithm::SetupCallbacks ()
+{
+  uint32_t nodeid = GetWifiNetDevice ()->GetNode ()->GetId ();
+        
+  std::ostringstream oss;
+  oss.str ("");
+  oss << "/NodeList/" << nodeid << "/DeviceList/*/";
+  std::string devicepath = oss.str ();
+        
+  Config::ConnectWithoutContext (devicepath + "$ns3::WifiNetDevice/Mac/$ns3::StaWifiMac/BeaconReception", MakeCallback (&BeaconRssiObssPdAlgorithm::ReceiveBeacon, this));
+}
+
+void
+BeaconRssiObssPdAlgorithm::ReceiveHeSig (HePreambleParameters params)
 {
   NS_LOG_FUNCTION (this);
 }
