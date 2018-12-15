@@ -55,9 +55,10 @@ public:
    */
   uint16_t GetMpduBufferSize (void) const;
 
+
 private:
-  uint8_t m_bssColor; //!< BSS color
-  Time m_guardInterval; //!< Supported HE guard interval
+  Time m_guardInterval;      //!< Supported HE guard interval
+  uint8_t m_bssColor;        //!< BSS color
   uint16_t m_mpduBufferSize; //!< MPDU buffer size
 
   uint16_t m_voMaxAmsduSize; ///< maximum A-MSDU size for AC_VO

@@ -17,7 +17,6 @@
  *
  */
 
-#include "ns3/double.h"
 #include "ns3/log.h"
 #include "ns3/nstime.h"
 #include "ns3/uinteger.h"
@@ -40,10 +39,6 @@ HeConfiguration::GetTypeId (void)
     .SetParent<Object> ()
     .SetGroupName ("Wifi")
     .AddConstructor<HeConfiguration> ()
-    .AddAttribute ("BssColor", "BSS color",
-                   UintegerValue (0),
-                   MakeUintegerAccessor (&HeConfiguration::m_bssColor),
-                   MakeUintegerChecker<uint8_t> ())
     .AddAttribute ("GuardInterval",
                    "Specify the shortest guard interval duration that can be used for HE transmissions."
                    "Possible values are 800ns, 1600ns or 3200ns.",
@@ -51,6 +46,11 @@ HeConfiguration::GetTypeId (void)
                    MakeTimeAccessor (&HeConfiguration::GetGuardInterval,
                                      &HeConfiguration::SetGuardInterval),
                    MakeTimeChecker (NanoSeconds (800), NanoSeconds (3200)))
+    .AddAttribute ("BssColor",
+                   "The BSS color",
+                   UintegerValue (0),
+                   MakeUintegerAccessor (&HeConfiguration::m_bssColor),
+                   MakeUintegerChecker<uint8_t> ())
     .AddAttribute ("MpduBufferSize",
                    "The MPDU buffer size for receiving A-MPDUs",
                    UintegerValue (64),

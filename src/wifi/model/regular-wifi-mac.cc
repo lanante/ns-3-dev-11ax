@@ -946,12 +946,6 @@ RegularWifiMac::GetRifsSupported (void) const
   return m_rifsSupported;
 }
 
-Ptr<MacLow>
-RegularWifiMac::GetMacLow (void) const
-{
-  return m_low;
-}
-
 void
 RegularWifiMac::Enqueue (Ptr<const Packet> packet,
                          Mac48Address to, Mac48Address from)
@@ -1306,12 +1300,8 @@ RegularWifiMac::GetTypeId (void)
                    BooleanValue (false),
                    MakeBooleanAccessor (&RegularWifiMac::SetRifsSupported,
                                         &RegularWifiMac::GetRifsSupported),
-                   MakeBooleanChecker ())
-    .AddAttribute ("MacLow",
-                   "The MacLow object.",
-                   PointerValue (),
-                   MakePointerAccessor (&RegularWifiMac::GetMacLow),
-                   MakePointerChecker<MacLow> ())
+                   MakeBooleanChecker (),
+                   TypeId::DEPRECATED, "Use the HtConfiguration instead")
     .AddAttribute ("Txop",
                    "The Txop object.",
                    PointerValue (),

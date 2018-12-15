@@ -24,7 +24,6 @@
 #define AP_WIFI_MAC_H
 
 #include "infrastructure-wifi-mac.h"
-#include "he-configuration.h"
 
 namespace ns3 {
 

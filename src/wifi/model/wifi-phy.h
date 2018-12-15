@@ -29,7 +29,6 @@
 #include "wifi-phy-standard.h"
 #include "interference-helper.h"
 #include "wifi-phy-state-helper.h"
-#include "ns3/mac48-address.h"
 
 namespace ns3 {
 
@@ -274,27 +273,11 @@ public:
    * \return the total amount of time this PHY will stay busy for the transmission of the PLCP preamble and PLCP header.
    */
   static Time CalculatePlcpPreambleAndHeaderDuration (WifiTxVector txVector);
-
   /**
    *
    * \return the preamble detection duration, which is the time correletion needs to detect the start of an incoming frame.
    */
-  Time GetPreambleDetectionDuration (void);
-
-  /**
-   * \param txVector the transmission parameters used for this packet
-   *
-   * \return the total amount of time this PHY will stay busy for the transmission of the PLCP preamble.
-   */
-  static Time CalculatePlcpPreambleDuration (WifiTxVector txVector);
-
-  /**
-   * \param txVector the transmission parameters used for this packet
-   *
-   * \return the total amount of time this PHY will stay busy for the transmission of the PLCP header.
-   */
-  static Time CalculatePlcpHeaderDuration (WifiTxVector txVector);
-
+  static Time GetPreambleDetectionDuration (void);
   /**
    * \param txVector the transmission parameters used for this packet
    *

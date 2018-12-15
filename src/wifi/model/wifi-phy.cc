@@ -23,7 +23,6 @@
 #include "ns3/log.h"
 #include "ns3/pointer.h"
 #include "ns3/mobility-model.h"
-#include "ns3/uinteger.h"
 #include "ns3/random-variable-stream.h"
 #include "ns3/error-model.h"
 #include "wifi-phy.h"
@@ -34,7 +33,6 @@
 #include "preamble-detection-model.h"
 #include "wifi-radio-energy-model.h"
 #include "error-rate-model.h"
-#include "regular-wifi-mac.h"
 #include "wifi-net-device.h"
 #include "ht-configuration.h"
 #include "he-configuration.h"
@@ -2045,7 +2043,6 @@ WifiPhy::GetPlcpPreambleDuration (WifiTxVector txVector)
 Time
 WifiPhy::GetPayloadDuration (uint32_t size, WifiTxVector txVector, uint16_t frequency)
 {
-  NS_LOG_FUNCTION (this);
   return GetPayloadDuration (size, txVector, frequency, NORMAL_MPDU, 0);
 }
 
@@ -2322,27 +2319,6 @@ WifiPhy::GetPayloadDuration (uint32_t size, WifiTxVector txVector, uint16_t freq
 }
 
 Time
-WifiPhy::CalculatePlcpPreambleDuration (WifiTxVector txVector)
-{
-  // WifiPreamble preamble = txVector.GetPreambleType ();
-  Time duration = GetPlcpPreambleDuration (txVector);
-  return duration;
-}
-
-Time
-WifiPhy::CalculatePlcpHeaderDuration (WifiTxVector txVector)
-{
-  WifiPreamble preamble = txVector.GetPreambleType ();
-  Time duration = GetPlcpHeaderDuration (txVector)
-    + GetPlcpHtSigHeaderDuration (preamble)
-    + GetPlcpSigA1Duration (preamble)
-    + GetPlcpSigA2Duration (preamble)
-    + GetPlcpTrainingSymbolDuration (txVector)
-    + GetPlcpSigBDuration (preamble);
-  return duration;
-}
-
-Time
 WifiPhy::CalculatePlcpPreambleAndHeaderDuration (WifiTxVector txVector)
 {
   WifiPreamble preamble = txVector.GetPreambleType ();
@@ -2359,7 +2335,6 @@ WifiPhy::CalculatePlcpPreambleAndHeaderDuration (WifiTxVector txVector)
 Time
 WifiPhy::CalculateTxDuration (uint32_t size, WifiTxVector txVector, uint16_t frequency, MpduType mpdutype, uint8_t incFlag)
 {
-  NS_LOG_FUNCTION (this);
   Time duration = CalculatePlcpPreambleAndHeaderDuration (txVector)
     + GetPayloadDuration (size, txVector, frequency, mpdutype, incFlag);
   return duration;
@@ -2368,7 +2343,6 @@ WifiPhy::CalculateTxDuration (uint32_t size, WifiTxVector txVector, uint16_t fre
 Time
 WifiPhy::CalculateTxDuration (uint32_t size, WifiTxVector txVector, uint16_t frequency)
 {
-  NS_LOG_FUNCTION (this);
   return CalculateTxDuration (size, txVector, frequency, NORMAL_MPDU, 0);
 }
 
@@ -2489,23 +2463,6 @@ WifiPhy::SendPacket (Ptr<const Packet> packet, WifiTxVector txVector, MpduType m
   Ptr<Packet> newPacket = packet->Copy (); // obtain non-const Packet
   WifiPhyTag oldtag;
   newPacket->RemovePacketTag (oldtag);
-  // TODO:  In ns-3-dev, find more convenient place to store HeConfiguration
-  Ptr<HeConfiguration> heConfiguration = 0;
-  Ptr<WifiNetDevice> wifiNetDevice = DynamicCast<WifiNetDevice> (m_device);
-  if (wifiNetDevice)
-    {
-      heConfiguration = wifiNetDevice->GetHeConfiguration ();
-    }
-  if (heConfiguration)
-    {
-      UintegerValue bssColor;
-      heConfiguration->GetAttribute ("BssColor", bssColor);
-      if (bssColor.Get ())
-        {
-          NS_LOG_DEBUG ("Setting BSS color to " << bssColor.Get ());
-          txVector.SetBssColor (bssColor.Get ());
-        }
-    }
   if (m_state->GetState () == WifiPhyState::OFF)
     {
       NS_LOG_DEBUG ("Transmission canceled because device is OFF");
@@ -2688,7 +2645,6 @@ WifiPhy::StartReceivePreamble (Ptr<Packet> packet, double rxPowerW, Time rxDurat
 void
 WifiPhy::MaybeCcaBusyDuration ()
 {
-  NS_LOG_FUNCTION (this);
   //We are here because we have received the first bit of a packet and we are
   //not going to be able to synchronize on it
   //In this model, CCA becomes busy when the aggregation of all signals as
@@ -3908,7 +3864,6 @@ WifiPhy::StartRx (Ptr<Packet> packet, WifiTxVector txVector, MpduType mpdutype, 
 
   NS_LOG_DEBUG ("sync to signal (power=" << rxPowerW << "W)");
   m_currentEvent = event;
-
   m_interference.NotifyRxStart (); //We need to notify it now so that it starts recording events
   if (preamble == WIFI_PREAMBLE_NONE)
     {

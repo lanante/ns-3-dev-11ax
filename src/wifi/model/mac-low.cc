@@ -548,6 +548,7 @@ MacLow::StartTransmission (Ptr<const Packet> packet,
     {
       m_txParams.DisableRts ();
     }
+
   if (m_currentHdr.IsMgt ()
       || (!m_currentHdr.IsQosData ()
           && !m_currentHdr.IsBlockAck ()

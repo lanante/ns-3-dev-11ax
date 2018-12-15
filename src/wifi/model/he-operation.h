@@ -82,6 +82,7 @@ public:
    * \return the BSS color value
    */
   uint8_t GetBssColor (void) const;
+
   /**
    * Return the element ID.
    *

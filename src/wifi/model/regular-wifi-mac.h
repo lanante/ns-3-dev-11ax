@@ -150,10 +150,6 @@ public:
    */
   bool GetRifsSupported (void) const;
   /**
-   * \return pointer to MacLow
-   */
-  Ptr<MacLow> GetMacLow (void) const;
-  /**
    * \return the MAC address associated to this MAC layer.
    */
   Mac48Address GetAddress (void) const;
