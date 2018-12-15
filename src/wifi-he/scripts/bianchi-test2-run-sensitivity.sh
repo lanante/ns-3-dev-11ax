@@ -97,7 +97,7 @@
 #
 # The results of this sensitivity study implies that values
 # of --applicationStartTx=1 and --duration=<any value >= 5>
-# and for any value of --RngRun will yield results that very
+# and for any value of --RngRun will yield results that vary
 # insignificantly from averages (i.e., will likely be within
 # 0.58% of the averages of different runs that vary such
 # parameters).
