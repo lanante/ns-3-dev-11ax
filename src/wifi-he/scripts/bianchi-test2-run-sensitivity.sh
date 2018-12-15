@@ -1,7 +1,7 @@
 # This script is based on the
 # Bianchi Test2 fully-decoupled saturated uplink
 # test scenario, and is modified to test the
-# sensitivity of the parmameter:
+# sensitivity of the parmameters:
 # --duration
 # --appliationTxStart
 # --RngRun
@@ -24,7 +24,7 @@
 # The Bianchi Test2 is used with n=10 STAs.
 #
 # The following simulation parameters will be varied individually as follows:
-# Parameter              Sensitity Values
+# Parameter              Sensitivity Values
 # --duration:            1, 5, 10, 20
 # --applicationTxStart:  1, 5, 10
 # --RngRun:              1, 88, 101
