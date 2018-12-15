@@ -116,12 +116,10 @@ std::vector<std::vector<double> > rssiPerNode;
 uint32_t
 ContextToNodeId (std::string context)
 {
-  //std::cout << "Context=" << context << std::endl;
   std::string sub = context.substr (10);  // skip "/NodeList/"
   uint32_t pos = sub.find ("/Device");
   uint32_t nodeId = atoi (sub.substr (0, pos).c_str ());
   NS_LOG_DEBUG ("Found NodeId " << nodeId);
-  //std::cout << "and nodeId=" << nodeId << std::endl;
   return nodeId;
 }
 
@@ -130,7 +128,6 @@ SocketRecvStats (std::string context, Ptr<const Packet> p, const Address &addr)
 {
   uint32_t nodeId = ContextToNodeId (context);
   uint32_t pktSize = p->GetSize ();
-  // std::cout << "Node ID: " << nodeId << " RX addr=" << addr << " size=" << pktSize << std::endl;
   bytesReceived[nodeId] += pktSize;
   packetsReceived[nodeId]++;
 }
@@ -163,6 +160,9 @@ StateToString (WifiPhyState state)
       break;
     case WifiPhyState::SLEEP:
       stateString = "SLEEP";
+      break;
+    case WifiPhyState::OFF:
+      stateString = "OFF";
       break;
     default:
       NS_FATAL_ERROR ("Unknown state");
@@ -251,9 +251,6 @@ void
 StateCb (std::string context, Time start, Time duration, WifiPhyState state)
 {
   g_stateFile << ContextToNodeId (context) << " " << start.GetSeconds () << " " << duration.GetSeconds () << " " << StateToString (state) << std::endl;
-
-  //uint32_t nodeId = ContextToNodeId (context);
-  //std::string stateStr = StateToString (state);
 }
 
 void
@@ -347,7 +344,6 @@ void AddClient (ApplicationContainer &clientAppA, Ipv4Address address, Ptr<Node>
   clientA.SetAttribute ("MaxPackets", UintegerValue (4294967295u));
   clientA.SetAttribute ("Interval", TimeValue (interval)); // s/packet
   clientA.SetAttribute ("PacketSize", UintegerValue (payloadSize));
-
   clientAppA.Add (clientA.Install (node));
 }
 
@@ -585,17 +581,11 @@ void ProcessPacket (std::string context,
         {
           dstNodeId = MacAddressToNodeId (addr1);
           srcNodeId = MacAddressToNodeId (addr2);
-          // std::cout << "RX " << rxNodeId << " dst " << dstNodeId << " context " << context << " addr1 " << addr1 << " addr2 " << addr2 << std::endl;
-
           g_samples++;
           g_signalDbmAvg += ((signalNoise.signal - g_signalDbmAvg) / g_samples);
           g_noiseDbmAvg += ((signalNoise.noise - g_noiseDbmAvg) / g_samples);
           Address rxNodeAddress = allNodes.Get (rxNodeId)->GetDevice (0)->GetAddress ();
           uint32_t pktSize = packet->GetSize ();
-          if (pktSize >= 1500)
-            {
-              // std::cout << context << " " << rxNodeId << ", " << dstNodeId << ", " << srcNodeId << ", " << rxNodeAddress << ", " << addr1 << ", " << addr2 << ", " << signalNoise.noise << ", " << signalNoise.signal << ", " << pktSize << std::endl;
-            }
           g_rxSniffFile << rxNodeId << ", " << dstNodeId << ", " << srcNodeId << ", " << rxNodeAddress << ", " << addr1 << ", " << addr2 << ", " << signalNoise.noise << ", " << signalNoise.signal << ", " << pktSize << std::endl;
           if (signalNoise.signal < g_min_signal)
             {
@@ -613,7 +603,6 @@ void ProcessPacket (std::string context,
             {
               g_max_noise = signalNoise.noise;
             }
-          // std::cout << "sigbal min " << g_min_signal << " max " << g_max_signal << " Noise min " << g_min_noise << " max " << g_max_noise << std::endl;
           uint32_t idx = floor (signalNoise.signal) + 100;
           signals[idx]++;
           idx = floor (signalNoise.noise) + 100;
@@ -680,9 +669,6 @@ SaveUdpFlowMonitorStats (std::string filename, std::string simulationParams, Ptr
   for (std::map<FlowId, FlowMonitor::FlowStats>::const_iterator i = stats.begin (); i != stats.end (); ++i)
     {
       Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow (i->first);
-//      NS_ASSERT_MSG (t.sourceAddress < t.destinationAddress ,
-//                 "Flow " << t.sourceAddress << ":" << t.sourcePort << " --> " << t.destinationAddress << ":" << t.destinationPort
-//                 << " is probably not downlink");
 
       outFile << i->first
               << " " << t.sourceAddress << ":" << t.sourcePort
@@ -719,14 +705,8 @@ SaveUdpFlowMonitorStats (std::string filename, std::string simulationParams, Ptr
 int
 main (int argc, char *argv[])
 {
-  Config::SetDefault ("ns3::RegularWifiMac::VO_BlockAckThreshold", UintegerValue (0));
-  Config::SetDefault ("ns3::RegularWifiMac::VI_BlockAckThreshold", UintegerValue (0));
-  Config::SetDefault ("ns3::RegularWifiMac::BE_BlockAckThreshold", UintegerValue (0));
-  Config::SetDefault ("ns3::RegularWifiMac::BK_BlockAckThreshold", UintegerValue (0));
-
-  int maxSlrc = 7;
-
   // command line configurable parameters
+  int maxSlrc = 7;
   bool enablePcap = false;
   bool enableAscii = false;
   double duration = 20.0; // seconds
@@ -767,7 +747,7 @@ main (int argc, char *argv[])
   Time interval = MicroSeconds (1000);
   bool enableObssPd = false;
   uint32_t maxAmpduSize = 65535;
-  // uint32_t maxAmsduSize = 7935;
+  uint32_t maxAmsduSize = 0;
   std::string nodePositionsFile ("");
   // brief delay (s) for the network to settle into a steady state before applications start sending packets
   double applicationTxStart = 1.0;
@@ -820,7 +800,7 @@ main (int argc, char *argv[])
   cmd.AddValue ("test", "The testname.", testname);
   cmd.AddValue ("sigma", "Log-normal shadowing loss parameter.", sigma);
   cmd.Parse (argc, argv);
-    
+
   if ((scenario == "study1") || (scenario == "study2"))
     {
       nBss = 7;
@@ -896,12 +876,9 @@ main (int argc, char *argv[])
   WifiHelper wifi;
   std::string dataRate;
   int freq;
-  Time dataStartTime = MicroSeconds (800); // leaving enough time for beacon and association procedure
-  Time dataDuration = MicroSeconds (300); // leaving enough time for data transfer (+ acknowledgment)
   if (standard == "11a")
     {
       wifi.SetStandard (WIFI_PHY_STANDARD_80211a);
-      // ssid = Ssid ("ns380211a");
       dataRate = "OfdmRate6Mbps";
       freq = 5180;
       if (bw != 20)
@@ -913,11 +890,8 @@ main (int argc, char *argv[])
   else if (standard == "11_10MHZ")
     {
       wifi.SetStandard (WIFI_PHY_STANDARD_80211_10MHZ);
-      // ssid = Ssid ("ns380211_10MHZ");
       dataRate = "OfdmRate3MbpsBW10MHz";
       freq = 5860;
-      dataStartTime = MicroSeconds (1400);
-      dataDuration = MicroSeconds (600);
       if (bw != 10)
         {
           std::cout << "Bandwidth is not compatible with standard" << std::endl;
@@ -927,11 +901,8 @@ main (int argc, char *argv[])
   else if (standard == "11_5MHZ")
     {
       wifi.SetStandard (WIFI_PHY_STANDARD_80211_5MHZ);
-      // ssid = Ssid ("ns380211_5MHZ");
       dataRate = "OfdmRate1_5MbpsBW5MHz";
       freq = 5860;
-      dataStartTime = MicroSeconds (2500);
-      dataDuration = MicroSeconds (1200);
       if (bw != 5)
         {
           std::cout << "Bandwidth is not compatible with standard" << std::endl;
@@ -941,11 +912,8 @@ main (int argc, char *argv[])
   else if (standard == "11n_2_4GHZ")
     {
       wifi.SetStandard (WIFI_PHY_STANDARD_80211n_2_4GHZ);
-      // ssid = Ssid ("ns380211n_2_4GHZ");
       dataRate = "HtMcs" + ossMcs.str ();
       freq = 2402 + (bw / 2); //so as to have 2412/2422 for 20/40
-      dataStartTime = MicroSeconds (4700);
-      dataDuration = MicroSeconds (400);
       if (bw != 20 && bw != 40)
         {
           std::cout << "Bandwidth is not compatible with standard" << std::endl;
@@ -955,10 +923,8 @@ main (int argc, char *argv[])
   else if (standard == "11n_5GHZ")
     {
       wifi.SetStandard (WIFI_PHY_STANDARD_80211n_5GHZ);
-      // ssid = Ssid ("ns380211n_5GHZ");
       dataRate = "HtMcs" + ossMcs.str ();
       freq = 5170 + (bw / 2); //so as to have 5180/5190 for 20/40
-      dataStartTime = MicroSeconds (1000);
       if (bw != 20 && bw != 40)
         {
           std::cout << "Bandwidth is not compatible with standard" << std::endl;
@@ -968,11 +934,8 @@ main (int argc, char *argv[])
   else if (standard == "11ac")
     {
       wifi.SetStandard (WIFI_PHY_STANDARD_80211ac);
-      // ssid = Ssid ("ns380211ac");
       dataRate = "VhtMcs" + ossMcs.str ();
       freq = 5170 + (bw / 2); //so as to have 5180/5190/5210/5250 for 20/40/80/160
-      dataStartTime = MicroSeconds (1100);
-      dataDuration += MicroSeconds (400); //account for ADDBA procedure
       if (bw != 20 && bw != 40 && bw != 80 && bw != 160)
         {
           std::cout << "Bandwidth is not compatible with standard" << std::endl;
@@ -982,11 +945,8 @@ main (int argc, char *argv[])
   else if (standard == "11ax_2_4GHZ")
     {
       wifi.SetStandard (WIFI_PHY_STANDARD_80211ax_2_4GHZ);
-      // ssid = Ssid ("ns380211ax_2_4GHZ");
       dataRate = "HeMcs" + ossMcs.str ();
       freq = 2402 + (bw / 2); //so as to have 2412/2422/2442 for 20/40/80
-      dataStartTime = MicroSeconds (5500);
-      dataDuration += MicroSeconds (2000); //account for ADDBA procedure
       if (bw != 20 && bw != 40 && bw != 80)
         {
           std::cout << "Bandwidth is not compatible with standard" << std::endl;
@@ -996,19 +956,13 @@ main (int argc, char *argv[])
   else if (standard == "11ax_5GHZ")
     {
       wifi.SetStandard (WIFI_PHY_STANDARD_80211ax_5GHZ);
-      // ssid = Ssid ("ns380211ax_5GHZ");
       dataRate = "HeMcs" + ossMcs.str ();
       freq = 5170 + (bw / 2); //so as to have 5180/5190/5210/5250 for 20/40/80/160
-      dataStartTime = MicroSeconds (1200);
-      dataDuration += MicroSeconds (500); //account for ADDBA procedure
       if (bw != 20 && bw != 40 && bw != 80 && bw != 160)
         {
           std::cout << "Bandwidth is not compatible with standard" << std::endl;
           return 1;
         }
-
-      // enable OSBB_PD
-      enableObssPd = true;
     }
   else
     {
@@ -1285,15 +1239,13 @@ main (int argc, char *argv[])
   spectrumPhy.Set ("MaxSupportedTxSpatialStreams", UintegerValue (maxSupportedTxSpatialStreams));
   spectrumPhy.Set ("MaxSupportedRxSpatialStreams", UintegerValue (maxSupportedRxSpatialStreams));
   spectrumPhy.Set ("CcaEdThreshold", DoubleValue (ccaTrSta));
-  //PHY energy threshold -92 dBm
   spectrumPhy.Set ("RxSensitivity", DoubleValue (rxSensitivity));
 
   // Network "A"
   Ssid ssidA = Ssid ("A");
   mac.SetType ("ns3::StaWifiMac",
                "Ssid", SsidValue (ssidA));
-  // Do we also want to allow Amsdu Size to be modified?
-  //              "BE_MaxAmsduSize", UintegerValue(maxAmsduSize));
+
   NetDeviceContainer staDevicesA;
   staDevicesA = wifi.Install (spectrumPhy, mac, stasA);
 
@@ -1342,8 +1294,7 @@ main (int argc, char *argv[])
       Ssid ssidB = Ssid ("B");
       mac.SetType ("ns3::StaWifiMac",
                    "Ssid", SsidValue (ssidB));
-      // Do we also want to allow Amsdu Size to be modified?
-      //              "BE_MaxAmsduSize", UintegerValue(maxAmsduSize));
+
       staDevicesB = wifi.Install (spectrumPhy, mac, stasB);
 
       // Set PHY power and CCA threshold for APs
@@ -1389,8 +1340,7 @@ main (int argc, char *argv[])
       Ssid ssidC = Ssid ("C");
       mac.SetType ("ns3::StaWifiMac",
                    "Ssid", SsidValue (ssidC));
-      // Do we also want to allow Amsdu Size to be modified?
-      //              "BE_MaxAmsduSize", UintegerValue(maxAmsduSize));
+
       staDevicesC = wifi.Install (spectrumPhy, mac, stasC);
 
       // Set PHY power and CCA threshold for APs
@@ -1436,8 +1386,7 @@ main (int argc, char *argv[])
       Ssid ssidD = Ssid ("D");
       mac.SetType ("ns3::StaWifiMac",
                    "Ssid", SsidValue (ssidD));
-      // Do we also want to allow Amsdu Size to be modified?
-      //              "BE_MaxAmsduSize", UintegerValue(maxAmsduSize));
+
       staDevicesD = wifi.Install (spectrumPhy, mac, stasD);
 
       // Set PHY power and CCA threshold for APs
@@ -1487,8 +1436,7 @@ main (int argc, char *argv[])
       Ssid ssidE = Ssid ("E");
       mac.SetType ("ns3::StaWifiMac",
                    "Ssid", SsidValue (ssidE));
-      // Do we also want to allow Amsdu Size to be modified?
-      //              "BE_MaxAmsduSize", UintegerValue(maxAmsduSize));
+
       staDevicesE = wifi.Install (spectrumPhy, mac, stasE);
 
       // Set PHY power and CCA threshold for APs
@@ -1529,8 +1477,7 @@ main (int argc, char *argv[])
       Ssid ssidF = Ssid ("F");
       mac.SetType ("ns3::StaWifiMac",
                    "Ssid", SsidValue (ssidF));
-      // Do we also want to allow Amsdu Size to be modified?
-      //              "BE_MaxAmsduSize", UintegerValue(maxAmsduSize));
+
       staDevicesF = wifi.Install (spectrumPhy, mac, stasF);
 
       spectrumPhy.Set ("TxPowerStart", DoubleValue (powAp));
@@ -1559,8 +1506,7 @@ main (int argc, char *argv[])
       Ssid ssidG = Ssid ("G");
       mac.SetType ("ns3::StaWifiMac",
                    "Ssid", SsidValue (ssidG));
-      // Do we also want to allow Amsdu Size to be modified?
-      //              "BE_MaxAmsduSize", UintegerValue(maxAmsduSize));
+
       staDevicesG = wifi.Install (spectrumPhy, mac, stasG);
 
       spectrumPhy.Set ("TxPowerStart", DoubleValue (powAp));
@@ -2031,10 +1977,6 @@ main (int argc, char *argv[])
 
   positionOutFile.close ();
 
-  //uint32_t nNodes = allNodes.GetN ();
-  // ApplicationContainer apps;
-  //  TypeId tid = TypeId::LookupByName ("ns3::UdpSocketFactory");
-
   double perNodeUplinkMbps = aggregateUplinkMbps / n;
   double perNodeDownlinkMbps = aggregateDownlinkMbps / n;
   Time intervalUplink = MicroSeconds (payloadSizeUplink * 8 / perNodeUplinkMbps);
@@ -2470,6 +2412,10 @@ main (int argc, char *argv[])
   Config::Set ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/VhtConfiguration/BeMaxAmpduSize", UintegerValue (maxAmpduSize));
   Config::Set ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/HeConfiguration/BeMaxAmpduSize", UintegerValue (maxAmpduSize));
 
+  Config::Set ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/HtConfiguration/BeMaxAmsduSize", UintegerValue (maxAmsduSize));
+  Config::Set ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/VhtConfiguration/BeMaxAmsduSize", UintegerValue (maxAmsduSize));
+  Config::Set ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/HeConfiguration/BeMaxAmsduSize", UintegerValue (maxAmsduSize));
+
   Config::Connect ("/NodeList/*/DeviceList/*/Phy/MonitorSnifferRx", MakeCallback (&MonitorSniffRx));
 
   if (performTgaxTimingChecks)
@@ -2509,19 +2455,6 @@ main (int argc, char *argv[])
     {
       spectrumPhy.EnablePcap ("pcapforPackets", staDevicesA);
     }
-
-  // uint32_t nNodes = allNodes.GetN ();
-  // std::cout << "Node Address" << std::endl;
-  // for (uint32_t n = 0; n < nNodes; n++)
-  //   {
-  //
-  //     Address address = allNodes.Get (n)->GetDevice(0)->GetAddress();
-  //     Mac48Address mac48address = Mac48Address::ConvertFrom(address);
-  //     Ptr<NetDevice> dev = allNodes.Get (n)->GetDevice(0);
-  //     Ptr<WifiNetDevice> wifi_dev = DynamicCast<WifiNetDevice>(dev);
-  //     Mac48Address addrm = wifi_dev->GetMac ()->GetAddress ();
-  //     std::cout << n << " " << address << " Mac48Address " << mac48address << " addrm " << addrm << std::endl;
-  //   }
 
   Time durationTime = Seconds (duration + applicationTxStart);
   Simulator::Stop (durationTime);
@@ -2711,17 +2644,10 @@ main (int argc, char *argv[])
 
   if (monitorA != 0)
     {
-std::cout << "writing flowmon results to " << stmp.str ().c_str () << std::endl;
       monitorA->SerializeToXmlFile (stmp.str ().c_str (), true, true);
-    }
-  else
-    {
-std::cout << "there is no monitorA" << std::endl;
     }
 
   SaveUdpFlowMonitorStats (outputFilePrefix + "-operatorA-" + testname, "simulationParams", monitorA, flowmonHelperA, durationTime.GetSeconds ());
 
-
   return 0;
 }
-
