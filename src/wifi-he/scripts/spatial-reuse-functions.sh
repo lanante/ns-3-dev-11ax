@@ -18,7 +18,13 @@ function run_one () {
     # echo "sigma is not set, defaulting to 5.0.";
     export sigma=5.0
   # else
-  #  # echo "sigma is set to $sigma";
+  #   echo "sigma is set to $sigma";
+  fi
+  if [ -z "$applicationTxStart" ]; then
+    # echo "applicationTxStart is not set, defaulting to 1.0.";
+    export applicationTxStart=1.0
+  # else
+  #   echo "applicationTxStart is set to $applicationTxStart";
   fi
   echo Running ${test}
   # run the test
@@ -57,7 +63,9 @@ function run_one () {
         --useIdealWifiManager=${useIdealWifiManager} \
         --test=${test} \
         --maxSlrc=${maxSlrc} \
-        --bianchi=${bianchi}"
+        --bianchi=${bianchi} \
+        --sigma=${sigma} \
+        --applicationTxStart=${applicationTxStart}"
 
   # copy results files
   cd ../scripts
