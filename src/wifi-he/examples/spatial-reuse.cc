@@ -1260,8 +1260,39 @@ main (int argc, char *argv[])
 
   if (useIdealWifiManager == false)
     {
+      StringValue ctrlRate;
+      if ((standard == "11n_2_4GHZ") || (standard == "11ax_2_4GHZ"))
+        {
+          if (mcs == 0)
+            {
+              ctrlRate = StringValue ("ErpOfdmRate6Mbps");
+            }
+          else if (mcs < 3)
+            {
+              ctrlRate = StringValue ("ErpOfdmRate12Mbps");
+            }
+          else
+            {
+              ctrlRate = StringValue ("ErpOfdmRate24Mbps");
+            }
+        }
+      else
+        {
+          if (mcs == 0)
+            {
+              ctrlRate = StringValue ("OfdmRate6Mbps");
+            }
+          else if (mcs < 3)
+            {
+              ctrlRate = StringValue ("OfdmRate12Mbps");
+            }
+          else
+            {
+              ctrlRate = StringValue ("OfdmRate24Mbps");
+            }
+        }
       wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager","DataMode", StringValue (dataRate),
-                                    "ControlMode", StringValue (dataRate));
+                                    "ControlMode", ctrlRate);
     }
   else
     {
