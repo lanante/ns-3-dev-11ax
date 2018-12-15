@@ -693,19 +693,19 @@ WifiHelper::Install (const WifiPhyHelper &phyHelper,
 
               rmac->GetAttributeFailSafe ("BE_Txop", ptr);
               wmq = ptr.Get<QosTxop> ()->GetWifiMacQueue ();
-              ndqi->ConnectQueueTraces<WifiMacQueueItem> (wmq, 0);
+              ndqi->GetTxQueue (0)->ConnectQueueTraces (wmq);
 
               rmac->GetAttributeFailSafe ("BK_Txop", ptr);
               wmq = ptr.Get<QosTxop> ()->GetWifiMacQueue ();
-              ndqi->ConnectQueueTraces<WifiMacQueueItem> (wmq, 1);
+              ndqi->GetTxQueue (1)->ConnectQueueTraces (wmq);
 
               rmac->GetAttributeFailSafe ("VI_Txop", ptr);
               wmq = ptr.Get<QosTxop> ()->GetWifiMacQueue ();
-              ndqi->ConnectQueueTraces<WifiMacQueueItem> (wmq, 2);
+              ndqi->GetTxQueue (2)->ConnectQueueTraces (wmq);
 
               rmac->GetAttributeFailSafe ("VO_Txop", ptr);
               wmq = ptr.Get<QosTxop> ()->GetWifiMacQueue ();
-              ndqi->ConnectQueueTraces<WifiMacQueueItem> (wmq, 3);
+              ndqi->GetTxQueue (3)->ConnectQueueTraces (wmq);
               ndqi->SetSelectQueueCallback (m_selectQueueCallback);
             }
           else
@@ -714,7 +714,7 @@ WifiHelper::Install (const WifiPhyHelper &phyHelper,
 
               rmac->GetAttributeFailSafe ("Txop", ptr);
               wmq = ptr.Get<Txop> ()->GetWifiMacQueue ();
-              ndqi->ConnectQueueTraces<WifiMacQueueItem> (wmq, 0);
+              ndqi->GetTxQueue (0)->ConnectQueueTraces (wmq);
             }
           device->AggregateObject (ndqi);
         }
@@ -747,6 +747,9 @@ WifiHelper::Install (const WifiPhyHelper &phy,
 void
 WifiHelper::EnableLogComponents (void)
 {
+  LogComponentEnableAll (LOG_PREFIX_TIME);
+  LogComponentEnableAll (LOG_PREFIX_NODE);
+
   LogComponentEnable ("AarfWifiManager", LOG_LEVEL_ALL);
   LogComponentEnable ("AarfcdWifiManager", LOG_LEVEL_ALL);
   LogComponentEnable ("AdhocWifiMac", LOG_LEVEL_ALL);
@@ -782,6 +785,7 @@ WifiHelper::EnableLogComponents (void)
   LogComponentEnable ("SpectrumWifiPhy", LOG_LEVEL_ALL);
   LogComponentEnable ("StaWifiMac", LOG_LEVEL_ALL);
   LogComponentEnable ("SupportedRates", LOG_LEVEL_ALL);
+  LogComponentEnable ("ThresholdPreambleDetectionModel", LOG_LEVEL_ALL);
   LogComponentEnable ("WifiMac", LOG_LEVEL_ALL);
   LogComponentEnable ("WifiMacQueueItem", LOG_LEVEL_ALL);
   LogComponentEnable ("WifiNetDevice", LOG_LEVEL_ALL);
