@@ -755,6 +755,7 @@ main (int argc, char *argv[])
   bool bianchi = false;
   double sigma = 5.0;
   double rxSensitivity = -91.0;
+  uint32_t beaconInterval = 102400; // microseconds
 
   CommandLine cmd;
   cmd.AddValue ("duration", "Duration of simulation (s)", duration);
@@ -799,6 +800,7 @@ main (int argc, char *argv[])
   cmd.AddValue ("bianchi", "Set parameters for Biachi validation", bianchi);
   cmd.AddValue ("test", "The testname.", testname);
   cmd.AddValue ("sigma", "Log-normal shadowing loss parameter.", sigma);
+  cmd.AddValue ("beaconInterval", "Beacon interval in microseconds.", beaconInterval);
   cmd.Parse (argc, argv);
 
   if ((scenario == "study1") || (scenario == "study2"))
@@ -833,6 +835,7 @@ main (int argc, char *argv[])
     uMaxSlrc = std::numeric_limits<uint32_t>::max ();
     Config::SetDefault ("ns3::WifiRemoteStationManager::MaxSlrc", UintegerValue (uMaxSlrc));
     Config::SetDefault ("ns3::WifiRemoteStationManager::MaxSsrc", UintegerValue (uMaxSlrc));
+    beaconInterval = duration * 100000;
   }
 
   std::ostringstream ossMcs;
@@ -1259,7 +1262,9 @@ main (int argc, char *argv[])
   spectrumPhy.Set ("MaxSupportedRxSpatialStreams", UintegerValue (maxSupportedRxSpatialStreams));
   spectrumPhy.Set ("CcaEdThreshold", DoubleValue (ccaTrAp));
   spectrumPhy.Set ("RxSensitivity", DoubleValue (rxSensitivity));
+
   mac.SetType ("ns3::ApWifiMac",
+               "BeaconInterval", TimeValue (MicroSeconds (beaconInterval)),
                "Ssid", SsidValue (ssidA));
 
   // AP1
@@ -1307,7 +1312,9 @@ main (int argc, char *argv[])
       spectrumPhy.Set ("MaxSupportedRxSpatialStreams", UintegerValue (maxSupportedRxSpatialStreams));
       spectrumPhy.Set ("CcaEdThreshold", DoubleValue (ccaTrAp));
       spectrumPhy.Set ("RxSensitivity", DoubleValue (rxSensitivity));
+
       mac.SetType ("ns3::ApWifiMac",
+                   "BeaconInterval", TimeValue (MicroSeconds (beaconInterval)),
                    "Ssid", SsidValue (ssidB));
 
       // AP2
@@ -1353,7 +1360,9 @@ main (int argc, char *argv[])
       spectrumPhy.Set ("MaxSupportedRxSpatialStreams", UintegerValue (maxSupportedRxSpatialStreams));
       spectrumPhy.Set ("CcaEdThreshold", DoubleValue (ccaTrAp));
       spectrumPhy.Set ("RxSensitivity", DoubleValue (rxSensitivity));
+
       mac.SetType ("ns3::ApWifiMac",
+                   "BeaconInterval", TimeValue (MicroSeconds (beaconInterval)),
                    "Ssid", SsidValue (ssidC));
 
       // AP3
@@ -1399,7 +1408,9 @@ main (int argc, char *argv[])
       spectrumPhy.Set ("MaxSupportedRxSpatialStreams", UintegerValue (maxSupportedRxSpatialStreams));
       spectrumPhy.Set ("CcaEdThreshold", DoubleValue (ccaTrAp));
       spectrumPhy.Set ("RxSensitivity", DoubleValue (rxSensitivity));
+
       mac.SetType ("ns3::ApWifiMac",
+                   "BeaconInterval", TimeValue (MicroSeconds (beaconInterval)),
                    "Ssid", SsidValue (ssidD));
 
       // AP4
@@ -1449,7 +1460,9 @@ main (int argc, char *argv[])
       spectrumPhy.Set ("MaxSupportedRxSpatialStreams", UintegerValue (maxSupportedRxSpatialStreams));
       spectrumPhy.Set ("CcaEdThreshold", DoubleValue (ccaTrAp));
       spectrumPhy.Set ("RxSensitivity", DoubleValue (rxSensitivity));
+
       mac.SetType ("ns3::ApWifiMac",
+                   "BeaconInterval", TimeValue (MicroSeconds (beaconInterval)),
                    "Ssid", SsidValue (ssidE));
 
       // AP5
@@ -1489,7 +1502,9 @@ main (int argc, char *argv[])
       spectrumPhy.Set ("MaxSupportedRxSpatialStreams", UintegerValue (maxSupportedRxSpatialStreams));
       spectrumPhy.Set ("CcaEdThreshold", DoubleValue (ccaTrAp));
       spectrumPhy.Set ("RxSensitivity", DoubleValue (rxSensitivity));
+
       mac.SetType ("ns3::ApWifiMac",
+                   "BeaconInterval", TimeValue (MicroSeconds (beaconInterval)),
                    "Ssid", SsidValue (ssidF));
 
       // AP6
@@ -1518,7 +1533,9 @@ main (int argc, char *argv[])
       spectrumPhy.Set ("MaxSupportedRxSpatialStreams", UintegerValue (maxSupportedRxSpatialStreams));
       spectrumPhy.Set ("CcaEdThreshold", DoubleValue (ccaTrAp));
       spectrumPhy.Set ("RxSensitivity", DoubleValue (rxSensitivity));
+
       mac.SetType ("ns3::ApWifiMac",
+                   "BeaconInterval", TimeValue (MicroSeconds (beaconInterval)),
                    "Ssid", SsidValue (ssidG));
 
       // AP7
