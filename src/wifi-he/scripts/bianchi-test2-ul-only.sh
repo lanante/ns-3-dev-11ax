@@ -80,19 +80,51 @@ export txRange=102
 # Expected Throughput = 38.6Mbps per BSS (n=1 in slide 9)
 
 # for uplink, allocate traffic per STA x n STAs
-export uplink=500.0
 export downlink=0.0
 export d=120
-export d=500
+# export d=500
 export sigma=0.0
-export bianchi=0
+export bianchi=1
+export rxSensitivity=-82
+
+export uplink=500.0
 export n=5
-#export maxSlrc=-1
-export test=bianchi-test2-ul-only
+export test="bianchi-test2-ul-only-n5"
+#run_one &
 
-echo "Expected Throughput = 32.1 Mbps"
-# actual throughput = 33.7 Mbps
+export uplink=1000.0
+export n=10
+export test="bianchi-test2-ul-only-n10"
+#run_one &
 
+export uplink=1500.0
+export n=15
+export test="bianchi-test2-ul-only-n15"
+#run_one &
+
+export uplink=2000.0
+export n=20
+export test="bianchi-test2-ul-only-n20"
+#run_one &
+
+export uplink=2500.0
+export n=25
+export test="bianchi-test2-ul-only-n25"
+run_one &
+
+export uplink=3000.0
+export n=30
+export test="bianchi-test2-ul-only-n30"
+run_one &
+
+export uplink=3500.0
+export n=35
+export test="bianchi-test2-ul-only-n35"
+run_one &
+
+export uplink=4000.0
+export n=40
+export test="bianchi-test2-ul-only-n40"
 run_one &
 
 wait

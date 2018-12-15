@@ -715,6 +715,9 @@ SaveUdpFlowMonitorStats (std::string filename, std::string simulationParams, Ptr
   outFile.close ();
 }
 
+// Can be removed.  This was intended to modify the cwMin and cwMax
+// values, but was decided that the defaults csWin=15 and cwMax=1023 are
+// valid for Bianchi validation, so there is nothing to be "changed"
 void SetBianchi (Ptr<WifiMac> wifi_mac)
 {
 /*
@@ -760,8 +763,8 @@ main (int argc, char *argv[])
   double duration = 20.0; // seconds
   double powSta = 10.0; // dBm
   double powAp = 21.0; // dBm
-  double ccaTrSta = -102; // dBm
-  double ccaTrAp = -82; // dBm
+  double ccaTrSta = -62; // dBm
+  double ccaTrAp = -62; // dBm
   uint32_t nBss = 2; // number of BSSs.  Can be 1 or 2 (default)
   double d = 100.0; // distance between AP1 and AP2, m
   uint32_t n = 1; // number of STAs to scatter around each AP;
@@ -802,6 +805,7 @@ main (int argc, char *argv[])
   bool useIdealWifiManager = false;
   bool bianchi = false;
   double sigma = 5.0;
+  double rxSensitivity = -91.0;
 
   CommandLine cmd;
   cmd.AddValue ("duration", "Duration of simulation (s)", duration);
@@ -815,6 +819,7 @@ main (int argc, char *argv[])
   cmd.AddValue ("maxSupportedRxSpatialStreams", "The maximum number of supported Rx spatial streams.", maxSupportedRxSpatialStreams);
   cmd.AddValue ("ccaTrSta", "CCA Threshold of STA (dBm)", ccaTrSta);
   cmd.AddValue ("ccaTrAp", "CCA Threshold of AP (dBm)", ccaTrAp);
+  cmd.AddValue ("rxSensitivity", "Receiver Sensitivity (dBm)", rxSensitivity);
   cmd.AddValue ("d", "Distance between AP1 and AP2 (m)", d);
   cmd.AddValue ("n", "Number of STAs to scatter around each AP", n);
   cmd.AddValue ("r", "Radius of circle around each AP in which to scatter STAs (m)", r);
@@ -1281,7 +1286,7 @@ main (int argc, char *argv[])
   spectrumPhy.Set ("MaxSupportedRxSpatialStreams", UintegerValue (maxSupportedRxSpatialStreams));
   spectrumPhy.Set ("CcaEdThreshold", DoubleValue (ccaTrSta));
   //PHY energy threshold -92 dBm
-  spectrumPhy.Set ("RxSensitivity", DoubleValue (-92.0));
+  spectrumPhy.Set ("RxSensitivity", DoubleValue (rxSensitivity));
 
   // Network "A"
   Ssid ssidA = Ssid ("A");
@@ -1301,7 +1306,7 @@ main (int argc, char *argv[])
   spectrumPhy.Set ("MaxSupportedTxSpatialStreams", UintegerValue (maxSupportedTxSpatialStreams));
   spectrumPhy.Set ("MaxSupportedRxSpatialStreams", UintegerValue (maxSupportedRxSpatialStreams));
   spectrumPhy.Set ("CcaEdThreshold", DoubleValue (ccaTrAp));
-  spectrumPhy.Set ("RxSensitivity", DoubleValue (-92.0));
+  spectrumPhy.Set ("RxSensitivity", DoubleValue (rxSensitivity));
   mac.SetType ("ns3::ApWifiMac",
                "Ssid", SsidValue (ssidA));
   // Do we also want to allow Amsdu Size to be modified?
@@ -1340,7 +1345,7 @@ main (int argc, char *argv[])
       spectrumPhy.Set ("MaxSupportedTxSpatialStreams", UintegerValue (maxSupportedTxSpatialStreams));
       spectrumPhy.Set ("MaxSupportedRxSpatialStreams", UintegerValue (maxSupportedRxSpatialStreams));
       spectrumPhy.Set ("CcaEdThreshold", DoubleValue (ccaTrSta));
-      spectrumPhy.Set ("RxSensitivity", DoubleValue (-92.0));
+      spectrumPhy.Set ("RxSensitivity", DoubleValue (rxSensitivity));
 
       // Network "B"
       Ssid ssidB = Ssid ("B");
@@ -1359,7 +1364,7 @@ main (int argc, char *argv[])
       spectrumPhy.Set ("MaxSupportedTxSpatialStreams", UintegerValue (maxSupportedTxSpatialStreams));
       spectrumPhy.Set ("MaxSupportedRxSpatialStreams", UintegerValue (maxSupportedRxSpatialStreams));
       spectrumPhy.Set ("CcaEdThreshold", DoubleValue (ccaTrAp));
-      spectrumPhy.Set ("RxSensitivity", DoubleValue (-92.0));
+      spectrumPhy.Set ("RxSensitivity", DoubleValue (rxSensitivity));
       mac.SetType ("ns3::ApWifiMac",
                    "Ssid", SsidValue (ssidB));
       // Do we also want to allow Amsdu Size to be modified?
@@ -1397,7 +1402,7 @@ main (int argc, char *argv[])
       spectrumPhy.Set ("MaxSupportedTxSpatialStreams", UintegerValue (maxSupportedTxSpatialStreams));
       spectrumPhy.Set ("MaxSupportedRxSpatialStreams", UintegerValue (maxSupportedRxSpatialStreams));
       spectrumPhy.Set ("CcaEdThreshold", DoubleValue (ccaTrSta));
-      spectrumPhy.Set ("RxSensitivity", DoubleValue (-92.0));
+      spectrumPhy.Set ("RxSensitivity", DoubleValue (rxSensitivity));
 
       // Network "C"
       Ssid ssidC = Ssid ("C");
@@ -1416,7 +1421,7 @@ main (int argc, char *argv[])
       spectrumPhy.Set ("MaxSupportedTxSpatialStreams", UintegerValue (maxSupportedTxSpatialStreams));
       spectrumPhy.Set ("MaxSupportedRxSpatialStreams", UintegerValue (maxSupportedRxSpatialStreams));
       spectrumPhy.Set ("CcaEdThreshold", DoubleValue (ccaTrAp));
-      spectrumPhy.Set ("RxSensitivity", DoubleValue (-92.0));
+      spectrumPhy.Set ("RxSensitivity", DoubleValue (rxSensitivity));
       mac.SetType ("ns3::ApWifiMac",
                    "Ssid", SsidValue (ssidC));
       // Do we also want to allow Amsdu Size to be modified?
@@ -1454,7 +1459,7 @@ main (int argc, char *argv[])
       spectrumPhy.Set ("MaxSupportedTxSpatialStreams", UintegerValue (maxSupportedTxSpatialStreams));
       spectrumPhy.Set ("MaxSupportedRxSpatialStreams", UintegerValue (maxSupportedRxSpatialStreams));
       spectrumPhy.Set ("CcaEdThreshold", DoubleValue (ccaTrSta));
-      spectrumPhy.Set ("RxSensitivity", DoubleValue (-92.0));
+      spectrumPhy.Set ("RxSensitivity", DoubleValue (rxSensitivity));
 
       // Network "D"
       Ssid ssidD = Ssid ("D");
@@ -1473,7 +1478,7 @@ main (int argc, char *argv[])
       spectrumPhy.Set ("MaxSupportedTxSpatialStreams", UintegerValue (maxSupportedTxSpatialStreams));
       spectrumPhy.Set ("MaxSupportedRxSpatialStreams", UintegerValue (maxSupportedRxSpatialStreams));
       spectrumPhy.Set ("CcaEdThreshold", DoubleValue (ccaTrAp));
-      spectrumPhy.Set ("RxSensitivity", DoubleValue (-92.0));
+      spectrumPhy.Set ("RxSensitivity", DoubleValue (rxSensitivity));
       mac.SetType ("ns3::ApWifiMac",
                    "Ssid", SsidValue (ssidD));
       // Do we also want to allow Amsdu Size to be modified?
@@ -1515,7 +1520,7 @@ main (int argc, char *argv[])
       spectrumPhy.Set ("MaxSupportedTxSpatialStreams", UintegerValue (maxSupportedTxSpatialStreams));
       spectrumPhy.Set ("MaxSupportedRxSpatialStreams", UintegerValue (maxSupportedRxSpatialStreams));
       spectrumPhy.Set ("CcaEdThreshold", DoubleValue (ccaTrSta));
-      spectrumPhy.Set ("RxSensitivity", DoubleValue (-92.0));
+      spectrumPhy.Set ("RxSensitivity", DoubleValue (rxSensitivity));
 
       // Network "E"
       Ssid ssidE = Ssid ("E");
@@ -1534,7 +1539,7 @@ main (int argc, char *argv[])
       spectrumPhy.Set ("MaxSupportedTxSpatialStreams", UintegerValue (maxSupportedTxSpatialStreams));
       spectrumPhy.Set ("MaxSupportedRxSpatialStreams", UintegerValue (maxSupportedRxSpatialStreams));
       spectrumPhy.Set ("CcaEdThreshold", DoubleValue (ccaTrAp));
-      spectrumPhy.Set ("RxSensitivity", DoubleValue (-92.0));
+      spectrumPhy.Set ("RxSensitivity", DoubleValue (rxSensitivity));
       mac.SetType ("ns3::ApWifiMac",
                    "Ssid", SsidValue (ssidE));
       // Do we also want to allow Amsdu Size to be modified?
@@ -1567,7 +1572,7 @@ main (int argc, char *argv[])
       spectrumPhy.Set ("MaxSupportedTxSpatialStreams", UintegerValue (maxSupportedTxSpatialStreams));
       spectrumPhy.Set ("MaxSupportedRxSpatialStreams", UintegerValue (maxSupportedRxSpatialStreams));
       spectrumPhy.Set ("CcaEdThreshold", DoubleValue (ccaTrSta));
-      spectrumPhy.Set ("RxSensitivity", DoubleValue (-92.0));
+      spectrumPhy.Set ("RxSensitivity", DoubleValue (rxSensitivity));
 
       // Network "F"
       Ssid ssidF = Ssid ("F");
@@ -1577,7 +1582,6 @@ main (int argc, char *argv[])
       //              "BE_MaxAmsduSize", UintegerValue(maxAmsduSize));
       staDevicesF = wifi.Install (spectrumPhy, mac, stasF);
 
-      // Set PHY power and CCA threshold for APs
       spectrumPhy.Set ("TxPowerStart", DoubleValue (powAp));
       spectrumPhy.Set ("TxPowerEnd", DoubleValue (powAp));
       spectrumPhy.Set ("TxGain", DoubleValue (txGain));
@@ -1586,7 +1590,7 @@ main (int argc, char *argv[])
       spectrumPhy.Set ("MaxSupportedTxSpatialStreams", UintegerValue (maxSupportedTxSpatialStreams));
       spectrumPhy.Set ("MaxSupportedRxSpatialStreams", UintegerValue (maxSupportedRxSpatialStreams));
       spectrumPhy.Set ("CcaEdThreshold", DoubleValue (ccaTrAp));
-      spectrumPhy.Set ("RxSensitivity", DoubleValue (-92.0));
+      spectrumPhy.Set ("RxSensitivity", DoubleValue (rxSensitivity));
       mac.SetType ("ns3::ApWifiMac",
                    "Ssid", SsidValue (ssidF));
       // Do we also want to allow Amsdu Size to be modified?
@@ -1618,7 +1622,6 @@ main (int argc, char *argv[])
       //              "BE_MaxAmsduSize", UintegerValue(maxAmsduSize));
       staDevicesG = wifi.Install (spectrumPhy, mac, stasG);
 
-      // Set PHY power and CCA threshold for APs
       spectrumPhy.Set ("TxPowerStart", DoubleValue (powAp));
       spectrumPhy.Set ("TxPowerEnd", DoubleValue (powAp));
       spectrumPhy.Set ("TxGain", DoubleValue (txGain));
@@ -1627,7 +1630,7 @@ main (int argc, char *argv[])
       spectrumPhy.Set ("MaxSupportedTxSpatialStreams", UintegerValue (maxSupportedTxSpatialStreams));
       spectrumPhy.Set ("MaxSupportedRxSpatialStreams", UintegerValue (maxSupportedRxSpatialStreams));
       spectrumPhy.Set ("CcaEdThreshold", DoubleValue (ccaTrAp));
-      spectrumPhy.Set ("RxSensitivity", DoubleValue (-92.0));
+      spectrumPhy.Set ("RxSensitivity", DoubleValue (rxSensitivity));
       mac.SetType ("ns3::ApWifiMac",
                    "Ssid", SsidValue (ssidG));
       // Do we also want to allow Amsdu Size to be modified?

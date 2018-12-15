@@ -19,6 +19,7 @@ export performTgaxTimingChecks=0
 export nodePositionsFile=NONE
 export enablePcap=0
 export enableAscii=0
+export rxSensitivity=-82
 # only used by 11ax
 export obssPdThreshold=-82
 
@@ -55,7 +56,7 @@ export MCS=7
 
 # EDCA parameters: Best Effort
 # AIFSn=3
-# CWmin=3
+# CWmin=15
 # unchanged from ns-3 defaults
 
 # Dropping radius r=10m
@@ -83,10 +84,11 @@ export uplink=0.0
 # to saturate, need downlink per STA x n STAs
 export downlink=4000.0
 export d=120
-export d=500
+#export d=500
 export n=40
+# no shadowing loss
 export sigma=0.0
-export bianchi=0
+export bianchi=1
 export test=bianchi-test1-dl-only
 
 echo "Expected Throughput = 38.6 Mbps"
