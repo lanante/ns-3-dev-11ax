@@ -244,60 +244,9 @@ SpectrumWifiPhy::StartRx (Ptr<SpectrumSignalParameters> rxParams)
       SwitchMaybeToCcaBusy ();
       return;
     }
-  Ptr<Packet> packet = wifiRxParams->packet->Copy ();
-  WifiPhyTag tag;
-  bool found = packet->PeekPacketTag (tag);
-  if (!found)
-    {
-      NS_FATAL_ERROR ("Received Wi-Fi Signal with no WifiPhyTag");
-      return;
-    }
-  WifiTxVector txVector = tag.GetWifiTxVector ();
-  // TODO:  In ns-3-dev, find more convenient place to store HeConfiguration
-  Ptr<HeConfiguration> heConfiguration = 0;
-  Ptr<WifiNetDevice> wifiNetDevice = DynamicCast<WifiNetDevice> (GetDevice ());
-  if (wifiNetDevice)
-    {
-      heConfiguration = wifiNetDevice->GetHeConfiguration ();
-    }
-  if (heConfiguration)
-    {
-      UintegerValue bssColor;
-      heConfiguration->GetAttribute ("BssColor", bssColor);
-      if (txVector.GetBssColor () == bssColor.Get () && rxPowerW < GetCcaCsThresholdW ())
-        {
-          NS_LOG_INFO ("Received Wi-Fi signal but below CCA-CS threshold");
-          m_interference.AddForeignSignal (rxDuration, rxPowerW);
-          SwitchMaybeToCcaBusy ();
-          return;
-        }
-      Ptr<WifiNetDevice> device = DynamicCast<WifiNetDevice> (GetDevice ());
-      Ptr<ObssPdAlgorithm> obssPdAlgorithm = device->GetObssPdAlgorithm ();
-      if (obssPdAlgorithm)
-        {
-          DoubleValue obssPdLevel;
-          obssPdAlgorithm->GetAttribute ("ObssPdLevel", obssPdLevel);
-          double obssPdLevelW = obssPdLevel.Get () * GetChannelWidth ()/20;
-          if (txVector.GetBssColor () != bssColor.Get () && rxPowerW < obssPdLevelW)
-            {
-              NS_LOG_INFO ("Received OBSS Wi-Fi signal but below OBSS-PD threshold");
-              m_interference.AddForeignSignal (rxDuration, rxPowerW);
-              SwitchMaybeToCcaBusy ();
-              return;
-            }
-        }
-    }
-  else // not 11ax
-    {
-      if (rxPowerW < GetCcaCsThresholdW ())
-        {
-          NS_LOG_INFO ("Received Wi-Fi signal but below CCA-CS threshold");
-          m_interference.AddForeignSignal (rxDuration, rxPowerW);
-          SwitchMaybeToCcaBusy ();
-          return;
-        }
-    }
+
   NS_LOG_INFO ("Received Wi-Fi signal");
+  Ptr<Packet> packet = wifiRxParams->packet->Copy ();
   StartReceivePreamble (packet, rxPowerW, rxDuration);
 }
 

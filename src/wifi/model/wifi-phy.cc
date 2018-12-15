@@ -204,13 +204,6 @@ WifiPhy::GetTypeId (void)
                    MakeDoubleAccessor (&WifiPhy::SetCcaEdThreshold,
                                        &WifiPhy::GetCcaEdThreshold),
                    MakeDoubleChecker<double> ())
-    .AddAttribute ("CcaCsThreshold",
-                   "CCA-CS (carrier sense) threshold (dBm); the minimum modulation and coding "
-                   "rate sensitivity to cause CCA to detect medium busy.",
-                   DoubleValue (-82.0),
-                   MakeDoubleAccessor (&WifiPhy::SetCcaCsThreshold,
-                                       &WifiPhy::GetCcaCsThreshold),
-                   MakeDoubleChecker<double> ())
     .AddAttribute ("TxGain",
                    "Transmission gain (dB).",
                    DoubleValue (0.0),
@@ -540,25 +533,6 @@ double
 WifiPhy::GetCcaEdThreshold (void) const
 {
   return WToDbm (m_ccaEdThresholdW);
-}
-
-void
-WifiPhy::SetCcaCsThreshold (double threshold)
-{
-  NS_LOG_FUNCTION (this << threshold);
-  m_ccaCsThresholdW = DbmToW (threshold);
-}
-
-double
-WifiPhy::GetCcaCsThreshold (void) const
-{
-  return WToDbm (m_ccaCsThresholdW);
-}
-
-double
-WifiPhy::GetCcaCsThresholdW (void) const
-{
-  return m_ccaCsThresholdW;
 }
 
 void
