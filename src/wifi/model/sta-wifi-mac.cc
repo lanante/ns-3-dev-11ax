@@ -857,6 +857,7 @@ StaWifiMac::UpdateApInfoFromBeacon (MgtBeaconHeader beacon, Mac48Address apAddr,
       HeCapabilities heCapabilities = beacon.GetHeCapabilities ();
       //todo: once we support non constant rate managers, we should add checks here whether HE is supported by the peer
       m_stationManager->AddStationHeCapabilities (apAddr, heCapabilities);
+      HeOperation heOperation = beacon.GetHeOperation ();
       for (uint8_t i = 0; i < m_phy->GetNMcs (); i++)
         {
           WifiMode mcs = m_phy->GetMcs (i);
@@ -1044,9 +1045,7 @@ StaWifiMac::UpdateApInfoFromAssocResp (MgtAssocResponseHeader assocResp, Mac48Ad
       m_stationManager->AddStationHeCapabilities (apAddr, hecapabilities);
       HeOperation heOperation = assocResp.GetHeOperation ();
       NS_LOG_DEBUG ("Setting BSS color to " << heOperation.GetBssColor ());
-      Ptr<WifiNetDevice> device = DynamicCast<WifiNetDevice> (GetDevice ());
-      Ptr<HeConfiguration> heConfiguration = device->GetHeConfiguration ();
-      heConfiguration->SetAttribute ("BssColor", UintegerValue (heOperation.GetBssColor ()));
+      GetHeConfiguration ()->SetAttribute ("BssColor", UintegerValue (heOperation.GetBssColor ()));
     }
   for (uint8_t i = 0; i < m_phy->GetNModes (); i++)
     {
