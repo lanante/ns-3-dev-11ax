@@ -19,6 +19,7 @@ export performTgaxTimingChecks=0
 export nodePositionsFile=NONE
 export enablePcap=0
 export enableAscii=0
+export rxSensitivity=-82
 # only used by 11ax
 export obssPdThreshold=-82
 
@@ -55,7 +56,7 @@ export MCS=7
 
 # EDCA parameters: Best Effort
 # AIFSn=3
-# CWmin=3
+# CWmin=15
 # unchanged from ns-3 defaults
 
 # Dropping radius r=10m
@@ -68,62 +69,30 @@ export powAp=20
 # CSR = 102m for AP - see slide 3
 export txRange=102
 
-# Slide 11
-# 2. Uncoupled BSSes with all UL throughput
+# Slide 10
+# 1. Uncoupled BSSes with all DL throughput
 # Set
-# UL traffic = 100Mbps per BSS
-# DL traffic  = 0Mbps
+# DL traffic = 100Mbps per BSS
+# UL traffic  = 0Mbps
 # r= 10m
 # d=120m
 # nBSS=7
-# nSTA=5:5:40 per BSS
+# nSTA=40 per BSS
 # Expected Throughput = 38.6Mbps per BSS (n=1 in slide 9)
 
-# for uplink, allocate traffic per STA x n STAs
-export downlink=0.0
-export d=120
+export uplink=0.0
+# to saturate, need downlink per STA x n STAs
+export downlink=4000.0
+export n=40
+# no shadowing loss
 export sigma=0.0
 export bianchi=1
-export rxSensitivity=-82
 
-export uplink=500.0
-export n=5
-export test="bianchi-test2-ul-only-n5"
-#run_one &
-
-export uplink=1000.0
-export n=10
-export test="bianchi-test2-ul-only-n10"
-#run_one &
-
-export uplink=1500.0
-export n=15
-export test="bianchi-test2-ul-only-n15"
-#run_one &
-
-export uplink=2000.0
-export n=20
-export test="bianchi-test2-ul-only-n20"
-#run_one &
-
-export uplink=2500.0
-export n=25
-export test="bianchi-test2-ul-only-n25"
-run_one &
-
-export uplink=3000.0
-export n=30
-export test="bianchi-test2-ul-only-n30"
-run_one &
-
-export uplink=3500.0
-export n=35
-export test="bianchi-test2-ul-only-n35"
-run_one &
-
-export uplink=4000.0
-export n=40
-export test="bianchi-test2-ul-only-n40"
+export test=bianchi-test3-dl-only-n40
+# Test 3 is identical to Test 1 except d=20
+export d=20
+echo "Expected Throughput = 38.6 Mbps"
+# actual throughput = 39.7 Mbps
 run_one &
 
 wait
