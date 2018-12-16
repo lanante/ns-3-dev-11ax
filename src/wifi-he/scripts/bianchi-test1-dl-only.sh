@@ -83,17 +83,15 @@ export txRange=102
 export uplink=0.0
 # to saturate, need downlink per STA x n STAs
 export downlink=4000.0
-export d=120
-#export d=500
 export n=40
 # no shadowing loss
 export sigma=0.0
 export bianchi=1
-export test=bianchi-test1-dl-only
 
+export test=bianchi-test1-dl-only-n40
+export d=120
 echo "Expected Throughput = 38.6 Mbps"
 # actual throughput = 39.7 Mbps
-
 run_one &
 
 wait
