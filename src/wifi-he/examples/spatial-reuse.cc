@@ -104,6 +104,13 @@ struct SignalArrival
   double m_power;
 };
 
+uint32_t nBss = 2; // number of BSSs.  Can be 1 or 2 (default)
+uint32_t n = 1; // number of STAs to scatter around each AP;
+double aggregateUplinkMbps = 1.0;
+double aggregateDownlinkMbps = 1.0;
+
+uint32_t nEstablishedAddaBa = 0;
+
 // for tracking packets and bytes received. will be reallocated once we finalize number of nodes
 std::vector<uint32_t> packetsReceived (0);
 std::vector<uint32_t> bytesReceived (0);
@@ -254,6 +261,56 @@ StateCb (std::string context, Time start, Time duration, WifiPhyState state)
 }
 
 void
+AddbaStateCb (std::string context, Time t, Mac48Address recipient, uint8_t tid, OriginatorBlockAckAgreement::State state)
+{
+  /*switch (state)
+  {
+    case OriginatorBlockAckAgreement::INACTIVE:
+      std::cout<<ContextToNodeId (context)<<" -> "<<recipient<<": INACTIVE"<<std::endl;
+      break;
+    case OriginatorBlockAckAgreement::ESTABLISHED:
+      std::cout<<ContextToNodeId (context)<<" -> "<<recipient<<": ESTABLISHED"<<std::endl;
+      break;
+    case OriginatorBlockAckAgreement::PENDING:
+      std::cout<<ContextToNodeId (context)<<" -> "<<recipient<<": PENDING"<<std::endl;
+      break;
+    case OriginatorBlockAckAgreement::REJECTED:
+      std::cout<<ContextToNodeId (context)<<" -> "<<recipient<<": REJECTED"<<std::endl;
+      break;
+    case OriginatorBlockAckAgreement::NO_REPLY:
+      std::cout<<ContextToNodeId (context)<<" -> "<<recipient<<": NO_REPLY"<<std::endl;
+      break;
+    case OriginatorBlockAckAgreement::RESET:
+      std::cout<<ContextToNodeId (context)<<" -> "<<recipient<<": RESET"<<std::endl;
+      break;
+  }*/
+  if (state == OriginatorBlockAckAgreement::ESTABLISHED)
+    {
+      std::cout << t << ": ADDBA ESTABLISHED for node " << ContextToNodeId (context) << " with " << recipient << std::endl;
+      if (nBss == 1)
+        {
+          if (((aggregateDownlinkMbps != 0) && (ContextToNodeId (context) == 0)) || ((aggregateUplinkMbps != 0) && (ContextToNodeId (context) != 0))) //UL or DL
+            {
+              nEstablishedAddaBa++;
+              if (nEstablishedAddaBa == n)
+                {
+                  std::cout << t << ": ALL ADDBA ARE ESTABLISHED !" << std::endl;
+                }
+            }
+          else if ((aggregateDownlinkMbps != 0) && (aggregateUplinkMbps != 0)) //UP + DL
+            {
+              nEstablishedAddaBa++;
+              if (nEstablishedAddaBa == 2 * n)
+                {
+                  std::cout << t << ": ALL ADDBA ARE ESTABLISHED !" << std::endl;
+                }
+            }
+        }
+        //TODO: multi BSS!
+    }
+}
+
+void
 SignalCb (std::string context, bool wifi, uint32_t senderNodeId, double rxPowerDbm, Time rxDuration)
 {
   SignalArrival arr;
@@ -318,9 +375,21 @@ ScheduleStateLogConnect (void)
 }
 
 void
+ScheduleAddbaStateLogConnect (void)
+{
+  Config::Connect ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Mac/$ns3::RegularWifiMac/BE_Txop/BlockAckManager/AgreementState", MakeCallback (&AddbaStateCb));
+}
+
+void
 ScheduleStateLogDisconnect (void)
 {
   Config::Disconnect ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Phy/State/State", MakeCallback (&StateCb));
+}
+
+void
+ScheduleAddbaStateLogDisconnect (void)
+{
+  Config::Disconnect ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Mac/$ns3::RegularWifiMac/BE_Txop/BlockAckManager/AgreementState", MakeCallback (&AddbaStateCb));
 }
 
 void
@@ -358,7 +427,6 @@ AddServer (Ptr<NetDevice> rxDevice, Ptr<NetDevice> txDevice, Ptr<Node> rxNode)
   Ptr<PacketSocketServer> server = CreateObject<PacketSocketServer> ();
   server->SetLocal (socketAddr);
   rxNode->AddApplication (server);
-
 }
 
 void AddServer (UdpServerHelper &serverA, ApplicationContainer &serverAppA, Ptr<Node> node)
@@ -714,12 +782,8 @@ main (int argc, char *argv[])
   double powAp = 21.0; // dBm
   double ccaTrSta = -62; // dBm
   double ccaTrAp = -62; // dBm
-  uint32_t nBss = 2; // number of BSSs.  Can be 1 or 2 (default)
   double d = 100.0; // distance between AP1 and AP2, m
-  uint32_t n = 1; // number of STAs to scatter around each AP;
   double r = 50.0; // radius of circle around each AP in which to scatter the STAs
-  double aggregateUplinkMbps = 1.0;
-  double aggregateDownlinkMbps = 1.0;
   bool enableRts = 0;
   double txRange = 54.0; // [m]
   int bw = 20;
@@ -2453,6 +2517,7 @@ main (int argc, char *argv[])
   g_stateFile.open (outputFilePrefix + "-state-" + testname + ".dat", std::ofstream::out | std::ofstream::trunc);
   g_stateFile.setf (std::ios_base::fixed);
   ScheduleStateLogConnect ();
+  ScheduleAddbaStateLogConnect ();
 
   g_rxSniffFile.open (outputFilePrefix + "-rx-sniff-" + testname + ".dat", std::ofstream::out | std::ofstream::trunc);
   g_rxSniffFile.setf (std::ios_base::fixed);
@@ -2643,6 +2708,7 @@ main (int argc, char *argv[])
 
   SchedulePhyLogDisconnect ();
   ScheduleStateLogDisconnect ();
+  ScheduleAddbaStateLogDisconnect ();
   g_stateFile.flush ();
   g_stateFile.close ();
 
