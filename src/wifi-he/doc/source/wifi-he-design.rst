@@ -41,7 +41,9 @@ The implementation includes the following support:
 HE PHY preamble and header reception
 ====================================
 
-placeholder`
+Once the PHY is done with receiving preambles, headers as well as training fields and is about to start receiving the payload,
+it checks whether the packet under reception is HE. In this case, it read the BSS color from the HE SIG field and triger a trace
+source ``EndOfHePreamble``. OBSS PD algorithms can connect to this trace source to be notified when a HE packet is going to be received.
 
 OBSS PD Algorithm
 ==========================
@@ -69,5 +71,4 @@ placeholder
 Scope And Limitations
 =====================
 
-placeholder
-
+* Frame capture is currently broken.
