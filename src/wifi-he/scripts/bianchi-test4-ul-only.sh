@@ -90,22 +90,22 @@ export rxSensitivity=-82
 export uplink=500.0
 export n=5
 export test="bianchi-test4-ul-only-n5"
-#run_one &
+run_one &
 
 export uplink=1000.0
 export n=10
 export test="bianchi-test4-ul-only-n10"
-#run_one &
+run_one &
 
 export uplink=1500.0
 export n=15
 export test="bianchi-test4-ul-only-n15"
-#run_one &
+run_one &
 
 export uplink=2000.0
 export n=20
 export test="bianchi-test4-ul-only-n20"
-#run_one &
+run_one &
 
 export uplink=2500.0
 export n=25
