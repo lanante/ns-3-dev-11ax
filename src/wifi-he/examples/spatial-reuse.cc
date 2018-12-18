@@ -1241,6 +1241,7 @@ main (int argc, char *argv[])
   spectrumPhy.SetPcapDataLinkType (WifiPhyHelper::DLT_IEEE802_11_RADIO);
 
   spectrumPhy.SetChannel (spectrumChannel);
+  spectrumPhy.SetErrorRateModel ("ns3::YansErrorRateModel"); //YANS is more aligned with link simulations
   spectrumPhy.Set ("Frequency", UintegerValue (freq)); // channel 36 at 20 MHz
   spectrumPhy.Set ("ChannelWidth", UintegerValue (bw));
 
