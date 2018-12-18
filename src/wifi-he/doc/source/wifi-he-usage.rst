@@ -21,6 +21,9 @@ Additionally, utilities and supporting scripts are also described. These
 scripts are used to generate experiments that simulate various scenarios
 and to plot results from those experiments.
 
+Finally, a "how-to" guide described several example bash scripts that run various 
+experiments.
+
 spatial-reuse.cc
 ================
 
@@ -72,6 +75,50 @@ network, the STA is positioned beyond the transmission range of AP1, whereas
 the STA for second network is within AP2's transmission range. This
 shows that the indoor propagation loss model has limited transmission
 range.
+
+Additionally, the spatial-reuse script produces a number of output 
+files that are placed in the scripts/results/ folder.  These output files 
+will include the name of the test that is specified with the 
+--test=<test name> command line option.  The default test name is 
+"test".  Thus, for example, using the default configuration, there will
+be an output file found as '/scripts/results/spatial-reuse-positions-test.csv'.
+
+'spatial-reuse-positions-<test name>.csv' - The positions of all nodes in
+the network, used for plotting the topology of the experiment.  This 
+file is divided into several sections, with each section separated by
+two blank lines.  The sections of the positions file are:  1) the 
+bounding box of the topology plot, 2) the next nBss sections are the
+locations of the N APs of the network, and 3) the remaining N sections
+are the locations of the n STAs for each of the nBss BSSs.
+
+'spatial-reuse-<test name>.tr' - Ascii trace files if --ascii=1 is specified
+
+'spatial-reuse-state-<test name>.dat' - WifiPhyState transition output
+
+'spatial-reuse-rx-sniff-<test name>.dat' - CSV trace of all received packets, including
+the receiving node id, the destination node id, the source node id, the receiving
+node address, the MAC header addr1 and addr2 fields, the noise level of the
+received packet, the RSSI of the received packet, and the packet length of the
+received packet.
+
+'spatial-reuse-phy-log-<test name>.dat' - The statistics of all packet arrivals.
+
+'spatial-reuse-SR-stats-<test name>.dat' - Main spatial reuse statistics 
+output file.  This includes 1) a summary of the scenario, 2) the totals of 
+aggregated throughput (uplink and downlink), area capacity, and spectrum 
+efficiency for each AP in the network, and 3) the per-node throughput received
+by each node in the network.
+
+'spatial-reuse-A-<test name>.flowmon' - Flowmon output file for the 
+UDP flows to and from the primary AP (i.e., for operator "A") in the
+network).
+
+'spatial-reuse-operatorA-<test name>' - Text formatted output of the 
+"per-flow" UDP flows for Operator "A" in the network, including:
+source address, destination address, total packets sent, and total
+bytes sent.  For received packets, the total received bytes, throughput,
+total delay, and total jitter values are also provided.
+
 
 Command Line Options
 ####################
@@ -301,3 +348,274 @@ are copied from the location into which there are generated, and into the
 location where the documentation needs the figures, in order for the documentation
 generation process to complete.
 
+
+"How To" Guide to Running Experiments
+=====================================
+
+The following sections describes several example bash scripts that are used
+to run various experiements.  For each experiment set, the bash script name
+is given along with some remarks that describe what the script does, how it 
+is structured, and what results can be expected.
+
+These scripts can be used as a reference for researchers wishing to 
+create additional experiments.
+
+All scripts can be found in the wifi-he/scripts/ folder.
+
+These experiments are decomposed into the following subsets:
+
+Calibration Tests
+
+TGax Experiments
+
+Simple Examples
+
+Bianchi Validation
+
+Simulation Parameter Sensitivity Study
+
+OBSS_PD Study
+
+Parametric Study 1
+
+Calibration Tests
+=================
+
+The purpose of the Calibration Tests is to implement the 
+calibration tests outlined in [TGax15] for validation of 
+the ns-3 simluator.
+
+The following bash scripts are available:
+
+./calibration-scenarios.sh
+
+./calibration-box5.sh
+
+The 'calibration-scenarios.sh' script executes the following calibration tests:
+1) Test 1a - MAC overhead w/o RTS/CTS, 2) Test 1b - MAC overhead w/o RTS/CTS,
+3) Test 2a - Deferral Test 1, 4) Test 2b - Deferral Test 2, and
+5) Test 3 - NAV Deferral.  The tests are launched as separate ns-3 simulations
+that are run in parallel.  Details on these tests can be found in [TGax15].
+Results of these tests are provided in the Results section of this document.
+The scripts are provided to allow researchers to recreate the calibartion
+results.
+
+The 'calibration-box5.sh' script executes the following calibration tests:
+1) Box5 - 1BSS DL only, 2) Box5 - 1BSS UL only 1 STA, 3) Box5 - 1BSS UL only 2 STA,
+4) Box5 - 1BSS UL only 3 STA, 5) Box5 - 1BSS DL and UL, 6)
+Box5 - 2BSS Both DL only, 7) Box5 - 2BSS Both UL only, 8)
+Box5 - 2BSS A DL and B UL, and 9) Box5 - 2BSS A UL and B DL.
+The tests are launched as separate ns-3 simulations
+that are run in parallel.  Details on these tests can be found in [TGax15].
+Results of these tests are provided in the Results section of this document.
+The scripts are provided to allow researchers to recreate the calibration
+results.
+
+TGax Experiments
+================
+
+The purpose of the TGax Experiments is to implement the 
+TGax scenarios outlined in [TGax15] for validation of 
+the ns-3 simluator.
+
+These scenarios include:
+
+1 - Residential Scenario
+
+2 - Enterprise Scenario
+
+3 - Indoor Small BSSs Scenario
+
+4 - Outdoor Large BSS Scenario
+
+These scenarios differ the number and distances of the STAs
+and APs, and use different propagation loss model parameters.
+
+The following bash scripts are available:
+
+./run-scenarios.sh
+
+The tests are launched as separate ns-3 simulations
+that are run in parallel.  Details on these tests can be found in [TGax15].
+Results of these tests are provided in the Results section of this document.
+The scripts are provided to allow researchers to recreate the result for
+the TGax Experiments.
+
+Simple Examples
+===============
+
+The purpose of the Simple Examples is to demonstrate some simple examples
+of the spatial-reuse script and to provide researchers with insights
+into the network performance of a dense spatial-resuse scenarios sensitive to
+the variation of key parameters.  These tests are based on the 
+Residential Scenario of the TGax Experiments script.  A subset of the 
+results of this script is included in the Results section of this document.
+
+Transmitted packets use a payload size of 1500 bytes, with an A-MDPU
+set to aggregate at most 2 packets (i.e., MaxAmpduSize=3142).  Packets
+are send at a data rate using MCS=0.
+
+The following bash scripts are available:
+
+./run-spatial-reuse-scenarios.sh
+
+The following parameters are varied:
+
+n - for values 5, 10, and 20 STAs
+
+d - for values 20, 40, 60, and 80 m
+
+r - for values 10, 20, and 30 m
+
+uplink - for values 1, 2, 3, 4, 5, 6 Mbps
+
+The scripts are provided to allow researchers to study the effects on
+network performance when varying key script parameters.
+
+Bianchi Validation
+==================
+
+The purpose of the Bianchi Validation tests are to validate
+the spatial-reuse script according to the expected performance in 
+light of "Bianchi conditions", which are generally in the presence of 
+a fully saturated network with each transmitting node have infinite
+transmission retries.
+
+Transmitted packets use a payload size of 1500 bytes, with an A-MDPU
+set to aggregate at most 2 packets (i.e., MaxAmpduSize=3142).  Packets
+are send at a data rate using MCS=7.  Shadowing loss effects of the
+propagation loss model are disabled.
+
+A theoretical calculation of the expected throughput is compared to the
+resulting throughput realized by the ns-3 simulation.
+
+The following bash scripts are available:
+
+./bianchi-test1-dl-only.sh
+
+./bianchi-test2-up-only.sh
+
+./bianchi-test3-dl-only.sh
+
+./bianchi-test4-ul-only.sh
+
+Test 1 considers the scenario where the BSSs are fully decoupled (with
+separation distance of 120m between APs) with 40 STAs receiving
+downlink traffic only in a fully saturated network.
+
+Test 2 considers the scenario where the BSSs are fully decoupled (with
+separation distance of 120m between APs) with varying numbers of STAs 
+(e.g., from 5 to 40 in steps of 5) transmitting uplink traffic only 
+in a fully saturated network.
+
+Test 3 considers the scenario where the BSSs are fully coupled (with
+separation distance of 20m between APs) with 40 STAs receiving
+downlink traffic only in a fully saturated network.
+
+Test 4 considers the scenario where the BSSs are fully coupled (with
+separation distance of 20m between APs) with varying numbers of STAs 
+(e.g., from 5 to 40 in steps of 5) transmitting uplink traffic only 
+in a fully saturated network.
+
+The scripts are provided to allow researchers to recreate the validations
+of  the ns-3 simulation performance of dense spatial-reuse scenarios in terms
+of Bianchi conditions.
+
+Simulation Parameter Sensitivity Study
+======================================
+
+The purpose of the Simluation Parameter Sensitivity Study is to
+examine the sensitivity of the spatial-reuse.cc script to the following
+command line option parameters:
+
+--appliationStartTx
+
+--duration
+
+--RngRun
+
+The script is based on the Bianchi Validation test (Test2) for fully
+saturated uplink traffic for n=5 nodes.
+
+The following bash scripts are available:
+
+./bianch-test2-run-sensitivity.sh
+
+The tests are launched as separate ns-3 simulations
+that are run in parallel.  The scripts are provided to allow 
+researchers to study the parametric effects of varying 
+parameters that may influence simulation results.
+
+OBSS_PD Study
+=============
+
+The purpose of the OBSS_PD Study is to evaluate identical networks
+with nBss=7 BSSs each with n=5 STA, as further evaluated for 3 different scenarios:
+
+1) All nodes operating as 802.11ac
+
+2) All nodes operating as 802.11ax without OBSS_PD enabled
+
+3) All nodes operating as 802.11ax with OBSS_PD enabled and an
+ObssPdThreshold of -81 dBm.
+
+The script is based on the Bianchi Validation test (Test4) for fully
+saturated uplink traffic for n=5 nodes.
+
+Transmitted packets use a payload size of 1500 bytes, with an A-MDPU
+set to aggregate at most 2 packets (i.e., MaxAmpduSize=3142).  Packets
+are send at a data rate using MCS=7.
+
+The following bash scripts are available:
+
+./obss-pd-test1.sh
+
+The tests are launched as separate ns-3 simulations
+that are run in parallel.  The scripts are provided to allow 
+researchers to study the effects of the Constant OBSS_PD
+algorithm in an 11ax network.
+
+Results show that performance (e.g., total aggregated system
+throughput) for the 802.11ax (without OBSS_PD) increases as compared to 
+the 802.11ac only scenario.  Furthermore, the third scenario is
+expected to show that the use of the OBSS_PD feature additionally 
+improves the spatial reuse efficiency as compared to the second 
+scenario in which the feature is disabled.
+
+Parametric Study 1
+==================
+
+The purpose of the Parametric Study 1 is to evaluate spatial reuse
+effects for a dense node scenarios, while varying several parameters,
+such as:
+
+n - vary the number of STAs associated with each BSS from 5 to 40 (in steps of 5)
+
+offered load - vary the total system offered load (aggregated uplink and downlink) 
+in Mb/s
+
+Transmitted packets use a payload size of 1500 bytes, with a MaxAmpduSize=65535.
+Packets are sent at a data rate using MCS=0.
+
+The following bash scripts are available:
+
+./run-spatial-reuse-study1.sh
+
+Running this script produces another script, 'study1.sh' that must then
+be run.
+
+The tests are launched as separate ns-3 simulations
+that are run in parallel.  The scripts are provided to allow 
+researchers to study the effects of varying key parameters 
+in a baseline 802.11ac network.  A subset of these results
+are provided in the Results section of this document.
+
+Results show that throughput increases as offered load increases, but
+plateaus.  Throughput also decreases as the number of nodes per BSS
+is increased.
+
+This study serves as a baseline evaluation of a dense spatial-reuse
+scenario where all nodes are configured to operate according to the
+802.11ac standards.  The script serves as a starting point for researchers
+that wish to evaluate the comparable performance found by varying
+other key parameters.

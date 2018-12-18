@@ -87,7 +87,8 @@ export txRange=102
 
 # for uplink, allocate traffic per STA x n STAs
 export downlink=0.0
-export d=120
+# based on Bianchi Test4 - fully coupled BSS with saturated uplink
+export d=20
 export sigma=0.0
 export bianchi=1
 export rxSensitivity=-82
