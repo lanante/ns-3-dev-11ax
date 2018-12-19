@@ -110,6 +110,10 @@ double aggregateUplinkMbps = 1.0;
 double aggregateDownlinkMbps = 1.0;
 
 uint32_t nEstablishedAddaBa = 0;
+bool allAddBaEstablished = false;
+Time timeAllAddBaEstablished;
+Time timeLastPacketReceived;
+bool filterOutNonAddbaEstablished = false;
 
 // for tracking packets and bytes received. will be reallocated once we finalize number of nodes
 std::vector<uint32_t> packetsReceived (0);
@@ -135,8 +139,12 @@ PacketRx (std::string context, const Ptr<const Packet> p, const Address &srcAddr
 {
   uint32_t nodeId = ContextToNodeId (context);
   uint32_t pktSize = p->GetSize ();
-  bytesReceived[nodeId] += pktSize;
-  packetsReceived[nodeId]++;
+  if (!filterOutNonAddbaEstablished || allAddBaEstablished)
+    {
+      bytesReceived[nodeId] += pktSize;
+      packetsReceived[nodeId]++;
+    }
+  timeLastPacketReceived = Simulator::Now();
 }
 
 std::vector<SignalArrival> g_arrivals;
@@ -301,6 +309,9 @@ AddbaStateCb (std::string context, Time t, Mac48Address recipient, uint8_t tid, 
           if (nEstablishedAddaBa == n * nBss)
             {
               std::cout << t << ": ALL ADDBA ARE ESTABLISHED !" << std::endl;
+              allAddBaEstablished = true;
+              timeAllAddBaEstablished = t;
+              //TODO: schedule stop time
             }
         }
       else if ((aggregateDownlinkMbps != 0) && (aggregateUplinkMbps != 0)) //UP + DL
@@ -309,6 +320,9 @@ AddbaStateCb (std::string context, Time t, Mac48Address recipient, uint8_t tid, 
           if (nEstablishedAddaBa == 2 * n * nBss)
             {
               std::cout << t << ": ALL ADDBA ARE ESTABLISHED !" << std::endl;
+              allAddBaEstablished = true;
+              timeAllAddBaEstablished = t;
+              //TODO: schedule stop time
             }
         }
     }
@@ -496,8 +510,19 @@ SaveSpatialReuseStats (const std::string filename,
           bytesReceivedApDownlink += bytesReceived[k];
         }
 
-      double tputApUplink = bytesReceivedApUplink * 8 / 1e6 / duration;
-      double tputApDownlink = bytesReceivedApDownlink * 8 / 1e6 / duration;
+      double tputApUplink;
+      double tputApDownlink;
+      if (filterOutNonAddbaEstablished)
+        {
+          Time delta = timeLastPacketReceived - timeAllAddBaEstablished;
+          tputApUplink = static_cast<double>(bytesReceivedApUplink * 8) / static_cast<double>(delta.GetMicroSeconds ());
+          tputApDownlink = static_cast<double>(bytesReceivedApDownlink * 8) / static_cast<double>(delta.GetMicroSeconds ());
+        }
+      else
+        {
+          tputApUplink = bytesReceivedApUplink * 8 / 1e6 / duration;
+          tputApDownlink = bytesReceivedApDownlink * 8 / 1e6 / duration;
+        }
 
       if (bss == 1)
         {
@@ -866,7 +891,10 @@ main (int argc, char *argv[])
   cmd.AddValue ("test", "The testname.", testname);
   cmd.AddValue ("sigma", "Log-normal shadowing loss parameter.", sigma);
   cmd.AddValue ("beaconInterval", "Beacon interval in microseconds.", beaconInterval);
+  cmd.AddValue ("filterOutNonAddbaEstablished", "Flag whether statistics obtained before all ADDBA hanshakes have been established are filtered out.", filterOutNonAddbaEstablished);
   cmd.Parse (argc, argv);
+  
+  //TODO: if Bianchi, enable filterOutNonAddbaEstablished?
 
   if ((scenario == "study1") || (scenario == "study2"))
     {
@@ -2555,6 +2583,11 @@ main (int argc, char *argv[])
   SaveSpectrumPhyStats (outputFilePrefix + "-phy-log-" + testname + ".dat", g_arrivals);
 
   Simulator::Destroy ();
+
+  if (filterOutNonAddbaEstablished && !allAddBaEstablished)
+  {
+    NS_FATAL_ERROR ("filterOutNonAddbaEstablished option enabled but not all ADDBA hanshakes are established at the end of the simulation");
+  }
 
   // Save spatial reuse statistics to an output file
   SaveSpatialReuseStats (outputFilePrefix + "-SR-stats-" + testname + ".dat", duration, d,  r, freq, csr, scenario, aggregateUplinkMbps, aggregateDownlinkMbps);
