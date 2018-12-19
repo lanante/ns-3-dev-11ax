@@ -131,7 +131,7 @@ ContextToNodeId (std::string context)
 }
 
 void
-SocketRecvStats (std::string context, Ptr<const Packet> p, const Address &addr)
+PacketRx (std::string context, const Ptr<const Packet> p, const Address &srcAddress, const Address &destAddress)
 {
   uint32_t nodeId = ContextToNodeId (context);
   uint32_t pktSize = p->GetSize ();
@@ -439,9 +439,6 @@ std::vector<uint32_t> noises (100);
 
 void
 SaveSpatialReuseStats (const std::string filename,
-                       const std::vector<uint32_t> &packetsReceived,
-                       const std::vector<uint32_t> &bytesReceived,
-                       const uint32_t nBss,
                        const double duration,
                        const double d,
                        const double r,
@@ -482,12 +479,12 @@ SaveSpatialReuseStats (const std::string filename,
       uint32_t bytesReceivedApDownlink = 0.0;
 
       uint32_t bssFirstStaIdx = 0;
-      bssFirstStaIdx = (n * (bss - 1)) + (nBss);
+      bssFirstStaIdx = ((bss - 1) * n) + bss;
       uint32_t bssLastStaIdx = 0;
       bssLastStaIdx = bssFirstStaIdx + n;
 
       // uplink is the received bytes at the AP
-      bytesReceivedApUplink += bytesReceived[bss - 1];
+      bytesReceivedApUplink += bytesReceived[bssFirstStaIdx - 1];
 
       // downlink is the sum of the received bytes for the STAs associated with the AP
       for (uint32_t k = bssFirstStaIdx; k < bssLastStaIdx; k++)
@@ -2498,6 +2495,7 @@ main (int argc, char *argv[])
   Config::Set ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/HeConfiguration/BeMaxAmsduSize", UintegerValue (maxAmsduSize));
 
   Config::Connect ("/NodeList/*/DeviceList/*/Phy/MonitorSnifferRx", MakeCallback (&MonitorSniffRx));
+  Config::Connect ("/NodeList/*/ApplicationList/*/$ns3::UdpServer/RxWithAddresses", MakeCallback (&PacketRx));
 
   if (performTgaxTimingChecks)
     {
@@ -2542,170 +2540,6 @@ main (int argc, char *argv[])
   Simulator::Stop (durationTime);
   Simulator::Run ();
 
-  /* Show results */
-  uint32_t nodeIdx = 0;
-  uint32_t nUplinkAppsA = uplinkServerAppA.GetN ();
-  uint64_t totalUplinkPacketsThroughA = 0;
-  for (uint32_t i = 0; i < nUplinkAppsA; i++)
-    {
-      totalUplinkPacketsThroughA += DynamicCast<UdpServer> (uplinkServerAppA.Get (i))->GetReceived ();
-    }
-  bytesReceived[nodeIdx] = payloadSizeUplink * totalUplinkPacketsThroughA;
-  packetsReceived[nodeIdx] = totalUplinkPacketsThroughA;
-
-  if ((nBss >= 2) || (scenario == "study1") || (scenario == "study2"))
-    {
-      nodeIdx++;
-
-      uint32_t nUplinkAppsB = uplinkServerAppB.GetN ();
-      uint64_t totalUplinkPacketsThroughB = 0;
-      for (uint32_t i = 0; i < nUplinkAppsB; i++)
-        {
-          totalUplinkPacketsThroughB += DynamicCast<UdpServer> (uplinkServerAppB.Get (i))->GetReceived ();
-        }
-      bytesReceived[nodeIdx] = payloadSizeUplink * totalUplinkPacketsThroughB;
-      packetsReceived[nodeIdx] = totalUplinkPacketsThroughB;
-    }
-
-  if ((nBss >= 3) || (scenario == "study1") || (scenario == "study2"))
-    {
-      nodeIdx++;
-
-      uint32_t nUplinkAppsC = uplinkServerAppC.GetN ();
-      uint64_t totalUplinkPacketsThroughC = 0;
-      for (uint32_t i = 0; i < nUplinkAppsC; i++)
-        {
-          totalUplinkPacketsThroughC += DynamicCast<UdpServer> (uplinkServerAppC.Get (i))->GetReceived ();
-        }
-      bytesReceived[nodeIdx] = payloadSizeUplink * totalUplinkPacketsThroughC;
-      packetsReceived[nodeIdx] = totalUplinkPacketsThroughC;
-    }
-
-  if ((nBss >= 4) || (scenario == "study1") || (scenario == "study2"))
-    {
-      nodeIdx++;
-
-      uint32_t nUplinkAppsD = uplinkServerAppD.GetN ();
-      uint64_t totalUplinkPacketsThroughD = 0;
-      for (uint32_t i = 0; i < nUplinkAppsD; i++)
-        {
-          totalUplinkPacketsThroughD += DynamicCast<UdpServer> (uplinkServerAppD.Get (i))->GetReceived ();
-        }
-      bytesReceived[nodeIdx] = payloadSizeUplink * totalUplinkPacketsThroughD;
-      packetsReceived[nodeIdx] = totalUplinkPacketsThroughD;
-    }
-
-  if ((scenario == "study1") || (scenario == "study2"))
-    {
-      nodeIdx++;
-
-      uint32_t nUplinkAppsE = uplinkServerAppE.GetN ();
-      uint64_t totalUplinkPacketsThroughE = 0;
-      for (uint32_t i = 0; i < nUplinkAppsE; i++)
-        {
-          totalUplinkPacketsThroughE += DynamicCast<UdpServer> (uplinkServerAppE.Get (i))->GetReceived ();
-        }
-      bytesReceived[nodeIdx] = payloadSizeUplink * totalUplinkPacketsThroughE;
-      packetsReceived[nodeIdx] = totalUplinkPacketsThroughE;
-
-      nodeIdx++;
-
-      uint32_t nUplinkAppsF = uplinkServerAppF.GetN ();
-      uint64_t totalUplinkPacketsThroughF = 0;
-      for (uint32_t i = 0; i < nUplinkAppsF; i++)
-        {
-          totalUplinkPacketsThroughF += DynamicCast<UdpServer> (uplinkServerAppF.Get (i))->GetReceived ();
-        }
-      bytesReceived[nodeIdx] = payloadSizeUplink * totalUplinkPacketsThroughF;
-      packetsReceived[nodeIdx] = totalUplinkPacketsThroughF;
-
-      nodeIdx++;
-
-      uint32_t nUplinkAppsG = uplinkServerAppG.GetN ();
-      uint64_t totalUplinkPacketsThroughG = 0;
-      for (uint32_t i = 0; i < nUplinkAppsG; i++)
-        {
-          totalUplinkPacketsThroughG += DynamicCast<UdpServer> (uplinkServerAppG.Get (i))->GetReceived ();
-        }
-      bytesReceived[nodeIdx] = payloadSizeUplink * totalUplinkPacketsThroughG;
-      packetsReceived[nodeIdx] = totalUplinkPacketsThroughG;
-    }
-
-  uint32_t nDownlinkAppsA = downlinkServerAppA.GetN ();
-  for (uint32_t i = 0; i < nDownlinkAppsA; i++)
-    {
-      nodeIdx++;
-      uint64_t downlinkPacketsThroughA = DynamicCast<UdpServer> (downlinkServerAppA.Get (i))->GetReceived ();
-      bytesReceived[nodeIdx] = payloadSizeDownlink * downlinkPacketsThroughA;
-      packetsReceived[nodeIdx] = downlinkPacketsThroughA;
-    }
-
-  if ((nBss >= 2) || (scenario == "study1") || (scenario == "study2"))
-    {
-      uint32_t nDownlinkAppsB = downlinkServerAppB.GetN ();
-      for (uint32_t i = 0; i < nDownlinkAppsB; i++)
-        {
-          nodeIdx++;
-          uint64_t downlinkPacketsThroughB = DynamicCast<UdpServer> (downlinkServerAppB.Get (i))->GetReceived ();
-          bytesReceived[nodeIdx] = payloadSizeDownlink * downlinkPacketsThroughB;
-          packetsReceived[nodeIdx] = downlinkPacketsThroughB;
-        }
-    }
-
-  if ((nBss >= 3) || (scenario == "study1") || (scenario == "study2"))
-    {
-      uint32_t nDownlinkAppsC = downlinkServerAppC.GetN ();
-      for (uint32_t i = 0; i < nDownlinkAppsC; i++)
-        {
-          nodeIdx++;
-          uint64_t downlinkPacketsThroughC = DynamicCast<UdpServer> (downlinkServerAppC.Get (i))->GetReceived ();
-          bytesReceived[nodeIdx] = payloadSizeDownlink * downlinkPacketsThroughC;
-          packetsReceived[nodeIdx] = downlinkPacketsThroughC;
-        }
-    }
-
-  if ((nBss >= 4) || (scenario == "study1") || (scenario == "study2"))
-    {
-      uint32_t nDownlinkAppsD = downlinkServerAppD.GetN ();
-      for (uint32_t i = 0; i < nDownlinkAppsD; i++)
-        {
-          nodeIdx++;
-          uint64_t downlinkPacketsThroughD = DynamicCast<UdpServer> (downlinkServerAppD.Get (i))->GetReceived ();
-          bytesReceived[nodeIdx] = payloadSizeDownlink * downlinkPacketsThroughD;
-          packetsReceived[nodeIdx] = downlinkPacketsThroughD;
-        }
-    }
-
-  if ((scenario == "study1") || (scenario == "study2"))
-    {
-      uint32_t nDownlinkAppsE = downlinkServerAppE.GetN ();
-      for (uint32_t i = 0; i < nDownlinkAppsE; i++)
-        {
-          nodeIdx++;
-          uint64_t downlinkPacketsThroughE = DynamicCast<UdpServer> (downlinkServerAppE.Get (i))->GetReceived ();
-          bytesReceived[nodeIdx] = payloadSizeDownlink * downlinkPacketsThroughE;
-          packetsReceived[nodeIdx] = downlinkPacketsThroughE;
-        }
-
-      uint32_t nDownlinkAppsF = downlinkServerAppF.GetN ();
-      for (uint32_t i = 0; i < nDownlinkAppsF; i++)
-        {
-          nodeIdx++;
-          uint64_t downlinkPacketsThroughF = DynamicCast<UdpServer> (downlinkServerAppF.Get (i))->GetReceived ();
-          bytesReceived[nodeIdx] = payloadSizeDownlink * downlinkPacketsThroughF;
-          packetsReceived[nodeIdx] = downlinkPacketsThroughF;
-        }
-
-      uint32_t nDownlinkAppsG = downlinkServerAppG.GetN ();
-      for (uint32_t i = 0; i < nDownlinkAppsG; i++)
-        {
-          nodeIdx++;
-          uint64_t downlinkPacketsThroughG = DynamicCast<UdpServer> (downlinkServerAppG.Get (i))->GetReceived ();
-          bytesReceived[nodeIdx] = payloadSizeDownlink * downlinkPacketsThroughG;
-          packetsReceived[nodeIdx] = downlinkPacketsThroughG;
-        }
-    }
-
   SchedulePhyLogDisconnect ();
   ScheduleStateLogDisconnect ();
   ScheduleAddbaStateLogDisconnect ();
@@ -2719,7 +2553,7 @@ main (int argc, char *argv[])
   Simulator::Destroy ();
 
   // Save spatial reuse statistics to an output file
-  SaveSpatialReuseStats (outputFilePrefix + "-SR-stats-" + testname + ".dat", packetsReceived, bytesReceived, nBss, duration, d,  r, freq, csr, scenario, aggregateUplinkMbps, aggregateDownlinkMbps);
+  SaveSpatialReuseStats (outputFilePrefix + "-SR-stats-" + testname + ".dat", duration, d,  r, freq, csr, scenario, aggregateUplinkMbps, aggregateDownlinkMbps);
 
   // save flow-monitor results
   std::stringstream stmp;
