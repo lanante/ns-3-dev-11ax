@@ -287,26 +287,30 @@ AddbaStateCb (std::string context, Time t, Mac48Address recipient, uint8_t tid, 
   if (state == OriginatorBlockAckAgreement::ESTABLISHED)
     {
       std::cout << t << ": ADDBA ESTABLISHED for node " << ContextToNodeId (context) << " with " << recipient << std::endl;
-      if (nBss == 1)
+      bool isAp = false;
+      for (uint32_t bss = 1; bss <= nBss; bss++)
         {
-          if (((aggregateDownlinkMbps != 0) && (ContextToNodeId (context) == 0)) || ((aggregateUplinkMbps != 0) && (ContextToNodeId (context) != 0))) //UL or DL
+          if (ContextToNodeId (context) == (((bss - 1) * n) + bss - 1))
             {
-              nEstablishedAddaBa++;
-              if (nEstablishedAddaBa == n)
-                {
-                  std::cout << t << ": ALL ADDBA ARE ESTABLISHED !" << std::endl;
-                }
-            }
-          else if ((aggregateDownlinkMbps != 0) && (aggregateUplinkMbps != 0)) //UP + DL
-            {
-              nEstablishedAddaBa++;
-              if (nEstablishedAddaBa == 2 * n)
-                {
-                  std::cout << t << ": ALL ADDBA ARE ESTABLISHED !" << std::endl;
-                }
+              isAp = true;
             }
         }
-        //TODO: multi BSS!
+      if (((aggregateDownlinkMbps != 0) && isAp) || ((aggregateUplinkMbps != 0) && !isAp)) //UL or DL
+        {
+          nEstablishedAddaBa++;
+          if (nEstablishedAddaBa == n * nBss)
+            {
+              std::cout << t << ": ALL ADDBA ARE ESTABLISHED !" << std::endl;
+            }
+        }
+      else if ((aggregateDownlinkMbps != 0) && (aggregateUplinkMbps != 0)) //UP + DL
+        {
+          nEstablishedAddaBa++;
+          if (nEstablishedAddaBa == 2 * n * nBss)
+            {
+              std::cout << t << ": ALL ADDBA ARE ESTABLISHED !" << std::endl;
+            }
+        }
     }
 }
 
