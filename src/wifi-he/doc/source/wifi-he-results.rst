@@ -698,6 +698,25 @@ The values of n that are specified in the 'plot-study1.sh' script must be
 a subset of the values that are specified in the 'run-spatial-reuse-study1.sh' 
 script.
 
+Furthermore, changes to the offererdLoad parameter in the 'run-spatial-reuse-study1.sh'
+script may require the axis ranges at the top of the 'plot-study1.sh'
+script to be adjusted.
+
+For example, if the offered load is changed to the following:
+
+for offeredLoad in 1.5 2.0 2.5 3.0 ; do
+
+then the x-axis values of the following may need to be adjusted, to match
+the range specified by the offeredLoad parameter
+
+THROUGHPUT_RANGE="[1:6][1:6]"
+
+AREA_CAPCITY_RANGE="[1:6][0:0.02]"
+
+SPECTRUM_EFFICIENCY_RANGE="[1:6][0:0.002]"
+
+STUDY1_SPECTRUM_EFFICIENCY_RANGE="[1.0:3.0][0:0.00050]"
+
 After the above have been executed, the doc/figures folder should contain the newly
 generated plots for inclusion in the documenation.  The documenation can then be
 regeneated, e.g.:
