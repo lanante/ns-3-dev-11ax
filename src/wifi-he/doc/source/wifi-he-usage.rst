@@ -109,7 +109,7 @@ aggregated throughput (uplink and downlink), area capacity, and spectrum
 efficiency for each AP in the network, and 3) the per-node throughput received
 by each node in the network.
 
-'spatial-reuse-A-<test name>.flowmon' - Flowmon output file for the 
+'spatial-reuse-A-<test name>.flowmon' - Flowmonitor output file for the 
 UDP flows to and from the primary AP (i.e., for operator "A") in the
 network).
 
@@ -217,7 +217,7 @@ spatial-reuse-functions.sh
 This is a collection of bash script helper functions that are used by
 some additional scripts to run experiments.  In particular, a bash
 script function named 'run_one()' is defined that runs
-an ns-3 simluation, and then generates various plots
+an ns-3 simulation, and then generates various plots
 and charts of the results.
 
 
@@ -383,7 +383,7 @@ Calibration Tests
 
 The purpose of the Calibration Tests is to implement the 
 calibration tests outlined in [TGax15] for validation of 
-the ns-3 simluator.
+the ns-3 simulator.
 
 The following bash scripts are available:
 
@@ -416,7 +416,7 @@ TGax Experiments
 
 The purpose of the TGax Experiments is to implement the 
 TGax scenarios outlined in [TGax15] for validation of 
-the ns-3 simluator.
+the ns-3 simulator.
 
 These scenarios include:
 
@@ -453,7 +453,7 @@ results of this script is included in the Results section of this document.
 
 Transmitted packets use a payload size of 1500 bytes, with an A-MDPU
 set to aggregate at most 2 packets (i.e., MaxAmpduSize=3142).  Packets
-are send at a data rate using MCS=0.
+are sent at a data rate using MCS=0.
 
 The following bash scripts are available:
 
@@ -478,12 +478,21 @@ Bianchi Validation
 The purpose of the Bianchi Validation tests are to validate
 the spatial-reuse script according to the expected performance in 
 light of "Bianchi conditions", which are generally in the presence of 
-a fully saturated network with each transmitting node have infinite
+a fully saturated network with each transmitting node having infinite
 transmission retries.
+
+The scenario places one BSS of interest at the center of the topology,
+surrounded by 6 other BSSs arranged in a hexagonal pattern.  There is 
+1 AP at the center of each of the 7 total BSSs.  The APs are separated
+by a distance so at to either a) fully decouple the BSSs (i.e., d=120m),
+or b) fully couple the BSSs (i.e., d=20m).  Around each AP there are n
+STAs that are randomly placed within a circle of radius r=10m centered
+at the AP.  The number of STAs varies depending on the validation test,
+but generally varies from 5 to 40 STAs per BSS.
 
 Transmitted packets use a payload size of 1500 bytes, with an A-MDPU
 set to aggregate at most 2 packets (i.e., MaxAmpduSize=3142).  Packets
-are send at a data rate using MCS=7.  Shadowing loss effects of the
+are sent at a data rate using MCS=7.  Shadowing loss effects of the
 propagation loss model are disabled.
 
 A theoretical calculation of the expected throughput is compared to the
@@ -500,21 +509,21 @@ The following bash scripts are available:
 ./bianchi-test4-ul-only.sh
 
 Test 1 considers the scenario where the BSSs are fully decoupled (with
-separation distance of 120m between APs) with 40 STAs receiving
+separation distance of 120m between APs) with 40 STAs per BSS receiving
 downlink traffic only in a fully saturated network.
 
 Test 2 considers the scenario where the BSSs are fully decoupled (with
 separation distance of 120m between APs) with varying numbers of STAs 
-(e.g., from 5 to 40 in steps of 5) transmitting uplink traffic only 
+(e.g., from 5 to 40 in steps of 5) per BSS transmitting uplink traffic only 
 in a fully saturated network.
 
 Test 3 considers the scenario where the BSSs are fully coupled (with
-separation distance of 20m between APs) with 40 STAs receiving
+separation distance of 20m between APs) with 40 STAs per BSS receiving
 downlink traffic only in a fully saturated network.
 
 Test 4 considers the scenario where the BSSs are fully coupled (with
 separation distance of 20m between APs) with varying numbers of STAs 
-(e.g., from 5 to 40 in steps of 5) transmitting uplink traffic only 
+(e.g., from 5 to 40 in steps of 5) per BSS transmitting uplink traffic only 
 in a fully saturated network.
 
 The scripts are provided to allow researchers to recreate the validations
@@ -524,7 +533,7 @@ of Bianchi conditions.
 Simulation Parameter Sensitivity Study
 ======================================
 
-The purpose of the Simluation Parameter Sensitivity Study is to
+The purpose of the Simulation Parameter Sensitivity Study is to
 examine the sensitivity of the spatial-reuse.cc script to the following
 command line option parameters:
 
@@ -535,7 +544,8 @@ command line option parameters:
 --RngRun
 
 The script is based on the Bianchi Validation test (Test2) for fully
-saturated uplink traffic for n=5 nodes.
+saturated uplink traffic for n=5 nodes per BSS, with 1 AP in each of 
+7 BSSs, where the APs are separated by d=120m..
 
 The following bash scripts are available:
 
@@ -564,7 +574,7 @@ saturated uplink traffic for n=5 nodes.
 
 Transmitted packets use a payload size of 1500 bytes, with an A-MDPU
 set to aggregate at most 2 packets (i.e., MaxAmpduSize=3142).  Packets
-are send at a data rate using MCS=7.
+are sent at a data rate using MCS=7.
 
 The following bash scripts are available:
 
@@ -586,7 +596,7 @@ Parametric Study 1
 ==================
 
 The purpose of the Parametric Study 1 is to evaluate spatial reuse
-effects for a dense node scenarios, while varying several parameters,
+effects for dense node scenarios, while varying several parameters,
 such as:
 
 n - vary the number of STAs associated with each BSS from 5 to 40 (in steps of 5)
@@ -594,8 +604,17 @@ n - vary the number of STAs associated with each BSS from 5 to 40 (in steps of 5
 offered load - vary the total system offered load (aggregated uplink and downlink) 
 in Mb/s
 
+The scenario places one BSS of interest at the center of the topology,
+surrounded by 6 other BSSs arranged in a hexagonal pattern.  There is 
+1 AP at the center of each of the 7 total BSSs.  The APs are separated
+by a distance of r=17.32m, as modeled in the Residential Scenario described
+in [TGax15].  Around each AP there are n
+STAs that are randomly placed within a circle of radius r=10m centered
+at the AP.  The number of STAs varies from 5 to 40 STAs per BSS.
+
 Transmitted packets use a payload size of 1500 bytes, with a MaxAmpduSize=65535.
-Packets are sent at a data rate using MCS=0.
+Packets are sent using the ns-3 Wifi IdealRateManager, which adapts the 
+transmission rate per node based on the noise level.
 
 The following bash scripts are available:
 
@@ -610,12 +629,12 @@ researchers to study the effects of varying key parameters
 in a baseline 802.11ac network.  A subset of these results
 are provided in the Results section of this document.
 
-Results show that throughput increases as offered load increases, but
+It is expected that throughput increases as offered load increases, but
 plateaus.  Throughput also decreases as the number of nodes per BSS
 is increased.
 
-This study serves as a baseline evaluation of a dense spatial-reuse
+This study serves as a baseline evaluation of dense spatial-reuse
 scenario where all nodes are configured to operate according to the
-802.11ac standards.  The script serves as a starting point for researchers
+802.11ac standard.  The script serves as a starting point for researchers
 that wish to evaluate the comparable performance found by varying
 other key parameters.
