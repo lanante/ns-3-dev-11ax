@@ -911,7 +911,7 @@ main (int argc, char *argv[])
   cmd.AddValue ("beaconInterval", "Beacon interval in microseconds.", beaconInterval);
   cmd.AddValue ("filterOutNonAddbaEstablished", "Flag whether statistics obtained before all ADDBA hanshakes have been established are filtered out.", filterOutNonAddbaEstablished);
   cmd.Parse (argc, argv);
-  
+
   if (bianchi)
     {
       filterOutNonAddbaEstablished = true;
@@ -1245,6 +1245,7 @@ main (int argc, char *argv[])
   // additional code tweaks needed for Test 1 and Test 3,
   // handling of 'W=1 wall' and using the ItuUmitPropagationLossModel
   // for Test 4.
+  uint64_t lossModelStream = 500;
   if (scenario == "residential")
     {
       Config::SetDefault ("ns3::Ieee80211axIndoorPropagationLossModel::DistanceBreakpoint", DoubleValue (5.0));
@@ -1252,6 +1253,7 @@ main (int argc, char *argv[])
       Config::SetDefault ("ns3::Ieee80211axIndoorPropagationLossModel::WallsFactor", DoubleValue (5.0));
 
       Ptr<Ieee80211axIndoorPropagationLossModel> lossModel = CreateObject<Ieee80211axIndoorPropagationLossModel> ();
+      lossModel->AssignStreams (lossModelStream);
       spectrumChannel->AddPropagationLossModel (lossModel);
     }
   else if (scenario == "enterprise")
@@ -1261,6 +1263,7 @@ main (int argc, char *argv[])
       Config::SetDefault ("ns3::Ieee80211axIndoorPropagationLossModel::WallsFactor", DoubleValue (7.0));
 
       Ptr<Ieee80211axIndoorPropagationLossModel> lossModel = CreateObject<Ieee80211axIndoorPropagationLossModel> ();
+      lossModel->AssignStreams (lossModelStream);
       spectrumChannel->AddPropagationLossModel (lossModel);
     }
   else if ((scenario == "indoor") || (scenario == "study1") || (scenario == "study2"))
@@ -1271,11 +1274,13 @@ main (int argc, char *argv[])
       Config::SetDefault ("ns3::Ieee80211axIndoorPropagationLossModel::Sigma", DoubleValue (sigma));
 
       Ptr<Ieee80211axIndoorPropagationLossModel> lossModel = CreateObject<Ieee80211axIndoorPropagationLossModel> ();
+      lossModel->AssignStreams (lossModelStream);
       spectrumChannel->AddPropagationLossModel (lossModel);
     }
   else if (scenario == "outdoor")
     {
       Ptr<ItuUmiPropagationLossModel> lossModel = CreateObject<ItuUmiPropagationLossModel> ();
+      lossModel->AssignStreams (lossModelStream);
       spectrumChannel->AddPropagationLossModel (lossModel);
     }
   else
@@ -1363,8 +1368,11 @@ main (int argc, char *argv[])
   mac.SetType ("ns3::StaWifiMac",
                "Ssid", SsidValue (ssidA));
 
+  uint64_t wifiStream = 700;
+
   NetDeviceContainer staDevicesA;
   staDevicesA = wifi.Install (spectrumPhy, mac, stasA);
+  wifi.AssignStreams (staDevicesA, wifiStream + 0);
 
   // Set  PHY power and CCA threshold for APs
   spectrumPhy.Set ("TxPowerStart", DoubleValue (powAp));
@@ -1384,6 +1392,7 @@ main (int argc, char *argv[])
   // AP1
   NetDeviceContainer apDeviceA;
   apDeviceA = wifi.Install (spectrumPhy, mac, ap1);
+  wifi.AssignStreams (apDeviceA, wifiStream + 1);
   Ptr<WifiNetDevice> apDevice = apDeviceA.Get (0)->GetObject<WifiNetDevice> ();
   Ptr<ApWifiMac> apWifiMac = apDevice->GetMac ()->GetObject<ApWifiMac> ();
 
@@ -1415,6 +1424,7 @@ main (int argc, char *argv[])
                    "Ssid", SsidValue (ssidB));
 
       staDevicesB = wifi.Install (spectrumPhy, mac, stasB);
+      wifi.AssignStreams (staDevicesB, wifiStream + 2);
 
       // Set PHY power and CCA threshold for APs
       spectrumPhy.Set ("TxPowerStart", DoubleValue (powAp));
@@ -1433,6 +1443,7 @@ main (int argc, char *argv[])
 
       // AP2
       apDeviceB = wifi.Install (spectrumPhy, mac, ap2);
+      wifi.AssignStreams (apDeviceB, wifiStream + 3);
       Ptr<WifiNetDevice> ap2Device = apDeviceB.Get (0)->GetObject<WifiNetDevice> ();
       apWifiMac = ap2Device->GetMac ()->GetObject<ApWifiMac> ();
       if (enableObssPd)
@@ -1463,6 +1474,7 @@ main (int argc, char *argv[])
                    "Ssid", SsidValue (ssidC));
 
       staDevicesC = wifi.Install (spectrumPhy, mac, stasC);
+      wifi.AssignStreams (staDevicesC, wifiStream + 4);
 
       // Set PHY power and CCA threshold for APs
       spectrumPhy.Set ("TxPowerStart", DoubleValue (powAp));
@@ -1481,6 +1493,7 @@ main (int argc, char *argv[])
 
       // AP3
       apDeviceC = wifi.Install (spectrumPhy, mac, ap3);
+      wifi.AssignStreams (apDeviceC, wifiStream + 5);
       Ptr<WifiNetDevice> ap3Device = apDeviceC.Get (0)->GetObject<WifiNetDevice> ();
       apWifiMac = ap3Device->GetMac ()->GetObject<ApWifiMac> ();
       if (enableObssPd)
@@ -1511,6 +1524,7 @@ main (int argc, char *argv[])
                    "Ssid", SsidValue (ssidD));
 
       staDevicesD = wifi.Install (spectrumPhy, mac, stasD);
+      wifi.AssignStreams (staDevicesD, wifiStream + 6);
 
       // Set PHY power and CCA threshold for APs
       spectrumPhy.Set ("TxPowerStart", DoubleValue (powAp));
@@ -1529,6 +1543,7 @@ main (int argc, char *argv[])
 
       // AP4
       apDeviceD = wifi.Install (spectrumPhy, mac, ap4);
+      wifi.AssignStreams (apDeviceD, wifiStream + 7);
       Ptr<WifiNetDevice> ap4Device = apDeviceD.Get (0)->GetObject<WifiNetDevice> ();
       apWifiMac = ap4Device->GetMac ()->GetObject<ApWifiMac> ();
       if (enableObssPd)
@@ -1563,6 +1578,7 @@ main (int argc, char *argv[])
                    "Ssid", SsidValue (ssidE));
 
       staDevicesE = wifi.Install (spectrumPhy, mac, stasE);
+      wifi.AssignStreams (staDevicesE, wifiStream + 8);
 
       // Set PHY power and CCA threshold for APs
       spectrumPhy.Set ("TxPowerStart", DoubleValue (powAp));
@@ -1581,6 +1597,7 @@ main (int argc, char *argv[])
 
       // AP5
       apDeviceE = wifi.Install (spectrumPhy, mac, ap5);
+      wifi.AssignStreams (apDeviceE, wifiStream + 9);
       Ptr<WifiNetDevice> ap5Device = apDeviceE.Get (0)->GetObject<WifiNetDevice> ();
       apWifiMac = ap5Device->GetMac ()->GetObject<ApWifiMac> ();
       if (enableObssPd)
@@ -1606,6 +1623,7 @@ main (int argc, char *argv[])
                    "Ssid", SsidValue (ssidF));
 
       staDevicesF = wifi.Install (spectrumPhy, mac, stasF);
+      wifi.AssignStreams (staDevicesF, wifiStream + 10);
 
       spectrumPhy.Set ("TxPowerStart", DoubleValue (powAp));
       spectrumPhy.Set ("TxPowerEnd", DoubleValue (powAp));
@@ -1623,6 +1641,7 @@ main (int argc, char *argv[])
 
       // AP6
       apDeviceF = wifi.Install (spectrumPhy, mac, ap6);
+      wifi.AssignStreams (apDeviceF, wifiStream + 11);
       Ptr<WifiNetDevice> ap6Device = apDeviceF.Get (0)->GetObject<WifiNetDevice> ();
       apWifiMac = ap6Device->GetMac ()->GetObject<ApWifiMac> ();
       if (enableObssPd)
@@ -1637,6 +1656,7 @@ main (int argc, char *argv[])
                    "Ssid", SsidValue (ssidG));
 
       staDevicesG = wifi.Install (spectrumPhy, mac, stasG);
+      wifi.AssignStreams (staDevicesG, wifiStream + 12);
 
       spectrumPhy.Set ("TxPowerStart", DoubleValue (powAp));
       spectrumPhy.Set ("TxPowerEnd", DoubleValue (powAp));
@@ -1654,6 +1674,7 @@ main (int argc, char *argv[])
 
       // AP7
       apDeviceG = wifi.Install (spectrumPhy, mac, ap7);
+      wifi.AssignStreams (apDeviceG, wifiStream + 13);
       Ptr<WifiNetDevice> ap7Device = apDeviceG.Get (0)->GetObject<WifiNetDevice> ();
       apWifiMac = ap7Device->GetMac ()->GetObject<ApWifiMac> ();
       if (enableObssPd)
@@ -2123,14 +2144,22 @@ main (int argc, char *argv[])
   double next_rng = 0;
 
   /* Internet stack */
+  uint64_t stackStream = 900;
   InternetStackHelper stack;
   stack.Install (nodesA);
+  stack.AssignStreams (nodesA, stackStream + 0);
   stack.Install (nodesB);
+  stack.AssignStreams (nodesB, stackStream + 1);
   stack.Install (nodesC);
+  stack.AssignStreams (nodesC, stackStream + 2);
   stack.Install (nodesD);
+  stack.AssignStreams (nodesD, stackStream + 3);
   stack.Install (nodesE);
+  stack.AssignStreams (nodesE, stackStream + 4);
   stack.Install (nodesF);
+  stack.AssignStreams (nodesF, stackStream + 5);
   stack.Install (nodesG);
+  stack.AssignStreams (nodesG, stackStream + 6);
 
   Ipv4AddressHelper address;
   address.SetBase ("192.168.1.0", "255.255.255.0");
