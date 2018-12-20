@@ -429,21 +429,6 @@ ScheduleAddbaStateLogDisconnect (void)
   Config::Disconnect ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Mac/$ns3::RegularWifiMac/BE_Txop/BlockAckManager/AgreementState", MakeCallback (&AddbaStateCb));
 }
 
-void
-AddClient (Ptr<NetDevice> rxDevice, Ptr<NetDevice> txDevice, Ptr<Node> txNode, uint32_t payloadSize, uint32_t maxPackets, Time interval)
-{
-  PacketSocketAddress socketAddr;
-  socketAddr.SetSingleDevice (txDevice->GetIfIndex ());
-  socketAddr.SetPhysicalAddress (rxDevice->GetAddress ());
-  socketAddr.SetProtocol (1);
-  Ptr<PacketSocketClient> client = CreateObject<PacketSocketClient> ();
-  client->SetRemote (socketAddr);
-  txNode->AddApplication (client);
-  client->SetAttribute ("PacketSize", UintegerValue (payloadSize));
-  client->SetAttribute ("MaxPackets", UintegerValue (maxPackets));
-  client->SetAttribute ("Interval", TimeValue (interval));
-}
-
 void AddClient (ApplicationContainer &clientAppA, Ipv4Address address, Ptr<Node> node, uint16_t port, Time interval, uint32_t payloadSize)
 {
   UdpClientHelper clientA (address, port);
@@ -451,19 +436,6 @@ void AddClient (ApplicationContainer &clientAppA, Ipv4Address address, Ptr<Node>
   clientA.SetAttribute ("Interval", TimeValue (interval)); // s/packet
   clientA.SetAttribute ("PacketSize", UintegerValue (payloadSize));
   clientAppA.Add (clientA.Install (node));
-}
-
-void
-AddServer (Ptr<NetDevice> rxDevice, Ptr<NetDevice> txDevice, Ptr<Node> rxNode)
-{
-  PacketSocketAddress socketAddr;
-  socketAddr.SetSingleDevice (txDevice->GetIfIndex ());
-  socketAddr.SetPhysicalAddress (rxDevice->GetAddress ());
-  socketAddr.SetProtocol (1);
-  Ptr<PacketSocketClient> client = CreateObject<PacketSocketClient> ();
-  Ptr<PacketSocketServer> server = CreateObject<PacketSocketServer> ();
-  server->SetLocal (socketAddr);
-  rxNode->AddApplication (server);
 }
 
 void AddServer (UdpServerHelper &serverA, ApplicationContainer &serverAppA, Ptr<Node> node)
@@ -476,7 +448,6 @@ std::vector<uint32_t> noises (100);
 
 void
 SaveSpatialReuseStats (const std::string filename,
-                       const double duration,
                        const double d,
                        const double r,
                        const int freqHz,
@@ -511,7 +482,6 @@ SaveSpatialReuseStats (const std::string filename,
 
   for (uint32_t bss = 1; bss <= nBss; bss++)
     {
-
       uint32_t bytesReceivedApUplink = 0.0;
       uint32_t bytesReceivedApDownlink = 0.0;
 
@@ -2105,7 +2075,6 @@ main (int argc, char *argv[])
     }
 
   positionOutFile << std::endl;
-
   positionOutFile.close ();
 
   double perNodeUplinkMbps = aggregateUplinkMbps / n;
@@ -2579,7 +2548,7 @@ main (int argc, char *argv[])
   }
 
   // Save spatial reuse statistics to an output file
-  SaveSpatialReuseStats (outputFilePrefix + "-SR-stats-" + testname + ".dat", duration, d,  r, freq, csr, scenario, aggregateUplinkMbps, aggregateDownlinkMbps);
+  SaveSpatialReuseStats (outputFilePrefix + "-SR-stats-" + testname + ".dat", d,  r, freq, csr, scenario, aggregateUplinkMbps, aggregateDownlinkMbps);
 
   // save flow-monitor results
   std::stringstream stmp;
