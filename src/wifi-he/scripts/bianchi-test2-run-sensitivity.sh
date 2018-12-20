@@ -222,22 +222,22 @@ export RngRun=1
 # duration = 1s
 export duration=1
 export test="bianchi-test2-duration1"
-#run_one &
+run_one &
 
 # duration = 5s
 export duration=5
 export test="bianchi-test2-duration5"
-#run_one &
+run_one &
 
 # duration = 10s
 export duration=10
 export test="bianchi-test2-duration10"
-#run_one &
+run_one &
 
 # duration = 20s
 export duration=20
 export test="bianchi-test2-duration20"
-#run_one &
+run_one &
 
 wait
 

@@ -729,6 +729,9 @@ make latexpdf
 Study 1 Results
 ===============
 
+The figures in the section were generated using the ns-3-dev-11ax 
+repository as of commit changeset 7d56f75.
+
 System Throughput
 #################
 

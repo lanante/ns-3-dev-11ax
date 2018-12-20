@@ -45,7 +45,9 @@ nBss=7
 # params that will vary
 index=0
 # for n in 5 10 15 20 25 30 35 40 ; do
-for n in 5 10 15 20 25 30 35 ; do
+# 12/20/18 - data points for n=35 and n=40 are incomplete
+# due to the script erroring out.  excluding those temporarily
+for n in 5 10 15 20 25 30 ; do
 # for n in 5 ; do
     for ap in ap1 ; do
 #        for offeredLoad in 1.0 2.0 3.0 4.0 5.0 6.0 ; do
@@ -105,8 +107,10 @@ unset XCOLS
 # params that will vary
 index=0
 # for n in 5 10 15 20 25 30 35 40 ; do
-for n in 5 10 15 20 25 30 35 ; do
-# for n in 5 10 15 20 25 30 ; do
+#for n in 5 10 15 20 25 30 35 ; do
+# 12/20/18 - data points for n=35 and n=40 are incomplete
+# due to the script erroring out.  excluding those temporarily
+for n in 5 10 15 20 25 30 ; do
 # for n in 5 ; do
     for ap in ap1 ; do
 #        for offeredLoad in 1.0 2.0 3.0 4.0 5.0 6.0 ; do
@@ -166,8 +170,9 @@ unset XCOLS
 # params that will vary
 index=0
 # for n in 5 10 15 20 25 30 35 40 ; do
-for n in 5 10 15 20 25 30 35 ; do
-# for n in 5 10 15 20 25 30 ; do
+# 12/20/18 - data points for n=35 and n=40 are incomplete
+# due to the script erroring out.  excluding those temporarily
+for n in 5 10 15 20 25 30 ; do
 # for n in 5 ; do
     for ap in ap1 ; do
 #        for offeredLoad in 1.0 2.0 3.0 4.0 5.0 6.0 ; do
