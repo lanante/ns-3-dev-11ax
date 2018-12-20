@@ -147,6 +147,11 @@ PacketRx (std::string context, const Ptr<const Packet> p, const Address &srcAddr
   timeLastPacketReceived = Simulator::Now();
 }
 
+// loggine arrivals to phy-log.dat file is
+// bloating memory duration simulation, and
+// those results are not used for any post-processing
+// so setting flag here to disable their capture
+bool g_logArrivals = false;
 std::vector<SignalArrival> g_arrivals;
 double g_arrivalsDurationCounter = 0;
 std::ofstream g_stateFile;
@@ -331,15 +336,18 @@ AddbaStateCb (std::string context, Time t, Mac48Address recipient, uint8_t tid, 
 void
 SignalCb (std::string context, bool wifi, uint32_t senderNodeId, double rxPowerDbm, Time rxDuration)
 {
-  SignalArrival arr;
-  arr.m_time = Simulator::Now ();
-  arr.m_duration = rxDuration;
-  arr.m_nodeId = ContextToNodeId (context);
-  arr.m_senderNodeId = senderNodeId;
-  arr.m_wifi = wifi;
-  arr.m_power = rxPowerDbm;
-  g_arrivals.push_back (arr);
-  g_arrivalsDurationCounter += rxDuration.GetSeconds ();
+  if (g_logArrivals)
+    {
+      SignalArrival arr;
+      arr.m_time = Simulator::Now ();
+      arr.m_duration = rxDuration;
+      arr.m_nodeId = ContextToNodeId (context);
+      arr.m_senderNodeId = senderNodeId;
+      arr.m_wifi = wifi;
+      arr.m_power = rxPowerDbm;
+      g_arrivals.push_back (arr);
+      g_arrivalsDurationCounter += rxDuration.GetSeconds ();
+    }
 
   NS_LOG_DEBUG (context << " " << wifi << " " << senderNodeId << " " << rxPowerDbm << " " << rxDuration.GetSeconds () / 1000.0);
   uint32_t nodeId = ContextToNodeId (context);
@@ -351,6 +359,10 @@ SignalCb (std::string context, bool wifi, uint32_t senderNodeId, double rxPowerD
 void
 SaveSpectrumPhyStats (std::string filename, const std::vector<SignalArrival> &arrivals)
 {
+  // if we are not logging the stats, then return
+  if (g_logArrivals == false)
+    return;
+
   std::ofstream outFile;
   outFile.open (filename.c_str (), std::ofstream::out | std::ofstream::trunc);
   outFile.setf (std::ios_base::fixed);
@@ -2095,6 +2107,8 @@ main (int argc, char *argv[])
   std::cout << "ApplicationTxStart: " << applicationTxStart << " Duration: " << duration << std::endl;
 
   Ptr<UniformRandomVariable> urv = CreateObject<UniformRandomVariable> ();
+  // assign stream to prevent perturbations
+  urv->SetAttribute ("Stream", IntegerValue (200));
   urv->SetAttribute ("Min", DoubleValue (-txStartOffset));
   urv->SetAttribute ("Max", DoubleValue (txStartOffset));
   double next_rng = 0;
