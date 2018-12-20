@@ -178,6 +178,9 @@ from the common parameters.
 Results
 #######
 
+The figures in the section were generated using the ns-3-dev-11ax
+repository as of commit changeset c85f4dc.
+
 The node positions for the calibration test1a scenario are given below.
 
 .. _positions-calibration-test1a:

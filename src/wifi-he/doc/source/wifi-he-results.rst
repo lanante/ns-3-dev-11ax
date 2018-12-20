@@ -18,7 +18,7 @@ In this chapter we provide simulation results obtained in order to evaluate
 the WiFi HE features, especially spatial reuse and coexistence of 802.11ac, 
 802.11ax, and/or LTE networks. We first describe the framework used to launch
 simulation scenarios and process the results.  Then we present the results for
-some selected scenarios and parametric studies
+some selected scenarios and parametric studies.
 
 Scenario
 ========
@@ -42,7 +42,7 @@ uplink load (total summation of all traffic from all STAs toward the AP)
 or downlink load (total summation of load from the AP that is allocated
 prorata to the STAs).
 
-When more than one network is simulated, the APs are separate from one
+When more than one network is simulated, the APs are separated from one
 another by some separation distance.
 
 Key Parameters
