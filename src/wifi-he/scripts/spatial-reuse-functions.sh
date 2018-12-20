@@ -78,7 +78,9 @@ function run_one () {
   cd ../scripts
   mkdir -p results
   cp "../../../spatial-reuse-positions-$test.csv" "results/spatial-reuse-positions-$test.csv"
-  cp "../../../spatial-reuse-rx-sniff-$test.dat"  "results/spatial-reuse-rx-sniff-$test.dat"
+  # to save on disk space, the rx-sniff file is not copied to the results/ folder, as this
+  # file can grow to be very large and is only used to create the noise and signal cdf plots.
+  # cp "../../../spatial-reuse-rx-sniff-$test.dat"  "results/spatial-reuse-rx-sniff-$test.dat"
   cp "../../../spatial-reuse-SR-stats-$test.dat"  "results/spatial-reuse-SR-stats-$test.dat"
   cp "../../../spatial-reuse-A-$test.flowmon"  "results/spatial-reuse-A-$test.flowmon"
   cp "../../../spatial-reuse-operatorA-$test"  "results/spatial-reuse-operatorA-$test"
@@ -120,6 +122,12 @@ function run_one () {
   # AP2 noise
   python ecdf2.py "spatial-reuse-rx-sniff-$test.dat" "$noise"  1 "$ap2" "$sta2_1" "$sta2_n" "spatial-reuse-rx-sniff-$test-ap2-noise.png" 1500 &
   wait
+
+  # to reduce disk space usage, the 'rx-sniff' files are deleted here, after
+  # the simulation has completed, and after the noise and signal plots have been generated
+  rm "../../../spatial-reuse-rx-sniff-$test.dat"
+  rm "spatial-reuse-rx-sniff-$test.dat"
+
   cp *.png ./results/.
   rm *.png
   cd ../examples
