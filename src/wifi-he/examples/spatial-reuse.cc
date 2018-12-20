@@ -104,6 +104,7 @@ struct SignalArrival
   double m_power;
 };
 
+double duration = 20.0; // seconds
 uint32_t nBss = 2; // number of BSSs.  Can be 1 or 2 (default)
 uint32_t n = 1; // number of STAs to scatter around each AP;
 double aggregateUplinkMbps = 1.0;
@@ -316,7 +317,10 @@ AddbaStateCb (std::string context, Time t, Mac48Address recipient, uint8_t tid, 
               std::cout << t << ": ALL ADDBA ARE ESTABLISHED !" << std::endl;
               allAddBaEstablished = true;
               timeAllAddBaEstablished = t;
-              //TODO: schedule stop time
+              if (filterOutNonAddbaEstablished)
+                {
+                  Simulator::Stop (Seconds (duration));
+                }
             }
         }
       else if ((aggregateDownlinkMbps != 0) && (aggregateUplinkMbps != 0)) //UP + DL
@@ -327,7 +331,10 @@ AddbaStateCb (std::string context, Time t, Mac48Address recipient, uint8_t tid, 
               std::cout << t << ": ALL ADDBA ARE ESTABLISHED !" << std::endl;
               allAddBaEstablished = true;
               timeAllAddBaEstablished = t;
-              //TODO: schedule stop time
+              if (filterOutNonAddbaEstablished)
+                {
+                  Simulator::Stop (Seconds (duration));
+                }            
             }
         }
     }
@@ -815,7 +822,6 @@ main (int argc, char *argv[])
   int maxSlrc = 7;
   bool enablePcap = false;
   bool enableAscii = false;
-  double duration = 20.0; // seconds
   double powSta = 10.0; // dBm
   double powAp = 21.0; // dBm
   double ccaTrSta = -62; // dBm
@@ -906,7 +912,10 @@ main (int argc, char *argv[])
   cmd.AddValue ("filterOutNonAddbaEstablished", "Flag whether statistics obtained before all ADDBA hanshakes have been established are filtered out.", filterOutNonAddbaEstablished);
   cmd.Parse (argc, argv);
   
-  //TODO: if Bianchi, enable filterOutNonAddbaEstablished?
+  if (bianchi)
+    {
+      filterOutNonAddbaEstablished = true;
+    }
 
   if ((scenario == "study1") || (scenario == "study2"))
     {
@@ -2463,74 +2472,34 @@ main (int argc, char *argv[])
     }
 
   uplinkServerAppA.Start (Seconds (0.0));
-  uplinkServerAppA.Stop (Seconds (duration + applicationTxStart));
   uplinkClientAppA.Start (Seconds (applicationTxStart));
-  uplinkClientAppA.Stop (Seconds (duration + applicationTxStart));
-
   uplinkServerAppB.Start (Seconds (0.0));
-  uplinkServerAppB.Stop (Seconds (duration + applicationTxStart));
   uplinkClientAppB.Start (Seconds (applicationTxStart));
-  uplinkClientAppB.Stop (Seconds (duration + applicationTxStart));
-
   uplinkServerAppC.Start (Seconds (0.0));
-  uplinkServerAppC.Stop (Seconds (duration + applicationTxStart));
   uplinkClientAppC.Start (Seconds (applicationTxStart));
-  uplinkClientAppC.Stop (Seconds (duration + applicationTxStart));
-
   uplinkServerAppD.Start (Seconds (0.0));
-  uplinkServerAppD.Stop (Seconds (duration + applicationTxStart));
   uplinkClientAppD.Start (Seconds (applicationTxStart));
-  uplinkClientAppD.Stop (Seconds (duration + applicationTxStart));
-
   uplinkServerAppE.Start (Seconds (0.0));
-  uplinkServerAppE.Stop (Seconds (duration + applicationTxStart));
   uplinkClientAppE.Start (Seconds (applicationTxStart));
-  uplinkClientAppE.Stop (Seconds (duration + applicationTxStart));
-
   uplinkServerAppF.Start (Seconds (0.0));
-  uplinkServerAppF.Stop (Seconds (duration + applicationTxStart));
   uplinkClientAppF.Start (Seconds (applicationTxStart));
-  uplinkClientAppF.Stop (Seconds (duration + applicationTxStart));
-
   uplinkServerAppG.Start (Seconds (0.0));
-  uplinkServerAppG.Stop (Seconds (duration + applicationTxStart));
   uplinkClientAppG.Start (Seconds (applicationTxStart));
-  uplinkClientAppG.Stop (Seconds (duration + applicationTxStart));
 
   downlinkServerAppA.Start (Seconds (0.0));
-  downlinkServerAppA.Stop (Seconds (duration + applicationTxStart));
   downlinkClientAppA.Start (Seconds (applicationTxStart));
-  downlinkClientAppA.Stop (Seconds (duration + applicationTxStart));
-
   downlinkServerAppB.Start (Seconds (0.0));
-  downlinkServerAppB.Stop (Seconds (duration + applicationTxStart));
   downlinkClientAppB.Start (Seconds (applicationTxStart));
-  downlinkClientAppB.Stop (Seconds (duration + applicationTxStart));
-
   downlinkServerAppC.Start (Seconds (0.0));
-  downlinkServerAppC.Stop (Seconds (duration + applicationTxStart));
   downlinkClientAppC.Start (Seconds (applicationTxStart));
-  downlinkClientAppC.Stop (Seconds (duration + applicationTxStart));
-
   downlinkServerAppD.Start (Seconds (0.0));
-  downlinkServerAppD.Stop (Seconds (duration + applicationTxStart));
   downlinkClientAppD.Start (Seconds (applicationTxStart));
-  downlinkClientAppD.Stop (Seconds (duration + applicationTxStart));
-
   downlinkServerAppE.Start (Seconds (0.0));
-  downlinkServerAppE.Stop (Seconds (duration + applicationTxStart));
   downlinkClientAppE.Start (Seconds (applicationTxStart));
-  downlinkClientAppE.Stop (Seconds (duration + applicationTxStart));
-
   downlinkServerAppF.Start (Seconds (0.0));
-  downlinkServerAppF.Stop (Seconds (duration + applicationTxStart));
   downlinkClientAppF.Start (Seconds (applicationTxStart));
-  downlinkClientAppF.Stop (Seconds (duration + applicationTxStart));
-
   downlinkServerAppG.Start (Seconds (0.0));
-  downlinkServerAppG.Stop (Seconds (duration + applicationTxStart));
   downlinkClientAppG.Start (Seconds (applicationTxStart));
-  downlinkClientAppG.Stop (Seconds (duration + applicationTxStart));
 
   Config::Set ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/HtConfiguration/BeMaxAmpduSize", UintegerValue (maxAmpduSize));
   Config::Set ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/VhtConfiguration/BeMaxAmpduSize", UintegerValue (maxAmpduSize));
@@ -2548,7 +2517,6 @@ main (int argc, char *argv[])
       Config::Connect ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Mac/$ns3::RegularWifiMac/MacLow/TxAmpdu", MakeCallback (&TxAmpduCallback));
       Config::Connect ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Mac/$ns3::RegularWifiMac/MacLow/RxBlockAck", MakeCallback (&RxBlockAckCallback));
     }
-
 
   if (enableAscii)
     {
@@ -2583,7 +2551,14 @@ main (int argc, char *argv[])
     }
 
   Time durationTime = Seconds (duration + applicationTxStart);
-  Simulator::Stop (durationTime);
+  if (!filterOutNonAddbaEstablished)
+    {
+      Simulator::Stop (durationTime);
+    }
+  else
+    {
+      Simulator::Stop (durationTime + Seconds (100)); //We expect ADDBA to be established much before 100s, this is just a protection to make sure simulation finishes oneday
+    }
   Simulator::Run ();
 
   SchedulePhyLogDisconnect ();

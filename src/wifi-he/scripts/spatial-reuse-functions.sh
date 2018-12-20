@@ -66,13 +66,14 @@ function run_one () {
 	--enablePcap=${enablePcap} \
 	--enableAscii=${enableAscii} \
 	--obssPdThreshold=${obssPdThreshold} \
-        --useIdealWifiManager=${useIdealWifiManager} \
-        --test=${test} \
-        --maxSlrc=${maxSlrc} \
-        --bianchi=${bianchi} \
-        --sigma=${sigma} \
-        --applicationTxStart=${applicationTxStart} \
-        --rxSensitivity=${rxSensitivity}"
+  --useIdealWifiManager=${useIdealWifiManager} \
+  --test=${test} \
+  --maxSlrc=${maxSlrc} \
+  --bianchi=${bianchi} \
+  --sigma=${sigma} \
+  --applicationTxStart=${applicationTxStart} \
+  --rxSensitivity=${rxSensitivity} \
+  --filterOutNonAddbaEstablished=${filterOutNonAddbaEstablished}"
 
   # copy results files
   cd ../scripts
