@@ -16,7 +16,7 @@ Overview
 
 In this section we first describe the calibration process followed to achieve
 comparable results from the WiFi module.  Then we describes the test suites
-that are provided in order to validate the proper funcationality and correct
+that are provided in order to validate the proper functionality and correct
 simulation output of the modeule.
 
 Calibration Process
@@ -24,10 +24,10 @@ Calibration Process
 
 To validate the 11ax model implementations, several experiments were conducted
 using ns-3 scripts to repeat the calibration tests and scenarios outlines in
-[TGax15]. The parameters as noted in [TGax15] are used to set up ns-3
+[TGax15]_. The parameters as noted in [TGax15]_ are used to set up ns-3
 simulations, and any deviations from these parameters are noted below.
 
-The document [TGax15] defines simulation scenarios to be used for
+The document [TGax15]_ defines simulation scenarios to be used for
 
 * Evaluation of performance of proposed 11ax features
 
@@ -43,7 +43,7 @@ expected performance of the 11ax features, via ns-3 simulations.
 Calibration Tests
 =================
 
-The calibration tests are described in [TGax15] in the section titled
+The calibration tests are described in [TGax15]_ in the section titled
 "Scenarios for calibration of MAC simulator".
 
 The following tests are the subset of the TGax calibration tests that have been
@@ -145,7 +145,7 @@ Test 1a - MAC overhead w/o RTS/CTS
 ##################################
 
 The goal of this test is to verify whether the simulator can correctly
- handle the basic frame exchange procedure, including AIFS+backoff
+handle the basic frame exchange procedure, including AIFS+backoff
 procedure and A-MPDU + SIFS + BA sequence, and also to make sure the
 overheads are computed correctly.
 
@@ -650,10 +650,10 @@ Box5 Calibration Tests
 ======================
 
 In addition to the calibration tests mentioned above, additional tests are
-defined in [TGax15] for "Box5 calibration".  These tests assume specific node
+defined in [TGax15]_ for "Box5 calibration".  These tests assume specific node
 locations for 3 BSSs and the STAs associated with them.  
 
-The box5 calibration tests are described in [TGax15] in the section titled
+The box5 calibration tests are described in [TGax15]_ in the section titled
 "Scenarios for calibration of Box5 simulator".
 
 The following TGax Box5 calibration tests that have been simulated in ns-3:
@@ -754,7 +754,7 @@ The figures in the section were generated using the ns-3-dev-11ax
 repository as of commit changeset c85f4dc.
 
 The validation tests describe here follow the tests described 
-in [TGax15] in the section titled "Scenarios summary".
+in [TGax15]_ in the section titled "Scenarios summary".
 
 These scenarios are more extensive than the calibration scenarios
 documented above.
@@ -850,9 +850,9 @@ The following parameters are set for all all validation scenarios.
 * ``useIdealWifiManager`` = 0
 
 It is noted that some parameters vary from those mentioned
-in [TGax15].  In particular, the nx-3 simulations assume
+in [TGax15]_.  In particular, the nx-3 simulations assume
 1 antenna per node (AP or STA) with no antenna gains.  Contrastingly.
-the parameters given in [TGax15] assume 4 antennas per AP with 0 dBi gain,
+the parameters given in [TGax15]_ assume 4 antennas per AP with 0 dBi gain,
 and 2 antennas per STA with -2 dBi gain.
 
 Test 1 - Residential Scenario
@@ -870,7 +870,7 @@ Traffic flow is modelled as a total aggregated offered load of 10 Mbps of
 uplink traffic only.  With a total uplink load of 10 Mbps and n=10 STAs per
 network, the uplink load per STA is 10 Mbps / 10 nodes = 1 Mbps per STA.
 Note that this load is a deviation from the scenario as documented in 
-[TGax15], in which different traffic models are assigned 
+[TGax15]_, in which different traffic models are assigned 
 separately to each "apartment".
 
 The residential path loss model is given by:
@@ -1005,7 +1005,7 @@ a packet is received, the noise level being approximately -86 dB.
 Test 2 - Enterprise Scenario
 #############################
 
-The enterprise scenario is derived from a "wireless offic" environment described by 
+The enterprise scenario is derived from a "wireless office" environment described by 
 STA clusters (cubicles) with APs positioned to service them.
 
 The scenario is simulated in ns-3 as follows:  2 APs are placed d=10m 
@@ -1016,7 +1016,7 @@ Traffic flow is modelled as a total aggregated offered load of 10 Mbps of
 uplink traffic only.  With a total uplink load of 10 Mbps and n=100 STAs per
 network, the uplink load per STA is 10 Mbps / 100 nodes = 0.1 Mbps per STA.
 Note that this load is a deviation from the scenario as documented in 
-[TGax15], in which different traffic models are assigned 
+[TGax15]_, in which different traffic models are assigned 
 separately to each AP.
 
 The enterprise path loss model is given by:
@@ -1156,7 +1156,7 @@ Test 3 - Indoor Small BSSs Scenario
 ###################################
 
 The indoor small BSSs scenario has the objective to be representative
-of real-world deployments with high density of APs and STAs [TGax15].
+of real-world deployments with high density of APs and STAs [TGax15]_.
 
 The scenario is simulated in ns-3 as follows:  2 APs are placed d=17.32m 
 apart, each with n=30 STAs that are dropped within a circle of r=10m around
@@ -1170,7 +1170,7 @@ Traffic flow is modelled as a total aggregated offered load of 10 Mbps of
 uplink traffic only.  With a total uplink load of 10 Mbps and n=30 STAs per
 network, the uplink load per STA is 10 Mbps / 30 nodes = 0.33 Mbps per STA.
 Note that this load is a deviation from the scenario as documented in 
-[TGax15], in which different traffic models are assigned 
+[TGax15]_, in which different traffic models are assigned 
 separately to each BSS.
 
 The Indoor Small BSSs path loss model is given by:
@@ -1306,7 +1306,7 @@ Test 4 - Outdoor Small BSS Scenario
 
 The outdoor small BSS scenario has the objective to be representative
 of real-world outdoor deployments with a high separation between APs
-(BSS edge with low SNR) with high density of STAs [TGax15].
+(BSS edge with low SNR) with high density of STAs [TGax15]_.
 
 The scenario is simulated in ns-3 as follows:  2 APs are placed d=130m 
 apart, each with n=50 STAs that are dropped within a circle of r=70m around
@@ -1320,10 +1320,10 @@ Traffic flow is modelled as a total aggregated offered load of 10 Mbps of
 uplink traffic only.  With a total uplink load of 10 Mbps and n=50 STAs per
 network, the uplink load per STA is 10 Mbps / 50 nodes = 0.20 Mbps per STA.
 Note that this load is a deviation from the scenario as documented in 
-[TGax15], in which different traffic models are assigned 
+[TGax15]_, in which different traffic models are assigned 
 separately to each BSS.
 
-The Outdoor Small BSS path loss model is given in [TGax15] for LOS and NLOS 
+The Outdoor Small BSS path loss model is given in [TGax15]_ for LOS and NLOS 
 conditions.
 
 This pathloss model is modelled in ns-3 using the 

@@ -10,8 +10,8 @@ Open Issues and Future Work
    ============= Subsection (#.#.#)
    ############# Paragraph (no number)
 
-Open Issues
-===========
+Open Issues in the underlying Wi-Fi PHY model
+=============================================
 
 Throughput results show some irregularities. These include:
 
@@ -35,8 +35,11 @@ theoretical results on the plots vs. the simulation results.
 
 Some Calibration Box5 scenarios crash ns-3
 
-Future Work
-===========
+Open issues in the OBSS_PD model support
+========================================
+
+Open issues in the spatial reuse scenarios
+==========================================
 
 Plot the CDF of latency per flow.
 
