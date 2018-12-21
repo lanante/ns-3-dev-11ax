@@ -38,7 +38,7 @@ export useIdealWifiManager=0
 
 cd ../examples
 
-# Test: 1 - Resideential Scenario
+# Test: 1 - Residential Scenario
 export test=TGax-test1
 export d=10
 export r=5

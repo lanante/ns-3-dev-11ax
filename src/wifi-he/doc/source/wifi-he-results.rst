@@ -142,6 +142,9 @@ Examples of these metrics with further explanation are given below.
 Example Scenarios
 =================
 
+The figures in the section were generated using the ns-3-dev-11ax 
+repository as of commit changeset 7d56f75.
+
 As an example comparison, we consider two of these scenarios:
 
 1. Scenario 80-30-02-20 and

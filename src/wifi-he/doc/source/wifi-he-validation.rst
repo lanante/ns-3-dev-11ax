@@ -750,6 +750,9 @@ NOTE:  More TBD to document these results
 Validation
 ==========
 
+The figures in the section were generated using the ns-3-dev-11ax
+repository as of commit changeset c85f4dc.
+
 The validation tests describe here follow the tests described 
 in [TGax15] in the section titled "Scenarios summary".
 
