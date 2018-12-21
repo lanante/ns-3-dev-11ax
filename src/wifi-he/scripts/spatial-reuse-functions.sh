@@ -1,7 +1,59 @@
 #!/bin/bash
 
+# function to check if a file already existgs, and if so,
+# instruct the user to move it somewhere and then run the script
+# again.
+function check_file () {
+  cd ../scripts
+
+  if [[ -e $1 ]]; then
+
+    delete_it=0
+    if [ -z "$AUTO_DELETE_SPATIAL_REUSE_OUTPUT_FILES" ]; then
+      delete_it=0
+    else
+      delete_it="$AUTO_DELETE_SPATIAL_REUSE_OUTPUT_FILES"
+    fi
+
+    if [ "0" == "$delete_it" ]; then
+      echo "****** !!!WARNING!!! ******"
+      echo "The following file already exists and cannot be overwritten by the calling script."
+      echo "   --> $1"
+      echo "Please move the contents to a safe location, or delete it manually, and run the script again."
+      echo " "
+      echo "If you would prefer to automatically remove pre-existing output files as your script starts,"
+      echo "then try > export=AUTO_DELETE_SPATIAL_RESUSE_OUTPUT_FILES=1"
+      echo "To disable this, try > unset AUTO_DELETE_SPATIAL_REUSE_OUTPUT_FILES"
+      echo "EXITING..."
+      cd ../examples
+      exit 1
+    else
+      # the var AUTO_DELETE_SPATIAL_REUSE_OUTPUT_FILES is defined (to anything)
+      # so auto delete the fult
+      rm -f $1
+    fi
+  fi
+
+  cd ../examples
+}
+
 # function to run one test
 function run_one () {
+
+  # before doing anything, ensure that the expected output files
+  # do not exist.  if any exist, do not continue - make the user
+  # move them, or explicitly delete them.
+  check_file "./results/spatial-reuse-positions-$test.csv"
+  check_file "./results/spatial-reuse-SR-stats-$test.dat"
+  check_file "./results/spatial-reuse-A-$test.flowmon"
+  check_file "./results/spatial-reuse-operatorA-$test"
+  check_file "./results/spatial-reuse-tgax-calibration-timings-${test}.dat"
+  check_file "./results/spatial-reuse-positions-${test}.png"
+  check_file "./results/spatial-reuse-rx-sniff-$test-ap1-signal.png"
+  check_file "./results/spatial-reuse-rx-sniff-$test-ap1-noise.png"
+  check_file "./results/spatial-reuse-rx-sniff-$test-ap2-signal.png"
+  check_file "./results/spatial-reuse-rx-sniff-$test-ap2-noise.png"
+
   if [ -z "$maxSlrc" ]; then
     # echo "maxSlrc is not set, defaulting to 7.";
     export maxSlrc=7
