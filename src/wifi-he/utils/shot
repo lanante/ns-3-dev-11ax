@@ -1,0 +1,290 @@
+# -*- Mode: shell-script -*-
+
+# SHOT (SHell plOT) - easy gnuplotting using bash scripts!
+# Copyright (C) 2007,2008  Nicola Baldo 
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+#
+
+
+killall -q gnuplot || true
+
+OPTIONS="${OPTIONS} ; set style line 1 pt 4 lt 1"
+OPTIONS="${OPTIONS} ; set style line 2 pt 5 lt 2"
+OPTIONS="${OPTIONS} ; set style line 3 pt 6 lt 3"
+OPTIONS="${OPTIONS} ; set style line 4 pt 7 lt 4"
+OPTIONS="${OPTIONS} ; set style line 5 pt 8 lt 5"
+OPTIONS="${OPTIONS} ; set style line 6 pt 9 lt 6"
+OPTIONS="${OPTIONS} ; set style line 7 pt 10 lt 7"
+OPTIONS="${OPTIONS} ; set style line 8 pt 11 lt 8"
+OPTIONS="${OPTIONS} ; set style line 9 pt 12 lt 9"
+OPTIONS="${OPTIONS} ; set style line 10 pt 13 lt 10"
+OPTIONS="${OPTIONS} ; set style line 11 pt 14 lt 11"
+OPTIONS="${OPTIONS} ; set style line 12 pt 15 lt 12"
+OPTIONS="${OPTIONS} ; set style line 13 pt 16 lt 13"
+OPTIONS="${OPTIONS} ; set style line 14 pt 17 lt 14"
+OPTIONS="${OPTIONS} ; set style line 15 pt 18 lt 15"
+OPTIONS="${OPTIONS} ; set style line 16 pt 19 lt 16"
+OPTIONS="${OPTIONS} ; set style line 17 pt 20 lt 17"
+OPTIONS="${OPTIONS} ; set style line 18 pt 21 lt 18"
+OPTIONS="${OPTIONS} ; set style line 19 pt 22 lt 19"
+OPTIONS="${OPTIONS} ; set style line 20 pt 23 lt 20"
+OPTIONS="${OPTIONS} ; set style increment ;"
+
+OPTIONS="${OPTIONS} ; set pointsize 2 ;"
+
+BASE_OPTIONS=$OPTIONS
+
+
+plot () {
+
+
+# NOTE: this function makes use of the following MANDATORY global variables:
+# - XLABEL
+# - YCOL
+# - YLABEL
+# - RANGE
+# - IMGFILENAME
+# - IMGDIR    
+# - PLOTTYPE
+# - TITLE (OPTIONAL)
+# - OPTIONS (Optional ;-) )
+# - FILES (array of files to be plotted. One curve is plotted per file)
+# - LABELS (one label for each file)
+# (plus of course userpairs etc. defined above)
+
+
+
+    if test "x${IMGDIR}" != "x" ; then
+	plotdir="$IMGDIR"
+    else
+	plotdir="images"
+    fi
+
+
+
+    mkdir -p "${plotdir}/png"
+    mkdir -p "${plotdir}/pstex"
+    mkdir -p "${plotdir}/ps"
+    mkdir -p "${plotdir}/scripts"
+
+    maxindex=0
+    
+
+    for dummyvar in ${FILES[*]}
+      do
+      maxindex=`expr $maxindex + 1`
+    done
+
+#     if test $maxindex -le 1 ; then
+# 	maxindex=0
+# 	for dummyvar in ${YCOLS[*]}
+# 	  do
+# 	  echo "YCOL[$maxindex]= ${YCOLS[maxindex]}"
+# 	  maxindex=`expr $maxindex + 1`
+# 	done
+#     fi
+
+    if test $maxindex -eq 0 ; then
+	echo "Error: maxindex = $maxindex" ; exit 1
+    fi
+
+
+    PLOTCMD=""
+
+    index=0
+    first=true
+    while test $index -lt $maxindex ; do
+	  
+      if ! test "x${XCOLS[$index]}" = x ; then
+	  USING="${XCOLS[$index]}:"
+      else
+	  USING=""
+      fi
+
+
+      if test "x${YCOLS[$index]}" = x ; then 
+	  echo "variable YCOLS[$index] undefined"
+	  exit 1
+      fi
+
+      if ! test -f "${FILES[$index]}"  ; then 
+	  echo "file \"${FILES[$index]}\" does not seem to exist"
+	  exit 1
+      fi
+
+      USING="${USING}${YCOLS[$index]}"
+      FNAME="${FILES[$index]}"
+
+      if test "x${ZCOLS[$index]}" != x ; then
+	  USING="${USING}:${ZCOLS[$index]}"
+	  if test "x${PLOTCMD}" = plot ; then 
+	      echo "Error: cannot mix plots & splots" ; exit 1 ;
+	  fi
+	  PLOTCMD=splot
+      else
+	  if test "x${PLOTCMD}" = splot ; then 
+	      echo "Error: cannot mix splots & plots" ; exit 1 ;
+	  fi
+	  PLOTCMD=plot
+      fi
+
+      #echo " index = $index, PLOTCMD = $PLOTCMD"
+      # echo "USING $USING"
+
+      if test "x${PLOTTYPES[$index]}" != x ; then 
+	  STYLE="${PLOTTYPES[$index]} "
+      else
+	   if test "x${PLOTTYPE}" = x ; then
+	       true
+	       #echo "warning: both PLOTTYPES[$index] and PLOTTYPE undefined, using no style"
+	   else
+	       STYLE=" ${PLOTTYPE} ls `expr $index + 1`"
+	   fi	  
+      fi	      
+
+      if test "x${NEWHISTOGRAM[$index]}" != x ; then 
+	  tmpstr="newhistogram \"${NEWHISTOGRAM[$index]}\" ${NEWHISTOGRAMARGS[$index]}, \"${FNAME}\" using ${USING} ${STYLE} "
+      else
+	  tmpstr="\"${FNAME}\" using ${USING} ${STYLE} "
+      fi
+
+      if test "x${LABELS[$index]}" = x ; then
+	  echo "warning: variable LABELS[$index] undefined"
+      else
+	  if test "x${LABELS[$index]}" = xnotitle ; then
+	      tmpstr="${tmpstr} notitle "
+	  else
+	      tmpstr="${tmpstr} title \"${LABELS[$index]}\"  "
+	  fi
+      fi
+
+
+      if test $first != true
+	  then
+	  gnuplotstr=${gnuplotstr}", "${tmpstr}
+      else
+	  gnuplotstr=${tmpstr}
+      fi
+      
+      first=false
+      index=`expr $index + 1`
+    done
+
+    labelstr=""
+
+    if ! test "x${XLABEL}" = x ; then
+	labelstr="$labelstr set xlabel \"${XLABEL}\";"
+    fi
+
+    if ! test "x${YLABEL}" = x ; then
+	labelstr="$labelstr set ylabel \"${YLABEL}\";"
+    fi
+
+    if ! test "x${ZLABEL}" = x ; then
+	labelstr="$labelstr set zlabel \"${ZLABEL}\";"
+    fi
+
+    if ! test "x${CBLABEL}" = x ; then
+	labelstr="$labelstr set cblabel \"${CBLABEL}\";"
+    fi
+
+    if test "x$TITLE" != "x" ; then
+	labelstr=" $labelstr set title \"${TITLE}\" ;"
+    fi
+
+    if test "x${PLOTCMD}" = x ; then 
+	echo "Error: PLOTCMD undefined" ; exit 1 ;
+    fi  
+
+    if test "x$NOX11" = "x" ; then
+	GPSTR="set term x11 enhanced ; $OPTIONS ; $labelstr $PLOTCMD $RANGE $gnuplotstr "
+	
+	echo "$GPSTR" | gnuplot -persist
+	echo "$GPSTR" > "${plotdir}/scripts/${IMGFILENAME}_x11.gnuplot"
+    fi
+
+    if test "x$IMGFILENAME" != x ; then
+
+	
+	if test "x$POSTSCRIPT_KEEP_TITLE" = x ; then
+	    POSTSCRIPT_OVERRIDE="$POSTSCRIPT_OVERRIDE ; unset title;"
+	fi
+
+	if test "x$NOPSTEX" = "x" ; then
+	    gsetstr="set term pstex auxfile ${POSTSCRIPT_OPTIONS} ; set output \"${plotdir}/pstex/${IMGFILENAME}.tex\" ; "
+	    GPSTR="$OPTIONS ; $gsetstr ; $labelstr $POSTSCRIPT_OVERRIDE $PLOTCMD $RANGE $gnuplotstr"
+	    echo "$GPSTR" | gnuplot
+	# really don't know why, but the use of back quotes forces us to double escape backslashes!!!
+	    escaped_plotdir=`echo "$plotdir" | sed -e 's/\//\\\\\\//g'`
+	    mv "${plotdir}/pstex/${IMGFILENAME}.tex" "/tmp/${IMGFILENAME}.tex" \
+		&&  sed 's/special{psfile=/special{psfile='${escaped_plotdir}'\/pstex\//' "/tmp/${IMGFILENAME}.tex" \
+		> "${plotdir}/pstex/${IMGFILENAME}.tex"
+	    rm -f "/tmp/${IMGFILENAME}.tex" 
+	fi
+
+	if test x${NO_EPS_ENHANCED} = x ; then
+	    gsetstr="$OPTIONS ; set term postscript eps enhanced "
+	else
+	    gsetstr="$OPTIONS ; set term postscript eps"
+	fi
+        if test x$POSTSCRIPT_EMBED_FONTS = xyes ; then 
+            gsetstr="${gsetstr} \"NimbusSanL-Regu\" fontfile \"uhvr8a.pfb\" ${POSTSCRIPT_OPTIONS} "
+	else	    
+	    gsetstr="${gsetstr} ${POSTSCRIPT_OPTIONS} "
+	fi
+	gsetstr="${gsetstr} ; set output \"${plotdir}/ps/${IMGFILENAME}.eps\" ; "
+	GPSTR="$gsetstr $labelstr $POSTSCRIPT_OVERRIDE $PLOTCMD $RANGE $gnuplotstr"
+	SCRIPT_FILE_EPS="${plotdir}/scripts/${IMGFILENAME}_eps.gnuplot"
+	echo "$GPSTR" | tr ';' '\n' > ${SCRIPT_FILE_EPS}
+	gnuplot < ${SCRIPT_FILE_EPS}
+
+	gsetstr="set term png $PNG_OPTIONS ; set output \"${plotdir}/png/${IMGFILENAME}.png\" ; "
+	GPSTR="$OPTIONS ; $gsetstr  $labelstr $PLOTCMD $RANGE $gnuplotstr"
+	echo "$GPSTR" | gnuplot
+
+
+	if test "x$THUMBNAILS" != "x" ; then
+	    mkdir -p "${plotdir}/thumbnails"
+	    gsetstr="set term png tiny size 200,150 ; set output \"${plotdir}/thumbnails/${IMGFILENAME}.png\" ; "
+	    GPSTR="$OPTIONS ; $gsetstr  $labelstr $PLOTCMD $RANGE $gnuplotstr"
+	    echo "$GPSTR" \
+		| sed -e 's/\( pointsize *[0-9.]*\)\([ ;]\)/ pointsize 0.5\2/' \
+		      -e 's/\( ps *[0-9.]*\)\([ ;]\)/ ps 0.5\2/' \
+		| gnuplot
+	    cat > "${plotdir}/thumbnails/${IMGFILENAME}.thumb"  <<EOF
+<div class="plot">
+    <a class="thumbnail" href="../png/${IMGFILENAME}.png">
+      <img src="${IMGFILENAME}.png" alt="$TITLE $ZLABEL $YLABEL $XLABEL " width="200" height="150" />
+    </a>
+    <div class="resource">
+     eps: 
+    <a  href="../ps/${IMGFILENAME}.eps">image</a>
+    <a  href="../scripts/`basename ${SCRIPT_FILE_EPS}`">gnuplot script</a>
+    </div>
+    <div class="resource">
+     pstex: 
+    <a href="../pstex/${IMGFILENAME}.ps">ps part</a>
+    <a href="../pstex/${IMGFILENAME}.tex">tex part</a>
+    </div>
+</div>
+EOF
+
+	    
+	fi
+
+    fi
+}
+
