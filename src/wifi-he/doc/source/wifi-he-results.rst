@@ -14,7 +14,7 @@ Results
 Overview
 ========
 
-In this chapter we provide simulation results obtained in order to evaluate 
+In this chapter we provide simulation results obtained to evaluate 
 the WiFi HE features, especially spatial reuse and coexistence of 802.11ac, 
 802.11ax, and/or LTE networks. We first describe the framework used to launch
 simulation scenarios and process the results.  Then we present the results for
@@ -63,9 +63,9 @@ The key parameters in defining a network, then, are:
 * downlink - the total load from the AP towards the STAs
 
 Nomenclature: `d-r-nBss-n-uplink-downlink`
-=======================================
+==========================================
 
-The nomenclature we use to define a scenario takes the form of:
+The notation we use to define a scenario takes the form of:
 
 d-r-nBss-n-uplink-downlink
 
@@ -125,8 +125,8 @@ Throughput is a common term used in network performance evaluations.
 However, throughput alone does not completely capture the effects of
 spatial resuse features.  For example, if networks A and B both 
 give a throughput of 2 Mbps, this alone does not reflect the number
-and location of nodes within each network.  Thus, a concept of density
-also applied to throughput helps to describe the network performance.
+and location of nodes within each network.  Thus, a metric of density
+complementary to throughput helps to describe the network performance.
 
 We consider further two additional metrics:
 
@@ -456,7 +456,7 @@ increases as the number of STAs per network increases.
 Other things to do:
 ===================
 
-* the above scenario simulations can be extended to handled cases with 3 or 4 BSSs
+* the above scenario simulations can be extended to handle cases with 3 or 4 BSSs
 
 * add latency plots
 
@@ -483,10 +483,10 @@ Study 1 - 802.11ac (baseline)
 
 The objective of the configuration of this scenario is "to capture the issues 
 and be representative of real-world deployments with high density of 
-APs and STAs" [TGax15].  
+APs and STAs" [TGax15]_.  
 
 This simulation study configures the node placements and network simulation
-parameters according to those defined in [TGax15] (see Scenario 3 - Indoor
+parameters according to those defined in [TGax15]_ (see Scenario 3 - Indoor
 BSSs Scenario).  However, to collect baseline measures, Study 1 configures
 all nodes to operate in 802.11ac mode, whereas Study 2 evaluates 802.11ax 
 features.
@@ -511,7 +511,7 @@ for n=5 STAs per BSS in Study 1.
 
 The BSSs are arranged with one BSS of high interest centered in the 
 topology, with six other BSSs surrounding the high-interest BSS and
-arranged in a hexagonal pattern.  As outlined in [TGax15] for the
+arranged in a hexagonal pattern.  As outlined in [TGax15]_ for the
 Indoor Small BSSs Scenario, STAs are associated with each BSS within 
 a radius of r=10m.  
 
@@ -523,7 +523,7 @@ Parameters
 ##########
 
 In this section, we desribe the parameters used for Study 1, and we
-describe any deviations from those described in [TGax15] Scenario 3.
+describe any deviations from those described in [TGax15]_ Scenario 3.
 
 Topology
 ########
@@ -553,10 +553,10 @@ in steps of 5.
 Channel Model
 #############
 
-* Fading model - the TGac channel model D NLOS as mentioned in [TGax15] is 
+* Fading model - the TGac channel model D NLOS as mentioned in [TGax15]_ is 
 not modeled in this study.
 
-* Pathloss model - the pathloss model as given in [TGax15] for the Indoor 
+* Pathloss model - the pathloss model as given in [TGax15]_ for the Indoor 
 Small BSSs (Scenario 3) is modeled.
 
 * Shadowing - Log-normal with 5 dB standard deviation, iid across all links.
@@ -569,10 +569,10 @@ PHY Parameters
 * STA TX power - 15 dBm per antenna.
 
 * MCS - the ns-3 ideal channel model is used.  This is a minor deviation from the
-[TGax15] described scenario of MCS0 or MCS7 only.
+[TGax15]_ described scenario of MCS0 or MCS7 only.
 
 * antennas - (SISO) one antenna is modeled per AP and per STA.  This is a deviation from
-the parameters described in [TGax15].
+the parameters described in [TGax15]_.
 
 * TX gain - 0 dBm
 
@@ -597,13 +597,13 @@ of 20 MHz bands is a deviation from the parameters described in [TGax11].
 * RTS/CTS Threshold - no RTS/CTS
 
 * Association - STAs are associated with the BSS for the circle into which the 
-STA has been dropped.  This varies from the association scheme described in [TGax15],
+STA has been dropped.  This varies from the association scheme described in [TGax15]_,
 although the resulting number of associated STAs per BSS remains the same.
 
 Traffic Model
 #############
 
-The modeling of traffic differs from the approach described in [TGax15],
+The modeling of traffic differs from the approach described in [TGax15]_,
 in which several different classes of traffic are described.  Instead, an
 approach is used that allows the mix of uplink and downlink traffic and the
 packet sizes to be specified.
@@ -718,8 +718,8 @@ SPECTRUM_EFFICIENCY_RANGE="[1:6][0:0.002]"
 STUDY1_SPECTRUM_EFFICIENCY_RANGE="[1.0:3.0][0:0.00050]"
 
 After the above have been executed, the doc/figures folder should contain the newly
-generated plots for inclusion in the documenation.  The documenation can then be
-regeneated, e.g.:
+generated plots for inclusion in the documentation.  The documentation can then be
+regenerated, e.g.:
 
 cd doc
 make latexpdf

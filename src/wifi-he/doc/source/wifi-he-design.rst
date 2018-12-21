@@ -35,23 +35,25 @@ The implementation includes the following support:
 
 4. The ``ObssPdAlgorithm`` base class allows for different algorithms to
    be implemented to a common interface.  The default algorithm is a
-   ``ConstantObssPdAlgorithm``. There exists also an implemention of a
-   ``BeaconRssiObssPdAlgorithm``.
+   ``ConstantObssPdAlgorithm``. There exists also an implementation of a
+   ``BeaconRssiObssPdAlgorithm`` that does not support transmit power
+   control; it is implemented in the ``ns3::StaWifiMac`` class but will
+   be moved to a subclass of ``ObssPdAlgorithm``.
 
 HE PHY preamble and header reception
 ====================================
 
 Once the PHY is done with receiving preambles, headers as well as training fields and is about to start receiving the payload,
-it checks whether the packet under reception is HE. In this case, it read the BSS color from the HE SIG field and triger a trace
-source ``EndOfHePreamble``. OBSS PD algorithms can connect to this trace source to be notified when a HE packet is going to be received.
+it checks whether the packet under reception is HE. In this case, it reads the BSS color from the HE SIG field and triggers a trace
+source named ``EndOfHePreamble``. OBSS PD algorithms can connect to this trace source to be notified when reception of a HE packet has started.
 
 OBSS PD Algorithm
-==========================
+=================
 
 ``ObssPdAlgorithm`` is the base class of OBSS PD algorithms.
 It implements the common functionalities. First, it makes sure the necessary callbacks are setup.
 Second, when a PHY reset is requested by the algorithm, it performs the computation to determine the TX power
-limitation and inform the PHY object.
+limitation and informs the PHY object.
 
 Constant OBSS PD Algorithm
 ==========================
@@ -59,16 +61,18 @@ Constant OBSS PD Algorithm
 Constant OBSS PD algorithm is a simple OBSS PD algorithm implemmented in the ``ConstantObssPdAlgorithm`` class.
 
 Once a HE preamble and its header have been received by the PHY, ``ConstantObssPdAlgorithm::ReceiveHeSig`` is triggered.
-The algorithm then checks whether this is an OBSS by comparing its BSS color with the BSS color of the received preamble.
-If this is an OBSS, it compare the received RSSI with its configured OBSS PD level value. The PHY then gets reset to IDLE
-state in case the received RSSI is lower than that constant OBSS PD level value, and gets aware about TX power limitations.
+The algorithm then checks whether this is an OBSS frame by comparing its own BSS color with the BSS color of the received preamble.
+If this is an OBSS frame, it compare the received RSSI with its configured OBSS PD level value. The PHY then gets reset to IDLE
+state in case the received RSSI is lower than that constant OBSS PD level value, and is informed about a TX power limitations.
 
 Beacon RSSI OBSS PD Algorithm
 =============================
 
-placeholder
+Placeholder section
 
 Scope And Limitations
 =====================
 
-* Frame capture is currently broken.
+* The frame capture model is currently broken; the model will try to receive
+  the first arriving frame and later arriving frames will be treated as
+  interference.

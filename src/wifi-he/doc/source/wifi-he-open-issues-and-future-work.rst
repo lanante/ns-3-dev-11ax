@@ -10,11 +10,14 @@ Open Issues and Future Work
    ============= Subsection (#.#.#)
    ############# Paragraph (no number)
 
-Open Issues
-===========
+Open Issues in the underlying Wi-Fi PHY model
+=============================================
 
-Future Work
-===========
+Open issues in the OBSS_PD model support
+========================================
+
+Open issues in the spatial reuse scenarios
+==========================================
 
 
 
