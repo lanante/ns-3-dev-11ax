@@ -32,28 +32,34 @@ function run_one () {
   # else
   #   echo "rxSensitivity is set to $rxSensitivity";
   fi
+  if [ -z "$filterOutNonAddbaEstablished" ]; then
+    # echo "filterOutNonAddbaEstablished is not set, defaulting to 0.";
+    export filterOutNonAddbaEstablished=0
+  # else
+  #   echo "filterOutNonAddbaEstablished is set to $filterOutNonAddbaEstablished";
+  fi
   echo Running ${test}
   # run the test
   ../../../waf --run "spatial-reuse \
-	--RngRun=${RngRun} \
-	--powSta=${powSta} \
-	--powAp=${powAp} \
-	--duration=${duration} \
-	--d=${d} \
-	--r=${r} \
-	--n=${n} \
-	--uplink=${uplink} \
-	--downlink=${downlink} \
-	--enableRts=${enableRts} \
-	--standard=${standard} \
-	--bw=${bw} \
-	--txRange=${txRange} \
-	--MCS=${MCS} \
-	--payloadSizeUplink=${payloadSizeUplink} \
-	--payloadSizeDownlink=${payloadSizeDownlink} \
-	--txStartOffset=${txStartOffset} \
-	--enableObssPd=${enableObssPd} \
-	--txGain=${txGain} \
+        --RngRun=${RngRun} \
+        --powSta=${powSta} \
+        --powAp=${powAp} \
+        --duration=${duration} \
+        --d=${d} \
+        --r=${r} \
+        --n=${n} \
+        --uplink=${uplink} \
+        --downlink=${downlink} \
+        --enableRts=${enableRts} \
+        --standard=${standard} \
+        --bw=${bw} \
+        --txRange=${txRange} \
+        --MCS=${MCS} \
+        --payloadSizeUplink=${payloadSizeUplink} \
+        --payloadSizeDownlink=${payloadSizeDownlink} \
+        --txStartOffset=${txStartOffset} \
+        --enableObssPd=${enableObssPd} \
+        --txGain=${txGain} \
 	--rxGain=${rxGain} \
 	--antennas=${antennas} \
 	--maxSupportedTxSpatialStreams=${maxSupportedTxSpatialStreams} \
@@ -66,14 +72,14 @@ function run_one () {
 	--enablePcap=${enablePcap} \
 	--enableAscii=${enableAscii} \
 	--obssPdThreshold=${obssPdThreshold} \
-  --useIdealWifiManager=${useIdealWifiManager} \
-  --test=${test} \
-  --maxSlrc=${maxSlrc} \
-  --bianchi=${bianchi} \
-  --sigma=${sigma} \
-  --applicationTxStart=${applicationTxStart} \
-  --rxSensitivity=${rxSensitivity} \
-  --filterOutNonAddbaEstablished=${filterOutNonAddbaEstablished}"
+        --useIdealWifiManager=${useIdealWifiManager} \
+        --test=${test} \
+        --maxSlrc=${maxSlrc} \
+        --bianchi=${bianchi} \
+        --sigma=${sigma} \
+        --applicationTxStart=${applicationTxStart} \
+        --rxSensitivity=${rxSensitivity} \
+        --filterOutNonAddbaEstablished=${filterOutNonAddbaEstablished}"
 
   # copy results files
   cd ../scripts
@@ -129,7 +135,21 @@ function run_one () {
   rm "../../../spatial-reuse-rx-sniff-$test.dat"
   rm "spatial-reuse-rx-sniff-$test.dat"
 
-  cp *.png ./results/.
-  rm *.png
+  # copy the signal and noise png files
+  cp "spatial-reuse-rx-sniff-$test-ap1-signal.png" ./results/.
+  cp "spatial-reuse-rx-sniff-$test-ap1-noise.png" ./results/.
+  cp "spatial-reuse-rx-sniff-$test-ap2-signal.png" ./results/.
+  cp "spatial-reuse-rx-sniff-$test-ap2-noise.png" ./results/.
+  rm "spatial-reuse-rx-sniff-$test-ap1-signal.png"
+  rm "spatial-reuse-rx-sniff-$test-ap1-noise.png"
+  rm "spatial-reuse-rx-sniff-$test-ap2-signal.png"
+  rm "spatial-reuse-rx-sniff-$test-ap2-noise.png"
+
+  # clean up all the output files that are in the root folder
+  echo "Complete.  Removing the following files:"
+  ls ../../../*$test*
+  rm ../../../*$test*
+
   cd ../examples
+
 }
