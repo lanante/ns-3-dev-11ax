@@ -399,7 +399,7 @@ The following bash scripts are available:
  * ``./calibration-box5.sh``
 
 The 'calibration-scenarios.sh' script executes the following calibration tests:
-1) Test 1a - MAC overhead w/o RTS/CTS, 2) Test 1b - MAC overhead w/o RTS/CTS,
+1) Test 1a - MAC overhead w/o RTS/CTS, 2) Test 1b - MAC overhead with RTS/CTS,
 3) Test 2a - Deferral Test 1, 4) Test 2b - Deferral Test 2, and
 5) Test 3 - NAV Deferral.  The tests are launched as separate ns-3 simulations
 that are run in parallel.  Details on these tests can be found in [TGax15]_.
@@ -456,7 +456,7 @@ Simple Examples
 The purpose of this simple examples section is to demonstrate some 
 simple usage
 of the spatial-reuse script and to provide researchers with insights
-into the network performance of a dense spatial-resuse scenarios sensitive to
+into the network performance of a dense spatial-reuse scenarios sensitive to
 the variation of key parameters.  These tests are based on the 
 Residential Scenario of the TGax Experiments script.  A subset of the 
 results of this script is included in the Results section of this document.

@@ -33,7 +33,7 @@ The document [TGax15]_ defines simulation scenarios to be used for
 
 * Generation of results for simulators calibration purposes
 
-These two concepts are generally divided into two sets of simluation scenarios
+These two concepts are generally divided into two sets of simulation scenarios
 that we refer to as: 1) Calibration Tests and 2) TGax Scenarios.
 
 The Calibration Tests are used to confirm the calibration of the ns-3
@@ -62,7 +62,7 @@ simulated in ns-3:
 Generally, these tests are quite simple and limit the traffic flow.  For
 example, the topology of Test 1a and Test 1b is a single AP with a single STA
 with uplink traffic only from  the STA to the AP.  The goal of this test is
-verify that the simluator can correctly handle the basic frame exchange
+verify that the simulator can correctly handle the basic frame exchange
 procedure.
 
 Test 2a and Test 2b extend the topology to 2 APs each with 1 STA and test

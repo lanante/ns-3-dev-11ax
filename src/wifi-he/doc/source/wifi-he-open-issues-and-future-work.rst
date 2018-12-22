@@ -25,7 +25,7 @@ started before all ADDBA has been established.
 due to current implementation of Block Ack Requests (BARs) in ns-3.  
 Solutions have been proposed.
 
-4. Plots are generally based on one iteration of each simluation scenario, 
+4. Plots are generally based on one iteration of each simulation scenario, 
 and results will vary as the random number generator seed value is 
 changed and scenarios are rerun.  An averaging of multiple iterations 
 will smooth out some irregularities of the plots.

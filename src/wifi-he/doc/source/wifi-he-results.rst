@@ -123,7 +123,7 @@ target destinations, measured in Mbps.
 
 Throughput is a common term used in network performance evaluations. 
 However, throughput alone does not completely capture the effects of
-spatial resuse features.  For example, if networks A and B both 
+spatial reuse features.  For example, if networks A and B both 
 give a throughput of 2 Mbps, this alone does not reflect the number
 and location of nodes within each network.  Thus, a metric of density
 complementary to throughput helps to describe the network performance.
@@ -269,7 +269,7 @@ It is observed that the shapes of the curves in the spectrum efficiency plots ge
 the corresponding shapes of the throughput curves for these two networks.  This is because
 the areas are identical for both networks into which the nodes have been placed, and the 
 operating frequency (in Hz) is also identical for both networks, which 
-simluate 802.11ac networks.
+simulate 802.11ac networks.
 
 
 Scenario 20-10-02-05
@@ -361,7 +361,7 @@ It is observed that the shapes of the curves in the spectrum efficiency plots ge
 the corresponding shapes of the throughput curves for these two networks.  This is because
 the areas are identical for both networks into which the nodes have been placed, and the 
 operating frequency (in Hz) is also identical for both networks, which 
-simluate 802.11ac networks.
+simulate 802.11ac networks.
 
 Area Capacity (Both Scenarios)
 ##############################
@@ -469,7 +469,7 @@ Parametric Studies
 In this section we discuss parametric studies that have been conducted to 
 examine the behaviors of the spatial reuse and coexistence features of
 802.11ax.  We first describe the framework used to represent the scenarios
-in order to conduct simluation experiements for these studies.  Then we 
+in order to conduct simulation experiements for these studies.  Then we 
 present the results of those studies.
 
 The following three parametric studies are conducted:
@@ -642,7 +642,7 @@ STAs.
 
 The total offered load for each BSS is a balanced load, with the same load
 for each BSS.  The offered load is increased from 1 Mbps, 
-in steps of 1 Mbps, until the simluation shows that the (central) BSS of 
+in steps of 1 Mbps, until the simulation shows that the (central) BSS of 
 interest becomes saturated.
 
 The traffic mix is 90% uplink and 10% dowblink, with a uplink 
