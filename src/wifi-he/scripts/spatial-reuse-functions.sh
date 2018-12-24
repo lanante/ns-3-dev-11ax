@@ -22,7 +22,7 @@ function check_file () {
       echo "Please move the contents to a safe location, or delete it manually, and run the script again."
       echo " "
       echo "If you would prefer to automatically remove pre-existing output files as your script starts,"
-      echo "then try > export=AUTO_DELETE_SPATIAL_RESUSE_OUTPUT_FILES=1"
+      echo "then try > export=AUTO_DELETE_SPATIAL_REUSE_OUTPUT_FILES=1"
       echo "To disable this, try > unset AUTO_DELETE_SPATIAL_REUSE_OUTPUT_FILES"
       echo "EXITING..."
       cd ../examples
