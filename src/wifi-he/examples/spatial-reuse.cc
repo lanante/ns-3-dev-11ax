@@ -123,6 +123,11 @@ std::vector<uint32_t> bytesReceived (0);
 std::vector<std::vector<uint32_t> > packetsReceivedPerNode;
 std::vector<std::vector<double> > rssiPerNode;
 
+ApplicationContainer uplinkServerApps;
+ApplicationContainer downlinkServerApps;
+ApplicationContainer uplinkClientApps;
+ApplicationContainer downlinkClientApps;
+
 // Parse context strings of the form "/NodeList/3/DeviceList/1/Mac/Assoc"
 // to extract the NodeId
 uint32_t
@@ -320,6 +325,16 @@ AddbaStateCb (std::string context, Time t, Mac48Address recipient, uint8_t tid, 
               if (filterOutNonAddbaEstablished)
                 {
                   Simulator::Stop (Seconds (duration));
+                  for (auto it = uplinkClientApps.Begin (); it != uplinkClientApps.End (); ++it)
+                    {
+                      Ptr<UdpClient> client = DynamicCast<UdpClient> (*it);
+                      client->SetAttribute ("MaxPackets", UintegerValue (4294967295u));
+                    }
+                  for (auto it = downlinkClientApps.Begin (); it != downlinkClientApps.End (); ++it)
+                    {
+                      Ptr<UdpClient> client = DynamicCast<UdpClient> (*it);
+                      client->SetAttribute ("MaxPackets", UintegerValue (4294967295u));
+                    }
                 }
             }
         }
@@ -334,6 +349,16 @@ AddbaStateCb (std::string context, Time t, Mac48Address recipient, uint8_t tid, 
               if (filterOutNonAddbaEstablished)
                 {
                   Simulator::Stop (Seconds (duration));
+                  for (auto it = uplinkClientApps.Begin (); it != uplinkClientApps.End (); ++it)
+                    {
+                      Ptr<UdpClient> client = DynamicCast<UdpClient> (*it);
+                      client->SetAttribute ("MaxPackets", UintegerValue (4294967295u));
+                    }
+                  for (auto it = downlinkClientApps.Begin (); it != downlinkClientApps.End (); ++it)
+                    {
+                      Ptr<UdpClient> client = DynamicCast<UdpClient> (*it);
+                      client->SetAttribute ("MaxPackets", UintegerValue (4294967295u));
+                    }
                 }            
             }
         }
@@ -437,7 +462,14 @@ void AddClient (ApplicationContainer &clientApps, Ipv4Address address, Ptr<Node>
     next_rng = urv->GetValue();
   }
   UdpClientHelper client (address, port);
-  client.SetAttribute ("MaxPackets", UintegerValue (4294967295u));
+  if (filterOutNonAddbaEstablished)
+  {
+    client.SetAttribute ("MaxPackets", UintegerValue (1));
+  }
+  else
+  {
+    client.SetAttribute ("MaxPackets", UintegerValue (4294967295u));
+  }
   client.SetAttribute ("Interval", TimeValue (interval + NanoSeconds (next_rng)));
   client.SetAttribute ("PacketSize", UintegerValue (payloadSize));
   clientApps.Add (client.Install (node));
@@ -2197,11 +2229,6 @@ main (int argc, char *argv[])
   uint16_t downlinkPortG = 22;
   UdpServerHelper uplinkServerG (uplinkPortG);
   UdpServerHelper downlinkServerG (downlinkPortG);
-
-  ApplicationContainer uplinkServerApps;
-  ApplicationContainer downlinkServerApps;
-  ApplicationContainer uplinkClientApps;
-  ApplicationContainer downlinkClientApps;
 
   if ((payloadSizeUplink > 0) || (payloadSizeDownlink > 0))
     {

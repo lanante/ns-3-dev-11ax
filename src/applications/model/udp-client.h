@@ -78,6 +78,12 @@ private:
    */
   void Send (void);
 
+  /**
+   * \brief set the maximum number of packets to send
+   * \param count the maximum number of packets to send
+   */
+  void SetMaxPackets (uint32_t count);
+
   uint32_t m_count; //!< Maximum number of packets the application will send
   Time m_interval; //!< Packet inter-send time
   uint32_t m_size; //!< Size of the sent packet (including the SeqTsHeader)
