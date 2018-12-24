@@ -429,7 +429,7 @@ ScheduleAddbaStateLogDisconnect (void)
   Config::Disconnect ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Mac/$ns3::RegularWifiMac/BE_Txop/BlockAckManager/AgreementState", MakeCallback (&AddbaStateCb));
 }
 
-void AddClient (std::vector<ApplicationContainer> &clientApps, Ipv4Address address, Ptr<Node> node, uint16_t port, Time interval, uint32_t payloadSize, Ptr<UniformRandomVariable> urv, double txStartOffset)
+void AddClient (ApplicationContainer &clientApps, Ipv4Address address, Ptr<Node> node, uint16_t port, Time interval, uint32_t payloadSize, Ptr<UniformRandomVariable> urv, double txStartOffset)
 {
   double next_rng = 0;
   if (txStartOffset > 0)
@@ -440,12 +440,12 @@ void AddClient (std::vector<ApplicationContainer> &clientApps, Ipv4Address addre
   client.SetAttribute ("MaxPackets", UintegerValue (4294967295u));
   client.SetAttribute ("Interval", TimeValue (interval + NanoSeconds (next_rng)));
   client.SetAttribute ("PacketSize", UintegerValue (payloadSize));
-  clientApps.push_back (client.Install (node));
+  clientApps.Add (client.Install (node));
 }
 
-void AddServer (std::vector<ApplicationContainer> &serverApps, UdpServerHelper &server, Ptr<Node> node)
+void AddServer (ApplicationContainer &serverApps, UdpServerHelper &server, Ptr<Node> node)
 {
-  serverApps.push_back (server.Install (node));
+  serverApps.Add (server.Install (node));
 }
 
 std::vector<uint32_t> signals (100);
@@ -2198,10 +2198,10 @@ main (int argc, char *argv[])
   UdpServerHelper uplinkServerG (uplinkPortG);
   UdpServerHelper downlinkServerG (downlinkPortG);
 
-  std::vector<ApplicationContainer> uplinkServerApps;
-  std::vector<ApplicationContainer> downlinkServerApps;
-  std::vector<ApplicationContainer> uplinkClientApps;
-  std::vector<ApplicationContainer> downlinkClientApps;
+  ApplicationContainer uplinkServerApps;
+  ApplicationContainer downlinkServerApps;
+  ApplicationContainer uplinkClientApps;
+  ApplicationContainer downlinkClientApps;
 
   if ((payloadSizeUplink > 0) || (payloadSizeDownlink > 0))
     {
@@ -2352,23 +2352,10 @@ main (int argc, char *argv[])
       monitorA->SetAttribute ("PacketSizeBinWidth", DoubleValue (20));
     }
 
-  for (uint32_t i = 0; i < uplinkServerApps.size (); i++)
-  {
-    uplinkServerApps[i].Start (Seconds (0.0));
-  }
-  for (uint32_t i = 0; i < uplinkClientApps.size (); i++)
-  {
-    uplinkClientApps[i].Start (Seconds (applicationTxStart));
-  }
-
-  for (uint32_t i = 0; i < downlinkServerApps.size (); i++)
-  {
-    downlinkServerApps[i].Start (Seconds (0.0));
-  }
-  for (uint32_t i = 0; i < downlinkClientApps.size (); i++)
-  {
-    downlinkClientApps[i].Start (Seconds (applicationTxStart));
-  }
+  uplinkServerApps.Start (Seconds (0.0));
+  uplinkClientApps.Start (Seconds (applicationTxStart));
+  downlinkServerApps.Start (Seconds (0.0));
+  downlinkClientApps.Start (Seconds (applicationTxStart));
 
   Config::Set ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/HtConfiguration/BeMaxAmpduSize", UintegerValue (maxAmpduSize));
   Config::Set ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/VhtConfiguration/BeMaxAmpduSize", UintegerValue (maxAmpduSize));
