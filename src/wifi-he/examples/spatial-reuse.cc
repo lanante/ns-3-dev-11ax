@@ -429,18 +429,23 @@ ScheduleAddbaStateLogDisconnect (void)
   Config::Disconnect ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Mac/$ns3::RegularWifiMac/BE_Txop/BlockAckManager/AgreementState", MakeCallback (&AddbaStateCb));
 }
 
-void AddClient (ApplicationContainer &clientAppA, Ipv4Address address, Ptr<Node> node, uint16_t port, Time interval, uint32_t payloadSize)
+void AddClient (std::vector<ApplicationContainer> &clientApps, Ipv4Address address, Ptr<Node> node, uint16_t port, Time interval, uint32_t payloadSize, Ptr<UniformRandomVariable> urv, double txStartOffset)
 {
-  UdpClientHelper clientA (address, port);
-  clientA.SetAttribute ("MaxPackets", UintegerValue (4294967295u));
-  clientA.SetAttribute ("Interval", TimeValue (interval)); // s/packet
-  clientA.SetAttribute ("PacketSize", UintegerValue (payloadSize));
-  clientAppA.Add (clientA.Install (node));
+  double next_rng = 0;
+  if (txStartOffset > 0)
+  {
+    next_rng = urv->GetValue();
+  }
+  UdpClientHelper client (address, port);
+  client.SetAttribute ("MaxPackets", UintegerValue (4294967295u));
+  client.SetAttribute ("Interval", TimeValue (interval + NanoSeconds (next_rng)));
+  client.SetAttribute ("PacketSize", UintegerValue (payloadSize));
+  clientApps.push_back (client.Install (node));
 }
 
-void AddServer (UdpServerHelper &serverA, ApplicationContainer &serverAppA, Ptr<Node> node)
+void AddServer (std::vector<ApplicationContainer> &serverApps, UdpServerHelper &server, Ptr<Node> node)
 {
-  serverAppA.Add (serverA.Install (node));
+  serverApps.push_back (server.Install (node));
 }
 
 std::vector<uint32_t> signals (100);
@@ -2110,7 +2115,6 @@ main (int argc, char *argv[])
   urv->SetAttribute ("Stream", IntegerValue (200));
   urv->SetAttribute ("Min", DoubleValue (-txStartOffset));
   urv->SetAttribute ("Max", DoubleValue (txStartOffset));
-  double next_rng = 0;
 
   /* Internet stack */
   uint64_t stackStream = 900;
@@ -2194,71 +2198,28 @@ main (int argc, char *argv[])
   UdpServerHelper uplinkServerG (uplinkPortG);
   UdpServerHelper downlinkServerG (downlinkPortG);
 
-  ApplicationContainer uplinkServerAppA;
-  ApplicationContainer downlinkServerAppA;
-  ApplicationContainer uplinkClientAppA;
-  ApplicationContainer downlinkClientAppA;
-
-  ApplicationContainer uplinkServerAppB;
-  ApplicationContainer downlinkServerAppB;
-  ApplicationContainer uplinkClientAppB;
-  ApplicationContainer downlinkClientAppB;
-
-  ApplicationContainer uplinkServerAppC;
-  ApplicationContainer downlinkServerAppC;
-  ApplicationContainer uplinkClientAppC;
-  ApplicationContainer downlinkClientAppC;
-
-  ApplicationContainer uplinkServerAppD;
-  ApplicationContainer downlinkServerAppD;
-  ApplicationContainer uplinkClientAppD;
-  ApplicationContainer downlinkClientAppD;
-
-  ApplicationContainer uplinkServerAppE;
-  ApplicationContainer downlinkServerAppE;
-  ApplicationContainer uplinkClientAppE;
-  ApplicationContainer downlinkClientAppE;
-
-  ApplicationContainer uplinkServerAppF;
-  ApplicationContainer downlinkServerAppF;
-  ApplicationContainer uplinkClientAppF;
-  ApplicationContainer downlinkClientAppF;
-
-  ApplicationContainer uplinkServerAppG;
-  ApplicationContainer downlinkServerAppG;
-  ApplicationContainer uplinkClientAppG;
-  ApplicationContainer downlinkClientAppG;
+  std::vector<ApplicationContainer> uplinkServerApps;
+  std::vector<ApplicationContainer> downlinkServerApps;
+  std::vector<ApplicationContainer> uplinkClientApps;
+  std::vector<ApplicationContainer> downlinkClientApps;
 
   if ((payloadSizeUplink > 0) || (payloadSizeDownlink > 0))
     {
       //BSS 1
 
       // create one server (receiver) for uplink traffic
-      AddServer (uplinkServerA, uplinkServerAppA, ap1);
-
+      AddServer (uplinkServerApps, uplinkServerA, ap1);
       for (uint32_t i = 0; i < n; i++)
         {
           if (aggregateUplinkMbps > 0)
             {
-              // for downlink, need to create client at AP to generate traffic to the server at the STA
-              // random offset so that all transmissions do not occur at the same time
-              if (txStartOffset > 0)
-                {
-                  next_rng = urv->GetValue ();
-                }
-              AddClient (uplinkClientAppA, ApInterfaceA.GetAddress (0), stasA.Get (i), uplinkPortA, Time (intervalUplink + NanoSeconds (next_rng)), payloadSizeUplink);
+              AddClient (uplinkClientApps, ApInterfaceA.GetAddress (0), stasA.Get (i), uplinkPortA, intervalUplink, payloadSizeUplink, urv, txStartOffset);
             }
           // one server (receiver) for each AP-STA pair
-          AddServer (downlinkServerA, downlinkServerAppA, stasA.Get (i));
+          AddServer (downlinkServerApps, downlinkServerA, stasA.Get (i));
           if (aggregateDownlinkMbps > 0)
             {
-              // each STA needs a client to generate traffic
-              // random offset so that all transmissions do not occur at the same time
-              if (txStartOffset > 0)
-                {
-                  next_rng = urv->GetValue ();
-                }
-              AddClient (downlinkClientAppA, StaInterfaceA.GetAddress (i), ap1, downlinkPortA, Time (intervalDownlink + NanoSeconds (next_rng)), payloadSizeDownlink);
+              AddClient (downlinkClientApps, StaInterfaceA.GetAddress (i), ap1, downlinkPortA, intervalDownlink, payloadSizeDownlink, urv, txStartOffset);
             }
         }
     }
@@ -2268,31 +2229,18 @@ main (int argc, char *argv[])
       // BSS 2
 
       // create one server (receiver) for uplink traffic
-      AddServer (uplinkServerB, uplinkServerAppB, ap2);
-
+      AddServer (uplinkServerApps, uplinkServerB, ap2);
       for (uint32_t i = 0; i < n; i++)
         {
           if (aggregateUplinkMbps > 0)
             {
-              // for downlink, need to create client at AP to generate traffic to the server at the STA
-              // random offset so that all transmissions do not occur at the same time
-              if (txStartOffset > 0)
-                {
-                  next_rng = urv->GetValue ();
-                }
-              AddClient (uplinkClientAppB, ApInterfaceB.GetAddress (0), stasB.Get (i), uplinkPortB, Time (intervalUplink + NanoSeconds (next_rng)), payloadSizeUplink);
+              AddClient (uplinkClientApps, ApInterfaceB.GetAddress (0), stasB.Get (i), uplinkPortB, intervalUplink, payloadSizeUplink, urv, txStartOffset);
             }
           // one server (receiver) for each AP-STA pair
-          AddServer (downlinkServerB, downlinkServerAppB, stasB.Get (i));
+          AddServer (downlinkServerApps, downlinkServerB, stasB.Get (i));
           if (aggregateDownlinkMbps > 0)
             {
-              // each STA needs a client to generate traffic
-              // random offset so that all transmissions do not occur at the same time
-              if (txStartOffset > 0)
-                {
-                  next_rng = urv->GetValue ();
-                }
-              AddClient (downlinkClientAppB, StaInterfaceB.GetAddress (i), ap2, downlinkPortB, Time (intervalDownlink + NanoSeconds (next_rng)), payloadSizeDownlink);
+              AddClient (downlinkClientApps, StaInterfaceB.GetAddress (i), ap2, downlinkPortB, intervalDownlink, payloadSizeDownlink, urv, txStartOffset);
             }
         }
     }
@@ -2302,31 +2250,18 @@ main (int argc, char *argv[])
       // BSS 3
 
       // create one server (receiver) for uplink traffic
-      AddServer (uplinkServerC, uplinkServerAppC, ap3);
-
+      AddServer (uplinkServerApps, uplinkServerC, ap3);
       for (uint32_t i = 0; i < n; i++)
         {
           if (aggregateUplinkMbps > 0)
             {
-              // for downlink, need to create client at AP to generate traffic to the server at the STA
-              // random offset so that all transmissions do not occur at the same time
-              if (txStartOffset > 0)
-                {
-                  next_rng = urv->GetValue();
-                }
-              AddClient (uplinkClientAppC, ApInterfaceC.GetAddress (0), stasC.Get (i), uplinkPortC, Time (intervalUplink + NanoSeconds (next_rng)), payloadSizeUplink);
+              AddClient (uplinkClientApps, ApInterfaceC.GetAddress (0), stasC.Get (i), uplinkPortC, intervalUplink, payloadSizeUplink, urv, txStartOffset);
             }
           // one server (receiver) for each AP-STA pair
-          AddServer (downlinkServerC, downlinkServerAppC, stasC.Get (i));
+          AddServer (downlinkServerApps, downlinkServerC, stasC.Get (i));
           if (aggregateDownlinkMbps > 0)
             {
-              // each STA needs a client to generate traffic
-              // random offset so that all transmissions do not occur at the same time
-              if (txStartOffset > 0)
-                {
-                  next_rng = urv->GetValue();
-                }
-              AddClient (downlinkClientAppC, StaInterfaceC.GetAddress (i), ap3, downlinkPortC, Time (intervalDownlink + NanoSeconds (next_rng)), payloadSizeDownlink);
+              AddClient (downlinkClientApps, StaInterfaceC.GetAddress (i), ap3, downlinkPortC, intervalDownlink, payloadSizeDownlink, urv, txStartOffset);
             }
         }
     }
@@ -2336,31 +2271,18 @@ main (int argc, char *argv[])
       // BSS 4
 
       // create one server (receiver) for uplink traffic
-      AddServer (uplinkServerD, uplinkServerAppD, ap4);
-
+      AddServer (uplinkServerApps, uplinkServerD, ap4);
       for (uint32_t i = 0; i < n; i++)
         {
           if (aggregateUplinkMbps > 0)
             {
-              // for downlink, need to create client at AP to generate traffic to the server at the STA
-              // random offset so that all transmissions do not occur at the same time
-              if (txStartOffset > 0)
-                {
-                  next_rng = urv->GetValue();
-                }
-              AddClient (uplinkClientAppD, ApInterfaceD.GetAddress (0), stasD.Get (i), uplinkPortD, Time (intervalUplink + NanoSeconds (next_rng)), payloadSizeUplink);
+              AddClient (uplinkClientApps, ApInterfaceD.GetAddress (0), stasD.Get (i), uplinkPortD, intervalUplink, payloadSizeUplink, urv, txStartOffset);
             }
           // one server (receiver) for each AP-STA pair
-          AddServer (downlinkServerD, downlinkServerAppD, stasD.Get (i));
+          AddServer (downlinkServerApps, downlinkServerD, stasD.Get (i));
           if (aggregateDownlinkMbps > 0)
             {
-              // each STA needs a client to generate traffic
-              // random offset so that all transmissions do not occur at the same time
-              if (txStartOffset > 0)
-                {
-                  next_rng = urv->GetValue();
-                }
-              AddClient (downlinkClientAppD, StaInterfaceD.GetAddress (i), ap4, downlinkPortD, Time (intervalDownlink + NanoSeconds (next_rng)), payloadSizeDownlink);
+              AddClient (downlinkClientApps, StaInterfaceD.GetAddress (i), ap4, downlinkPortD, intervalDownlink, payloadSizeDownlink, urv, txStartOffset);
             }
         }
     }
@@ -2370,93 +2292,54 @@ main (int argc, char *argv[])
       // BSS 5
 
       // create one server (receiver) for uplink traffic
-      AddServer (uplinkServerE, uplinkServerAppE, ap5);
-
+      AddServer (uplinkServerApps, uplinkServerE, ap5);
       for (uint32_t i = 0; i < n; i++)
         {
           if (aggregateUplinkMbps > 0)
             {
-              // for downlink, need to create client at AP to generate traffic to the server at the STA
-              // random offset so that all transmissions do not occur at the same time
-              if (txStartOffset > 0)
-                {
-                  next_rng = urv->GetValue();
-                }
-              AddClient (uplinkClientAppE, ApInterfaceE.GetAddress (0), stasE.Get (i), uplinkPortE, Time (intervalUplink + NanoSeconds (next_rng)), payloadSizeUplink);
+              AddClient (uplinkClientApps, ApInterfaceE.GetAddress (0), stasE.Get (i), uplinkPortE, intervalUplink, payloadSizeUplink, urv, txStartOffset);
             }
           // one server (receiver) for each AP-STA pair
-          AddServer (downlinkServerE, downlinkServerAppE, stasE.Get (i));
+          AddServer (downlinkServerApps, downlinkServerE, stasE.Get (i));
           if (aggregateDownlinkMbps > 0)
             {
-              // each STA needs a client to generate traffic
-              // random offset so that all transmissions do not occur at the same time
-              if (txStartOffset > 0)
-                {
-                  next_rng = urv->GetValue();
-                }
-              AddClient (downlinkClientAppE, StaInterfaceE.GetAddress (i), ap5, downlinkPortE, Time (intervalDownlink + NanoSeconds (next_rng)), payloadSizeDownlink);
+              AddClient (downlinkClientApps, StaInterfaceE.GetAddress (i), ap5, downlinkPortE, intervalDownlink, payloadSizeDownlink, urv, txStartOffset);
             }
         }
 
       // BSS 6
 
       // create one server (receiver) for uplink traffic
-      AddServer (uplinkServerF, uplinkServerAppF, ap6);
-
+      AddServer (uplinkServerApps, uplinkServerF, ap6);
       for (uint32_t i = 0; i < n; i++)
         {
           if (aggregateUplinkMbps > 0)
             {
-              // for downlink, need to create client at AP to generate traffic to the server at the STA
-              // random offset so that all transmissions do not occur at the same time
-              if (txStartOffset > 0)
-                {
-                  next_rng = urv->GetValue();
-                }
-              AddClient (uplinkClientAppF, ApInterfaceF.GetAddress (0), stasF.Get (i), uplinkPortF, Time (intervalUplink + NanoSeconds (next_rng)), payloadSizeUplink);
+              AddClient (uplinkClientApps, ApInterfaceF.GetAddress (0), stasF.Get (i), uplinkPortF, intervalUplink, payloadSizeUplink, urv, txStartOffset);
             }
           // one server (receiver) for each AP-STA pair
-          AddServer (downlinkServerF, downlinkServerAppF, stasF.Get (i));
+          AddServer (downlinkServerApps, downlinkServerF, stasF.Get (i));
           if (aggregateDownlinkMbps > 0)
             {
-              // each STA needs a client to generate traffic
-              // random offset so that all transmissions do not occur at the same time
-              if (txStartOffset > 0)
-                {
-                  next_rng = urv->GetValue();
-                }
-              AddClient (downlinkClientAppF, StaInterfaceF.GetAddress (i), ap6, downlinkPortF, Time (intervalDownlink + NanoSeconds (next_rng)), payloadSizeDownlink);
+              AddClient (downlinkClientApps, StaInterfaceF.GetAddress (i), ap6, downlinkPortF, intervalDownlink, payloadSizeDownlink, urv, txStartOffset);
             }
         }
 
       // BSS 7
 
       // create one server (receiver) for uplink traffic
-      AddServer (uplinkServerG, uplinkServerAppG, ap7);
-
+      AddServer (uplinkServerApps, uplinkServerG, ap7);
       for (uint32_t i = 0; i < n; i++)
         {
           if (aggregateUplinkMbps > 0)
             {
-              // for downlink, need to create client at AP to generate traffic to the server at the STA
-              // random offset so that all transmissions do not occur at the same time
-              if (txStartOffset > 0)
-                {
-                  next_rng = urv->GetValue();
-                }
-              AddClient (uplinkClientAppG, ApInterfaceG.GetAddress (0), stasG.Get (i), uplinkPortG, Time (intervalUplink + NanoSeconds (next_rng)), payloadSizeUplink);
+              AddClient (uplinkClientApps, ApInterfaceG.GetAddress (0), stasG.Get (i), uplinkPortG, intervalUplink, payloadSizeUplink, urv, txStartOffset);
             }
           // one server (receiver) for each AP-STA pair
-          AddServer (downlinkServerG, downlinkServerAppG, stasG.Get (i));
+          AddServer (downlinkServerApps, downlinkServerG, stasG.Get (i));
           if (aggregateDownlinkMbps > 0)
             {
-              // each STA needs a client to generate traffic
-              // random offset so that all transmissions do not occur at the same time
-              if (txStartOffset > 0)
-                {
-                  next_rng = urv->GetValue();
-                }
-              AddClient (downlinkClientAppG, StaInterfaceG.GetAddress (i), ap7, downlinkPortG, Time (intervalDownlink + NanoSeconds (next_rng)), payloadSizeDownlink);
+              AddClient (downlinkClientApps, StaInterfaceG.GetAddress (i), ap7, downlinkPortG, intervalDownlink, payloadSizeDownlink, urv, txStartOffset);
             }
         }
     }
@@ -2469,35 +2352,23 @@ main (int argc, char *argv[])
       monitorA->SetAttribute ("PacketSizeBinWidth", DoubleValue (20));
     }
 
-  uplinkServerAppA.Start (Seconds (0.0));
-  uplinkClientAppA.Start (Seconds (applicationTxStart));
-  uplinkServerAppB.Start (Seconds (0.0));
-  uplinkClientAppB.Start (Seconds (applicationTxStart));
-  uplinkServerAppC.Start (Seconds (0.0));
-  uplinkClientAppC.Start (Seconds (applicationTxStart));
-  uplinkServerAppD.Start (Seconds (0.0));
-  uplinkClientAppD.Start (Seconds (applicationTxStart));
-  uplinkServerAppE.Start (Seconds (0.0));
-  uplinkClientAppE.Start (Seconds (applicationTxStart));
-  uplinkServerAppF.Start (Seconds (0.0));
-  uplinkClientAppF.Start (Seconds (applicationTxStart));
-  uplinkServerAppG.Start (Seconds (0.0));
-  uplinkClientAppG.Start (Seconds (applicationTxStart));
+  for (uint32_t i = 0; i < uplinkServerApps.size (); i++)
+  {
+    uplinkServerApps[i].Start (Seconds (0.0));
+  }
+  for (uint32_t i = 0; i < uplinkClientApps.size (); i++)
+  {
+    uplinkClientApps[i].Start (Seconds (applicationTxStart));
+  }
 
-  downlinkServerAppA.Start (Seconds (0.0));
-  downlinkClientAppA.Start (Seconds (applicationTxStart));
-  downlinkServerAppB.Start (Seconds (0.0));
-  downlinkClientAppB.Start (Seconds (applicationTxStart));
-  downlinkServerAppC.Start (Seconds (0.0));
-  downlinkClientAppC.Start (Seconds (applicationTxStart));
-  downlinkServerAppD.Start (Seconds (0.0));
-  downlinkClientAppD.Start (Seconds (applicationTxStart));
-  downlinkServerAppE.Start (Seconds (0.0));
-  downlinkClientAppE.Start (Seconds (applicationTxStart));
-  downlinkServerAppF.Start (Seconds (0.0));
-  downlinkClientAppF.Start (Seconds (applicationTxStart));
-  downlinkServerAppG.Start (Seconds (0.0));
-  downlinkClientAppG.Start (Seconds (applicationTxStart));
+  for (uint32_t i = 0; i < downlinkServerApps.size (); i++)
+  {
+    downlinkServerApps[i].Start (Seconds (0.0));
+  }
+  for (uint32_t i = 0; i < downlinkClientApps.size (); i++)
+  {
+    downlinkClientApps[i].Start (Seconds (applicationTxStart));
+  }
 
   Config::Set ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/HtConfiguration/BeMaxAmpduSize", UintegerValue (maxAmpduSize));
   Config::Set ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/VhtConfiguration/BeMaxAmpduSize", UintegerValue (maxAmpduSize));
