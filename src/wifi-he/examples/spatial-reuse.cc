@@ -128,6 +128,8 @@ ApplicationContainer downlinkServerApps;
 ApplicationContainer uplinkClientApps;
 ApplicationContainer downlinkClientApps;
 
+NodeContainer allNodes;
+
 // Parse context strings of the form "/NodeList/3/DeviceList/1/Mac/Assoc"
 // to extract the NodeId
 uint32_t
@@ -361,6 +363,15 @@ AddbaStateCb (std::string context, Time t, Mac48Address recipient, uint8_t tid, 
                     }
                 }            
             }
+        }
+    }
+  else if (state == OriginatorBlockAckAgreement::RESET)
+    {
+      //Make sure ADDBA establishment will be restarted
+      Ptr<UdpClient> client = DynamicCast<UdpClient> (allNodes.Get (ContextToNodeId (context))->GetApplication (0));
+      if (client)
+        {
+          client->SetAttribute ("MaxPackets", UintegerValue (1));
         }
     }
 }
@@ -640,8 +651,6 @@ SaveSpatialReuseStats (const std::string filename,
   std::cout << "Spatial Reuse Stats written to: " << filename << std::endl;
 
 }
-
-NodeContainer allNodes;
 
 // Find nodeId given a MacAddress
 int
