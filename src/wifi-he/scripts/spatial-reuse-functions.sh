@@ -90,6 +90,12 @@ function run_one () {
   # else
   #   echo "filterOutNonAddbaEstablished is set to $filterOutNonAddbaEstablished";
   fi
+if [ -z "$useExpliciteBarAfterMissedBlockAck" ]; then
+# echo "useExpliciteBarAfterMissedBlockAck is not set, defaulting to 1.";
+export useExpliciteBarAfterMissedBlockAck=1
+# else
+#   echo "useExpliciteBarAfterMissedBlockAck is set to $useExpliciteBarAfterMissedBlockAck";
+fi
   echo Running ${test}
   # run the test
   ../../../waf --run "spatial-reuse \
@@ -112,18 +118,18 @@ function run_one () {
         --txStartOffset=${txStartOffset} \
         --enableObssPd=${enableObssPd} \
         --txGain=${txGain} \
-	--rxGain=${rxGain} \
-	--antennas=${antennas} \
-	--maxSupportedTxSpatialStreams=${maxSupportedTxSpatialStreams} \
-	--maxSupportedRxSpatialStreams=${maxSupportedRxSpatialStreams} \
-	--checkTimings=${performTgaxTimingChecks} \
-	--scenario=${scenario} \
-	--nBss=${nBss} \
-	--maxAmpduSize=${maxAmpduSize} \
-	--nodePositionsFile=${nodePositionsFile} \
-	--enablePcap=${enablePcap} \
-	--enableAscii=${enableAscii} \
-	--obssPdThreshold=${obssPdThreshold} \
+        --rxGain=${rxGain} \
+        --antennas=${antennas} \
+        --maxSupportedTxSpatialStreams=${maxSupportedTxSpatialStreams} \
+        --maxSupportedRxSpatialStreams=${maxSupportedRxSpatialStreams} \
+        --checkTimings=${performTgaxTimingChecks} \
+        --scenario=${scenario} \
+        --nBss=${nBss} \
+        --maxAmpduSize=${maxAmpduSize} \
+        --nodePositionsFile=${nodePositionsFile} \
+        --enablePcap=${enablePcap} \
+        --enableAscii=${enableAscii} \
+        --obssPdThreshold=${obssPdThreshold} \
         --useIdealWifiManager=${useIdealWifiManager} \
         --test=${test} \
         --maxSlrc=${maxSlrc} \
@@ -131,7 +137,8 @@ function run_one () {
         --sigma=${sigma} \
         --applicationTxStart=${applicationTxStart} \
         --rxSensitivity=${rxSensitivity} \
-        --filterOutNonAddbaEstablished=${filterOutNonAddbaEstablished}"
+        --filterOutNonAddbaEstablished=${filterOutNonAddbaEstablished} \
+        --useExpliciteBarAfterMissedBlockAck=${useExpliciteBarAfterMissedBlockAck}"
 
   # copy results files
   cd ../scripts
