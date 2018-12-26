@@ -305,17 +305,17 @@ AddbaStateCb (std::string context, Time t, Mac48Address recipient, uint8_t tid, 
       std::cout<<ContextToNodeId (context)<<" -> "<<recipient<<": RESET"<<std::endl;
       break;
   }*/
+  bool isAp = false;
+  for (uint32_t bss = 1; bss <= nBss; bss++)
+  {
+    if (ContextToNodeId (context) == (((bss - 1) * n) + bss - 1))
+    {
+      isAp = true;
+    }
+  }
   if (state == OriginatorBlockAckAgreement::ESTABLISHED)
     {
-//      std::cout << t << ": ADDBA ESTABLISHED for node " << ContextToNodeId (context) << " with " << recipient << std::endl;
-      bool isAp = false;
-      for (uint32_t bss = 1; bss <= nBss; bss++)
-        {
-          if (ContextToNodeId (context) == (((bss - 1) * n) + bss - 1))
-            {
-              isAp = true;
-            }
-        }
+      //std::cout << t << ": ADDBA ESTABLISHED for node " << ContextToNodeId (context) << " with " << recipient << std::endl;
       if (((aggregateDownlinkMbps != 0) && isAp) || ((aggregateUplinkMbps != 0) && !isAp)) //UL or DL
         {
           nEstablishedAddaBa++;
@@ -368,11 +368,17 @@ AddbaStateCb (std::string context, Time t, Mac48Address recipient, uint8_t tid, 
   else if (state == OriginatorBlockAckAgreement::RESET)
     {
       //Make sure ADDBA establishment will be restarted
-      Ptr<UdpClient> client = DynamicCast<UdpClient> (allNodes.Get (ContextToNodeId (context))->GetApplication (0));
-      if (client)
+      Ptr<UdpClient> client;
+      if (isAp)
         {
-          client->SetAttribute ("MaxPackets", UintegerValue (1));
+          client = DynamicCast<UdpClient> (allNodes.Get (ContextToNodeId (context))->GetApplication (1));
         }
+      else
+        {
+          client = DynamicCast<UdpClient> (allNodes.Get (ContextToNodeId (context))->GetApplication (0));
+        }
+      NS_ASSERT (client != 0);
+      client->SetAttribute ("MaxPackets", UintegerValue (1));
     }
 }
 
