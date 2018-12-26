@@ -369,16 +369,22 @@ AddbaStateCb (std::string context, Time t, Mac48Address recipient, uint8_t tid, 
     {
       //Make sure ADDBA establishment will be restarted
       Ptr<UdpClient> client;
-      if (isAp)
+      if (isAp && (aggregateDownlinkMbps != 0))
         {
-          client = DynamicCast<UdpClient> (allNodes.Get (ContextToNodeId (context))->GetApplication (1));
+          //TODO: only do this for the recipient
+          for (uint32_t i = 0; i < n; i++)
+            {
+              client = DynamicCast<UdpClient> (allNodes.Get (ContextToNodeId (context))->GetApplication (i));
+              NS_ASSERT (client != 0);
+              client->SetAttribute ("MaxPackets", UintegerValue (1));
+            }
         }
-      else
+      else if (!isAp && (aggregateUplinkMbps != 0))
         {
           client = DynamicCast<UdpClient> (allNodes.Get (ContextToNodeId (context))->GetApplication (0));
+          NS_ASSERT (client != 0);
+          client->SetAttribute ("MaxPackets", UintegerValue (1));
         }
-      NS_ASSERT (client != 0);
-      client->SetAttribute ("MaxPackets", UintegerValue (1));
     }
 }
 
@@ -2253,141 +2259,149 @@ main (int argc, char *argv[])
     {
       //BSS 1
 
-      // create one server (receiver) for uplink traffic
-      AddServer (uplinkServerApps, uplinkServerA, ap1);
       for (uint32_t i = 0; i < n; i++)
         {
           if (aggregateUplinkMbps > 0)
             {
               AddClient (uplinkClientApps, ApInterfaceA.GetAddress (0), stasA.Get (i), uplinkPortA, intervalUplink, payloadSizeUplink, urv, txStartOffset);
             }
-          // one server (receiver) for each AP-STA pair
-          AddServer (downlinkServerApps, downlinkServerA, stasA.Get (i));
           if (aggregateDownlinkMbps > 0)
             {
               AddClient (downlinkClientApps, StaInterfaceA.GetAddress (i), ap1, downlinkPortA, intervalDownlink, payloadSizeDownlink, urv, txStartOffset);
+              AddServer (downlinkServerApps, downlinkServerA, stasA.Get (i));
             }
         }
+      if (aggregateUplinkMbps > 0)
+      {
+        AddServer (uplinkServerApps, uplinkServerA, ap1);
+      }
     }
 
   if (((payloadSizeUplink > 0) || (payloadSizeDownlink > 0)) && ((nBss >= 2) || (scenario == "study1") || (scenario == "study2")))
     {
       // BSS 2
 
-      // create one server (receiver) for uplink traffic
-      AddServer (uplinkServerApps, uplinkServerB, ap2);
       for (uint32_t i = 0; i < n; i++)
         {
           if (aggregateUplinkMbps > 0)
             {
               AddClient (uplinkClientApps, ApInterfaceB.GetAddress (0), stasB.Get (i), uplinkPortB, intervalUplink, payloadSizeUplink, urv, txStartOffset);
             }
-          // one server (receiver) for each AP-STA pair
-          AddServer (downlinkServerApps, downlinkServerB, stasB.Get (i));
           if (aggregateDownlinkMbps > 0)
             {
               AddClient (downlinkClientApps, StaInterfaceB.GetAddress (i), ap2, downlinkPortB, intervalDownlink, payloadSizeDownlink, urv, txStartOffset);
+              AddServer (downlinkServerApps, downlinkServerB, stasB.Get (i));
+
             }
         }
+      if (aggregateUplinkMbps > 0)
+      {
+        AddServer (uplinkServerApps, uplinkServerB, ap2);
+      }
     }
 
   if (((payloadSizeUplink > 0) || (payloadSizeDownlink > 0)) && ((nBss >= 3) || (scenario == "study1") || (scenario == "study2")))
     {
       // BSS 3
 
-      // create one server (receiver) for uplink traffic
-      AddServer (uplinkServerApps, uplinkServerC, ap3);
       for (uint32_t i = 0; i < n; i++)
         {
           if (aggregateUplinkMbps > 0)
             {
               AddClient (uplinkClientApps, ApInterfaceC.GetAddress (0), stasC.Get (i), uplinkPortC, intervalUplink, payloadSizeUplink, urv, txStartOffset);
             }
-          // one server (receiver) for each AP-STA pair
-          AddServer (downlinkServerApps, downlinkServerC, stasC.Get (i));
           if (aggregateDownlinkMbps > 0)
             {
               AddClient (downlinkClientApps, StaInterfaceC.GetAddress (i), ap3, downlinkPortC, intervalDownlink, payloadSizeDownlink, urv, txStartOffset);
+              AddServer (downlinkServerApps, downlinkServerC, stasC.Get (i));
             }
         }
+      if (aggregateUplinkMbps > 0)
+      {
+        AddServer (uplinkServerApps, uplinkServerC, ap3);
+      }
     }
 
   if (((payloadSizeUplink > 0) || (payloadSizeDownlink > 0)) && ((nBss >= 4) || (scenario == "study1") || (scenario == "study2")))
     {
       // BSS 4
 
-      // create one server (receiver) for uplink traffic
-      AddServer (uplinkServerApps, uplinkServerD, ap4);
       for (uint32_t i = 0; i < n; i++)
         {
           if (aggregateUplinkMbps > 0)
             {
               AddClient (uplinkClientApps, ApInterfaceD.GetAddress (0), stasD.Get (i), uplinkPortD, intervalUplink, payloadSizeUplink, urv, txStartOffset);
             }
-          // one server (receiver) for each AP-STA pair
-          AddServer (downlinkServerApps, downlinkServerD, stasD.Get (i));
           if (aggregateDownlinkMbps > 0)
             {
               AddClient (downlinkClientApps, StaInterfaceD.GetAddress (i), ap4, downlinkPortD, intervalDownlink, payloadSizeDownlink, urv, txStartOffset);
+              AddServer (downlinkServerApps, downlinkServerD, stasD.Get (i));
             }
         }
+      if (aggregateUplinkMbps > 0)
+      {
+        AddServer (uplinkServerApps, uplinkServerD, ap4);
+      }
     }
 
   if ((scenario == "study1") || (scenario == "study2"))
     {
       // BSS 5
 
-      // create one server (receiver) for uplink traffic
-      AddServer (uplinkServerApps, uplinkServerE, ap5);
       for (uint32_t i = 0; i < n; i++)
         {
           if (aggregateUplinkMbps > 0)
             {
               AddClient (uplinkClientApps, ApInterfaceE.GetAddress (0), stasE.Get (i), uplinkPortE, intervalUplink, payloadSizeUplink, urv, txStartOffset);
             }
-          // one server (receiver) for each AP-STA pair
-          AddServer (downlinkServerApps, downlinkServerE, stasE.Get (i));
           if (aggregateDownlinkMbps > 0)
             {
               AddClient (downlinkClientApps, StaInterfaceE.GetAddress (i), ap5, downlinkPortE, intervalDownlink, payloadSizeDownlink, urv, txStartOffset);
+              AddServer (downlinkServerApps, downlinkServerE, stasE.Get (i));
             }
         }
+      if (aggregateUplinkMbps > 0)
+      {
+        AddServer (uplinkServerApps, uplinkServerE, ap5);
+      }
 
       // BSS 6
 
-      // create one server (receiver) for uplink traffic
-      AddServer (uplinkServerApps, uplinkServerF, ap6);
       for (uint32_t i = 0; i < n; i++)
         {
           if (aggregateUplinkMbps > 0)
             {
               AddClient (uplinkClientApps, ApInterfaceF.GetAddress (0), stasF.Get (i), uplinkPortF, intervalUplink, payloadSizeUplink, urv, txStartOffset);
             }
-          // one server (receiver) for each AP-STA pair
-          AddServer (downlinkServerApps, downlinkServerF, stasF.Get (i));
           if (aggregateDownlinkMbps > 0)
             {
               AddClient (downlinkClientApps, StaInterfaceF.GetAddress (i), ap6, downlinkPortF, intervalDownlink, payloadSizeDownlink, urv, txStartOffset);
+              AddServer (downlinkServerApps, downlinkServerF, stasF.Get (i));
             }
         }
+      if (aggregateUplinkMbps > 0)
+      {
+        AddServer (uplinkServerApps, uplinkServerF, ap6);
+      }
 
       // BSS 7
 
-      // create one server (receiver) for uplink traffic
-      AddServer (uplinkServerApps, uplinkServerG, ap7);
       for (uint32_t i = 0; i < n; i++)
         {
           if (aggregateUplinkMbps > 0)
             {
               AddClient (uplinkClientApps, ApInterfaceG.GetAddress (0), stasG.Get (i), uplinkPortG, intervalUplink, payloadSizeUplink, urv, txStartOffset);
             }
-          // one server (receiver) for each AP-STA pair
-          AddServer (downlinkServerApps, downlinkServerG, stasG.Get (i));
           if (aggregateDownlinkMbps > 0)
             {
               AddClient (downlinkClientApps, StaInterfaceG.GetAddress (i), ap7, downlinkPortG, intervalDownlink, payloadSizeDownlink, urv, txStartOffset);
+              AddServer (downlinkServerApps, downlinkServerG, stasG.Get (i));
             }
         }
+      if (aggregateUplinkMbps > 0)
+      {
+        AddServer (uplinkServerApps, uplinkServerG, ap7);
+      }
     }
 
   Ptr<FlowMonitor> monitorA = flowmonHelperA.Install (nodesA);
