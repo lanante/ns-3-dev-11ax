@@ -1,12 +1,12 @@
 %--------------------------------------------------------------------------
 N_min = 5; %number of stations (upstream!)
-N_max = 50; %number of stations (upstream!)
+N_max = 40; %number of stations (upstream!)
 N_step = 5; % step for the simulation loop
 T_PROP = 0.000000; %propagation delay (s)
 L_DATA = 1500 * 8; %payload size (bit)
 RTS_mode = 0; % Basic mode (0) or Rts/Cts mode (1)
 fer = 0.0; %frame error rate
-standard = 'ac'; %ax not supported yet
+standard = '11ac'; %ax not supported yet
 PLCP_mode = 'MIXED_MODE';
 Data_Rate = 65000000; % bit/s
 Basic_Rate = 24000000; % bit/s
@@ -15,6 +15,7 @@ MIMO_streams = 1;
 Aggregation_Type = 'A_MPDU'; %A_MPDU or A_MSDU (HYBRID not fully supported)
 K_MSDU = 1;
 K_MPDU = 2;
+useExplicitBar = 1; %currently only supported for 11ac
 %--------------------------------------------------------------------------
 
 fer = 1-((1-fer)^K_MSDU)
@@ -25,7 +26,7 @@ indice = 0;
 for N=N_min:N_step:N_max
 
     %802.11b parameters
-    if strcmp(standard, 'b') == 1
+    if strcmp(standard, '11b') == 1
         Plcp_Header = 48; % bits
         if strcmp(PLCP_mode, 'DSSS_SHORT') == 1
             Plcp_Preamble = 72; % bits
@@ -48,7 +49,7 @@ for N=N_min:N_step:N_max
     end
 
     %802.11a parameters
-    if strcmp(standard, 'a') == 1
+    if strcmp(standard, '11a') == 1
         Symbol_Duration = 0.0000032 + Guard_Interval; % seconds
         Symbols_per_second = 1/Symbol_Duration;
         Data_bits_per_symbol = Data_Rate/Symbols_per_second; %data bits per OFDM symbol for a data packet
@@ -72,7 +73,7 @@ for N=N_min:N_step:N_max
     end
 
     %802.11g parameters
-    if strcmp(standard, 'g') == 1
+    if strcmp(standard, '11g') == 1
         Symbol_Duration = 0.0000032 + Guard_Interval; % seconds
         Symbols_per_second = 1/Symbol_Duration;
         Data_bits_per_symbol = Data_Rate/Symbols_per_second; %data bits per OFDM symbol for a data packet
@@ -97,7 +98,7 @@ for N=N_min:N_step:N_max
     end
 
     %802.11n parameters
-    if strcmp(standard, 'n_5GHz') == 1
+    if strcmp(standard, '11n_5GHz') == 1
         Legacy_Symbol_Duration = 0.000004;
         Symbol_Duration = 0.0000032 + Guard_Interval; % seconds
         Symbols_per_second = 1/Symbol_Duration;
@@ -135,7 +136,7 @@ for N=N_min:N_step:N_max
         CTS_timeout = 0.000075; % seconds
     end
 
-    if strcmp(standard, 'n_2_4GHz') == 1
+    if strcmp(standard, '11n_2_4GHz') == 1
         Legacy_Symbol_Duration = 0.000004;
         Symbol_Duration = 0.0000032 + Guard_Interval; % seconds
         Data_bits_per_symbol = (Data_Rate * Symbol_Duration); %data bits per OFDM symbol for a data packet
@@ -173,7 +174,7 @@ for N=N_min:N_step:N_max
     end
 
     %802.11ac parameters
-    if strcmp(standard, 'ac') == 1
+    if strcmp(standard, '11ac') == 1
         Legacy_Symbol_Duration = 0.000004;
         Symbol_Duration = 0.0000032 + Guard_Interval; % seconds
         Symbols_per_second = 1/Symbol_Duration;
@@ -208,7 +209,7 @@ for N=N_min:N_step:N_max
         CTS_timeout = 0.000075; % seconds  
     end
 
-    if strcmp(standard, 'b') == 1
+    if strcmp(standard, '11b') == 1
         if RTS_mode == 0
             Ts = T_DSSS + ((L_MAC+L_DATA+(36*8))/Data_Rate) + SIFS + T_PROP + T_DSSS + (L_ACK/Basic_Rate) + DIFS + T_PROP; %time spent by a successful transmission
             Tc = T_DSSS + ((L_MAC+L_DATA+(36*8))/Data_Rate) + ACK_timeout + DIFS; %time spent in collision
@@ -220,7 +221,7 @@ for N=N_min:N_step:N_max
         end
     end
 
-    if strcmp(standard, 'a') == 1
+    if strcmp(standard, '11a') == 1
         if RTS_mode == 0
             Ts = T_LPHY + (Symbol_Duration * ceil((L_SERVICE + L_MAC + L_DATA + (36 * 8) + L_TAIL)/Data_bits_per_symbol)) + SIFS + T_PROP + T_LPHY + (Symbol_Duration * ceil((L_SERVICE + L_ACK + L_TAIL)/Control_bits_per_symbol)) + DIFS + T_PROP; %time spent by a successful transmission
             Tc = T_LPHY + (Symbol_Duration * ceil((L_SERVICE + L_MAC + L_DATA + (36 * 8) + L_TAIL)/Data_bits_per_symbol)) + ACK_timeout + DIFS; %time spent in collision
@@ -232,7 +233,7 @@ for N=N_min:N_step:N_max
         end
     end
 
-    if strcmp(standard, 'g') == 1
+    if strcmp(standard, '11g') == 1
         if RTS_mode == 0
             Ts = T_LPHY + (Symbol_Duration * ceil((L_SERVICE + L_MAC + L_DATA + (36*8) + L_TAIL)/Data_bits_per_symbol)) + Signal_Extension + SIFS + T_PROP + T_LPHY + (Symbol_Duration * ceil((L_SERVICE + L_ACK + L_TAIL)/Control_bits_per_symbol)) + Signal_Extension + DIFS + T_PROP; %time spent by a successful transmission
             Tc = T_LPHY + (Symbol_Duration * ceil((L_SERVICE + L_MAC + L_DATA + (36*8) + L_TAIL)/Data_bits_per_symbol)) + Signal_Extension + ACK_timeout + DIFS; %time spent in collision
@@ -244,7 +245,7 @@ for N=N_min:N_step:N_max
         end
     end
 
-    if strcmp(standard, 'n_5GHz') == 1
+    if strcmp(standard, '11n_5GHz') == 1
         if (strcmp(Aggregation_Type, 'NONE') == 1)
             if RTS_mode == 0
                 Ts = T_PHY + (Symbol_Duration * ceil((L_SERVICE + L_MAC + L_DATA + (36*8) + L_TAIL)/Data_bits_per_symbol)) + SIFS + T_PROP + T_LPHY + (Legacy_Symbol_Duration * ceil((L_SERVICE + L_ACK + L_TAIL)/Control_bits_per_symbol)) + DIFS + T_PROP; %time spent by a successful transmission
@@ -293,7 +294,7 @@ for N=N_min:N_step:N_max
         end
     end
     
-    if strcmp(standard, 'n_2_4GHz') == 1
+    if strcmp(standard, '11n_2_4GHz') == 1
         if (strcmp(Aggregation_Type, 'NONE') == 1)
             if RTS_mode == 0
                 Ts = T_PHY + (Symbol_Duration * ceil((L_SERVICE + L_MAC + L_DATA + (36*8) + L_TAIL)/Data_bits_per_symbol)) + Signal_Extension + SIFS + T_PROP + T_LPHY + (Legacy_Symbol_Duration * ceil((L_SERVICE + L_ACK + L_TAIL)/Control_bits_per_symbol)) + Signal_Extension + DIFS + T_PROP; %time spent by a successful transmission
@@ -342,7 +343,7 @@ for N=N_min:N_step:N_max
         end
     end
 
-  if strcmp(standard, 'ac') == 1
+  if strcmp(standard, '11ac') == 1
       if (strcmp(Aggregation_Type, 'NONE') == 1)
           if RTS_mode == 0
               Ts = T_PHY + (Symbol_Duration * ceil((L_SERVICE + L_MAC + L_MPDU_HEADER + L_DATA + (36*8) + L_TAIL)/Data_bits_per_symbol)) + SIFS + T_PROP + T_LPHY + (Legacy_Symbol_Duration * ceil((L_SERVICE + L_ACK + L_TAIL)/Control_bits_per_symbol)) + DIFS + T_PROP; %time spent by a successful transmission
@@ -366,9 +367,13 @@ for N=N_min:N_step:N_max
       end
       if strcmp(Aggregation_Type, 'A_MPDU') == 1
           if RTS_mode == 0
-              T_BACKOFF = CW_MIN * SLOT/2;
               Ts = T_PHY + (Symbol_Duration * ceil((L_SERVICE + K_MPDU * (L_MAC + L_MPDU_HEADER + L_DATA + (36*8)) + L_TAIL)/Data_bits_per_symbol)) + SIFS + T_PROP + T_LPHY + (Legacy_Symbol_Duration * ceil((L_SERVICE + L_BACK + L_TAIL)/Control_bits_per_symbol)) + DIFS + T_PROP; %time spent by a successful transmission
-              Tc = T_PHY + (Symbol_Duration * ceil((L_SERVICE + K_MPDU * (L_MAC + L_MPDU_HEADER + L_DATA + (36*8)) + L_TAIL)/Data_bits_per_symbol)) + T_PROP + BACK_timeout + DIFS + T_BACKOFF + T_LPHY + (Legacy_Symbol_Duration * ceil((L_SERVICE + L_BAR + L_TAIL)/Control_bits_per_symbol)) + SIFS + T_PROP + T_LPHY + (Legacy_Symbol_Duration * ceil((L_SERVICE + L_BACK + L_TAIL)/Control_bits_per_symbol)) + DIFS + T_PROP;
+              if useExplicitBar == 1
+                  T_BACKOFF = CW_MIN * SLOT/2;
+                  Tc = T_PHY + (Symbol_Duration * ceil((L_SERVICE + K_MPDU * (L_MAC + L_MPDU_HEADER + L_DATA + (36*8)) + L_TAIL)/Data_bits_per_symbol)) + T_PROP + BACK_timeout + DIFS + T_BACKOFF + T_LPHY + (Legacy_Symbol_Duration * ceil((L_SERVICE + L_BAR + L_TAIL)/Control_bits_per_symbol)) + SIFS + T_PROP + T_LPHY + (Legacy_Symbol_Duration * ceil((L_SERVICE + L_BACK + L_TAIL)/Control_bits_per_symbol)) + DIFS + T_PROP;
+              else
+                  Tc = T_PHY + (Symbol_Duration * ceil((L_SERVICE + K_MPDU * (L_MAC + L_MPDU_HEADER + L_DATA + (36*8)) + L_TAIL)/Data_bits_per_symbol)) + T_PROP + BACK_timeout + DIFS;
+              end
               Tf = Tc;
           else
               Ts = T_LPHY + (Legacy_Symbol_Duration * ceil((L_SERVICE + L_RTS + L_TAIL)/Control_bits_per_symbol)) + SIFS + T_PROP + T_LPHY + (Legacy_Symbol_Duration * ceil((L_SERVICE + L_CTS + L_TAIL)/Control_bits_per_symbol)) + SIFS + T_PROP + T_PHY + (Symbol_Duration * ceil((L_SERVICE + K_MPDU * (L_MAC + L_MPDU_HEADER + L_DATA + (36*8)) + L_TAIL)/Data_bits_per_symbol)) + SIFS + T_PROP + T_LPHY + (Legacy_Symbol_Duration * ceil((L_SERVICE + L_BACK + L_TAIL)/Control_bits_per_symbol)) + DIFS + T_PROP; %time spent by a successful transmission
