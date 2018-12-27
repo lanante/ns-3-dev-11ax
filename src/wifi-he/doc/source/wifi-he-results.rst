@@ -134,7 +134,7 @@ We consider further two additional metrics:
 nodes of the network have been placed, measured in Mbps / m^2.
 
 2. Spectrum efficiency - throughput per Hertz divide by the area within
-which the nodes of the netwowrk have been placed, measured in 
+which the nodes of the network have been placed, measured in 
 Mbps / Hz / m^2.
 
 Examples of these metrics with further explanation are given below.
@@ -469,7 +469,7 @@ Parametric Studies
 In this section we discuss parametric studies that have been conducted to 
 examine the behaviors of the spatial reuse and coexistence features of
 802.11ax.  We first describe the framework used to represent the scenarios
-in order to conduct simulation experiements for these studies.  Then we 
+in order to conduct simulation experiments for these studies.  Then we 
 present the results of those studies.
 
 The following three parametric studies are conducted:
@@ -520,7 +520,7 @@ a radius of r=10m.
 
 The figure shown illustrates a scenario in which each BSS has 5 STAs
 allocated randomly within its dropping radius (solid lines).  Dashed 
-lines indicate nomial Carrier Sense Range (CSR) limits of 15m.
+lines indicate nominal Carrier Sense Range (CSR) limits of 15m.
 
 Parameters
 ##########
@@ -595,9 +595,9 @@ MAC Parameters
 * Primary channels - All BSS at 5GHz with 20 MHz BSS with reuse 3.  Assignment
 of 20 MHz bands is a deviation from the parameters described in [TGax11].
 
-* Aggregation - A-MPDU aggregation size of 3140..
+* Aggregation - A-MPDU aggregation size of 3140.
 
-* RTS/CTS Threshold - no RTS/CTS
+* RTS/CTS Threshold - no RTS/CTS.
 
 * Association - STAs are associated with the BSS for the circle into which the 
 STA has been dropped.  This varies from the association scheme described in [TGax15]_,

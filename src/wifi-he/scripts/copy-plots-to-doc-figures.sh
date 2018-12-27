@@ -1,5 +1,5 @@
 #!/bin/bash
-# These are the scenarios for spatial-reuse experiements.
+# These are the scenarios for spatial-reuse experiments.
 
 cd ../scripts
 
