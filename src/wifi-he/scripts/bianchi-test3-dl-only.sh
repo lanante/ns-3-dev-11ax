@@ -6,7 +6,7 @@ cd ../examples
 # miscellaneous settings for spatial-reuse script / ns-3
 export RngRun=1
 # maybe change duration to 10.0, or more ???
-export duration=5.0
+export duration=10.0
 export enableRts=0
 export txStartOffset=50
 export enableObssPd=0
