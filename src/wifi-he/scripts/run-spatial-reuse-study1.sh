@@ -86,7 +86,7 @@ for n in 5 10 15 20 25 30 35 40 ; do
         test=$(printf "study1-%0.f-%02d-%02d-%0.2g-%0.1f-%0.1f\n" ${d1} ${r} ${n} ${ol1} ${ul1} ${dl1})
         echo "export test=${test}" >> ../scripts/study1.sh
         echo "# run $test" >> ../scripts/study1.sh
-        # fork each simluation for parallelism
+        # fork each simulation for parallelism
         echo "run_one &" >> ../scripts/study1.sh
         echo "" >> ../scripts/study1.sh
     done

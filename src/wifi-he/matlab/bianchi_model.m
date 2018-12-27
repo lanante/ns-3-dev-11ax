@@ -6,7 +6,7 @@ T_PROP = 0.000000; %propagation delay (s)
 L_DATA = 1500 * 8; %payload size (bit)
 RTS_mode = 0; % Basic mode (0) or Rts/Cts mode (1)
 fer = 0.0; %frame error rate
-standard = '11ac'; %ax not supported yet
+standard = '11ac';
 PLCP_mode = 'MIXED_MODE';
 Data_Rate = 65000000; % bit/s
 Basic_Rate = 24000000; % bit/s
@@ -15,7 +15,7 @@ MIMO_streams = 1;
 Aggregation_Type = 'A_MPDU'; %A_MPDU or A_MSDU (HYBRID not fully supported)
 K_MSDU = 1;
 K_MPDU = 2;
-useExplicitBar = 1; %currently only supported for 11ac
+useExplicitBar = 1; %currently only supported for 11ac and 11ax
 %--------------------------------------------------------------------------
 
 fer = 1-((1-fer)^K_MSDU)
@@ -188,6 +188,7 @@ for N=N_min:N_step:N_max
                 T_PHY = T_LPHY + 0.000008 + 0.000004 + (0.000004*MIMO_streams) + 0.000004; %microseconds
             end
         end
+        Signal_Extension = 0.000000; % seconds
         L_SERVICE = 16; % bits
         L_TAIL = 6; % bits
         L_MAC = 30 * 8; %30 * 8; % bits
@@ -205,6 +206,80 @@ for N=N_min:N_step:N_max
         CW_MIN = 15; %minimum contention window
         m = 6; %maximum backoff stage
         BACK_timeout = 0.000101; % seconds
+        ACK_timeout = 0.000088; % seconds
+        CTS_timeout = 0.000075; % seconds  
+    end
+
+    %802.11ax parameters
+    if strcmp(standard, '11ax_2_4GHz') == 1
+        Legacy_Symbol_Duration = 0.000004;
+        Symbol_Duration = 0.0000032 + Guard_Interval; % seconds
+        Data_bits_per_symbol = (Data_Rate * Symbol_Duration); %data bits per OFDM symbol for a data packet
+        Control_bits_per_symbol = (Basic_Rate * 0.000004); %data bits per OFDM symbol for a control packet
+        T_LPHY = 0.000016 + 0.000004; % seconds
+        if strcmp(PLCP_mode, 'LEGACY') == 1
+            T_PHY = T_LPHY; %microseconds
+        else
+            if strcmp(PLCP_mode, 'MIXED_MODE') == 1
+                T_PHY = T_LPHY + 0.000008 + 0.000004 + (0.000004 * MIMO_streams); %microseconds
+            else
+                if strcmp(PLCP_mode, 'GREENFIELD') == 1
+                    T_PHY = 0.000008 + 0.000008 + 0.000008 + (0.000004 * MIMO_streams); %microseconds
+                end
+            end
+        end
+        Signal_Extension = 0.000006; % seconds
+        L_SERVICE = 16; % bits
+        L_TAIL = 6; % bits
+        L_MAC = 30 * 8; % bits
+        L_MSDU_HEADER = 14 * 8; % bits
+        L_MPDU_HEADER = 4 * 8; % bits
+        L_ACK = 14 * 8; % bits
+        L_CTS = 14 * 8; % bits
+        L_RTS = 20 * 8; % bits
+        L_BACK = 32 * 8; %bits
+        AIFSN = 3; %AIFSN value for AC_BE (Best Effort)
+        SLOT = 0.000020 %0.000009; % seconds
+        SIFS = 0.000010; %sifs value (s)
+        DIFS = SIFS + (AIFSN * SLOT); % seconds
+        CW_MIN = 15; %minimum contention window
+        m = 6; %maximum backoff stage
+        ACK_timeout = 0.000340; % seconds
+        CTS_timeout = 0.000340; % seconds
+    end
+
+    if strcmp(standard, '11ax_5GHz') == 1
+        Legacy_Symbol_Duration = 0.000004;
+        Symbol_Duration = 0.0000032 + Guard_Interval; % seconds
+        Symbols_per_second = 1/Symbol_Duration;
+        Data_bits_per_symbol = Data_Rate/Symbols_per_second; %data bits per OFDM symbol for a data packet
+        Control_bits_per_symbol = Basic_Rate/Symbols_per_second; %data bits per OFDM symbol for a control packet
+        T_LPHY = 0.000016 + 0.000004; % seconds
+        if strcmp(PLCP_mode, 'LEGACY') == 1
+            T_PHY = T_LPHY; %microseconds
+        else
+            if strcmp(PLCP_mode, 'MIXED_MODE') == 1
+                T_PHY = T_LPHY + 0.000008 + 0.000004 + (0.000004*MIMO_streams) + 0.000004; %microseconds
+            end
+        end
+        Signal_Extension = 0.000000; % seconds
+        L_SERVICE = 16; % bits
+        L_TAIL = 6; % bits
+        L_MAC = 30 * 8; %30 * 8; % bits
+        L_MSDU_HEADER = 14 * 8; % bits
+        L_MPDU_HEADER = 4 * 8; % bits
+        L_ACK = 14 * 8; % bits
+        L_CTS = 14 * 8; % bits
+        L_RTS = 20 * 8; % bits
+        L_BACK = 32 * 8; %bits
+        L_BAR = 24 * 8; %bits
+        AIFSN = 3; %AIFSN value for AC_BE (Best Effort)
+        SLOT = 0.000009; % seconds
+        SIFS = 0.000016; %sifs value (s)
+        DIFS = SIFS + (AIFSN * SLOT); % seconds
+        CW_MIN = 15; %minimum contention window
+        m = 6; %maximum backoff stage
+        BACK_timeout = 0.000116; % seconds
         ACK_timeout = 0.000088; % seconds
         CTS_timeout = 0.000075; % seconds  
     end
@@ -343,41 +418,41 @@ for N=N_min:N_step:N_max
         end
     end
 
-  if strcmp(standard, '11ac') == 1
+  if strcmp(standard, '11ac') == 1 || strcmp(standard, '11ax_5GHz') == 1 || strcmp(standard, '11ax_2_4GHz') == 1
       if (strcmp(Aggregation_Type, 'NONE') == 1)
           if RTS_mode == 0
-              Ts = T_PHY + (Symbol_Duration * ceil((L_SERVICE + L_MAC + L_MPDU_HEADER + L_DATA + (36*8) + L_TAIL)/Data_bits_per_symbol)) + SIFS + T_PROP + T_LPHY + (Legacy_Symbol_Duration * ceil((L_SERVICE + L_ACK + L_TAIL)/Control_bits_per_symbol)) + DIFS + T_PROP; %time spent by a successful transmission
-              Tc = T_PHY + (Symbol_Duration * ceil((L_SERVICE + L_MAC + L_MPDU_HEADER + L_DATA + (36*8) + L_TAIL)/Data_bits_per_symbol)) + T_PROP + ACK_timeout + DIFS;
+              Ts = T_PHY + (Symbol_Duration * ceil((L_SERVICE + L_MAC + L_MPDU_HEADER + L_DATA + (36*8) + L_TAIL)/Data_bits_per_symbol)) + Signal_Extension + SIFS + T_PROP + T_LPHY + (Legacy_Symbol_Duration * ceil((L_SERVICE + L_ACK + L_TAIL)/Control_bits_per_symbol)) + Signal_Extension + DIFS + T_PROP; %time spent by a successful transmission
+              Tc = T_PHY + (Symbol_Duration * ceil((L_SERVICE + L_MAC + L_MPDU_HEADER + L_DATA + (36*8) + L_TAIL)/Data_bits_per_symbol)) + Signal_Extension + T_PROP + ACK_timeout + DIFS;
               Tf = Tc;
           else
-              Ts = T_LPHY + (Legacy_Symbol_Duration * ceil((L_SERVICE + L_RTS + L_TAIL)/Control_bits_per_symbol)) + SIFS + T_PROP + T_LPHY + (Legacy_Symbol_Duration * ceil((L_SERVICE + L_CTS + L_TAIL)/Control_bits_per_symbol)) + SIFS + T_PROP + T_PHY + (Symbol_Duration * ceil((L_SERVICE + L_MAC + L_MPDU_HEADER + L_DATA + (36*8) + L_TAIL)/Data_bits_per_symbol)) + SIFS + T_PROP + T_LPHY + (Legacy_Symbol_Duration * ceil((L_SERVICE + L_BACK + L_TAIL)/Control_bits_per_symbol)) + DIFS + T_PROP; %time spent by a successful transmission
-              Tc = T_LPHY + (Legacy_Symbol_Duration * ceil((L_SERVICE + L_RTS + L_TAIL)/Control_bits_per_symbol)) + DIFS + CTS_timeout; %time spent in collision
-              Tf = T_LPHY + (Legacy_Symbol_Duration * ceil((L_SERVICE + L_RTS + L_TAIL)/Control_bits_per_symbol)) + SIFS + T_PROP + T_LPHY + (Legacy_Symbol_Duration * ceil((L_SERVICE + L_CTS + L_TAIL)/Control_bits_per_symbol)) + SIFS + T_PROP + T_PHY + (Symbol_Duration * ceil((L_SERVICE + L_MAC + L_MPDU_HEADER + L_DATA + (36*8) + L_TAIL)/Data_bits_per_symbol)) + SIFS + T_PROP + ACK_timeout + DIFS;
+              Ts = T_LPHY + (Legacy_Symbol_Duration * ceil((L_SERVICE + L_RTS + L_TAIL)/Control_bits_per_symbol)) + Signal_Extension + SIFS + T_PROP + T_LPHY + (Legacy_Symbol_Duration * ceil((L_SERVICE + L_CTS + L_TAIL)/Control_bits_per_symbol)) + Signal_Extension + SIFS + T_PROP + T_PHY + (Symbol_Duration * ceil((L_SERVICE + L_MAC + L_MPDU_HEADER + L_DATA + (36*8) + L_TAIL)/Data_bits_per_symbol)) + SIFS + T_PROP + T_LPHY + (Legacy_Symbol_Duration * ceil((L_SERVICE + L_BACK + L_TAIL)/Control_bits_per_symbol)) + DIFS + T_PROP; %time spent by a successful transmission
+              Tc = T_LPHY + (Legacy_Symbol_Duration * ceil((L_SERVICE + L_RTS + L_TAIL)/Control_bits_per_symbol)) + Signal_Extension + DIFS + CTS_timeout; %time spent in collision
+              Tf = T_LPHY + (Legacy_Symbol_Duration * ceil((L_SERVICE + L_RTS + L_TAIL)/Control_bits_per_symbol)) + Signal_Extension + SIFS + T_PROP + T_LPHY + (Legacy_Symbol_Duration * ceil((L_SERVICE + L_CTS + L_TAIL)/Control_bits_per_symbol)) + Signal_Extension + SIFS + T_PROP + T_PHY + (Symbol_Duration * ceil((L_SERVICE + L_MAC + L_MPDU_HEADER + L_DATA + (36*8) + L_TAIL)/Data_bits_per_symbol)) + SIFS + T_PROP + ACK_timeout + DIFS;
           end
       end
       if ((strcmp(Aggregation_Type, 'A_MSDU') == 1) || (strcmp(Aggregation_Type, 'HYBRID')))
           if RTS_mode == 0
-              Ts = T_PHY + (Symbol_Duration * ceil((L_SERVICE + K_MPDU * (L_MAC + L_MPDU_HEADER + K_MSDU*(L_MSDU_HEADER + L_DATA + (36*8))) + L_TAIL)/Data_bits_per_symbol)) + SIFS + T_PROP + T_LPHY + (Legacy_Symbol_Duration * ceil((L_SERVICE + L_ACK + L_TAIL)/Control_bits_per_symbol)) + DIFS + T_PROP; %time spent by a successful transmission
-              Tc = T_PHY + (Symbol_Duration * ceil((L_SERVICE + K_MPDU * (L_MAC + L_MPDU_HEADER + K_MSDU*(L_MSDU_HEADER + L_DATA + (36*8))) + L_TAIL)/Data_bits_per_symbol)) + T_PROP + ACK_timeout + DIFS;
+              Ts = T_PHY + (Symbol_Duration * ceil((L_SERVICE + K_MPDU * (L_MAC + L_MPDU_HEADER + K_MSDU*(L_MSDU_HEADER + L_DATA + (36*8))) + L_TAIL)/Data_bits_per_symbol)) + Signal_Extension + SIFS + T_PROP + T_LPHY + (Legacy_Symbol_Duration * ceil((L_SERVICE + L_ACK + L_TAIL)/Control_bits_per_symbol)) + Signal_Extension + DIFS + T_PROP; %time spent by a successful transmission
+              Tc = T_PHY + (Symbol_Duration * ceil((L_SERVICE + K_MPDU * (L_MAC + L_MPDU_HEADER + K_MSDU*(L_MSDU_HEADER + L_DATA + (36*8))) + L_TAIL)/Data_bits_per_symbol)) + Signal_Extension + T_PROP + ACK_timeout + DIFS;
               Tf = Tc;
           else
-              Ts = T_LPHY + (Legacy_Symbol_Duration * ceil((L_SERVICE + L_RTS + L_TAIL)/Control_bits_per_symbol)) + SIFS + T_PROP + T_LPHY + (Legacy_Symbol_Duration * ceil((L_SERVICE + L_CTS + L_TAIL)/Control_bits_per_symbol)) + SIFS + T_PROP + T_PHY + (Symbol_Duration * ceil((L_SERVICE + K_MPDU * (L_MAC + L_MPDU_HEADER + K_MSDU*(L_MSDU_HEADER + L_DATA + (36*8))) + L_TAIL)/Data_bits_per_symbol)) + SIFS + T_PROP + T_LPHY + (Legacy_Symbol_Duration * ceil((L_SERVICE + L_BACK + L_TAIL)/Control_bits_per_symbol)) + DIFS + T_PROP; %time spent by a successful transmission
-              Tf = T_LPHY + (Legacy_Symbol_Duration * ceil((L_SERVICE + L_RTS + L_TAIL)/Control_bits_per_symbol)) + DIFS + CTS_timeout; %time spent in collision
+              Ts = T_LPHY + (Legacy_Symbol_Duration * ceil((L_SERVICE + L_RTS + L_TAIL)/Control_bits_per_symbol)) + Signal_Extension + SIFS + T_PROP + T_LPHY + (Legacy_Symbol_Duration * ceil((L_SERVICE + L_CTS + L_TAIL)/Control_bits_per_symbol)) + Signal_Extension + SIFS + T_PROP + T_PHY + (Symbol_Duration * ceil((L_SERVICE + K_MPDU * (L_MAC + L_MPDU_HEADER + K_MSDU*(L_MSDU_HEADER + L_DATA + (36*8))) + L_TAIL)/Data_bits_per_symbol)) + Signal_Extension + SIFS + T_PROP + T_LPHY + (Legacy_Symbol_Duration * ceil((L_SERVICE + L_BACK + L_TAIL)/Control_bits_per_symbol)) + Signal_Extension + DIFS + T_PROP; %time spent by a successful transmission
+              Tf = T_LPHY + (Legacy_Symbol_Duration * ceil((L_SERVICE + L_RTS + L_TAIL)/Control_bits_per_symbol)) + Signal_Extension + DIFS + CTS_timeout; %time spent in collision
           end
       end
       if strcmp(Aggregation_Type, 'A_MPDU') == 1
           if RTS_mode == 0
-              Ts = T_PHY + (Symbol_Duration * ceil((L_SERVICE + K_MPDU * (L_MAC + L_MPDU_HEADER + L_DATA + (36*8)) + L_TAIL)/Data_bits_per_symbol)) + SIFS + T_PROP + T_LPHY + (Legacy_Symbol_Duration * ceil((L_SERVICE + L_BACK + L_TAIL)/Control_bits_per_symbol)) + DIFS + T_PROP; %time spent by a successful transmission
+              Ts = T_PHY + (Symbol_Duration * ceil((L_SERVICE + K_MPDU * (L_MAC + L_MPDU_HEADER + L_DATA + (36*8)) + L_TAIL)/Data_bits_per_symbol)) + Signal_Extension + SIFS + T_PROP + T_LPHY + (Legacy_Symbol_Duration * ceil((L_SERVICE + L_BACK + L_TAIL)/Control_bits_per_symbol)) + Signal_Extension + DIFS + T_PROP; %time spent by a successful transmission
               if useExplicitBar == 1
                   T_BACKOFF = CW_MIN * SLOT/2;
-                  Tc = T_PHY + (Symbol_Duration * ceil((L_SERVICE + K_MPDU * (L_MAC + L_MPDU_HEADER + L_DATA + (36*8)) + L_TAIL)/Data_bits_per_symbol)) + T_PROP + BACK_timeout + DIFS + T_BACKOFF + T_LPHY + (Legacy_Symbol_Duration * ceil((L_SERVICE + L_BAR + L_TAIL)/Control_bits_per_symbol)) + SIFS + T_PROP + T_LPHY + (Legacy_Symbol_Duration * ceil((L_SERVICE + L_BACK + L_TAIL)/Control_bits_per_symbol)) + DIFS + T_PROP;
+                  Tc = T_PHY + (Symbol_Duration * ceil((L_SERVICE + K_MPDU * (L_MAC + L_MPDU_HEADER + L_DATA + (36*8)) + L_TAIL)/Data_bits_per_symbol)) + Signal_Extension + T_PROP + BACK_timeout + DIFS + T_BACKOFF + T_LPHY + (Legacy_Symbol_Duration * ceil((L_SERVICE + L_BAR + L_TAIL)/Control_bits_per_symbol)) + Signal_Extension + SIFS + T_PROP + T_LPHY + (Legacy_Symbol_Duration * ceil((L_SERVICE + L_BACK + L_TAIL)/Control_bits_per_symbol)) + Signal_Extension + DIFS + T_PROP;
               else
-                  Tc = T_PHY + (Symbol_Duration * ceil((L_SERVICE + K_MPDU * (L_MAC + L_MPDU_HEADER + L_DATA + (36*8)) + L_TAIL)/Data_bits_per_symbol)) + T_PROP + BACK_timeout + DIFS;
+                  Tc = T_PHY + (Symbol_Duration * ceil((L_SERVICE + K_MPDU * (L_MAC + L_MPDU_HEADER + L_DATA + (36*8)) + L_TAIL)/Data_bits_per_symbol)) + Signal_Extension + T_PROP + BACK_timeout + DIFS;
               end
               Tf = Tc;
           else
-              Ts = T_LPHY + (Legacy_Symbol_Duration * ceil((L_SERVICE + L_RTS + L_TAIL)/Control_bits_per_symbol)) + SIFS + T_PROP + T_LPHY + (Legacy_Symbol_Duration * ceil((L_SERVICE + L_CTS + L_TAIL)/Control_bits_per_symbol)) + SIFS + T_PROP + T_PHY + (Symbol_Duration * ceil((L_SERVICE + K_MPDU * (L_MAC + L_MPDU_HEADER + L_DATA + (36*8)) + L_TAIL)/Data_bits_per_symbol)) + SIFS + T_PROP + T_LPHY + (Legacy_Symbol_Duration * ceil((L_SERVICE + L_BACK + L_TAIL)/Control_bits_per_symbol)) + DIFS + T_PROP; %time spent by a successful transmission
-              Tc = T_LPHY + (Legacy_Symbol_Duration * ceil((L_SERVICE + L_RTS + L_TAIL)/Control_bits_per_symbol)) + DIFS + CTS_timeout; %time spent in collision
+              Ts = T_LPHY + (Legacy_Symbol_Duration * ceil((L_SERVICE + L_RTS + L_TAIL)/Control_bits_per_symbol)) + Signal_Extension + SIFS + T_PROP + T_LPHY + (Legacy_Symbol_Duration * ceil((L_SERVICE + L_CTS + L_TAIL)/Control_bits_per_symbol)) + Signal_Extension + SIFS + T_PROP + T_PHY + (Symbol_Duration * ceil((L_SERVICE + K_MPDU * (L_MAC + L_MPDU_HEADER + L_DATA + (36*8)) + L_TAIL)/Data_bits_per_symbol)) + Signal_Extension + SIFS + T_PROP + T_LPHY + (Legacy_Symbol_Duration * ceil((L_SERVICE + L_BACK + L_TAIL)/Control_bits_per_symbol)) + Signal_Extension + DIFS + T_PROP; %time spent by a successful transmission
+              Tc = T_LPHY + (Legacy_Symbol_Duration * ceil((L_SERVICE + L_RTS + L_TAIL)/Control_bits_per_symbol)) + Signal_Extension + DIFS + CTS_timeout; %time spent in collision
           end
       end
   end

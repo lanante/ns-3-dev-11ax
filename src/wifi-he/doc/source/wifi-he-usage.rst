@@ -360,7 +360,7 @@ generation process to complete.
 =====================================
 
 The following sections describes several example bash scripts that are used
-to run various experiements.  For each experiment set, the bash script name
+to run various experiments.  For each experiment set, the bash script name
 is given along with some remarks that describe what the script does, how it 
 is structured, and what results can be expected.
 
