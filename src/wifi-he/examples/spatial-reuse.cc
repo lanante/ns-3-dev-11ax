@@ -893,6 +893,7 @@ main (int argc, char *argv[])
   double rxSensitivity = -91.0;
   uint32_t beaconInterval = 102400; // microseconds
   bool useExplicitBarAfterMissedBlockAck = true;
+  uint64_t maxQueueDelay = 500; // milliSeconds
 
   CommandLine cmd;
   cmd.AddValue ("duration", "Duration of simulation (s)", duration);
@@ -940,11 +941,13 @@ main (int argc, char *argv[])
   cmd.AddValue ("beaconInterval", "Beacon interval in microseconds.", beaconInterval);
   cmd.AddValue ("filterOutNonAddbaEstablished", "Flag whether statistics obtained before all ADDBA hanshakes have been established are filtered out.", filterOutNonAddbaEstablished);
   cmd.AddValue ("useExplicitBarAfterMissedBlockAck", "Flag whether explicit Block Ack Request should be sent upon missed Block Ack Response.", useExplicitBarAfterMissedBlockAck);
+  cmd.AddValue ("maxQueueDelay", "If a packet stays longer than this delay in the queue, it is dropped.", maxQueueDelay);
   cmd.Parse (argc, argv);
 
   if (bianchi)
     {
       filterOutNonAddbaEstablished = true;
+      maxQueueDelay = duration * 1000; //make sure there is no MSDU lifetime expired
     }
 
   if ((scenario == "study1") || (scenario == "study2"))
@@ -983,6 +986,8 @@ main (int argc, char *argv[])
     Config::SetDefault ("ns3::WifiRemoteStationManager::MaxSsrc", UintegerValue (uMaxSlrc));
     beaconInterval = duration * 100000;
   }
+
+  Config::SetDefault ("ns3::WifiMacQueue::MaxDelay", TimeValue (MilliSeconds (maxQueueDelay)));
 
   std::ostringstream ossMcs;
   ossMcs << mcs;
