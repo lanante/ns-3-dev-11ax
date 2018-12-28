@@ -892,7 +892,7 @@ main (int argc, char *argv[])
   double sigma = 5.0;
   double rxSensitivity = -91.0;
   uint32_t beaconInterval = 102400; // microseconds
-  bool useExpliciteBarAfterMissedBlockAck = true;
+  bool useExplicitBarAfterMissedBlockAck = true;
 
   CommandLine cmd;
   cmd.AddValue ("duration", "Duration of simulation (s)", duration);
@@ -939,7 +939,7 @@ main (int argc, char *argv[])
   cmd.AddValue ("sigma", "Log-normal shadowing loss parameter.", sigma);
   cmd.AddValue ("beaconInterval", "Beacon interval in microseconds.", beaconInterval);
   cmd.AddValue ("filterOutNonAddbaEstablished", "Flag whether statistics obtained before all ADDBA hanshakes have been established are filtered out.", filterOutNonAddbaEstablished);
-  cmd.AddValue ("useExpliciteBarAfterMissedBlockAck", "Flag whether explicit Block Ack Request should be sent upon missed Block Ack Response.", useExpliciteBarAfterMissedBlockAck);
+  cmd.AddValue ("useExplicitBarAfterMissedBlockAck", "Flag whether explicit Block Ack Request should be sent upon missed Block Ack Response.", useExplicitBarAfterMissedBlockAck);
   cmd.Parse (argc, argv);
 
   if (bianchi)
@@ -973,7 +973,7 @@ main (int argc, char *argv[])
     }
   Config::SetDefault ("ns3::WifiRemoteStationManager::MaxSlrc", UintegerValue (uMaxSlrc));
 
-  Config::SetDefault ("ns3::QosTxop::UseExpliciteBarAfterMissedBlockAck", BooleanValue (useExpliciteBarAfterMissedBlockAck));
+  Config::SetDefault ("ns3::QosTxop::UseExplicitBarAfterMissedBlockAck", BooleanValue (useExplicitBarAfterMissedBlockAck));
 
   // debugging - may need to set additional params specifically for Bianchi validation
   if (bianchi)

@@ -90,11 +90,11 @@ function run_one () {
   # else
   #   echo "filterOutNonAddbaEstablished is set to $filterOutNonAddbaEstablished";
   fi
-if [ -z "$useExpliciteBarAfterMissedBlockAck" ]; then
-# echo "useExpliciteBarAfterMissedBlockAck is not set, defaulting to 1.";
-export useExpliciteBarAfterMissedBlockAck=1
+if [ -z "$useExplicitBarAfterMissedBlockAck" ]; then
+# echo "useExplicitBarAfterMissedBlockAck is not set, defaulting to 1.";
+export useExplicitBarAfterMissedBlockAck=1
 # else
-#   echo "useExpliciteBarAfterMissedBlockAck is set to $useExpliciteBarAfterMissedBlockAck";
+#   echo "useExplicitBarAfterMissedBlockAck is set to $useExplicitBarAfterMissedBlockAck";
 fi
   echo Running ${test}
   # run the test
@@ -138,7 +138,7 @@ fi
         --applicationTxStart=${applicationTxStart} \
         --rxSensitivity=${rxSensitivity} \
         --filterOutNonAddbaEstablished=${filterOutNonAddbaEstablished} \
-        --useExpliciteBarAfterMissedBlockAck=${useExpliciteBarAfterMissedBlockAck}"
+        --useExplicitBarAfterMissedBlockAck=${useExplicitBarAfterMissedBlockAck}"
 
   # copy results files
   cd ../scripts
