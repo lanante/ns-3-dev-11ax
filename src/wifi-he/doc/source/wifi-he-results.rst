@@ -119,7 +119,11 @@ Performance evaluation of the simulations can be evaluated in terms
 of metrics, such as:
 
 throughput - the amount of packets successfully received at the 
-target destinations, measured in Mbps.
+target destinations, measured in Mbps.  Throughput is calculated over
+the period of time specified by the spatial-reuse script parameter
+--duration.  The counting of successfully received packets starts
+after the network reaches a steady state, and after the ADDBA 
+exchanges across all links have been successfully estalished.
 
 Throughput is a common term used in network performance evaluations. 
 However, throughput alone does not completely capture the effects of
@@ -625,7 +629,7 @@ Separate payload sizes (i.e., application layer packet lengths) are specified fo
 the uplink payload and the downlink payload sizes.  These payload sizes and the 
 allocated traffic are used to determine the transmission interval per packet.
 
-All traffic is assumed a Constant Bit Rate (CCR) and transmissions use UDP datagrams.
+All traffic is assumed a Constant Bit Rate (CBR) and transmissions use UDP datagrams.
 
 * Uplink payload size - 1500 bytes
 
@@ -733,7 +737,7 @@ Study 1 Results
 ===============
 
 The figures in the section were generated using the ns-3-dev-11ax 
-repository as of commit changeset 7d56f75.
+repository as of commit changeset c3136c8.
 
 System Throughput
 #################
