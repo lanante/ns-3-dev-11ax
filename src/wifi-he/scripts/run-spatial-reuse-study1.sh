@@ -50,6 +50,7 @@ echo "export scenario=study1" >> ../scripts/study1.sh
 echo "export txRange=15" >> ../scripts/study1.sh
 echo "export obssPdThreshold=-82" >> ../scripts/study1.sh
 echo "export useIdealWifiManager=1" >> ../scripts/study1.sh
+echo "export filterOutNonAddbaEstablished=1" >> ../scripts/study1.sh
 
 cd ../examples
 
