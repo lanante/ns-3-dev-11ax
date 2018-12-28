@@ -2463,7 +2463,8 @@ main (int argc, char *argv[])
 
   if (enablePcap == true)
     {
-      spectrumPhy.EnablePcap ("pcapforPackets", staDevicesA);
+      spectrumPhy.EnablePcap ("STA_pcap", staDevicesA);
+      spectrumPhy.EnablePcap ("AP_pcap", apDeviceA);
     }
 
   Time durationTime = Seconds (duration + applicationTxStart);
