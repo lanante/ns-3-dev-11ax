@@ -1892,6 +1892,7 @@ private:
   Ptr<PreambleDetectionModel> m_preambleDetectionModel; //!< Preamble detection model
   Ptr<WifiRadioEnergyModel> m_wifiRadioEnergyModel; //!< Wifi radio energy model
   Ptr<ErrorModel> m_postReceptionErrorModel; //!< Error model for receive packet events
+  Time m_timeLastPreambleDetected; //!< Record the time the last preamble was detected
 
   Callback<void> m_capabilitiesChangedCallback; //!< Callback when PHY capabilities changed
 };
