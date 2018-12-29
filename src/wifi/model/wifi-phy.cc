@@ -3858,7 +3858,7 @@ WifiPhy::StartRx (Ptr<Packet> packet, WifiTxVector txVector, MpduType mpdutype, 
     MaybeCcaBusyDuration ();
     return;
   }
-  else if (preamble != WIFI_PREAMBLE_NONE && m_mpdusNum > 0 )
+  else if (preamble != WIFI_PREAMBLE_NONE && m_mpdusNum > 0)
     {
       NS_LOG_DEBUG ("Didn't receive the last MPDUs from an A-MPDU " << m_mpdusNum);
       m_mpdusNum = 0;
@@ -3882,6 +3882,7 @@ WifiPhy::StartRx (Ptr<Packet> packet, WifiTxVector txVector, MpduType mpdutype, 
     {
       if (!m_endPreambleDetectionEvent.IsRunning ())
         {
+          m_plcpSuccess = false;
           Time startOfPreambleDuration = GetPreambleDetectionDuration ();
           Time remainingRxDuration = rxDuration - startOfPreambleDuration;
           m_endPreambleDetectionEvent = Simulator::Schedule (startOfPreambleDuration, &WifiPhy::StartReceiveHeader, this,
