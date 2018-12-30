@@ -73,6 +73,4 @@ Placeholder section
 Scope And Limitations
 =====================
 
-* The frame capture model is currently broken; the model will try to receive
-  the first arriving frame and later arriving frames will be treated as
-  interference.
+Placeholder section
