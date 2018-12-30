@@ -895,6 +895,7 @@ main (int argc, char *argv[])
   bool useExplicitBarAfterMissedBlockAck = true;
   uint64_t maxQueueDelay = 500; // milliSeconds
   bool enableFrameCapture = false;
+  bool enableThresholdPreambleDetection = false;
 
   CommandLine cmd;
   cmd.AddValue ("duration", "Duration of simulation (s)", duration);
@@ -944,6 +945,7 @@ main (int argc, char *argv[])
   cmd.AddValue ("useExplicitBarAfterMissedBlockAck", "Flag whether explicit Block Ack Request should be sent upon missed Block Ack Response.", useExplicitBarAfterMissedBlockAck);
   cmd.AddValue ("maxQueueDelay", "If a packet stays longer than this delay in the queue, it is dropped.", maxQueueDelay);
   cmd.AddValue ("enableFrameCapture", "Enable or disable frame capture", enableFrameCapture);
+  cmd.AddValue ("enableThresholdPreambleDetection", "Enable or disable threshold-based preamble detection (if not set, preamble detection is always successful)", enableThresholdPreambleDetection);
   cmd.Parse (argc, argv);
 
   if (bianchi)
@@ -1339,6 +1341,10 @@ main (int argc, char *argv[])
   if (enableFrameCapture)
     {
       spectrumPhy.SetFrameCaptureModel ("ns3::SimpleFrameCaptureModel");
+    }
+  if (enableThresholdPreambleDetection)
+    {
+      spectrumPhy.SetPreambleDetectionModel ("ns3::ThresholdPreambleDetectionModel");
     }
   spectrumPhy.Set ("Frequency", UintegerValue (freq)); // channel 36 at 20 MHz
   spectrumPhy.Set ("ChannelWidth", UintegerValue (bw));

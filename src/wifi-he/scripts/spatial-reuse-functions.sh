@@ -102,6 +102,12 @@ function run_one () {
   # else
   #   echo "enableFrameCapture is set to $enableFrameCapture";
   fi
+  if [ -z "$enableThresholdPreambleDetection" ]; then
+  # echo "enableThresholdPreambleDetection is not set, defaulting to 0.";
+  export enableThresholdPreambleDetection=0
+  # else
+  #   echo "enableThresholdPreambleDetection is set to $enableThresholdPreambleDetection";
+  fi
   echo Running ${test}
   # run the test
   ../../../waf --run "spatial-reuse \
@@ -145,7 +151,8 @@ function run_one () {
         --rxSensitivity=${rxSensitivity} \
         --filterOutNonAddbaEstablished=${filterOutNonAddbaEstablished} \
         --useExplicitBarAfterMissedBlockAck=${useExplicitBarAfterMissedBlockAck} \
-        --enableFrameCapture=${enableFrameCapture}"
+        --enableFrameCapture=${enableFrameCapture} \
+        --enableThresholdPreambleDetection=${enableThresholdPreambleDetection}"
 
   # copy results files
   cd ../scripts
