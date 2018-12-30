@@ -90,12 +90,18 @@ function run_one () {
   # else
   #   echo "filterOutNonAddbaEstablished is set to $filterOutNonAddbaEstablished";
   fi
-if [ -z "$useExplicitBarAfterMissedBlockAck" ]; then
-# echo "useExplicitBarAfterMissedBlockAck is not set, defaulting to 1.";
-export useExplicitBarAfterMissedBlockAck=1
-# else
-#   echo "useExplicitBarAfterMissedBlockAck is set to $useExplicitBarAfterMissedBlockAck";
-fi
+  if [ -z "$useExplicitBarAfterMissedBlockAck" ]; then
+  # echo "useExplicitBarAfterMissedBlockAck is not set, defaulting to 1.";
+  export useExplicitBarAfterMissedBlockAck=1
+  # else
+  #   echo "useExplicitBarAfterMissedBlockAck is set to $useExplicitBarAfterMissedBlockAck";
+  fi
+  if [ -z "$enableFrameCapture" ]; then
+  # echo "enableFrameCapture is not set, defaulting to 0.";
+  export enableFrameCapture=0
+  # else
+  #   echo "enableFrameCapture is set to $enableFrameCapture";
+  fi
   echo Running ${test}
   # run the test
   ../../../waf --run "spatial-reuse \
@@ -138,7 +144,8 @@ fi
         --applicationTxStart=${applicationTxStart} \
         --rxSensitivity=${rxSensitivity} \
         --filterOutNonAddbaEstablished=${filterOutNonAddbaEstablished} \
-        --useExplicitBarAfterMissedBlockAck=${useExplicitBarAfterMissedBlockAck}"
+        --useExplicitBarAfterMissedBlockAck=${useExplicitBarAfterMissedBlockAck} \
+        --enableFrameCapture=${enableFrameCapture}"
 
   # copy results files
   cd ../scripts

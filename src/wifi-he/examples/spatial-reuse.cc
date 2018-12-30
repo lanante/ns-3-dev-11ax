@@ -894,6 +894,7 @@ main (int argc, char *argv[])
   uint32_t beaconInterval = 102400; // microseconds
   bool useExplicitBarAfterMissedBlockAck = true;
   uint64_t maxQueueDelay = 500; // milliSeconds
+  bool enableFrameCapture = false;
 
   CommandLine cmd;
   cmd.AddValue ("duration", "Duration of simulation (s)", duration);
@@ -942,6 +943,7 @@ main (int argc, char *argv[])
   cmd.AddValue ("filterOutNonAddbaEstablished", "Flag whether statistics obtained before all ADDBA hanshakes have been established are filtered out.", filterOutNonAddbaEstablished);
   cmd.AddValue ("useExplicitBarAfterMissedBlockAck", "Flag whether explicit Block Ack Request should be sent upon missed Block Ack Response.", useExplicitBarAfterMissedBlockAck);
   cmd.AddValue ("maxQueueDelay", "If a packet stays longer than this delay in the queue, it is dropped.", maxQueueDelay);
+  cmd.AddValue ("enableFrameCapture", "Enable or disable frame capture", enableFrameCapture);
   cmd.Parse (argc, argv);
 
   if (bianchi)
@@ -1334,6 +1336,10 @@ main (int argc, char *argv[])
 
   spectrumPhy.SetChannel (spectrumChannel);
   spectrumPhy.SetErrorRateModel ("ns3::YansErrorRateModel"); //YANS is more aligned with link simulations
+  if (enableFrameCapture)
+    {
+      spectrumPhy.SetFrameCaptureModel ("ns3::SimpleFrameCaptureModel");
+    }
   spectrumPhy.Set ("Frequency", UintegerValue (freq)); // channel 36 at 20 MHz
   spectrumPhy.Set ("ChannelWidth", UintegerValue (bw));
 
