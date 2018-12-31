@@ -26,7 +26,7 @@ export nodePositionsFile=NONE
 export enablePcap=0
 export enableAscii=0
 # only used by 11ax
-export obssPdThreshold=-82
+export obssPdThreshold=-72
 
 
 # see Saturaged Throughtput Analysis/Calibration for Multi BSS Throughput (pptx)
@@ -108,10 +108,11 @@ export enableObssPd=0
 export test="obss-pd-test1-n5-11ax-no-obsspd"
 run_one &
 
-# 3. 11ax (with OBSS_PD enabled at obssPdThreshold=-82
+# 3. 11ax (with OBSS_PD enabled at obssPdThreshold=-72
 export standard=11ax_5GHZ
 export enableObssPd=1
-export obssPdThreshold=-82
+# per issue 76, threshold should be -72 dBm
+export obssPdThreshold=-72
 export test="obss-pd-test1-n5-11ax-with-obsspd"
 run_one &
 
