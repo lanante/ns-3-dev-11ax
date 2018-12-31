@@ -116,6 +116,9 @@ Time timeAllAddBaEstablished;
 Time timeLastPacketReceived;
 bool filterOutNonAddbaEstablished = false;
 
+uint32_t nAssociatedStas = 0;
+bool allStasAssociated = false;
+
 // for tracking packets and bytes received. will be reallocated once we finalize number of nodes
 std::vector<uint32_t> packetsReceived (0);
 std::vector<uint32_t> bytesReceived (0);
@@ -389,6 +392,43 @@ AddbaStateCb (std::string context, Time t, Mac48Address recipient, uint8_t tid, 
 }
 
 void
+StaAssocCb (std::string context, Mac48Address bssid)
+{
+  uint32_t nodeId = ContextToNodeId (context);
+  uint32_t appId = 0;
+  // Determine application ID from node ID
+  for (uint32_t bss = 1; bss <= nBss; bss++)
+    {
+      if (nodeId <= (bss * n) + bss - 1)
+        {
+          appId = nodeId - bss;
+          break;
+        }
+    }
+  if (filterOutNonAddbaEstablished)
+    {
+      // Here, we make sure that there is at least one packet in the queue after association (paquets queued before are dropped)
+      Ptr<UdpClient> client;
+      if (aggregateUplinkMbps != 0)
+        {
+          client = DynamicCast<UdpClient> (uplinkClientApps.Get(appId));
+          client->SetAttribute ("MaxPackets", UintegerValue (1));
+        }
+      if (aggregateDownlinkMbps != 0)
+        {
+          client = DynamicCast<UdpClient> (downlinkClientApps.Get(appId));
+          client->SetAttribute ("MaxPackets", UintegerValue (1));
+        }
+    }
+  nAssociatedStas++;
+  if (nAssociatedStas == (n * nBss))
+    {
+      allStasAssociated = true;
+      std::cout << Simulator::Now () << ": ALL STAS ARE ASSOCIATED !" << std::endl;
+    }
+}
+
+void
 SignalCb (std::string context, bool wifi, uint32_t senderNodeId, double rxPowerDbm, Time rxDuration)
 {
   if (g_logArrivals)
@@ -466,6 +506,12 @@ ScheduleAddbaStateLogConnect (void)
 }
 
 void
+ScheduleStaAssocLogConnect (void)
+{
+  Config::Connect ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Mac/$ns3::StaWifiMac/Assoc", MakeCallback (&StaAssocCb));
+}
+
+void
 ScheduleStateLogDisconnect (void)
 {
   Config::Disconnect ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Phy/State/State", MakeCallback (&StateCb));
@@ -475,6 +521,12 @@ void
 ScheduleAddbaStateLogDisconnect (void)
 {
   Config::Disconnect ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Mac/$ns3::RegularWifiMac/BE_Txop/BlockAckManager/AgreementState", MakeCallback (&AddbaStateCb));
+}
+
+void
+ScheduleStaAssocLogDisconnect (void)
+{
+  Config::Disconnect ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Mac/$ns3::StaWifiMac/Assoc", MakeCallback (&StaAssocCb));
 }
 
 void AddClient (ApplicationContainer &clientApps, Ipv4Address address, Ptr<Node> node, uint16_t port, Time interval, uint32_t payloadSize, Ptr<UniformRandomVariable> urv, double txStartOffset)
@@ -2463,6 +2515,7 @@ main (int argc, char *argv[])
   g_stateFile.setf (std::ios_base::fixed);
   ScheduleStateLogConnect ();
   ScheduleAddbaStateLogConnect ();
+  ScheduleStaAssocLogConnect();
 
   g_rxSniffFile.open (outputFilePrefix + "-rx-sniff-" + testname + ".dat", std::ofstream::out | std::ofstream::trunc);
   g_rxSniffFile.setf (std::ios_base::fixed);
@@ -2498,6 +2551,7 @@ main (int argc, char *argv[])
   SchedulePhyLogDisconnect ();
   ScheduleStateLogDisconnect ();
   ScheduleAddbaStateLogDisconnect ();
+  ScheduleStaAssocLogDisconnect();
   g_stateFile.flush ();
   g_stateFile.close ();
 
@@ -2507,6 +2561,10 @@ main (int argc, char *argv[])
 
   Simulator::Destroy ();
 
+  if (!allStasAssociated)
+  {
+    NS_FATAL_ERROR ("Not all STAs are associated at the end of the simulation");
+  }
   if (filterOutNonAddbaEstablished && !allAddBaEstablished)
   {
     NS_FATAL_ERROR ("filterOutNonAddbaEstablished option enabled but not all ADDBA hanshakes are established at the end of the simulation");
