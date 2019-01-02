@@ -2235,6 +2235,7 @@ main (int argc, char *argv[])
   Time intervalDownlink = MicroSeconds (payloadSizeDownlink * 8 / perNodeDownlinkMbps);
   std::cout << "Uplink interval:" << intervalUplink << " Downlink interval:" << intervalDownlink << std::endl;
   std::cout << "ApplicationTxStart: " << applicationTxStart << " Duration: " << duration << std::endl;
+  std::cout << "nBss: " << nBss << " nStas/Bss: " << n << " => nStas: " << n * nBss << std::endl;
 
   Ptr<UniformRandomVariable> urv = CreateObject<UniformRandomVariable> ();
   // assign stream to prevent perturbations
