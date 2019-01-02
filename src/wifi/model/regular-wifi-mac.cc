@@ -1327,6 +1327,11 @@ RegularWifiMac::GetTypeId (void)
                    PointerValue (),
                    MakePointerAccessor (&RegularWifiMac::GetBKQueue),
                    MakePointerChecker<QosTxop> ())
+    .AddAttribute ("MacLow",
+                   "The MacLow object.",
+                   PointerValue (),
+                   MakePointerAccessor (&RegularWifiMac::m_low),
+                   MakePointerChecker<MacLow> ())
     .AddTraceSource ("TxOkHeader",
                      "The header of successfully transmitted packet.",
                      MakeTraceSourceAccessor (&RegularWifiMac::m_txOkCallback),
