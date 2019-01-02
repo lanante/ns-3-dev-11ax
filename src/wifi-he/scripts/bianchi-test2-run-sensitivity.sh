@@ -122,9 +122,6 @@ source spatial-reuse-functions.sh
 cd ../examples
 
 # miscellaneous settings for spatial-reuse script / ns-3
-export RngRun=1
-# maybe change duration to 10.0, or more ???
-export duration=5.0
 export enableRts=0
 export txStartOffset=5000
 export enableObssPd=0
@@ -140,34 +137,23 @@ export enableAscii=0
 # only used by 11ax
 export obssPdThreshold=-82
 
-
 # see Saturaged Throughtput Analysis/Calibration for Multi BSS Throughput (pptx)
 # Leonardo Lanante Jr.
 
 # Slide 2
-# Refeence Scenario
+# Reference Scenario
 # Format= 11ac, 20MHz, 1 stream
 export standard=11ac
 export bw=20
-
-# Carrier Frequency = 5190MHz (NS-3 default)
-# handled by 11ac setting
-
-# Path loss model based on [1]
-# PL(d) = 40.05 + 20*log10(fc/2.4) + 20*log10(min(d,10)) + (d>10) * 35*log10(d/10) 
-# –	d = max(3D-distance [m], 1)
-# –	fc = frequency [GHz]
-export scenario=study1
-export nBss=7
 
 # MSDUsize = 1500 octets
 export payloadSizeUplink=1500
 export payloadSizeDownlink=1500
 
-# AMPDUsize = 3140 octets (nMPDU=2)
+# AMPDUsize = 3142 octets (nMPDU=2)
 export maxAmpduSize=3142
 
-# MCS=7 (Max rate= 6.5Mbps, Ndbps=260)
+# MCS=7 (rate = 65 Mbit/s, Ndbps = 260)
 export useIdealWifiManager=0
 export MCS=7
 
@@ -187,18 +173,6 @@ export powAp=20
 export txRange=102
 export rxSensitivity=-91
 
-# Slide 11
-# 2. Uncoupled BSSes with all UL throughput
-# Set
-# UL traffic = 100Mbps per BSS
-# DL traffic  = 0Mbps
-# r= 10m
-# d=120m
-# nBSS=7
-# nSTA=5:5:40 per BSS
-# Expected Throughput = 38.6Mbps per BSS (n=1 in slide 9)
-
-# for uplink, allocate traffic per STA x n STAs
 export downlink=0.0
 export sigma=0.0
 export bianchi=1
@@ -282,6 +256,4 @@ export RngRun=101
 export test="bianchi-test2-rngrun101"
 run_one &
 
-
 wait
-

@@ -5,7 +5,6 @@ cd ../examples
 
 # miscellaneous settings for spatial-reuse script / ns-3
 export RngRun=1
-# maybe change duration to 10.0, or more ???
 export duration=10.0
 export enableRts=0
 export txStartOffset=50
@@ -23,12 +22,10 @@ export rxSensitivity=-82
 # only used by 11ax
 export obssPdThreshold=-82
 
-
 # see Saturaged Throughtput Analysis/Calibration for Multi BSS Throughput (pptx)
 # Leonardo Lanante Jr.
 
-# Slide 2
-# Refeence Scenario
+# Reference Scenario
 # Format= 11ac, 20MHz, 1 stream
 export standard=11ac
 export bw=20
@@ -47,10 +44,10 @@ export nBss=7
 export payloadSizeUplink=1500
 export payloadSizeDownlink=1500
 
-# AMPDUsize = 3140 octets (nMPDU=2)
+# AMPDUsize = 3142 octets (nMPDU=2)
 export maxAmpduSize=3142
 
-# MCS=7 (Max rate= 6.5Mbps, Ndbps=260)
+# MCS=7 (rate = 65 Mbit/s, Ndbps = 260)
 export useIdealWifiManager=0
 export MCS=7
 
@@ -66,33 +63,62 @@ export r=10
 export powSta=15
 export powAp=20
 
-# CSR = 102m for AP - see slide 3
+# CSR = 102m for AP
 export txRange=102
 
-# Slide 10
-# 1. Uncoupled BSSes with all DL throughput
-# Set
-# DL traffic = 100Mbps per BSS
-# UL traffic  = 0Mbps
+# Coupled BSSes with all DL throughput
+# DL traffic = 100 Mbit/s per STA
+# UL traffic = 0 Mbit/s
 # r= 10m
 # d=120m
 # nBSS=7
-# nSTA=40 per BSS
-# Expected Throughput = 38.6Mbps per BSS (n=1 in slide 9)
+# nSTA=5:5:40 per BSS
 
 export uplink=0.0
-# to saturate, need downlink per STA x n STAs
-export downlink=4000.0
-export n=40
+# Test 3 is identical to Test 1 except d=20
+export d=20
 # no shadowing loss
 export sigma=0.0
 export bianchi=1
 
-export test=bianchi-test3-dl-only-n40
-# Test 3 is identical to Test 1 except d=20
-export d=20
-echo "Expected Throughput = 38.6 Mbps"
-# actual throughput = 39.7 Mbps
+export downlink=500.0
+export n=5
+export test="bianchi-test3-dl-only-n5"
+run_one &
+
+export downlink=1000.0
+export n=10
+export test="bianchi-test3-dl-only-n10"
+run_one &
+
+export downlink=1500.0
+export n=15
+export test="bianchi-test3-dl-only-n15"
+run_one &
+
+export downlink=2000.0
+export n=20
+export test="bianchi-test3-dl-only-n20"
+run_one &
+
+export downlink=2500.0
+export n=25
+export test="bianchi-test3-dl-only-n25"
+run_one &
+
+export downlink=3000.0
+export n=30
+export test="bianchi-test3-dl-only-n30"
+run_one &
+
+export downlink=3500.0
+export n=35
+export test="bianchi-test3-dl-only-n35"
+run_one &
+
+export downlink=4000.0
+export n=40
+export test="bianchi-test3-dl-only-n40"
 run_one &
 
 wait

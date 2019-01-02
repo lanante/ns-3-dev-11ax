@@ -5,7 +5,6 @@ cd ../examples
 
 # miscellaneous settings for spatial-reuse script / ns-3
 export RngRun=1
-# maybe change duration to 10.0, or more ???
 export duration=5.0
 export enableRts=0
 export txStartOffset=50
@@ -19,15 +18,14 @@ export performTgaxTimingChecks=0
 export nodePositionsFile=NONE
 export enablePcap=0
 export enableAscii=0
+export rxSensitivity=-82
 # only used by 11ax
 export obssPdThreshold=-82
-
 
 # see Saturaged Throughtput Analysis/Calibration for Multi BSS Throughput (pptx)
 # Leonardo Lanante Jr.
 
-# Slide 2
-# Refeence Scenario
+# Reference Scenario
 # Format= 11ac, 20MHz, 1 stream
 export standard=11ac
 export bw=20
@@ -49,7 +47,7 @@ export payloadSizeDownlink=1500
 # AMPDUsize = 3140 octets (nMPDU=2)
 export maxAmpduSize=3142
 
-# MCS=7 (Max rate= 6.5Mbps, Ndbps=260)
+# MCS=7 (rate = 65 Mbit/s, Ndbps = 260)
 export useIdealWifiManager=0
 export MCS=7
 
@@ -65,62 +63,66 @@ export r=10
 export powSta=15
 export powAp=20
 
-# CSR = 102m for AP - see slide 3
+# CSR = 102m for AP
 export txRange=102
 
-# Slide 11
-# 2. Uncoupled BSSes with all UL throughput
-# Set
-# UL traffic = 100Mbps per BSS
-# DL traffic  = 0Mbps
+# Uncoupled BSSes with all UL throughput
+# UL traffic = 100 Mbit/s per STA
+# DL traffic = 0 Mbit/s
 # r= 10m
 # d=120m
 # nBSS=7
 # nSTA=5:5:40 per BSS
-# Expected Throughput = 38.6Mbps per BSS (n=1 in slide 9)
 
-# for uplink, allocate traffic per STA x n STAs
 export downlink=0.0
 export d=120
+# no shadowing loss
 export sigma=0.0
 export bianchi=1
-export rxSensitivity=-82
 
+echo "Expected Throughput for n=5: 38.4 Mbit/s per BSS"
 export uplink=500.0
 export n=5
 export test="bianchi-test2-ul-only-n5"
 run_one &
 
+echo "Expected Throughput for n=10: 35.7 Mbit/s per BSS"
 export uplink=1000.0
 export n=10
 export test="bianchi-test2-ul-only-n10"
 run_one &
 
+echo "Expected Throughput for n=15: 34.1 Mbit/s per BSS"
 export uplink=1500.0
 export n=15
 export test="bianchi-test2-ul-only-n15"
 run_one &
 
+echo "Expected Throughput for n=20: 33.0 Mbit/s per BSS"
 export uplink=2000.0
 export n=20
 export test="bianchi-test2-ul-only-n20"
 run_one &
 
+echo "Expected Throughput for n=25: 32.1 Mbit/s per BSS"
 export uplink=2500.0
 export n=25
 export test="bianchi-test2-ul-only-n25"
 run_one &
 
+echo "Expected Throughput for n=30: 31.3 Mbit/s per BSS"
 export uplink=3000.0
 export n=30
 export test="bianchi-test2-ul-only-n30"
 run_one &
 
+echo "Expected Throughput for n=35: 30.7 Mbit/s per BSS"
 export uplink=3500.0
 export n=35
 export test="bianchi-test2-ul-only-n35"
 run_one &
 
+echo "Expected Throughput for n=40: 30.1 Mbit/s per BSS"
 export uplink=4000.0
 export n=40
 export test="bianchi-test2-ul-only-n40"
