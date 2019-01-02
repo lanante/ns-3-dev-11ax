@@ -1004,6 +1004,7 @@ main (int argc, char *argv[])
     {
       filterOutNonAddbaEstablished = true;
       maxQueueDelay = duration * 1000; //make sure there is no MSDU lifetime expired
+      useExplicitBarAfterMissedBlockAck = false;
     }
 
   if ((scenario == "study1") || (scenario == "study2"))
