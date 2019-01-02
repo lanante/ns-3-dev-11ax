@@ -11,7 +11,6 @@ IMGDIR=images
 THUMBNAILS=true
 NOX11=true
 
-
 BASE_OPTIONS=""
 BASE_OPTIONS="${BASE_OPTIONS} ; set style line 1 pt 4 lt 1"
 BASE_OPTIONS="${BASE_OPTIONS} ; set style line 2 pt 7 lt 2"
@@ -33,8 +32,6 @@ THROUGHPUT_CDF_RANGE="[0:150][0:1]"
 THROUGHPUT_RANGE="[1:6][1:6]"
 AREA_CAPCITY_RANGE="[1:6][0:0.02]"
 SPECTRUM_EFFICIENCY_RANGE="[1:6][0:0.002]"
-
-
 
 # Area Capacity - two scenarios, all (4) APs on one chart
 
@@ -69,7 +66,6 @@ for patt in 80-30-02-20 20-10-02-05 ; do
                 done
 
 done
-
 
 PLOTTYPE="with linespoints"
 XLABEL="Offered Load [Mbps]"
@@ -117,7 +113,6 @@ for patt in 80-20-02-10 60-20-02-10 40-20-02-10 20-20-02-10 ; do
     done
 
 done
-
 
 PLOTTYPE="with linespoints"
 XLABEL="Offered Load [Mbps]"
@@ -275,4 +270,3 @@ unset FILES
 unset LABELS
 unset YCOLS
 unset XCOLS
-

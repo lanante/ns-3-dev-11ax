@@ -54,4 +54,3 @@ grep 'Area Capacity, AP1 Uplink' ./results/spatial-reuse-SR-stats-study1-*.dat >
 rm ./results/spatial-reuse-study1-spectrum-efficiency-ap1.dat
 
 grep 'Spectrum Efficiency, AP1 Uplink' ./results/spatial-reuse-SR-stats-study1-*.dat > ./results/spatial-reuse-study1-spectrum-efficiency-ap1.dat
-

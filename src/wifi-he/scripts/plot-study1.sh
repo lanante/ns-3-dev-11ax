@@ -11,7 +11,6 @@ IMGDIR=images
 THUMBNAILS=true
 NOX11=true
 
-
 BASE_OPTIONS=""
 BASE_OPTIONS="${BASE_OPTIONS} ; set style line 1 pt 4 lt 1"
 BASE_OPTIONS="${BASE_OPTIONS} ; set style line 2 pt 7 lt 2"
@@ -84,7 +83,6 @@ for n in 5 10 15 20 25 30 35 40 ; do
     done
 done
 
-
 PLOTTYPE="with linespoints"
 XLABEL="Offered Load [Mbps]"
 YLABEL="Throughput [Mbps]"
@@ -141,7 +139,6 @@ for n in 5 10 15 20 25 30 35 40 ; do
  #       done
     done
 done
-
 
 PLOTTYPE="with linespoints"
 XLABEL="Offered Load [Mbps]"
@@ -200,7 +197,6 @@ for n in 5 10 15 20 25 30 35 40 ; do
     done
 done
 
-
 PLOTTYPE="with linespoints"
 XLABEL="Offered Load [Mbps]"
 YLABEL="Spectrum Efficiency [Mbps/Hz/m^2]"
@@ -213,4 +209,3 @@ unset FILES
 unset LABELS
 unset YCOLS
 unset XCOLS
-

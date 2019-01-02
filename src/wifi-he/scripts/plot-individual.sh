@@ -2,14 +2,12 @@
 # plot the performance measures for
 # each individual simulation scenario that was run
 
-
 source ../utils/shot
 source ../utils/common
 
 IMGDIR=images
 THUMBNAILS=true
 NOX11=true
-
 
 BASE_OPTIONS=""
 BASE_OPTIONS="${BASE_OPTIONS} ; set style line 1 pt 4 lt 1"
@@ -32,8 +30,6 @@ THROUGHPUT_CDF_RANGE="[0:150][0:1]"
 THROUGHPUT_RANGE="[1:6][1:6]"
 AREA_CAPCITY_RANGE="[1:6][0:0.02]"
 SPECTRUM_EFFICIENCY_RANGE="[1:6][0:0.002]"
-
-
 
 # Throughput - each AP on its own chart
 
@@ -138,7 +134,6 @@ for d in 20 40 60 80 ; do
     done
 done
 
-
 # Area Capacity - each AP on its own chart
 
 # params that will vary
@@ -188,7 +183,6 @@ for d in 20 40 60 80 ; do
         done
     done
 done
-
 
 # Area Capacity - both APs on one chart
 
@@ -347,5 +341,3 @@ for d in 20 40 60 80 ; do
         done
     done
 done
-
-

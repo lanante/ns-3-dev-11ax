@@ -86,7 +86,7 @@ export r=18
 export nBss=1
 export n=2
 # CBR=10^8
-# total load is allocated prorata to each STA, so 100Mbps each x 2 = 200 Mbps total
+# total load is allocated prorata to each STA, so 100 Mbit/s each x 2 = 200 Mbit/s total
 export uplink=200.0
 export downlink=0.0
 export txRange=54
@@ -99,7 +99,7 @@ export r=18
 export nBss=1
 export n=3
 # CBR=10^8
-# total load is allocated prorata to each STA, so 100Mbps each x 3 = 300 Mbps total
+# total load is allocated prorata to each STA, so 100 Mbit/s each x 3 = 300 Mbit/s total
 export uplink=300.0
 export downlink=0.0
 export txRange=54
@@ -170,4 +170,3 @@ export txRange=54
 run_one &
 
 wait
-
