@@ -592,6 +592,8 @@ SaveSpatialReuseStats (const std::string filename,
   // TODO: debug to print out t-put, can remove
   std::cout << "Scenario: " << scenario << std::endl;
 
+  double tputApUplinkTotal = 0;
+  double tputApDownlinkTotal = 0;
   for (uint32_t bss = 1; bss <= nBss; bss++)
     {
       uint32_t bytesReceivedApUplink = 0.0;
@@ -624,6 +626,9 @@ SaveSpatialReuseStats (const std::string filename,
           tputApUplink = bytesReceivedApUplink * 8 / 1e6 / duration;
           tputApDownlink = bytesReceivedApDownlink * 8 / 1e6 / duration;
         }
+
+      tputApUplinkTotal += tputApUplink;
+      tputApDownlinkTotal += tputApDownlink;
 
       if (bss == 1)
         {
@@ -665,14 +670,20 @@ SaveSpatialReuseStats (const std::string filename,
       outFile << "Spectrum Efficiency, AP" << bss << " Downlink [Mbps/Hz] : " << tputApDownlink / freqHz << std::endl;
     }
 
-    double rxThroughputPerNode[numNodes];
-    // output for all nodes
-    for (uint32_t k = 0; k < numNodes; k++)
-      {
-        double bitsReceived = bytesReceived[k] * 8;
-        rxThroughputPerNode[k] = static_cast<double> (bitsReceived) / 1e6 / duration;
-        outFile << "Node " << k << ", pkts " << packetsReceived[k] << ", bytes " << bytesReceived[k] << ", throughput [MMb/s] " << rxThroughputPerNode[k] << std::endl;
-      }
+  std::cout << "Total Throughput Uplink   [Mbps] : " << tputApUplinkTotal << std::endl;
+  std::cout << "Total Throughput Downlink [Mbps] : " << tputApDownlinkTotal << std::endl;
+
+  outFile << "Total Throughput Uplink   [Mbps] : " << tputApUplinkTotal << std::endl;
+  outFile << "Total Throughput Downlink [Mbps] : " << tputApDownlinkTotal << std::endl;
+  
+  double rxThroughputPerNode[numNodes];
+  // output for all nodes
+  for (uint32_t k = 0; k < numNodes; k++)
+    {
+      double bitsReceived = bytesReceived[k] * 8;
+      rxThroughputPerNode[k] = static_cast<double> (bitsReceived) / 1e6 / duration;
+      outFile << "Node " << k << ", pkts " << packetsReceived[k] << ", bytes " << bytesReceived[k] << ", throughput [MMb/s] " << rxThroughputPerNode[k] << std::endl;
+    }
 
   outFile << "Avg. RSSI:" << std::endl;
   for (uint32_t rxNodeId = 0; rxNodeId < numNodes; rxNodeId++)
