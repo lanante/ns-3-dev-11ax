@@ -181,13 +181,7 @@ for N=N_min:N_step:N_max
         Data_bits_per_symbol = Data_Rate/Symbols_per_second; %data bits per OFDM symbol for a data packet
         Control_bits_per_symbol = Basic_Rate/Symbols_per_second; %data bits per OFDM symbol for a control packet
         T_LPHY = 0.000016 + 0.000004; % seconds
-        if strcmp(PLCP_mode, 'LEGACY') == 1
-            T_PHY = T_LPHY; %microseconds
-        else
-            if strcmp(PLCP_mode, 'MIXED_MODE') == 1
-                T_PHY = T_LPHY + 0.000008 + 0.000004 + (0.000004*MIMO_streams) + 0.000004; %microseconds
-            end
-        end
+        T_PHY = T_LPHY + 0.000008 + 0.000004 + (0.000004*MIMO_streams) + 0.000004; %microseconds
         Signal_Extension = 0.000000; % seconds
         L_SERVICE = 16; % bits
         L_TAIL = 6; % bits
@@ -217,17 +211,7 @@ for N=N_min:N_step:N_max
         Data_bits_per_symbol = (Data_Rate * Symbol_Duration); %data bits per OFDM symbol for a data packet
         Control_bits_per_symbol = (Basic_Rate * 0.000004); %data bits per OFDM symbol for a control packet
         T_LPHY = 0.000016 + 0.000004; % seconds
-        if strcmp(PLCP_mode, 'LEGACY') == 1
-            T_PHY = T_LPHY; %microseconds
-        else
-            if strcmp(PLCP_mode, 'MIXED_MODE') == 1
-                T_PHY = T_LPHY + 0.000008 + 0.000004 + (0.000004 * MIMO_streams); %microseconds
-            else
-                if strcmp(PLCP_mode, 'GREENFIELD') == 1
-                    T_PHY = 0.000008 + 0.000008 + 0.000008 + (0.000004 * MIMO_streams); %microseconds
-                end
-            end
-        end
+        T_PHY = T_LPHY + 0.000008 + 0.000004 + (0.000004 * MIMO_streams); %microseconds
         Signal_Extension = 0.000006; % seconds
         L_SERVICE = 16; % bits
         L_TAIL = 6; % bits
