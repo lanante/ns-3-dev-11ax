@@ -20,6 +20,7 @@
 
 #include "ns3/log.h"
 #include "ns3/test.h"
+#include "ns3/double.h"
 #include "ns3/pointer.h"
 #include "ns3/rng-seed-manager.h"
 #include "ns3/spectrum-wifi-helper.h"
@@ -184,6 +185,7 @@ TestThresholdPreambleDetectionWithoutFrameCapture::DoSetup (void)
   m_phy->SetReceiveErrorCallback (MakeCallback (&TestThresholdPreambleDetectionWithoutFrameCapture::RxFailure, this));
 
   Ptr<ThresholdPreambleDetectionModel> preambleDetectionModel = CreateObject<ThresholdPreambleDetectionModel> ();
+  preambleDetectionModel->SetAttribute ("Threshold", DoubleValue (2));
   m_phy->SetPreambleDetectionModel (preambleDetectionModel);
 }
 
@@ -384,9 +386,12 @@ TestThresholdPreambleDetectionWithFrameCapture::DoSetup (void)
   m_phy->SetReceiveErrorCallback (MakeCallback (&TestThresholdPreambleDetectionWithFrameCapture::RxFailure, this));
   
   Ptr<ThresholdPreambleDetectionModel> preambleDetectionModel = CreateObject<ThresholdPreambleDetectionModel> ();
+  preambleDetectionModel->SetAttribute ("Threshold", DoubleValue (2));
   m_phy->SetPreambleDetectionModel (preambleDetectionModel);
 
   Ptr<SimpleFrameCaptureModel> frameCaptureModel = CreateObject<SimpleFrameCaptureModel> ();
+  frameCaptureModel->SetAttribute ("Margin", DoubleValue (5));
+  frameCaptureModel->SetAttribute ("CaptureWindow", TimeValue (MicroSeconds (16)));
   m_phy->SetFrameCaptureModel (frameCaptureModel);
 }
 
@@ -620,9 +625,12 @@ TestSimpleFrameCaptureModel::DoSetup (void)
   m_phy->TraceConnectWithoutContext ("PhyRxDrop", MakeCallback (&TestSimpleFrameCaptureModel::RxDropped, this));
 
   Ptr<ThresholdPreambleDetectionModel> preambleDetectionModel = CreateObject<ThresholdPreambleDetectionModel> ();
+  preambleDetectionModel->SetAttribute ("Threshold", DoubleValue (2));
   m_phy->SetPreambleDetectionModel (preambleDetectionModel);
   
   Ptr<SimpleFrameCaptureModel> frameCaptureModel = CreateObject<SimpleFrameCaptureModel> ();
+  frameCaptureModel->SetAttribute ("Margin", DoubleValue (5));
+  frameCaptureModel->SetAttribute ("CaptureWindow", TimeValue (MicroSeconds (16)));
   m_phy->SetFrameCaptureModel (frameCaptureModel);
 }
 
@@ -995,9 +1003,12 @@ TestAmpduReception::DoSetup (void)
   m_phy->TraceConnectWithoutContext ("PhyRxDrop", MakeCallback (&TestAmpduReception::RxDropped, this));
 
   Ptr<ThresholdPreambleDetectionModel> preambleDetectionModel = CreateObject<ThresholdPreambleDetectionModel> ();
+  preambleDetectionModel->SetAttribute ("Threshold", DoubleValue (2));
   m_phy->SetPreambleDetectionModel (preambleDetectionModel);
   
   Ptr<SimpleFrameCaptureModel> frameCaptureModel = CreateObject<SimpleFrameCaptureModel> ();
+  frameCaptureModel->SetAttribute ("Margin", DoubleValue (5));
+  frameCaptureModel->SetAttribute ("CaptureWindow", TimeValue (MicroSeconds (16)));
   m_phy->SetFrameCaptureModel (frameCaptureModel);
 }
 
