@@ -72,7 +72,7 @@ d-r-nBss-n-uplink-downlink
 For example, scenario 80-30-02-05-0003-0000 means that the
 networks are separated by d=80m, with STAs dropped into each network
 within a radius of r=30m, and there are nBss=2 networks each with
-n=5 STAs with a total uplink traffic load of 3 Mbps from the APs towards
+n=5 STAs with a total uplink traffic load of 3 Mbps from the STAs towards
 the AP and a downlink load of 0 Mbps from the AP towards the STAs.
 
 The behaviors of the network can be evaluated by varying these 
