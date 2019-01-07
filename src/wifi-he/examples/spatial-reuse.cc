@@ -2499,9 +2499,9 @@ main (int argc, char *argv[])
   downlinkServerApps.Start (Seconds (0.0));
   downlinkClientApps.Start (Seconds (applicationTxStart));
 
-  Config::Set ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/HtConfiguration/BeMaxAmpduSize", UintegerValue (maxAmpduSize));
-  Config::Set ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/VhtConfiguration/BeMaxAmpduSize", UintegerValue (maxAmpduSize));
-  Config::Set ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/HeConfiguration/BeMaxAmpduSize", UintegerValue (maxAmpduSize));
+  Config::Set ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/HtConfiguration/BeMaxAmpduSize", UintegerValue (std::min(maxAmpduSize, 65535u)));
+  Config::Set ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/VhtConfiguration/BeMaxAmpduSize", UintegerValue (std::min(maxAmpduSize, 1048575u)));
+  Config::Set ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/HeConfiguration/BeMaxAmpduSize", UintegerValue (std::min(maxAmpduSize, 4194303u)));
 
   Config::Set ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/HtConfiguration/BeMaxAmsduSize", UintegerValue (maxAmsduSize));
   Config::Set ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/VhtConfiguration/BeMaxAmsduSize", UintegerValue (maxAmsduSize));
