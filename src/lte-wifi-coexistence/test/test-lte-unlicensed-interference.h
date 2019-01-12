@@ -57,7 +57,6 @@ private:
   double m_d1;
   double m_d2;
   double m_expectedDlSinrDb;
-  double m_expectedUlSinrDb;
   uint16_t m_dlMcs;
   uint16_t m_ulMcs;
 };

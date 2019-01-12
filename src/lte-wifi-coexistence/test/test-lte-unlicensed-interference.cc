@@ -116,7 +116,6 @@ LteUnlicensedInterferenceTestCase::LteUnlicensedInterferenceTestCase (std::strin
     m_d1 (d1),
     m_d2 (d2),
     m_expectedDlSinrDb (10 * std::log10 (dlSinr)),
-    m_expectedUlSinrDb (10 * std::log10 (ulSinr)),
     m_dlMcs (dlMcs),
     m_ulMcs (ulMcs)
 {

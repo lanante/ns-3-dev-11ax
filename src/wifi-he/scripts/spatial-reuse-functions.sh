@@ -108,6 +108,48 @@ function run_one () {
   # else
   #   echo "enableThresholdPreambleDetection is set to $enableThresholdPreambleDetection";
   fi
+  if [ -z "$maxAmpduSizeBss1" ]; then
+  # echo "maxAmpduSizeBss1 is not set, defaulting to maxAmpduSize.";
+  export maxAmpduSizeBss1=${maxAmpduSize}
+  # else
+  #   echo "maxAmpduSizeBss1 is set to $maxAmpduSizeBss1";
+  fi
+  if [ -z "$maxAmpduSizeBss2" ]; then
+  # echo "maxAmpduSizeBss2 is not set, defaulting to maxAmpduSize.";
+  export maxAmpduSizeBss2=${maxAmpduSize}
+  # else
+  #   echo "maxAmpduSizeBss2 is set to $maxAmpduSizeBss2";
+  fi
+  if [ -z "$maxAmpduSizeBss3" ]; then
+  # echo "maxAmpduSizeBss3 is not set, defaulting to maxAmpduSize.";
+  export maxAmpduSizeBss3=${maxAmpduSize}
+  # else
+  #   echo "maxAmpduSizeBss3 is set to $maxAmpduSizeBss3";
+  fi
+  if [ -z "$maxAmpduSizeBss4" ]; then
+  # echo "maxAmpduSizeBss4 is not set, defaulting to maxAmpduSize.";
+  export maxAmpduSizeBss4=${maxAmpduSize}
+  # else
+  #   echo "maxAmpduSizeBss4 is set to $maxAmpduSizeBss4";
+  fi
+  if [ -z "$maxAmpduSizeBss5" ]; then
+  # echo "maxAmpduSizeBss5 is not set, defaulting to maxAmpduSize.";
+  export maxAmpduSizeBss5=${maxAmpduSize}
+  # else
+  #   echo "maxAmpduSizeBss5 is set to $maxAmpduSizeBss5";
+  fi
+  if [ -z "$maxAmpduSizeBss6" ]; then
+  # echo "maxAmpduSizeBss6 is not set, defaulting to maxAmpduSize.";
+  export maxAmpduSizeBss6=${maxAmpduSize}
+  # else
+  #   echo "maxAmpduSizeBss6 is set to $maxAmpduSizeBss6";
+  fi
+  if [ -z "$maxAmpduSizeBss7" ]; then
+  # echo "maxAmpduSizeBss7 is not set, defaulting to maxAmpduSize.";
+  export maxAmpduSizeBss7=${maxAmpduSize}
+  # else
+  #   echo "maxAmpduSizeBss7 is set to $maxAmpduSizeBss7";
+  fi
   echo Running ${test}
   # run the test
   ../../../waf --run "spatial-reuse \
@@ -137,7 +179,13 @@ function run_one () {
         --checkTimings=${performTgaxTimingChecks} \
         --scenario=${scenario} \
         --nBss=${nBss} \
-        --maxAmpduSize=${maxAmpduSize} \
+        --maxAmpduSizeBss1=${maxAmpduSizeBss1} \
+        --maxAmpduSizeBss2=${maxAmpduSizeBss2} \
+        --maxAmpduSizeBss3=${maxAmpduSizeBss3} \
+        --maxAmpduSizeBss4=${maxAmpduSizeBss4} \
+        --maxAmpduSizeBss5=${maxAmpduSizeBss5} \
+        --maxAmpduSizeBss6=${maxAmpduSizeBss6} \
+        --maxAmpduSizeBss7=${maxAmpduSizeBss7} \
         --nodePositionsFile=${nodePositionsFile} \
         --enablePcap=${enablePcap} \
         --enableAscii=${enableAscii} \
