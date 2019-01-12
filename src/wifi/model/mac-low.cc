@@ -632,6 +632,10 @@ MacLow::StartTransmission (Ptr<const Packet> packet,
               m_txParams.EnableAck ();
             }
         }
+      else if (m_currentHdr.IsQosData () && !m_currentHdr.IsQosBlockAck () && !hdr->GetAddr1 ().IsGroup ())
+        {
+          m_txParams.EnableAck ();
+        }
     }
 
   NS_LOG_DEBUG ("startTx size=" << GetSize (m_currentPacket, &m_currentHdr, m_ampdu) <<
@@ -3150,6 +3154,7 @@ MacLow::AggregateToAmpdu (Ptr<const Packet> packet, const WifiMacHeader hdr)
 void
 MacLow::FlushAggregateQueue (uint8_t tid)
 {
+  NS_LOG_FUNCTION (this << +tid);
   if (!m_aggregateQueue[tid]->IsEmpty ())
     {
       NS_LOG_DEBUG ("Flush aggregate queue");
