@@ -3838,7 +3838,7 @@ void
 WifiPhy::ResetCca (bool powerRestricted, double txPowerMax)
 {
   NS_LOG_FUNCTION (this << powerRestricted << txPowerMax);
-  m_powerRestricted = true;
+  m_powerRestricted = powerRestricted;
   m_txPowerMax = txPowerMax;
   AbortCurrentReception ();
 }
