@@ -114,9 +114,10 @@ UdpClient::SetMaxPackets (uint32_t count)
 {
   NS_LOG_FUNCTION (this << count);
   m_count = count;
+  m_sent = 0;
   if ((m_sendEvent.IsExpired ()) && (m_socket != 0))
   {
-    m_sendEvent = Simulator::Schedule (m_interval, &UdpClient::Send, this);
+    m_sendEvent = Simulator::Schedule (Seconds (0.0), &UdpClient::Send, this);
   }
 }
 

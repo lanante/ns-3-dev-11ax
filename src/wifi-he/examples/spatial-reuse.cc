@@ -905,6 +905,75 @@ SaveUdpFlowMonitorStats (std::string filename, std::string simulationParams, Ptr
   outFile.close ();
 }
 
+void PopulateArpCache ()
+{
+  // Creates ARP Cache object
+  Ptr<ArpCache> arp = CreateObject<ArpCache> ();
+  
+  // Set ARP Timeout
+  arp->SetAliveTimeout (Seconds(3600 * 24 * 365)); // 1-year
+  
+  // Populates ARP Cache with information from all nodes
+  for (NodeList::Iterator i = NodeList::Begin(); i != NodeList::End(); ++i)
+  {
+    // Get an interactor to Ipv4L3Protocol instance
+    Ptr<Ipv4L3Protocol> ip = (*i)->GetObject<Ipv4L3Protocol> ();
+    //NS_ASSERT(ip !=0);
+    if (ip == 0) continue;
+    // Get interfaces list from Ipv4L3Protocol iteractor
+    ObjectVectorValue interfaces;
+    ip->GetAttribute("InterfaceList", interfaces);
+    
+    // For each interface
+    for(ObjectVectorValue::Iterator j = interfaces.Begin(); j !=interfaces.End (); j ++)
+    {
+      // Get an interactor to Ipv4L3Protocol instance
+      Ptr<Ipv4Interface> ipIface = (j->second)->GetObject<Ipv4Interface> ();
+      NS_ASSERT(ipIface != 0);
+      
+      // Get interfaces list from Ipv4L3Protocol iteractor
+      Ptr<NetDevice> device = ipIface->GetDevice();
+      NS_ASSERT(device != 0);
+      
+      // Get MacAddress assigned to this device
+      Mac48Address addr = Mac48Address::ConvertFrom(device->GetAddress ());
+      
+      // For each Ipv4Address in the list of Ipv4Addresses assign to this interface...
+      for(uint32_t k = 0; k < ipIface->GetNAddresses (); k++)
+      {
+        // Get Ipv4Address
+        Ipv4Address ipAddr = ipIface->GetAddress (k).GetLocal();
+        
+        // If Loopback address, go to the next
+        if(ipAddr == Ipv4Address::GetLoopback())
+          continue;
+        
+        // Creates an ARP entry for this Ipv4Address and adds it to the ARP Cache
+        ArpCache::Entry * entry = arp->Add(ipAddr);
+        Ptr<Packet> pkt = Create<Packet> ();
+        Ipv4Header hdr;
+        entry->MarkWaitReply(ArpCache::Ipv4PayloadHeaderPair (pkt, hdr));
+        entry->MarkAlive(addr);
+      }
+    }
+  }
+  
+  // Assign ARP Cache to each interface of each node
+  for (NodeList::Iterator i = NodeList::Begin(); i != NodeList::End(); ++i)
+  {
+    Ptr<Ipv4L3Protocol> ip = (*i)->GetObject<Ipv4L3Protocol> ();
+    //NS_ASSERT(ip !=0);
+    if (ip == 0) continue;
+    ObjectVectorValue interfaces;
+    ip->GetAttribute("InterfaceList", interfaces);
+    for(ObjectVectorValue::Iterator j = interfaces.Begin(); j !=interfaces.End (); j ++)
+    {
+      Ptr<Ipv4Interface> ipIface = (j->second)->GetObject<Ipv4Interface> ();
+      ipIface->SetAttribute("ArpCache", PointerValue(arp));
+    }
+  }
+}
+
 // main script
 int
 main (int argc, char *argv[])
@@ -959,6 +1028,7 @@ main (int argc, char *argv[])
   uint64_t maxQueueDelay = 500; // milliSeconds
   bool enableFrameCapture = false;
   bool enableThresholdPreambleDetection = false;
+  bool disableArp = false;
 
   CommandLine cmd;
   cmd.AddValue ("duration", "Duration of simulation (s)", duration);
@@ -1009,6 +1079,7 @@ main (int argc, char *argv[])
   cmd.AddValue ("maxQueueDelay", "If a packet stays longer than this delay in the queue, it is dropped.", maxQueueDelay);
   cmd.AddValue ("enableFrameCapture", "Enable or disable frame capture", enableFrameCapture);
   cmd.AddValue ("enableThresholdPreambleDetection", "Enable or disable threshold-based preamble detection (if not set, preamble detection is always successful)", enableThresholdPreambleDetection);
+  cmd.AddValue ("disableArp", "Flag whether we disable ARP mechanism (populate cache before simulation starts and set a very high timeout).", disableArp);
   cmd.Parse (argc, argv);
 
   if (bianchi)
@@ -1016,6 +1087,11 @@ main (int argc, char *argv[])
       filterOutNonAddbaEstablished = true;
       maxQueueDelay = duration * 1000; //make sure there is no MSDU lifetime expired
       useExplicitBarAfterMissedBlockAck = false;
+    }
+  
+  if (filterOutNonAddbaEstablished)
+    {
+      disableArp = true;
     }
 
   if ((scenario == "study1") || (scenario == "study2"))
@@ -2544,10 +2620,15 @@ main (int argc, char *argv[])
   ConfigStore outputConfig;
   outputConfig.ConfigureAttributes ();
 
-  if (enablePcap == true)
+  if (enablePcap)
     {
       spectrumPhy.EnablePcap ("STA_pcap", staDevicesA);
       spectrumPhy.EnablePcap ("AP_pcap", apDeviceA);
+    }
+
+  if (disableArp)
+    {
+      PopulateArpCache ();
     }
 
   Time durationTime = Seconds (duration + applicationTxStart);
