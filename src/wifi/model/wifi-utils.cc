@@ -132,7 +132,7 @@ GetPreambleForTransmission (WifiModulationClass modulation, bool useShortPreambl
     }
   else if (modulation == WIFI_MOD_CLASS_VHT)
     {
-      return WIFI_PREAMBLE_VHT;
+      return WIFI_PREAMBLE_VHT_SU;
     }
   else if (modulation == WIFI_MOD_CLASS_HT && useGreenfield)
     {

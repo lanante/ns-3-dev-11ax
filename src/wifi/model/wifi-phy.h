@@ -29,6 +29,7 @@
 #include "wifi-phy-standard.h"
 #include "interference-helper.h"
 #include "wifi-phy-state-helper.h"
+#include "wifi-phy-header.h"
 
 namespace ns3 {
 
@@ -137,14 +138,15 @@ public:
    *
    * \param packet the arriving packet
    * \param txVector the TXVECTOR of the arriving packet
-   * \param mpdutype the type of the MPDU as defined in WifiPhy::MpduType.
    * \param event the corresponding event of the first time the packet arrives
+   * \param rxDuration the duration needed for the reception of the packet
+   * \param length the length value indicated in the received PHY header
    */
   void StartReceiveHeader (Ptr<Packet> packet,
                            WifiTxVector txVector,
-                           MpduType mpdutype,
                            Ptr<Event> event,
-                           Time rxDuration);
+                           Time rxDuration,
+                           uint16_t length);
 
   /**
    * Continue receiving the PHY header of a packet (i.e. after the end of receiving the legacy header part).
@@ -164,12 +166,10 @@ public:
    *
    * \param packet the arriving packet
    * \param txVector the TXVECTOR of the arriving packet
-   * \param mpdutype the type of the MPDU as defined in WifiPhy::MpduType.
    * \param event the corresponding event of the first time the packet arrives
    */
   void StartReceivePayload (Ptr<Packet> packet,
                             WifiTxVector txVector,
-                            MpduType mpdutype,
                             Ptr<Event> event);
 
   /**
@@ -188,8 +188,12 @@ public:
    *        this packet, and txPowerLevel, a power level to use to send this packet. The real transmission
    *        power is calculated as txPowerMin + txPowerLevel * (txPowerMax - txPowerMin) / nTxLevels
    * \param mpdutype the type of the MPDU as defined in WifiPhy::MpduType.
+   * \param psduSize the total number of bytes in the whole PSDU.
+   *        In case of A-MPDU, this is larger than the size of the packet for which this function is called.
+   * \param psduDuration the duration to transmit the whole PSDU.
+   *        In case of A-MPDU, this is larger than the duration of the packet for which this function is called.
    */
-  void SendPacket (Ptr<const Packet> packet, WifiTxVector txVector, MpduType mpdutype = NORMAL_MPDU);
+  void SendPacket (Ptr<const Packet> packet, WifiTxVector txVector, MpduType mpdutype = NORMAL_MPDU, uint32_t psduSize = 0, Time psduDuration = Seconds (0));
 
   /**
    * \param packet the packet to send
@@ -1723,17 +1727,17 @@ private:
    *
    * \param packet the arriving packet
    * \param txVector the TXVECTOR of the arriving packet
-   * \param mpdutype the type of the MPDU as defined in WifiPhy::MpduType.
    * \param rxPowerW the receive power in W
    * \param rxDuration the duration needed for the reception of the packet
    * \param event the corresponding event of the first time the packet arrives
+   * \param length the length value indicated in the received PHY header
    */
   void StartRx (Ptr<Packet> packet,
                 WifiTxVector txVector,
-                MpduType mpdutype,
                 double rxPowerW,
                 Time rxDuration,
-                Ptr<Event> event);
+                Ptr<Event> event,
+                uint16_t length);
 
   /**
    * The trace source fired when a packet begins the transmission process on
@@ -1906,6 +1910,15 @@ private:
   Ptr<WifiRadioEnergyModel> m_wifiRadioEnergyModel; //!< Wifi radio energy model
   Ptr<ErrorModel> m_postReceptionErrorModel; //!< Error model for receive packet events
   Time m_timeLastPreambleDetected; //!< Record the time the last preamble was detected
+
+  WifiTxVector m_currentTxVector;      //!< Store the TxVector to process packets that are part of an A-MPDU
+  Time m_currentRemainingPpduDuration; //!< Store the remaining duration of the PPDU that is being received (used for A-MPDU reception)
+
+  DsssSigHeader m_currentDsssSigHdr; //!< DSSS header of the currently received packet (if present)
+  LSigHeader m_currentLSigHdr;       //!< L-SIG header of the currently received packet (if present)
+  HtSigHeader m_currentHtSigHdr;     //!< HT-SIG header of the currently received packet (if present)
+  VhtSigHeader m_currentVhtSigHdr;   //!< VHT-SIG header of the currently received packet (if present)
+  HeSigHeader m_currentHeSigHdr;     //!< HE-SIG header of the currently received packet (if present)
 
   Callback<void> m_capabilitiesChangedCallback; //!< Callback when PHY capabilities changed
 };

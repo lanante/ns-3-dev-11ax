@@ -164,9 +164,10 @@ combines the effect of thermal noise and of interference from other Wi-Fi
 packets.  Moreover, interference from other technologies is not modeled.
 The following details pertain to the physical layer and channel models:
 
+* 802.11ac/ax MU transmissions are not supported
 * 802.11ax is still in draft phase, not all functionalities are implemented yet
 * 802.11ax does not contain any of the high-density improvement
-* 802.11ax MU-OFDMA is not supported
+* 802.11ax OFDMA is not supported
 * 802.11ax can only be used with Constant rate control algorithm
 * 802.11ax only supports SU PPDU format
 * 802.11ac/ax MU-MIMO is not supported, and no more than 4 antennas can be configured

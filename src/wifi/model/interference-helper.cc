@@ -72,6 +72,12 @@ Event::GetRxPowerW (void) const
   return m_rxPowerW;
 }
 
+void
+Event::SetTxVector (WifiTxVector txVector)
+{
+  m_txVector = txVector;
+}
+
 WifiTxVector
 Event::GetTxVector (void) const
 {
@@ -484,7 +490,7 @@ InterferenceHelper::CalculateNonLegacyPhyHeaderPer (Ptr<const Event> event, NiCh
       //mode for PLCP header fields sent with HT modulation
       mcsHeaderMode = WifiPhy::GetHtPlcpHeaderMode ();
     }
-  else if (preamble == WIFI_PREAMBLE_VHT)
+  else if (preamble == WIFI_PREAMBLE_VHT_SU)
     {
       //mode for PLCP header fields sent with VHT modulation
       mcsHeaderMode = WifiPhy::GetVhtPlcpHeaderMode ();
@@ -550,7 +556,7 @@ InterferenceHelper::CalculateNonLegacyPhyHeaderPer (Ptr<const Event> event, NiCh
                                                 plcpPayloadStart - plcpTrainingSymbolsStart,
                                                 mcsHeaderMode, txVector);
               //Case 3ai: VHT or HE format
-              if (preamble == WIFI_PREAMBLE_VHT || preamble == WIFI_PREAMBLE_HE_SU)
+              if (preamble == WIFI_PREAMBLE_VHT_SU || preamble == WIFI_PREAMBLE_HE_SU)
                 {
                   //SIG-A is sent using legacy OFDM modulation
                   psr *= CalculateChunkSuccessRate (CalculateSnr (powerW,
@@ -580,7 +586,7 @@ InterferenceHelper::CalculateNonLegacyPhyHeaderPer (Ptr<const Event> event, NiCh
                                                 current - plcpTrainingSymbolsStart,
                                                 mcsHeaderMode, txVector);
               //Case 3bi: VHT or HE format
-              if (preamble == WIFI_PREAMBLE_VHT || preamble == WIFI_PREAMBLE_HE_SU)
+              if (preamble == WIFI_PREAMBLE_VHT_SU || preamble == WIFI_PREAMBLE_HE_SU)
                 {
                   //SIG-A is sent using legacy OFDM modulation
                   psr *= CalculateChunkSuccessRate (CalculateSnr (powerW,
@@ -605,7 +611,7 @@ InterferenceHelper::CalculateNonLegacyPhyHeaderPer (Ptr<const Event> event, NiCh
           else
             {
               //Case 3ci: VHT or HE format
-              if (preamble == WIFI_PREAMBLE_VHT || preamble == WIFI_PREAMBLE_HE_SU)
+              if (preamble == WIFI_PREAMBLE_VHT_SU || preamble == WIFI_PREAMBLE_HE_SU)
                 {
                   //SIG-A is sent using legacy OFDM modulation
                   psr *= CalculateChunkSuccessRate (CalculateSnr (powerW,
@@ -641,7 +647,7 @@ InterferenceHelper::CalculateNonLegacyPhyHeaderPer (Ptr<const Event> event, NiCh
                   NS_LOG_DEBUG ("Case 4ai - previous in L-SIG and current after payload start: nothing to do");
                 }
               //Case 4aii: VHT or HE format
-              else if (preamble == WIFI_PREAMBLE_VHT || preamble == WIFI_PREAMBLE_HE_SU)
+              else if (preamble == WIFI_PREAMBLE_VHT_SU || preamble == WIFI_PREAMBLE_HE_SU)
                 {
                   psr *= CalculateChunkSuccessRate (CalculateSnr (powerW,
                                                                   noiseInterferenceW,
@@ -671,7 +677,7 @@ InterferenceHelper::CalculateNonLegacyPhyHeaderPer (Ptr<const Event> event, NiCh
             {
               NS_ASSERT ((preamble != WIFI_PREAMBLE_LONG) && (preamble != WIFI_PREAMBLE_SHORT));
               //Case 4bi: VHT or HE format
-              if (preamble == WIFI_PREAMBLE_VHT || preamble == WIFI_PREAMBLE_HE_SU)
+              if (preamble == WIFI_PREAMBLE_VHT_SU || preamble == WIFI_PREAMBLE_HE_SU)
                 {
                   psr *= CalculateChunkSuccessRate (CalculateSnr (powerW,
                                                                   noiseInterferenceW,
@@ -701,7 +707,7 @@ InterferenceHelper::CalculateNonLegacyPhyHeaderPer (Ptr<const Event> event, NiCh
             {
               NS_ASSERT ((preamble != WIFI_PREAMBLE_LONG) && (preamble != WIFI_PREAMBLE_SHORT));
               //Case 4ci: VHT format
-              if (preamble == WIFI_PREAMBLE_VHT || preamble == WIFI_PREAMBLE_HE_SU)
+              if (preamble == WIFI_PREAMBLE_VHT_SU || preamble == WIFI_PREAMBLE_HE_SU)
                 {
                   psr *= CalculateChunkSuccessRate (CalculateSnr (powerW,
                                                                   noiseInterferenceW,
@@ -741,7 +747,7 @@ InterferenceHelper::CalculateNonLegacyPhyHeaderPer (Ptr<const Event> event, NiCh
                   NS_LOG_DEBUG ("Case 5ai - previous is in the preamble and current is after payload start: nothing to do");
                 }
               //Case 5aii: VHT or HE format
-              else if (preamble == WIFI_PREAMBLE_VHT || preamble == WIFI_PREAMBLE_HE_SU)
+              else if (preamble == WIFI_PREAMBLE_VHT_SU || preamble == WIFI_PREAMBLE_HE_SU)
                 {
                   psr *= CalculateChunkSuccessRate (CalculateSnr (powerW,
                                                                   noiseInterferenceW,
@@ -771,7 +777,7 @@ InterferenceHelper::CalculateNonLegacyPhyHeaderPer (Ptr<const Event> event, NiCh
             {
               NS_ASSERT ((preamble != WIFI_PREAMBLE_LONG) && (preamble != WIFI_PREAMBLE_SHORT));
               //Case 5bi: VHT or HE format
-              if (preamble == WIFI_PREAMBLE_VHT || preamble == WIFI_PREAMBLE_HE_SU)
+              if (preamble == WIFI_PREAMBLE_VHT_SU || preamble == WIFI_PREAMBLE_HE_SU)
                 {
                   psr *= CalculateChunkSuccessRate (CalculateSnr (powerW,
                                                                   noiseInterferenceW,
@@ -801,7 +807,7 @@ InterferenceHelper::CalculateNonLegacyPhyHeaderPer (Ptr<const Event> event, NiCh
             {
               NS_ASSERT ((preamble != WIFI_PREAMBLE_LONG) && (preamble != WIFI_PREAMBLE_SHORT));
               //Case 5ci: VHT or HE format
-              if (preamble == WIFI_PREAMBLE_VHT || preamble == WIFI_PREAMBLE_HE_SU)
+              if (preamble == WIFI_PREAMBLE_VHT_SU || preamble == WIFI_PREAMBLE_HE_SU)
                 {
                   psr *= CalculateChunkSuccessRate (CalculateSnr (powerW,
                                                                   noiseInterferenceW,

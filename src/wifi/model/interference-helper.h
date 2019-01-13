@@ -73,6 +73,12 @@ public:
    */
   double GetRxPowerW (void) const;
   /**
+   * Set the TXVECTOR.
+   *
+   * \param txVector the TXVECTOR
+   */
+  void SetTxVector (WifiTxVector txVector);
+  /**
    * Return the TXVECTOR of the packet.
    *
    * \return the TXVECTOR of the packet

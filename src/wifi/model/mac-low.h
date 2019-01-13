@@ -514,8 +514,10 @@ private:
    * \param packet the packet
    * \param txVector the transmit vector
    * \param mpdutype the MPDU type
+   * \param totalAmpduSize the total A-MPDU size
+   * \param ppduDuration the PPDU duration
    */
-  void SendMpdu (Ptr<const Packet> packet, WifiTxVector txVector, MpduType mpdutype);
+  void SendMpdu (Ptr<const Packet> packet, WifiTxVector txVector, MpduType mpdutype, uint32_t totalAmpduSize, Time ppduDuration);
   /**
    * \param peekedPacket the packet to be aggregated
    * \param peekedHdr the WifiMacHeader for the packet.

@@ -1627,6 +1627,8 @@ MacLow::ForwardDown (Ptr<const Packet> packet, const WifiMacHeader* hdr, WifiTxV
       bool last = false;
       MpduType mpdutype = NORMAL_MPDU;
 
+      Time ppduDuration = m_phy->CalculateTxDuration (packet->GetSize (), txVector, m_phy->GetFrequency ());
+
       uint8_t tid = GetTid (packet, *hdr);
       AcIndex ac = QosUtilsMapTidToAc (tid);
       std::map<AcIndex, Ptr<QosTxop> >::const_iterator edcaIt = m_edca.find (ac);
@@ -1639,7 +1641,7 @@ MacLow::ForwardDown (Ptr<const Packet> packet, const WifiMacHeader* hdr, WifiTxV
       //Add packet tag
       AmpduTag ampdutag;
       Time delay = Seconds (0);
-      Time remainingAmpduDuration = m_phy->CalculateTxDuration (packet->GetSize (), txVector, m_phy->GetFrequency ());
+      Time remainingAmpduDuration = ppduDuration;
       if (queueSize > 1 || singleMpdu)
         {
           txVector.SetAggregation (true);
@@ -1690,11 +1692,11 @@ MacLow::ForwardDown (Ptr<const Packet> packet, const WifiMacHeader* hdr, WifiTxV
 
           if (delay.IsZero ())
             {
-              m_phy->SendPacket (newPacket, txVector, mpdutype);
+              m_phy->SendPacket (newPacket, txVector, mpdutype, packet->GetSize (), ppduDuration);
             }
           else
             {
-              Simulator::Schedule (delay, &MacLow::SendMpdu, this, newPacket, txVector, mpdutype);
+              Simulator::Schedule (delay, &MacLow::SendMpdu, this, newPacket, txVector, mpdutype, packet->GetSize (), ppduDuration);
             }
           if (queueSize > 1)
             {
@@ -1708,10 +1710,10 @@ MacLow::ForwardDown (Ptr<const Packet> packet, const WifiMacHeader* hdr, WifiTxV
 }
 
 void
-MacLow::SendMpdu (Ptr<const Packet> packet, WifiTxVector txVector, MpduType mpdutype)
+MacLow::SendMpdu (Ptr<const Packet> packet, WifiTxVector txVector, MpduType mpdutype, uint32_t totalAmpduSize, Time ppduDuration)
 {
   NS_LOG_DEBUG ("Sending MPDU as part of A-MPDU");
-  m_phy->SendPacket (packet, txVector, mpdutype);
+  m_phy->SendPacket (packet, txVector, mpdutype, totalAmpduSize, ppduDuration);
 }
 
 void
@@ -2823,7 +2825,7 @@ MacLow::StopMpduAggregation (Ptr<const Packet> peekedPacket, WifiMacHeader peeke
     }
 
   //A STA shall not transmit a PPDU that has a duration that is greater than aPPDUMaxTime
-  if (m_phy->CalculateTxDuration (aggregatedPacket->GetSize () + peekedPacket->GetSize () + peekedHdr.GetSize () + WIFI_MAC_FCS_LENGTH, m_currentTxVector, m_phy->GetFrequency ()) > aPPDUMaxTime)
+  if (m_phy->CalculateTxDuration (aggregatedPacket->GetSize () + peekedPacket->GetSize () + peekedHdr.GetSize () + WIFI_MAC_FCS_LENGTH + 4 /*AmpduSubframeHeader*/, m_currentTxVector, m_phy->GetFrequency ()) > aPPDUMaxTime)
     {
       NS_LOG_DEBUG ("no more packets can be aggregated to satisfy PPDU <= aPPDUMaxTime");
       return true;

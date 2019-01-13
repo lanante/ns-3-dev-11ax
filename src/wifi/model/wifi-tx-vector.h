@@ -89,6 +89,10 @@ public:
                 bool stbc,
                 uint8_t bssColor = 0);
   /**
+   * \returns whether mode has been initialized
+   */
+  bool GetModeInitialized (void) const;
+  /**
    * \returns the selected payload transmission mode
    */
   WifiMode GetMode (void) const;
@@ -269,7 +273,6 @@ private:
   enum HeSigA_SpatialReuse m_spatialReuse;  /**< Spatial Result parameter (4 bits) */
 
   bool     m_modeInitialized;         /**< Internal initialization flag */
-  bool     m_txPowerLevelInitialized; /**< Internal initialization flag */
 };
 
 /**
