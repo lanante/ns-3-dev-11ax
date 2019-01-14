@@ -15,6 +15,10 @@
 *.plt
 *.routes
 *.tr
+*.DS_Store
+*.txt
+*.flowmon
+*.csv
 [D|U]l[A-Z][a-z]*Stats.txt
 seventh-packet-byte-count.png
 
