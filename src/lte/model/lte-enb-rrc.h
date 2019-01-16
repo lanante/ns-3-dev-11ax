@@ -87,6 +87,7 @@ public:
     INITIAL_RANDOM_ACCESS = 0,
     CONNECTION_SETUP,
     CONNECTION_REJECTED,
+    ATTACH_REQUEST,
     CONNECTED_NORMALLY,
     CONNECTION_RECONFIGURATION,
     CONNECTION_REESTABLISHMENT,
@@ -139,6 +140,12 @@ public:
    * \param imsi the IMSI
    */
   void SetImsi (uint64_t imsi);
+
+  /**
+   * Process Initial context setup request message from the MME.
+   * It triggers RRC connection reconfiguration.
+   */
+  void InitialContextSetupRequest ();
 
   /** 
    * Setup a new data radio bearer, including both the configuration
@@ -1103,6 +1110,12 @@ private:
 
   // S1 SAP methods
 
+  /**
+   * Initial context setup request function
+   *
+   * \param params EpcEnbS1SapUser::InitialContextSetupRequestParameters
+   */
+  void DoInitialContextSetupRequest (EpcEnbS1SapUser::InitialContextSetupRequestParameters params);
   /**
    * Data radio beaerer setup request function
    *
