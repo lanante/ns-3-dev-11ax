@@ -461,7 +461,7 @@ increases as the number of STAs per network increases.
 
 
 Other things to do:
-===================
+##########################
 
 * the above scenario simulations can be extended to handle cases with 3 or 4 BSSs
 
@@ -470,7 +470,7 @@ Other things to do:
 Parametric Studies
 ==================
 
-In this section we discuss parametric studies that have been conducted to 
+In the nexgt sections, we discuss parametric studies that have been conducted to
 examine the behaviors of the spatial reuse and coexistence features of
 802.11ax.  We first describe the framework used to represent the scenarios
 in order to conduct simulation experiments for these studies.  Then we 
@@ -641,7 +641,7 @@ Conducting the Study 1 Experiments
 To conduct the exeriments for Study 1, a bash script is used to repeatedly
 run the ns-3 spatial-reuse.cc script.  
 
-Parameters are fixed as described above, with the execption of the number of 
+Parameters are fixed as described above, with the exception of the number of
 STAs.
 
 The total offered load for each BSS is a balanced load, with the same load
@@ -832,11 +832,6 @@ as the number of STAs, n, per BSS increases.
 Spectrum Efficiency
 ###################
 
-(Here there will be a figure of the spectrum efficiency as a function of 
-offered load.  There will be a separate line for each combination of 
-n STAs - i.e., n=5, n=10, n=15, ..., n=40).
-
-
 The spectrum efficiency as offered load is increased is shown below for 
 the center BSS of interest.  A separate line is plotted for each value
 of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
@@ -963,7 +958,7 @@ level - i.e., -82 dB, -77 dB, ..., -62 db).
 Study 3 - Coexistence
 =====================
 
-Study 3 examines coexistence of combinations of 8021.ac, 802.11ac, and
+Study 3 examines coexistence of combinations of 802.11ac, 802.11ac, and
 LAA networks.
 
 The topology of Study 3 is similar to that of Study 1 and Study 2,
@@ -1045,9 +1040,3 @@ Latency
 (Here there will be a figure of the average latency as a function of 
 offered load.  There will be a separate line for each combination of 
 n STAs - i.e., n=5, n=10, n=15, ..., n=40).
-
-Other things to do:
-===================
-
-* add latency plots
-
