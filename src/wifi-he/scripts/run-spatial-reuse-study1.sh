@@ -2,6 +2,8 @@
 # These are the scenarios for spatial-reuse study1 (802.11ac baseline).
 # Results will be documented.
 
+export LC_NUMERIC="en_US.UTF-8"
+
 rm ./results/spatial-reuse-study1*.*
 rm ./results/spatial-reuse-SR-stats-study1*.*
 
