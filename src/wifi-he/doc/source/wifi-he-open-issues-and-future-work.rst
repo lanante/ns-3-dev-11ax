@@ -31,6 +31,8 @@ theoretical results on the plots vs. the simulation results. (issue #73)
 
 Block ack frame format (issue #80)
 
+Getting half throughput when doubling simulation time (#issue 89)
+
 Open Issues and Future Work in the spatial reuse scenarios
 ==========================================================
 

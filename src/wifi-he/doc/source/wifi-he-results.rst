@@ -684,7 +684,7 @@ documentation figures, the following scripts should be executed in order:
 5) plot-study1-ecdf.sh - this generates additional plots (ECDFs) from results.
 
 6) copy-plots-to-doc-figures.sh - this copies a subset of plots generated into
-the doc/figures folder, for inclusion of those results into the documentation
+the doc/figures folder, for inclusion of those results into the documentation.
 
 Note that any modifications that are made to change the values of n in the 
 study1 scripts above must be applied to both the 'run-spatial-reuse-study1.sh' 
