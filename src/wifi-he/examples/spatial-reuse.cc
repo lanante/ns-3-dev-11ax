@@ -1139,7 +1139,7 @@ main (int argc, char *argv[])
     uMaxSlrc = std::numeric_limits<uint32_t>::max ();
     Config::SetDefault ("ns3::WifiRemoteStationManager::MaxSlrc", UintegerValue (uMaxSlrc));
     Config::SetDefault ("ns3::WifiRemoteStationManager::MaxSsrc", UintegerValue (uMaxSlrc));
-    beaconInterval = duration * 100000;
+    //beaconInterval = duration * 100000;
   }
 
   Config::SetDefault ("ns3::WifiMacQueue::MaxDelay", TimeValue (MilliSeconds (maxQueueDelay)));
