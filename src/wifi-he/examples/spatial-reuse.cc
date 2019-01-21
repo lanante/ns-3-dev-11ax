@@ -999,9 +999,9 @@ main (int argc, char *argv[])
   double obssPdThresholdMax = -62.0;
   double txGain = 0.0; // dBi
   double rxGain = 0.0; // dBi
-  uint8_t antennas = 1;
-  uint8_t maxSupportedTxSpatialStreams = 1;
-  uint8_t maxSupportedRxSpatialStreams = 1;
+  uint16_t antennas = 1;
+  uint16_t maxSupportedTxSpatialStreams = 1;
+  uint16_t maxSupportedRxSpatialStreams = 1;
   uint32_t performTgaxTimingChecks = 0;
   // the scenario - should be one of: residential, enterprise, indoor, or outdoor
   std::string scenario ("residential");
@@ -1011,7 +1011,7 @@ main (int argc, char *argv[])
   std::string outputFilePrefix = "spatial-reuse";
   uint32_t payloadSizeUplink = 1500; // bytes
   uint32_t payloadSizeDownlink = 300; // bytes
-  uint8_t mcs = 0; // MCS value
+  uint16_t mcs = 0; // MCS value
   Time interval = MicroSeconds (1000);
   bool enableObssPd = false;
   uint32_t maxAmpduSizeBss1 = 65535;
