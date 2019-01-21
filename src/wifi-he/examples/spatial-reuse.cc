@@ -120,10 +120,10 @@ uint32_t nAssociatedStas = 0;
 bool allStasAssociated = false;
 
 // for tracking packets and bytes received. will be reallocated once we finalize number of nodes
-std::vector<uint32_t> packetsReceived (0);
-std::vector<uint32_t> bytesReceived (0);
+std::vector<uint64_t> packetsReceived (0);
+std::vector<uint64_t> bytesReceived (0);
 
-std::vector<std::vector<uint32_t> > packetsReceivedPerNode;
+std::vector<std::vector<uint64_t> > packetsReceivedPerNode;
 std::vector<std::vector<double> > rssiPerNode;
 
 ApplicationContainer uplinkServerApps;
@@ -596,8 +596,8 @@ SaveSpatialReuseStats (const std::string filename,
   double tputApDownlinkTotal = 0;
   for (uint32_t bss = 1; bss <= nBss; bss++)
     {
-      uint32_t bytesReceivedApUplink = 0.0;
-      uint32_t bytesReceivedApDownlink = 0.0;
+      uint64_t bytesReceivedApUplink = 0.0;
+      uint64_t bytesReceivedApDownlink = 0.0;
 
       uint32_t bssFirstStaIdx = 0;
       bssFirstStaIdx = ((bss - 1) * n) + bss;
@@ -690,7 +690,7 @@ SaveSpatialReuseStats (const std::string filename,
     {
       for (uint32_t txNodeId = 0; txNodeId < numNodes; txNodeId++)
         {
-          uint32_t pkts = packetsReceivedPerNode[rxNodeId][txNodeId];
+          uint64_t pkts = packetsReceivedPerNode[rxNodeId][txNodeId];
           double rssi = rssiPerNode[rxNodeId][txNodeId];
           double avgRssi = 0.0;
           if (pkts > 0)
@@ -999,9 +999,9 @@ main (int argc, char *argv[])
   double obssPdThresholdMax = -62.0;
   double txGain = 0.0; // dBi
   double rxGain = 0.0; // dBi
-  uint32_t antennas = 1;
-  uint32_t maxSupportedTxSpatialStreams = 1;
-  uint32_t maxSupportedRxSpatialStreams = 1;
+  uint8_t antennas = 1;
+  uint8_t maxSupportedTxSpatialStreams = 1;
+  uint8_t maxSupportedRxSpatialStreams = 1;
   uint32_t performTgaxTimingChecks = 0;
   // the scenario - should be one of: residential, enterprise, indoor, or outdoor
   std::string scenario ("residential");
@@ -1011,7 +1011,7 @@ main (int argc, char *argv[])
   std::string outputFilePrefix = "spatial-reuse";
   uint32_t payloadSizeUplink = 1500; // bytes
   uint32_t payloadSizeDownlink = 300; // bytes
-  uint32_t mcs = 0; // MCS value
+  uint8_t mcs = 0; // MCS value
   Time interval = MicroSeconds (1000);
   bool enableObssPd = false;
   uint32_t maxAmpduSizeBss1 = 65535;
@@ -1287,10 +1287,10 @@ main (int argc, char *argv[])
 
   // total expected nodes.  n STAs for each AP
   uint32_t numNodes = nBss * (n + 1);
-  packetsReceived = std::vector<uint32_t> (numNodes);
-  bytesReceived = std::vector<uint32_t> (numNodes);
+  packetsReceived = std::vector<uint64_t> (numNodes);
+  bytesReceived = std::vector<uint64_t> (numNodes);
 
-  packetsReceivedPerNode.resize (numNodes, std::vector<uint32_t> (numNodes, 0));
+  packetsReceivedPerNode.resize (numNodes, std::vector<uint64_t> (numNodes, 0));
   rssiPerNode.resize (numNodes, std::vector<double> (numNodes, 0.0));
 
   for (uint32_t nodeId = 0; nodeId < numNodes; nodeId++)
