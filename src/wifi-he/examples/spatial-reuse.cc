@@ -1029,6 +1029,7 @@ main (int argc, char *argv[])
   double sigma = 5.0;
   double rxSensitivity = -91.0;
   uint32_t beaconInterval = 102400; // microseconds
+  uint32_t maxMissedBeacons = 10;
   bool useExplicitBarAfterMissedBlockAck = true;
   uint64_t maxQueueDelay = 500; // milliSeconds
   bool enableFrameCapture = false;
@@ -1085,6 +1086,7 @@ main (int argc, char *argv[])
   cmd.AddValue ("test", "The testname.", testname);
   cmd.AddValue ("sigma", "Log-normal shadowing loss parameter.", sigma);
   cmd.AddValue ("beaconInterval", "Beacon interval in microseconds.", beaconInterval);
+  cmd.AddValue ("maxMissedBeacons", "Number of beacons which much be consecutively missed before association is restarted", maxMissedBeacons);
   cmd.AddValue ("filterOutNonAddbaEstablished", "Flag whether statistics obtained before all ADDBA hanshakes have been established are filtered out.", filterOutNonAddbaEstablished);
   cmd.AddValue ("useExplicitBarAfterMissedBlockAck", "Flag whether explicit Block Ack Request should be sent upon missed Block Ack Response.", useExplicitBarAfterMissedBlockAck);
   cmd.AddValue ("maxQueueDelay", "If a packet stays longer than this delay in the queue, it is dropped.", maxQueueDelay);
@@ -1098,6 +1100,8 @@ main (int argc, char *argv[])
       filterOutNonAddbaEstablished = true;
       maxQueueDelay = duration * 1000; //make sure there is no MSDU lifetime expired
       useExplicitBarAfterMissedBlockAck = false;
+      beaconInterval = std::min<uint64_t> ((ceil ((duration * 1000000) / 1024) * 1024), (65535 * 1024)); //beacon interval needs to be a multiple of time units (1024 us)
+      maxMissedBeacons = 4294967295;
     }
   
   if (filterOutNonAddbaEstablished)
@@ -1565,6 +1569,7 @@ main (int argc, char *argv[])
   // Network "A"
   Ssid ssidA = Ssid ("A");
   mac.SetType ("ns3::StaWifiMac",
+               "MaxMissedBeacons", UintegerValue (maxMissedBeacons),
                "Ssid", SsidValue (ssidA));
 
   uint64_t wifiStream = 700;
@@ -1620,6 +1625,7 @@ main (int argc, char *argv[])
       // Network "B"
       Ssid ssidB = Ssid ("B");
       mac.SetType ("ns3::StaWifiMac",
+                   "MaxMissedBeacons", UintegerValue (maxMissedBeacons),
                    "Ssid", SsidValue (ssidB));
 
       staDevicesB = wifi.Install (spectrumPhy, mac, stasB);
@@ -1670,6 +1676,7 @@ main (int argc, char *argv[])
       // Network "C"
       Ssid ssidC = Ssid ("C");
       mac.SetType ("ns3::StaWifiMac",
+                   "MaxMissedBeacons", UintegerValue (maxMissedBeacons),
                    "Ssid", SsidValue (ssidC));
 
       staDevicesC = wifi.Install (spectrumPhy, mac, stasC);
@@ -1720,6 +1727,7 @@ main (int argc, char *argv[])
       // Network "D"
       Ssid ssidD = Ssid ("D");
       mac.SetType ("ns3::StaWifiMac",
+                   "MaxMissedBeacons", UintegerValue (maxMissedBeacons),
                    "Ssid", SsidValue (ssidD));
 
       staDevicesD = wifi.Install (spectrumPhy, mac, stasD);
@@ -1774,6 +1782,7 @@ main (int argc, char *argv[])
       // Network "E"
       Ssid ssidE = Ssid ("E");
       mac.SetType ("ns3::StaWifiMac",
+                   "MaxMissedBeacons", UintegerValue (maxMissedBeacons),
                    "Ssid", SsidValue (ssidE));
 
       staDevicesE = wifi.Install (spectrumPhy, mac, stasE);
@@ -1819,6 +1828,7 @@ main (int argc, char *argv[])
       // Network "F"
       Ssid ssidF = Ssid ("F");
       mac.SetType ("ns3::StaWifiMac",
+                   "MaxMissedBeacons", UintegerValue (maxMissedBeacons),
                    "Ssid", SsidValue (ssidF));
 
       staDevicesF = wifi.Install (spectrumPhy, mac, stasF);
@@ -1852,6 +1862,7 @@ main (int argc, char *argv[])
       // Network "G"
       Ssid ssidG = Ssid ("G");
       mac.SetType ("ns3::StaWifiMac",
+                   "MaxMissedBeacons", UintegerValue (maxMissedBeacons),
                    "Ssid", SsidValue (ssidG));
 
       staDevicesG = wifi.Install (spectrumPhy, mac, stasG);
