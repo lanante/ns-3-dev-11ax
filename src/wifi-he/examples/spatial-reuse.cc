@@ -324,7 +324,6 @@ AddbaStateCb (std::string context, Time t, Mac48Address recipient, uint8_t tid, 
           nEstablishedAddaBa++;
           if (nEstablishedAddaBa == n * nBss)
             {
-              std::cout << t << ": ALL ADDBA ARE ESTABLISHED !" << std::endl;
               allAddBaEstablished = true;
               timeAllAddBaEstablished = t;
               if (filterOutNonAddbaEstablished)
@@ -348,7 +347,6 @@ AddbaStateCb (std::string context, Time t, Mac48Address recipient, uint8_t tid, 
           nEstablishedAddaBa++;
           if (nEstablishedAddaBa == 2 * n * nBss)
             {
-              std::cout << t << ": ALL ADDBA ARE ESTABLISHED !" << std::endl;
               allAddBaEstablished = true;
               timeAllAddBaEstablished = t;
               if (filterOutNonAddbaEstablished)
@@ -424,7 +422,6 @@ StaAssocCb (std::string context, Mac48Address bssid)
   if (nAssociatedStas == (n * nBss))
     {
       allStasAssociated = true;
-      std::cout << Simulator::Now () << ": ALL STAS ARE ASSOCIATED !" << std::endl;
     }
 }
 
