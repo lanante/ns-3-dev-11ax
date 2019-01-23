@@ -1,6 +1,6 @@
 #
 
-set term pngcairo dashed size 400, 300 font ",8"
+set term png size 400, 300 font ",8"
 set output "spatial-reuse-positions.png"
 set title "Spatial Reuse Example\nPlot of node positions"
 set key outside font ",8"
