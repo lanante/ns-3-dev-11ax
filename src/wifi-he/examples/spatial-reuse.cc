@@ -2807,8 +2807,6 @@ main (int argc, char *argv[])
 
   SaveSpectrumPhyStats (outputFilePrefix + "-phy-log-" + testname + ".dat", g_arrivals);
 
-  Simulator::Destroy ();
-
   if (!allStasAssociated)
   {
     NS_FATAL_ERROR ("Not all STAs are associated at the end of the simulation");
@@ -2832,5 +2830,6 @@ main (int argc, char *argv[])
 
   SaveUdpFlowMonitorStats (outputFilePrefix + "-operatorA-" + testname, "simulationParams", monitorA, flowmonHelperA, durationTime.GetSeconds ());
 
+  Simulator::Destroy ();
   return 0;
 }
