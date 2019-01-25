@@ -586,8 +586,12 @@ SaveSpatialReuseStats (const std::string filename,
   outFile << "Distance between APs [m]: " << d << std::endl;
   outFile << "Radius [m]: " << r << std::endl;
 
-  // TODO: debug to print out t-put, can remove
+  std::cout << "Spatial Reuse Statistics" << std::endl;
   std::cout << "Scenario: " << scenario << std::endl;
+  std::cout << "APs: " << nBss << std::endl;
+  std::cout << "Nodes per AP: " << n << std::endl;
+  std::cout << "Distance between APs [m]: " << d << std::endl;
+  std::cout << "Radius [m]: " << r << std::endl;
 
   double tputApUplinkTotal = 0;
   double tputApDownlinkTotal = 0;
