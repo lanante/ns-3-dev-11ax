@@ -104,6 +104,7 @@ struct SignalArrival
   double m_power;
 };
 
+uint32_t beaconInterval = 102400; // microseconds
 double duration = 20.0; // seconds
 uint32_t nBss = 2; // number of BSSs.  Can be 1 or 2 (default)
 uint32_t n = 1; // number of STAs to scatter around each AP;
@@ -118,6 +119,22 @@ bool filterOutNonAddbaEstablished = false;
 
 uint32_t nAssociatedStas = 0;
 bool allStasAssociated = false;
+std::vector<uint32_t> nAssociatedStasPerBss (0);
+
+NetDeviceContainer apDeviceA;
+NetDeviceContainer staDevicesA;
+NetDeviceContainer apDeviceB;
+NetDeviceContainer staDevicesB;
+NetDeviceContainer apDeviceC;
+NetDeviceContainer staDevicesC;
+NetDeviceContainer apDeviceD;
+NetDeviceContainer staDevicesD;
+NetDeviceContainer apDeviceE;
+NetDeviceContainer staDevicesE;
+NetDeviceContainer apDeviceF;
+NetDeviceContainer staDevicesF;
+NetDeviceContainer apDeviceG;
+NetDeviceContainer staDevicesG;
 
 // for tracking packets and bytes received. will be reallocated once we finalize number of nodes
 std::vector<uint64_t> packetsReceived (0);
@@ -394,14 +411,51 @@ StaAssocCb (std::string context, Mac48Address bssid)
 {
   uint32_t nodeId = ContextToNodeId (context);
   uint32_t appId = 0;
+  uint32_t bss = 1;
   // Determine application ID from node ID
-  for (uint32_t bss = 1; bss <= nBss; bss++)
+  for (; bss <= nBss; bss++)
     {
       if (nodeId <= (bss * n) + bss - 1)
         {
           appId = nodeId - bss;
           break;
         }
+    }
+  nAssociatedStasPerBss[bss - 1]++;
+  if (nAssociatedStasPerBss[bss - 1] == n)
+    {
+      // All STAs of this BSS are associated, we can extend beacon interval if bianchi flag is enabled
+      Ptr<WifiNetDevice> apDevice;
+      if (bss == 1)
+        {
+          apDevice = apDeviceA.Get (0)->GetObject<WifiNetDevice> ();
+        }
+      else if (bss == 2)
+        {
+          apDevice = apDeviceB.Get (0)->GetObject<WifiNetDevice> ();
+        }
+      else if (bss == 3)
+        {
+          apDevice = apDeviceC.Get (0)->GetObject<WifiNetDevice> ();
+        }
+      else if (bss == 4)
+        {
+          apDevice = apDeviceD.Get (0)->GetObject<WifiNetDevice> ();
+        }
+      else if (bss == 5)
+        {
+          apDevice = apDeviceE.Get (0)->GetObject<WifiNetDevice> ();
+        }
+      else if (bss == 6)
+        {
+          apDevice = apDeviceF.Get (0)->GetObject<WifiNetDevice> ();
+        }
+      else //bss == 7
+        {
+          apDevice = apDeviceG.Get (0)->GetObject<WifiNetDevice> ();
+        }
+      Ptr<ApWifiMac> apWifiMac = apDevice->GetMac ()->GetObject<ApWifiMac> ();
+      apWifiMac->SetAttribute ("BeaconInterval", TimeValue (MicroSeconds (beaconInterval)));
     }
   if (filterOutNonAddbaEstablished)
     {
@@ -1029,7 +1083,6 @@ main (int argc, char *argv[])
   bool bianchi = false;
   double sigma = 5.0;
   double rxSensitivity = -91.0;
-  uint32_t beaconInterval = 102400; // microseconds
   uint32_t maxMissedBeacons = 10;
   bool useExplicitBarAfterMissedBlockAck = true;
   uint64_t maxQueueDelay = 500; // milliSeconds
@@ -1293,6 +1346,7 @@ main (int argc, char *argv[])
   uint32_t numNodes = nBss * (n + 1);
   packetsReceived = std::vector<uint64_t> (numNodes);
   bytesReceived = std::vector<uint64_t> (numNodes);
+  nAssociatedStasPerBss = std::vector<uint32_t> (nBss * n);
 
   packetsReceivedPerNode.resize (numNodes, std::vector<uint64_t> (numNodes, 0));
   rssiPerNode.resize (numNodes, std::vector<double> (numNodes, 0.0));
@@ -1340,7 +1394,7 @@ main (int argc, char *argv[])
   nodesA.Add (ap1);
   nodesA.Add (stasA);
 
-  if ((nBss >= 2) || (scenario == "study1") || (scenario == "study2"))
+  if (nBss >= 2)
     {
       ap2 = CreateObject<Node> ();
       // network "B"
@@ -1355,7 +1409,7 @@ main (int argc, char *argv[])
       nodesB.Add (stasB);
     }
 
-  if ((nBss >= 3) || (scenario == "study1") || (scenario == "study2"))
+  if (nBss >= 3)
     {
       ap3 = CreateObject<Node> ();
       // network "C"
@@ -1370,7 +1424,7 @@ main (int argc, char *argv[])
       nodesC.Add (stasC);
     }
 
-  if ((nBss >= 4) || (scenario == "study1") || (scenario == "study2"))
+  if (nBss >= 4)
     {
       ap4 = CreateObject<Node> ();
       // network "D"
@@ -1385,7 +1439,7 @@ main (int argc, char *argv[])
       nodesD.Add (stasD);
     }
 
-  if ((scenario == "study1") || (scenario == "study2"))
+  if (nBss >= 5)
     {
       ap5 = CreateObject<Node> ();
       // network "E"
@@ -1399,6 +1453,10 @@ main (int argc, char *argv[])
       nodesE.Add (ap5);
       nodesE.Add (stasE);
 
+    }
+  
+  if (nBss >= 6)
+    {
       ap6 = CreateObject<Node> ();
       // network "F"
       for (uint32_t i = 0; i < n; i++)
@@ -1410,7 +1468,10 @@ main (int argc, char *argv[])
       // AP at front of node container, then STAs
       nodesF.Add (ap6);
       nodesF.Add (stasF);
-
+    }
+  
+  if (nBss >= 7)
+    {
       ap7 = CreateObject<Node> ();
       // network "G"
       for (uint32_t i = 0; i < n; i++)
@@ -1575,7 +1636,6 @@ main (int argc, char *argv[])
 
   uint64_t wifiStream = 700;
 
-  NetDeviceContainer staDevicesA;
   staDevicesA = wifi.Install (spectrumPhy, mac, stasA);
   wifi.AssignStreams (staDevicesA, wifiStream + 0);
 
@@ -1591,11 +1651,9 @@ main (int argc, char *argv[])
   spectrumPhy.Set ("RxSensitivity", DoubleValue (rxSensitivity));
 
   mac.SetType ("ns3::ApWifiMac",
-               "BeaconInterval", TimeValue (MicroSeconds (beaconInterval)),
                "Ssid", SsidValue (ssidA));
 
   // AP1
-  NetDeviceContainer apDeviceA;
   apDeviceA = wifi.Install (spectrumPhy, mac, ap1);
   wifi.AssignStreams (apDeviceA, wifiStream + 1);
   Ptr<WifiNetDevice> apDevice = apDeviceA.Get (0)->GetObject<WifiNetDevice> ();
@@ -1608,9 +1666,7 @@ main (int argc, char *argv[])
       heConfiguration->SetAttribute ("BssColor", UintegerValue (1));
     }
 
-  NetDeviceContainer apDeviceB;
-  NetDeviceContainer staDevicesB;
-  if ((nBss >= 2) || (scenario == "study1") || (scenario == "study2"))
+  if (nBss >= 2)
     {
       // Set PHY power and CCA threshold for STAs
       spectrumPhy.Set ("TxPowerStart", DoubleValue (powSta));
@@ -1632,7 +1688,7 @@ main (int argc, char *argv[])
       staDevicesB = wifi.Install (spectrumPhy, mac, stasB);
       wifi.AssignStreams (staDevicesB, wifiStream + 2);
 
-      // Set PHY power and CCA threshold for APs
+      // Set PHY power and CCA threshold for AP
       spectrumPhy.Set ("TxPowerStart", DoubleValue (powAp));
       spectrumPhy.Set ("TxPowerEnd", DoubleValue (powAp));
       spectrumPhy.Set ("TxGain", DoubleValue (txGain));
@@ -1644,7 +1700,6 @@ main (int argc, char *argv[])
       spectrumPhy.Set ("RxSensitivity", DoubleValue (rxSensitivity));
 
       mac.SetType ("ns3::ApWifiMac",
-                   "BeaconInterval", TimeValue (MicroSeconds (beaconInterval)),
                    "Ssid", SsidValue (ssidB));
 
       // AP2
@@ -1659,9 +1714,7 @@ main (int argc, char *argv[])
         }
     }
 
-  NetDeviceContainer apDeviceC;
-  NetDeviceContainer staDevicesC;
-  if ((nBss >= 3) || (scenario == "study1") || (scenario == "study2"))
+  if (nBss >= 3)
     {
       // Set PHY power and CCA threshold for STAs
       spectrumPhy.Set ("TxPowerStart", DoubleValue (powSta));
@@ -1683,7 +1736,7 @@ main (int argc, char *argv[])
       staDevicesC = wifi.Install (spectrumPhy, mac, stasC);
       wifi.AssignStreams (staDevicesC, wifiStream + 4);
 
-      // Set PHY power and CCA threshold for APs
+      // Set PHY power and CCA threshold for AP
       spectrumPhy.Set ("TxPowerStart", DoubleValue (powAp));
       spectrumPhy.Set ("TxPowerEnd", DoubleValue (powAp));
       spectrumPhy.Set ("TxGain", DoubleValue (txGain));
@@ -1695,7 +1748,6 @@ main (int argc, char *argv[])
       spectrumPhy.Set ("RxSensitivity", DoubleValue (rxSensitivity));
 
       mac.SetType ("ns3::ApWifiMac",
-                   "BeaconInterval", TimeValue (MicroSeconds (beaconInterval)),
                    "Ssid", SsidValue (ssidC));
 
       // AP3
@@ -1710,9 +1762,7 @@ main (int argc, char *argv[])
         }
     }
 
-  NetDeviceContainer apDeviceD;
-  NetDeviceContainer staDevicesD;
-  if ((nBss >= 4) || (scenario == "study1") || (scenario == "study2"))
+  if (nBss >= 4)
     {
       // Set PHY power and CCA threshold for STAs
       spectrumPhy.Set ("TxPowerStart", DoubleValue (powSta));
@@ -1734,7 +1784,7 @@ main (int argc, char *argv[])
       staDevicesD = wifi.Install (spectrumPhy, mac, stasD);
       wifi.AssignStreams (staDevicesD, wifiStream + 6);
 
-      // Set PHY power and CCA threshold for APs
+      // Set PHY power and CCA threshold for AP
       spectrumPhy.Set ("TxPowerStart", DoubleValue (powAp));
       spectrumPhy.Set ("TxPowerEnd", DoubleValue (powAp));
       spectrumPhy.Set ("TxGain", DoubleValue (txGain));
@@ -1746,7 +1796,6 @@ main (int argc, char *argv[])
       spectrumPhy.Set ("RxSensitivity", DoubleValue (rxSensitivity));
 
       mac.SetType ("ns3::ApWifiMac",
-                   "BeaconInterval", TimeValue (MicroSeconds (beaconInterval)),
                    "Ssid", SsidValue (ssidD));
 
       // AP4
@@ -1761,13 +1810,7 @@ main (int argc, char *argv[])
         }
     }
 
-  NetDeviceContainer apDeviceE;
-  NetDeviceContainer staDevicesE;
-  NetDeviceContainer apDeviceF;
-  NetDeviceContainer staDevicesF;
-  NetDeviceContainer apDeviceG;
-  NetDeviceContainer staDevicesG;
-  if ((scenario == "study1") || (scenario == "study2"))
+  if (nBss >= 5)
     {
       // Set PHY power and CCA threshold for STAs
       spectrumPhy.Set ("TxPowerStart", DoubleValue (powSta));
@@ -1789,7 +1832,7 @@ main (int argc, char *argv[])
       staDevicesE = wifi.Install (spectrumPhy, mac, stasE);
       wifi.AssignStreams (staDevicesE, wifiStream + 8);
 
-      // Set PHY power and CCA threshold for APs
+      // Set PHY power and CCA threshold for AP
       spectrumPhy.Set ("TxPowerStart", DoubleValue (powAp));
       spectrumPhy.Set ("TxPowerEnd", DoubleValue (powAp));
       spectrumPhy.Set ("TxGain", DoubleValue (txGain));
@@ -1801,7 +1844,6 @@ main (int argc, char *argv[])
       spectrumPhy.Set ("RxSensitivity", DoubleValue (rxSensitivity));
 
       mac.SetType ("ns3::ApWifiMac",
-                   "BeaconInterval", TimeValue (MicroSeconds (beaconInterval)),
                    "Ssid", SsidValue (ssidE));
 
       // AP5
@@ -1814,7 +1856,10 @@ main (int argc, char *argv[])
           Ptr <HeConfiguration> heConfiguration = ap5Device->GetHeConfiguration ();
           heConfiguration->SetAttribute ("BssColor", UintegerValue (5));
         }
+    }
 
+  if (nBss >= 6)
+    {
       // Set PHY power and CCA threshold for STAs
       spectrumPhy.Set ("TxPowerStart", DoubleValue (powSta));
       spectrumPhy.Set ("TxPowerEnd", DoubleValue (powSta));
@@ -1835,6 +1880,7 @@ main (int argc, char *argv[])
       staDevicesF = wifi.Install (spectrumPhy, mac, stasF);
       wifi.AssignStreams (staDevicesF, wifiStream + 10);
 
+      // Set PHY power and CCA threshold for AP
       spectrumPhy.Set ("TxPowerStart", DoubleValue (powAp));
       spectrumPhy.Set ("TxPowerEnd", DoubleValue (powAp));
       spectrumPhy.Set ("TxGain", DoubleValue (txGain));
@@ -1846,7 +1892,6 @@ main (int argc, char *argv[])
       spectrumPhy.Set ("RxSensitivity", DoubleValue (rxSensitivity));
 
       mac.SetType ("ns3::ApWifiMac",
-                   "BeaconInterval", TimeValue (MicroSeconds (beaconInterval)),
                    "Ssid", SsidValue (ssidF));
 
       // AP6
@@ -1859,16 +1904,10 @@ main (int argc, char *argv[])
           Ptr <HeConfiguration> heConfiguration = ap6Device->GetHeConfiguration ();
           heConfiguration->SetAttribute ("BssColor", UintegerValue (6));
         }
+    }
 
-      // Network "G"
-      Ssid ssidG = Ssid ("G");
-      mac.SetType ("ns3::StaWifiMac",
-                   "MaxMissedBeacons", UintegerValue (maxMissedBeacons),
-                   "Ssid", SsidValue (ssidG));
-
-      staDevicesG = wifi.Install (spectrumPhy, mac, stasG);
-      wifi.AssignStreams (staDevicesG, wifiStream + 12);
-
+  if (nBss >= 7)
+  {
       spectrumPhy.Set ("TxPowerStart", DoubleValue (powAp));
       spectrumPhy.Set ("TxPowerEnd", DoubleValue (powAp));
       spectrumPhy.Set ("TxGain", DoubleValue (txGain));
@@ -1879,8 +1918,16 @@ main (int argc, char *argv[])
       spectrumPhy.Set ("CcaEdThreshold", DoubleValue (ccaTrAp));
       spectrumPhy.Set ("RxSensitivity", DoubleValue (rxSensitivity));
 
+      // Network "G"
+      Ssid ssidG = Ssid ("G");
+      mac.SetType ("ns3::StaWifiMac",
+                   "MaxMissedBeacons", UintegerValue (maxMissedBeacons),
+                   "Ssid", SsidValue (ssidG));
+      
+      staDevicesG = wifi.Install (spectrumPhy, mac, stasG);
+      wifi.AssignStreams (staDevicesG, wifiStream + 12);
+      
       mac.SetType ("ns3::ApWifiMac",
-                   "BeaconInterval", TimeValue (MicroSeconds (beaconInterval)),
                    "Ssid", SsidValue (ssidG));
 
       // AP7
@@ -2457,7 +2504,7 @@ main (int argc, char *argv[])
       }
     }
 
-  if (((payloadSizeUplink > 0) || (payloadSizeDownlink > 0)) && ((nBss >= 2) || (scenario == "study1") || (scenario == "study2")))
+  if (((payloadSizeUplink > 0) || (payloadSizeDownlink > 0)) && (nBss >= 2))
     {
       // BSS 2
 
@@ -2480,7 +2527,7 @@ main (int argc, char *argv[])
       }
     }
 
-  if (((payloadSizeUplink > 0) || (payloadSizeDownlink > 0)) && ((nBss >= 3) || (scenario == "study1") || (scenario == "study2")))
+  if (((payloadSizeUplink > 0) || (payloadSizeDownlink > 0)) && (nBss >= 3))
     {
       // BSS 3
 
@@ -2502,7 +2549,7 @@ main (int argc, char *argv[])
       }
     }
 
-  if (((payloadSizeUplink > 0) || (payloadSizeDownlink > 0)) && ((nBss >= 4) || (scenario == "study1") || (scenario == "study2")))
+  if (((payloadSizeUplink > 0) || (payloadSizeDownlink > 0)) && (nBss >= 4))
     {
       // BSS 4
 
@@ -2524,7 +2571,7 @@ main (int argc, char *argv[])
       }
     }
 
-  if ((scenario == "study1") || (scenario == "study2"))
+  if (((payloadSizeUplink > 0) || (payloadSizeDownlink > 0)) && (nBss >= 5))
     {
       // BSS 5
 
@@ -2544,7 +2591,10 @@ main (int argc, char *argv[])
       {
         AddServer (uplinkServerApps, uplinkServerE, ap5);
       }
-
+    }
+  
+  if (((payloadSizeUplink > 0) || (payloadSizeDownlink > 0)) && (nBss >= 6))
+    {
       // BSS 6
 
       for (uint32_t i = 0; i < n; i++)
@@ -2563,7 +2613,10 @@ main (int argc, char *argv[])
       {
         AddServer (uplinkServerApps, uplinkServerF, ap6);
       }
-
+    }
+  
+  if (((payloadSizeUplink > 0) || (payloadSizeDownlink > 0)) && (nBss >= 7))
+    {
       // BSS 7
 
       for (uint32_t i = 0; i < n; i++)
