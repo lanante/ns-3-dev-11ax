@@ -677,13 +677,13 @@ documentation figures, the following scripts should be executed in order:
 
 2) ./study1.sh - this is the script generate by (1), and should be run to generate all results.
 
-3) make-data-files.sh - this creates data files for plotting, from the set of all simulation results.
+3) make-data-files-study1.sh - this creates data files for plotting, from the set of all simulation results.
 
 4) plot-study1.sh - this generates plots of results.
 
 5) plot-study1-ecdf.sh - this generates additional plots (ECDFs) from results.
 
-6) copy-plots-to-doc-figures.sh - this copies a subset of plots generated into
+6) copy-study1-plots-to-doc-figures.sh - this copies a subset of plots generated into
 the doc/figures folder, for inclusion of those results into the documentation.
 
 Note that any modifications that are made to change the values of n in the 
