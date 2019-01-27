@@ -65,10 +65,9 @@ echo "export nBss=7" >> ../scripts/study1.sh
 
 # use ideal channel model.  MCS will be ignored
 echo "export MCS=0" >> ../scripts/study1.sh
-# need to have payload1 and payload2, percentage of each
-#maxAmpduSize=3140
 # increasae max ampdu size to maximum to maximize throughput
 echo "export maxAmpduSize=65535" >> ../scripts/study1.sh
+echo "" >> ../scripts/study1.sh
 
 # params that will vary
 # vary n from 5 to 40  in steps of 5

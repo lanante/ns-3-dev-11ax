@@ -34,7 +34,6 @@ echo "export enableRts=0" >> ../scripts/study2.sh
 # 11ax
 echo "export standard=11ax_5GHZ" >> ../scripts/study2.sh
 echo "export enableObssPd=1" >> ../scripts/study2.sh
-echo "export obssPdThreshold=-82" >> ../scripts/study2.sh
 echo "export payloadSizeUplink=1500" >> ../scripts/study2.sh
 echo "export payloadSizeDownlink=300" >> ../scripts/study2.sh
 echo "export txStartOffset=5" >> ../scripts/study2.sh
@@ -66,33 +65,37 @@ echo "export nBss=7" >> ../scripts/study2.sh
 
 # use ideal channel model.  MCS will be ignored
 echo "export MCS=0" >> ../scripts/study2.sh
-# need to have payload1 and payload2, percentage of each
-#maxAmpduSize=3140
 # increasae max ampdu size to maximum to maximize throughput
 echo "export maxAmpduSize=65535" >> ../scripts/study2.sh
+echo "" >> ../scripts/study2.sh
 
 # params that will vary
-# vary n from 5 to 40  in steps of 5
-for n in 5 10 15 20 25 30 35 40 ; do
-    echo "export n=${n}" >> ../scripts/study2.sh
-    for offeredLoad in 1.0 1.5 2.0 2.5 3.0 ; do
-        echo "export offeredLoad=${offeredLoad}" >> ../scripts/study2.sh
-        ol1=$(awk "BEGIN {print $offeredLoad*1.0}")
-        # uplink is 90% of total offered load
-        uplink=$(awk "BEGIN {print $offeredLoad*0.9}")
-        echo "export uplink=${uplink}" >> ../scripts/study2.sh
-        # downlink is 10% of total offered load
-        downlink=$(awk "BEGIN {print $offeredLoad*0.1}")
-        echo "export downlink=${downlink}" >> ../scripts/study2.sh
-        d1=$(awk "BEGIN {print $d*100}")
-        ul1=$(awk "BEGIN {print $uplink*100}")
-        dl1=$(awk "BEGIN {print $downlink*100}")
-        test=$(printf "study2-%0.f-%02d-%02d-%0.2g-%0.1f-%0.1f%0.f\n" ${d1} ${r} ${n} ${ol1} ${ul1} ${dl1} ${obssPdThreshold})
-        echo "export test=${test}" >> ../scripts/study2.sh
-        echo "# run $test" >> ../scripts/study2.sh
-        # fork each simulation for parallelism
-        echo "run_one &" >> ../scripts/study2.sh
+for pd_thresh in -82; do #TODO: vary OBSS PD threshold
+    echo "export obssPdThreshold=${pd_thresh}" >> ../scripts/study2.sh
+    echo "" >> ../scripts/study2.sh
+    # vary n from 5 to 40  in steps of 5
+    for n in 5 10 15 20 25 30 35 40 ; do
+        echo "export n=${n}" >> ../scripts/study2.sh
         echo "" >> ../scripts/study2.sh
+        for offeredLoad in 1.0 1.5 2.0 2.5 3.0 ; do
+            echo "export offeredLoad=${offeredLoad}" >> ../scripts/study2.sh
+            ol1=$(awk "BEGIN {print $offeredLoad*1.0}")
+            # uplink is 90% of total offered load
+            uplink=$(awk "BEGIN {print $offeredLoad*0.9}")
+            echo "export uplink=${uplink}" >> ../scripts/study2.sh
+            # downlink is 10% of total offered load
+            downlink=$(awk "BEGIN {print $offeredLoad*0.1}")
+            echo "export downlink=${downlink}" >> ../scripts/study2.sh
+            d1=$(awk "BEGIN {print $d*100}")
+            ul1=$(awk "BEGIN {print $uplink*100}")
+            dl1=$(awk "BEGIN {print $downlink*100}")
+            test=$(printf "study2-%0.f-%02d-%02d-%0.2g-%0.1f-%0.1f_%ddbm\n" ${d1} ${r} ${n} ${ol1} ${ul1} ${dl1} ${pd_thresh})
+            echo "export test=${test}" >> ../scripts/study2.sh
+            echo "# run $test" >> ../scripts/study2.sh
+            # fork each simulation for parallelism
+            echo "run_one &" >> ../scripts/study2.sh
+            echo "" >> ../scripts/study2.sh
+        done
     done
     # fork and wait
     echo "wait" >> ../scripts/study2.sh
@@ -101,4 +104,4 @@ done
 chmod +x ../scripts/study2.sh
 
 echo "# the script '../scripts/study2.sh' has been created."
-echo "# to run the study 1 simulations, you should run ./study2.sh"
+echo "# to run the study 2 simulations, you should run ./study2.sh"
