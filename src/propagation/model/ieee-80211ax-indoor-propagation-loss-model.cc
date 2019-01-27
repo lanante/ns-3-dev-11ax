@@ -18,6 +18,7 @@
  * Author: Nicola Baldo <nbaldo@cttc.es>
  * 
  */
+
 #include <ns3/log.h>
 #include <ns3/double.h>
 #include <ns3/mobility-model.h>
@@ -84,10 +85,9 @@ Ieee80211axIndoorPropagationLossModel::GetPathLossDb (Ptr<MobilityModel> a, Ptr<
     + 20*std::log10(std::min(d, m_distance_breakpoint))
     + ((d>m_distance_breakpoint) ? 35*std::log10(d/m_distance_breakpoint) : 0)
     + m_walls*m_wall_factor;
-  NS_LOG_LOGIC (" lossDb = " << lossDb);
+  NS_LOG_LOGIC ("d = " << d << " lossDb = " << lossDb);
   return lossDb;
 }
-
 
 double 
 Ieee80211axIndoorPropagationLossModel::DoCalcRxPower (double txPowerDbm,
@@ -112,8 +112,8 @@ Ieee80211axIndoorPropagationLossModel::GetSigma (Ptr<MobilityModel> a, Ptr<Mobil
 int64_t
 Ieee80211axIndoorPropagationLossModel::DoAssignStreams (int64_t stream)
 {
+  NS_LOG_FUNCTION (this << stream);
   return m_shadowing.AssignStreams (stream);
 }
-
 
 } // namespace ns3
