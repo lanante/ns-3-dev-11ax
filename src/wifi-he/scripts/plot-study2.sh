@@ -56,7 +56,7 @@ for n in 5 10 15 20 25 30 35 40 ; do
             # patt=$(printf "%0.f-%02d-%02d-%0.f-%0.f\n" ${d1} ${r} ${n} ${ul1} ${dl1})
             patt=$(printf "%0.f-%02d-%02d" ${d1} ${r} ${n})
             echo "pattern=$patt"
-            grep "$patt" "./results/spatial-reuse-study3-throughput-$ap.dat" > ./results/plot_tmp.dat
+            grep "$patt" "./results/spatial-reuse-study2-throughput-$ap.dat" > ./results/plot_tmp.dat
 
             rm -f "xxx-$patt-$ap.dat"
 
