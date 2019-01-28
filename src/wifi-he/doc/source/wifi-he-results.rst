@@ -729,15 +729,14 @@ generated plots for inclusion in the documentation.  The documentation can then 
 regenerated, e.g.:
 
 cd doc
+
 make latexpdf
-
-
 
 Study 1 Results
 ===============
 
 The figures in the section were generated using the ns-3-dev-11ax 
-repository as of commit changeset f0ef0aacaed2bca7a64193b35b8dcde0744985c6.
+repository as of commit changeset c673c043c29f7063ea666504518b5c432b0344fc.
 
 System Throughput
 #################
@@ -907,34 +906,100 @@ example, BSS #1 uses BSS color 1, BSS #2 uses BSS color 2, etc.
 * OBSS_PD level - as an additional sensitivity study, this value 
 is varied from -82 dB to -62 dB, in steps of 5 dB.
 
+Conducting the Study 2 Experiments
+##################################
+
+To run the Study 2 scenarios, plot results, and transfer those results to the
+documentation figures, the following scripts should be executed in order:
+
+1) run-spatial-reuse-study2.sh - this generates a script file "./study2.sh".
+
+2) ./study2.sh - this is the script generate by (2), and should be run to generate all results.
+
+3) make-data-files-study2.sh - this creates data files for plotting, from the set of all simulation results.
+
+4) plot-study2.sh - this generates plots of results.
+
+5) plot-study2-ecdf.sh - this generates additional plots (ECDFs) from results.
+
+6) copy-study2-plots-to-doc-figures.sh - this copies a subset of plots generated into
+the doc/figures folder, for inclusion of those results into the documentation.
+
+After the above have been executed, the doc/figures folder should contain the newly
+generated plots for inclusion in the documentation.  The documentation can then be
+regenerated, e.g.:
+
+cd doc
+
+make latexpdf
+
 Study 2 Results
 ===============
 
-The following figures will be repeated several times, with one chart
-for each combination of the OBSS_PD level.  For example, there will 
-be a system throughput chart for OBSS_PD level -82 dB, and another system
-throuhgput chart for OBSS_Pd level -77 dB.
+The figures in the section were generated using the ns-3-dev-11ax
+repository as of commit changeset c673c043c29f7063ea666504518b5c432b0344fc.
+
+TODO: generate for various OBSS PD levels.
 
 System Throughput
 #################
 
-(Here there will be a figure of the system throughput as a function of 
-offered load.  There will be a separate line for each combination of 
-n STAs - i.e., n=5, n=10, n=15, ..., n=40).
+The throughput with OBSS_PD level -82 dBm as offered load is increased is shown below for
+the center BSS of interest.  A separate line is plotted for each value
+of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
+
+.
+
+.. _throughput-study2:
+
+.. figure:: figures/throughput-study2.*
+   :align: center
+
+   Throughput with OBSS_PD level -82 dBm for the BSS of interest in the center of the Study 2 parametric study.
+
+Figure :ref:`throughput-study2` illustrates the system throughput for BSS1.
+
+It is observed that TBD...
 
 Area Capacity
 #############
 
-(Here there will be a figure of the area capacity as a function of 
-offered load.  There will be a separate line for each combination of 
-n STAs - i.e., n=5, n=10, n=15, ..., n=40).
+The area capacity with OBSS_PD level -82 dBm as offered load is increased is shown below for
+the center BSS of interest.  A separate line is plotted for each value
+of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
+
+.
+
+.. _area-capacity-study2:
+
+.. figure:: figures/area-capacity-study2.*
+   :align: center
+
+   Area capacity with OBSS_PD level -82 dBm for the BSS of interest in the center of the Study 2 parametric study.
+
+Figure :ref:`area-capacity-study2` illustrates the system throughput for BSS1.
+
+It is observed that TBD...
 
 Spectrum Efficiency
 ###################
 
-(Here there will be a figure of the spectrum efficiency as a function of 
-offered load.  There will be a separate line for each combination of 
-n STAs - i.e., n=5, n=10, n=15, ..., n=40).
+The spectrum efficiency with OBSS_PD level -82 dBm as offered load is increased is shown below for
+the center BSS of interest.  A separate line is plotted for each value
+of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
+
+.
+
+.. _spectrum-efficiency-study2:
+
+.. figure:: figures/spectrum-efficiency-study2.*
+   :align: center
+
+   Spectrum efficiency with OBSS_PD level -82 dBm for the BSS of interest in the center of the Study 2 parametric study.
+
+Figure :ref:`spectrum-efficiency-study2` illustrates the system throughput for BSS1.
+
+It is observed that TBD...
 
 Latency
 #######
