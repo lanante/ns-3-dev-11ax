@@ -18,6 +18,9 @@
  * Author: Nicola Baldo <nbaldo@cttc.es>
  */
 
+#include <algorithm>
+#include <iostream>
+#include <utility>
 #include <ns3/object.h>
 #include <ns3/simulator.h>
 #include <ns3/log.h>
@@ -34,17 +37,13 @@
 #include <ns3/propagation-delay-model.h>
 #include <ns3/antenna-model.h>
 #include <ns3/angles.h>
-#include <iostream>
-#include <utility>
 #include "multi-model-spectrum-channel.h"
-
 
 namespace ns3 {
 
 NS_LOG_COMPONENT_DEFINE ("MultiModelSpectrumChannel");
 
 NS_OBJECT_ENSURE_REGISTERED (MultiModelSpectrumChannel);
-
 
 /**
  * \brief Output stream operator
@@ -74,12 +73,10 @@ TxSpectrumModelInfo::TxSpectrumModelInfo (Ptr<const SpectrumModel> txSpectrumMod
 {
 }
 
-
 RxSpectrumModelInfo::RxSpectrumModelInfo (Ptr<const SpectrumModel> rxSpectrumModel)
   : m_rxSpectrumModel (rxSpectrumModel)
 {
 }
-
 
 MultiModelSpectrumChannel::MultiModelSpectrumChannel ()
   : m_numDevices {0}
