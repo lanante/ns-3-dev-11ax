@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# function to check if a file already existgs, and if so,
+# function to check if a file already exists, and if so,
 # instruct the user to move it somewhere and then run the script
 # again.
 function check_file () {
@@ -29,7 +29,7 @@ function check_file () {
       exit 1
     else
       # the var AUTO_DELETE_SPATIAL_REUSE_OUTPUT_FILES is defined (to anything)
-      # so auto delete the fult
+      # so auto delete the folder
       rm -f $1
     fi
   fi
