@@ -37,7 +37,6 @@ echo "export enableObssPd=1" >> ../scripts/study2.sh
 echo "export payloadSizeUplink=1500" >> ../scripts/study2.sh
 echo "export payloadSizeDownlink=300" >> ../scripts/study2.sh
 echo "export txStartOffset=5" >> ../scripts/study2.sh
-echo "export enableObssPd=0" >> ../scripts/study2.sh
 echo "export txGain=0" >> ../scripts/study2.sh
 echo "export rxGain=0" >> ../scripts/study2.sh
 echo "export antennas=1" >> ../scripts/study2.sh

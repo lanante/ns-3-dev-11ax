@@ -336,7 +336,30 @@ AddbaStateCb (std::string context, Time t, Mac48Address recipient, uint8_t tid, 
   if (state == OriginatorBlockAckAgreement::ESTABLISHED)
     {
       //std::cout << t << ": ADDBA ESTABLISHED for node " << ContextToNodeId (context) << " with " << recipient << std::endl;
-      if (((aggregateDownlinkMbps != 0) && isAp) || ((aggregateUplinkMbps != 0) && !isAp)) //UL or DL
+      if ((aggregateDownlinkMbps != 0) && (aggregateUplinkMbps != 0)) //UP + DL
+        {
+          nEstablishedAddaBa++;
+          if (nEstablishedAddaBa == 2 * n * nBss)
+            {
+              allAddBaEstablished = true;
+              timeAllAddBaEstablished = t;
+              if (filterOutNonAddbaEstablished)
+                {
+                  Simulator::Stop (Seconds (duration));
+                  for (auto it = uplinkClientApps.Begin (); it != uplinkClientApps.End (); ++it)
+                    {
+                      Ptr<UdpClient> client = DynamicCast<UdpClient> (*it);
+                      client->SetAttribute ("MaxPackets", UintegerValue (4294967295u));
+                    }
+                  for (auto it = downlinkClientApps.Begin (); it != downlinkClientApps.End (); ++it)
+                    {
+                      Ptr<UdpClient> client = DynamicCast<UdpClient> (*it);
+                      client->SetAttribute ("MaxPackets", UintegerValue (4294967295u));
+                    }
+                }
+            }
+        }
+      else if (((aggregateDownlinkMbps != 0) && isAp) || ((aggregateUplinkMbps != 0) && !isAp)) //UL or DL
         {
           nEstablishedAddaBa++;
           if (nEstablishedAddaBa == n * nBss)
@@ -357,29 +380,6 @@ AddbaStateCb (std::string context, Time t, Mac48Address recipient, uint8_t tid, 
                       client->SetAttribute ("MaxPackets", UintegerValue (4294967295u));
                     }
                 }
-            }
-        }
-      else if ((aggregateDownlinkMbps != 0) && (aggregateUplinkMbps != 0)) //UP + DL
-        {
-          nEstablishedAddaBa++;
-          if (nEstablishedAddaBa == 2 * n * nBss)
-            {
-              allAddBaEstablished = true;
-              timeAllAddBaEstablished = t;
-              if (filterOutNonAddbaEstablished)
-                {
-                  Simulator::Stop (Seconds (duration));
-                  for (auto it = uplinkClientApps.Begin (); it != uplinkClientApps.End (); ++it)
-                    {
-                      Ptr<UdpClient> client = DynamicCast<UdpClient> (*it);
-                      client->SetAttribute ("MaxPackets", UintegerValue (4294967295u));
-                    }
-                  for (auto it = downlinkClientApps.Begin (); it != downlinkClientApps.End (); ++it)
-                    {
-                      Ptr<UdpClient> client = DynamicCast<UdpClient> (*it);
-                      client->SetAttribute ("MaxPackets", UintegerValue (4294967295u));
-                    }
-                }            
             }
         }
     }
@@ -1090,7 +1090,7 @@ main (int argc, char *argv[])
   uint64_t maxQueueDelay = 500; // milliSeconds
   bool enableFrameCapture = false;
   bool enableThresholdPreambleDetection = false;
-  bool disableArp = false;
+  bool disableArp = true;
 
   CommandLine cmd;
   cmd.AddValue ("duration", "Duration of simulation (s)", duration);

@@ -108,6 +108,12 @@ function run_one () {
   # else
   #   echo "enableThresholdPreambleDetection is set to $enableThresholdPreambleDetection";
   fi
+  if [ -z "$disableArp" ]; then
+  # echo "disableArp is not set, defaulting to 1.";
+  export disableArp=1
+  # else
+  #   echo "disableArp is set to $disableArp";
+  fi
   if [ -z "$maxAmpduSizeBss1" ]; then
   # echo "maxAmpduSizeBss1 is not set, defaulting to maxAmpduSize.";
   export maxAmpduSizeBss1=${maxAmpduSize}
@@ -200,7 +206,8 @@ function run_one () {
         --filterOutNonAddbaEstablished=${filterOutNonAddbaEstablished} \
         --useExplicitBarAfterMissedBlockAck=${useExplicitBarAfterMissedBlockAck} \
         --enableFrameCapture=${enableFrameCapture} \
-        --enableThresholdPreambleDetection=${enableThresholdPreambleDetection}"
+        --enableThresholdPreambleDetection=${enableThresholdPreambleDetection} \
+        --disableArp=${disableArp}"
 
   # copy results files
   cd ../scripts
