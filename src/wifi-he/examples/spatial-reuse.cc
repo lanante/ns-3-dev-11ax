@@ -646,6 +646,8 @@ SaveSpatialReuseStats (const std::string filename,
   std::cout << "Nodes per AP: " << n << std::endl;
   std::cout << "Distance between APs [m]: " << d << std::endl;
   std::cout << "Radius [m]: " << r << std::endl;
+  std::cout << "Uplink [Mbps]: " << uplink << std::endl;
+  std::cout << "Downlink [Mbps]: " << downlink << std::endl;
 
   double tputApUplinkTotal = 0;
   double tputApDownlinkTotal = 0;
