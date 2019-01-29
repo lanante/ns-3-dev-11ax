@@ -38,8 +38,6 @@ Open Issues and Future Work in the spatial reuse scenarios
 
 Plot the CDF of latency per flow (issue #33)
 
-study1 throughput plots still show irregularities (issue #64)
-
 Implement additional wish-list of spatial reuse scenario features
 and metrics (issues #10 #14)
 
@@ -47,6 +45,8 @@ obss_pd script failing on Mac (issue #81)
 
 Merge study1.sh and study2.sh into single script; study2.sh does not presently
 work (issue #82)
+
+Do not hardcode a maximum number of BSS (issue #94)
 
 Open Issues and Future Work in the other scenarios
 ==================================================
