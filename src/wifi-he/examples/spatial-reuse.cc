@@ -1088,7 +1088,7 @@ main (int argc, char *argv[])
   uint64_t maxQueueDelay = 500; // milliSeconds
   bool enableFrameCapture = false;
   bool enableThresholdPreambleDetection = false;
-  bool disableArp = false;
+  bool disableArp = true;
 
   CommandLine cmd;
   cmd.AddValue ("duration", "Duration of simulation (s)", duration);
