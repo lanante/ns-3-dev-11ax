@@ -397,7 +397,7 @@ AddbaStateCb (std::string context, Time t, Mac48Address recipient, uint8_t tid, 
               client->SetAttribute ("MaxPackets", UintegerValue (1));
             }
         }
-      else if (!isAp && (aggregateUplinkMbps != 0))
+      if (!isAp && (aggregateUplinkMbps != 0))
         {
           client = DynamicCast<UdpClient> (allNodes.Get (ContextToNodeId (context))->GetApplication (0));
           NS_ASSERT (client != 0);
@@ -1154,7 +1154,6 @@ main (int argc, char *argv[])
   if (bianchi)
     {
       filterOutNonAddbaEstablished = true;
-      maxQueueDelay = duration * 1000; //make sure there is no MSDU lifetime expired
       useExplicitBarAfterMissedBlockAck = false;
       beaconInterval = std::min<uint64_t> ((ceil ((duration * 1000000) / 1024) * 1024), (65535 * 1024)); //beacon interval needs to be a multiple of time units (1024 us)
       maxMissedBeacons = 4294967295;
@@ -1162,6 +1161,7 @@ main (int argc, char *argv[])
   
   if (filterOutNonAddbaEstablished)
     {
+      maxQueueDelay = duration * 1000; //make sure there is no MSDU lifetime expired
       disableArp = true;
     }
 
