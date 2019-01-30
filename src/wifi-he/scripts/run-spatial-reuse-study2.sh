@@ -69,8 +69,8 @@ echo "export maxAmpduSize=65535" >> ../scripts/study2.sh
 echo "" >> ../scripts/study2.sh
 
 # params that will vary
-for pd_thresh in -82; do #TODO: vary OBSS PD threshold
-    echo "export obssPdThreshold=${pd_thresh}" >> ../scripts/study2.sh
+for pd_thresh in 82 77 72 67 62; do
+    echo "export obssPdThreshold=-${pd_thresh}" >> ../scripts/study2.sh
     echo "" >> ../scripts/study2.sh
     # vary n from 5 to 40  in steps of 5
     for n in 5 10 15 20 25 30 35 40 ; do
@@ -88,7 +88,7 @@ for pd_thresh in -82; do #TODO: vary OBSS PD threshold
             d1=$(awk "BEGIN {print $d*100}")
             ul1=$(awk "BEGIN {print $uplink*100}")
             dl1=$(awk "BEGIN {print $downlink*100}")
-            test=$(printf "study2-%0.f-%02d-%02d-%0.2g-%0.1f-%0.1f_%ddbm\n" ${d1} ${r} ${n} ${ol1} ${ul1} ${dl1} ${pd_thresh})
+            test=$(printf "study2-%0.f-%02d-%02d-%0.2g-%0.1f-%0.1f-_-%ddbm\n" ${d1} ${r} ${n} ${ol1} ${ul1} ${dl1} ${pd_thresh})
             echo "export test=${test}" >> ../scripts/study2.sh
             echo "# run $test" >> ../scripts/study2.sh
             # fork each simulation for parallelism
@@ -96,10 +96,9 @@ for pd_thresh in -82; do #TODO: vary OBSS PD threshold
             echo "" >> ../scripts/study2.sh
         done
     done
+    # fork and wait
+    echo "wait" >> ../scripts/study2.sh
 done
-
-# fork and wait
-echo "wait" >> ../scripts/study2.sh
 
 chmod +x ../scripts/study2.sh
 
