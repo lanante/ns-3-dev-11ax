@@ -96,9 +96,10 @@ for pd_thresh in -82; do #TODO: vary OBSS PD threshold
             echo "" >> ../scripts/study2.sh
         done
     done
-    # fork and wait
-    echo "wait" >> ../scripts/study2.sh
 done
+
+# fork and wait
+echo "wait" >> ../scripts/study2.sh
 
 chmod +x ../scripts/study2.sh
 

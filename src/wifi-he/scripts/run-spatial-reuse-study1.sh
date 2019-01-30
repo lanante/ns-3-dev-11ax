@@ -92,9 +92,10 @@ for n in 5 10 15 20 25 30 35 40 ; do
         echo "run_one &" >> ../scripts/study1.sh
         echo "" >> ../scripts/study1.sh
     done
-    # fork and wait
-    echo "wait" >> ../scripts/study1.sh
 done
+
+# fork and wait
+echo "wait" >> ../scripts/study1.sh
 
 chmod +x ../scripts/study1.sh
 
