@@ -88,7 +88,7 @@ XLABEL="Offered Load [Mbps]"
 YLABEL="Throughput [Mbps]"
 RANGE=$THOUGHPUT_RANGE
 OPTIONS="$BASE_OPTIONS ; set key top left"
-IMGFILENAME="throughput-study2"
+IMGFILENAME="throughput-study2-82"
 plot
 
 unset FILES
@@ -145,7 +145,7 @@ XLABEL="Offered Load [Mbps]"
 YLABEL="Area Capacity [Mbps/m^2]"
 RANGE=$AREA_CAPACITY_RANGE
 OPTIONS="$BASE_OPTIONS ; set key top left"
-IMGFILENAME="area-capacity-study2"
+IMGFILENAME="area-capacity-study2-82"
 plot
 
 unset FILES
@@ -202,7 +202,7 @@ XLABEL="Offered Load [Mbps]"
 YLABEL="Spectrum Efficiency [Mbps/Hz/m^2]"
 RANGE=$STUDY2_SPECTRUM_EFFICIENCY_RANGE
 OPTIONS="$BASE_OPTIONS ; set key top left"
-IMGFILENAME="spectrum-efficiency-study2"
+IMGFILENAME="spectrum-efficiency-study2-82"
 plot
 
 unset FILES

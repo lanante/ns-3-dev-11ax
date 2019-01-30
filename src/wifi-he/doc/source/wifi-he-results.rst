@@ -950,14 +950,14 @@ of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
 
 .
 
-.. _throughput-study2:
+.. _throughput-study2-82:
 
-.. figure:: figures/throughput-study2.*
+.. figure:: figures/throughput-study2-82.*
    :align: center
 
    Throughput with OBSS_PD level -82 dBm for the BSS of interest in the center of the Study 2 parametric study.
 
-Figure :ref:`throughput-study2` illustrates the system throughput for BSS1.
+Figure :ref:`throughput-study2-82` illustrates the system throughput for BSS1.
 
 It is observed that TBD...
 
@@ -970,14 +970,14 @@ of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
 
 .
 
-.. _area-capacity-study2:
+.. _area-capacity-study2-82:
 
-.. figure:: figures/area-capacity-study2.*
+.. figure:: figures/area-capacity-study2-82.*
    :align: center
 
    Area capacity with OBSS_PD level -82 dBm for the BSS of interest in the center of the Study 2 parametric study.
 
-Figure :ref:`area-capacity-study2` illustrates the system throughput for BSS1.
+Figure :ref:`area-capacity-study2-82` illustrates the system throughput for BSS1.
 
 It is observed that TBD...
 
@@ -990,14 +990,14 @@ of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
 
 .
 
-.. _spectrum-efficiency-study2:
+.. _spectrum-efficiency-study2-82:
 
-.. figure:: figures/spectrum-efficiency-study2.*
+.. figure:: figures/spectrum-efficiency-study2-82.*
    :align: center
 
    Spectrum efficiency with OBSS_PD level -82 dBm for the BSS of interest in the center of the Study 2 parametric study.
 
-Figure :ref:`spectrum-efficiency-study2` illustrates the system throughput for BSS1.
+Figure :ref:`spectrum-efficiency-study2-82` illustrates the system throughput for BSS1.
 
 It is observed that TBD...
 
