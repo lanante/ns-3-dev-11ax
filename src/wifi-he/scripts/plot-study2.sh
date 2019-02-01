@@ -82,7 +82,7 @@ for ap in ap1 ; do
         PLOTTYPE="with linespoints"
         XLABEL="Offered Load [Mbps]"
         YLABEL="Throughput [Mbps]"
-        RANGE=$STUDY2_SPECTRUM_EFFICIENCY_RANGE
+        RANGE=$THOUGHPUT_RANGE
         OPTIONS="$BASE_OPTIONS ; set key top left"
         IMGFILENAME="throughput-study2-${pd_thresh}"
         plot
@@ -138,7 +138,7 @@ for ap in ap1 ; do
         PLOTTYPE="with linespoints"
         XLABEL="Offered Load [Mbps]"
         YLABEL="Area Capacity [Mbps/m^2]"
-        RANGE=$STUDY2_SPECTRUM_EFFICIENCY_RANGE
+        RANGE=$AREA_CAPACITY_RANGE
         OPTIONS="$BASE_OPTIONS ; set key top left"
         IMGFILENAME="area-capacity-study2-${pd_thresh}"
         plot
