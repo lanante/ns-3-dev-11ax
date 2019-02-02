@@ -92,7 +92,7 @@ for pd_thresh in 82 77 72 67 62; do
             echo "export test=${test}" >> ../scripts/study2.sh
             echo "# run $test" >> ../scripts/study2.sh
             # fork each simulation for parallelism
-            echo "run_one &" >> ../scripts/study2.sh
+            echo "sleep 1; run_one &" >> ../scripts/study2.sh
             echo "" >> ../scripts/study2.sh
         done
     done

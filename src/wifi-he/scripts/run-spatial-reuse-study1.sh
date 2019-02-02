@@ -89,7 +89,7 @@ for n in 5 10 15 20 25 30 35 40 ; do
         echo "export test=${test}" >> ../scripts/study1.sh
         echo "# run $test" >> ../scripts/study1.sh
         # fork each simulation for parallelism
-        echo "run_one &" >> ../scripts/study1.sh
+        echo "sleep 1; run_one &" >> ../scripts/study1.sh
         echo "" >> ../scripts/study1.sh
     done
 done
