@@ -1009,9 +1009,13 @@ main (int argc, char *argv[])
   std::string standard ("11ax_5GHZ");
   double csr = 1000.0; // carrier sense range
   double txStartOffset = 5.0; // [ns]
-  double obssPdThreshold = -99.0;
-  double obssPdThresholdMin = -82.0;
-  double obssPdThresholdMax = -62.0;
+  double obssPdThresholdBss1 = -99.0;
+  double obssPdThresholdBss2 = -99.0;
+  double obssPdThresholdBss3 = -99.0;
+  double obssPdThresholdBss4 = -99.0;
+  double obssPdThresholdBss5 = -99.0;
+  double obssPdThresholdBss6 = -99.0;
+  double obssPdThresholdBss7 = -99.0;
   double txGain = 0.0; // dBi
   double rxGain = 0.0; // dBi
   uint16_t antennas = 1;
@@ -1085,9 +1089,13 @@ main (int argc, char *argv[])
   cmd.AddValue ("payloadSizeDownlink", "Payload size of 1 downlink packet [bytes]", payloadSizeDownlink);
   cmd.AddValue ("MCS", "Modulation and Coding Scheme (MCS) index (default=0)", mcs);
   cmd.AddValue ("txStartOffset", "N(0, mu) offset for each node's start of packet transmission.  Default mu=5 [ns]", txStartOffset);
-  cmd.AddValue ("obssPdThreshold", "Energy threshold (dBm) of received signal below which the PHY layer can avoid declaring CCA BUSY for inter-BSS frames.", obssPdThreshold);
-  cmd.AddValue ("obssPdThresholdMin", "Minimum value (dBm) of OBSS_PD threshold.", obssPdThresholdMin);
-  cmd.AddValue ("obssPdThresholdMax", "Maximum value (dBm) of OBSS_PD threshold.", obssPdThresholdMax);
+  cmd.AddValue ("obssPdThresholdBss1", "Energy threshold (dBm) for BSS 1 of received signal below which the PHY layer can avoid declaring CCA BUSY for inter-BSS frames.", obssPdThresholdBss1);
+  cmd.AddValue ("obssPdThresholdBss2", "Energy threshold (dBm) for BSS 2 of received signal below which the PHY layer can avoid declaring CCA BUSY for inter-BSS frames.", obssPdThresholdBss2);
+  cmd.AddValue ("obssPdThresholdBss3", "Energy threshold (dBm) for BSS 3 of received signal below which the PHY layer can avoid declaring CCA BUSY for inter-BSS frames.", obssPdThresholdBss3);
+  cmd.AddValue ("obssPdThresholdBss4", "Energy threshold (dBm) for BSS 4 of received signal below which the PHY layer can avoid declaring CCA BUSY for inter-BSS frames.", obssPdThresholdBss4);
+  cmd.AddValue ("obssPdThresholdBss5", "Energy threshold (dBm) for BSS 5 of received signal below which the PHY layer can avoid declaring CCA BUSY for inter-BSS frames.", obssPdThresholdBss5);
+  cmd.AddValue ("obssPdThresholdBss6", "Energy threshold (dBm) for BSS 6 of received signal below which the PHY layer can avoid declaring CCA BUSY for inter-BSS frames.", obssPdThresholdBss6);
+  cmd.AddValue ("obssPdThresholdBss7", "Energy threshold (dBm) for BSS 7 of received signal below which the PHY layer can avoid declaring CCA BUSY for inter-BSS frames.", obssPdThresholdBss7);
   cmd.AddValue ("checkTimings", "Perform TGax timings checks (for MAC simulation calibrations).", performTgaxTimingChecks);
   cmd.AddValue ("scenario", "The spatial-reuse scenario (residential, enterprise, indoor, outdoor, study1, study2).", scenario);
   cmd.AddValue ("nBss", "The number of BSSs.", nBss);
@@ -1580,14 +1588,6 @@ main (int argc, char *argv[])
       wifi.SetRemoteStationManager ("ns3::IdealWifiManager");
     }
 
-  if (enableObssPd)
-    {
-      wifi.SetObssPdAlgorithm ("ns3::ConstantObssPdAlgorithm",
-                               "ObssPdLevel", DoubleValue (obssPdThreshold),
-                               "ObssPdLevelMin", DoubleValue (obssPdThresholdMin),
-                               "ObssPdLevelMax", DoubleValue (obssPdThresholdMax));
-    }
-
   // Set PHY power and CCA threshold for STAs
   spectrumPhy.Set ("TxPowerStart", DoubleValue (powSta));
   spectrumPhy.Set ("TxPowerEnd", DoubleValue (powSta));
@@ -1601,6 +1601,12 @@ main (int argc, char *argv[])
 
   // Network "A"
   Ssid ssidA = Ssid ("A");
+    if (enableObssPd)
+    {
+      wifi.SetObssPdAlgorithm ("ns3::ConstantObssPdAlgorithm",
+                               "ObssPdLevel", DoubleValue (obssPdThresholdBss1));
+    }
+
   mac.SetType ("ns3::StaWifiMac",
                "MaxMissedBeacons", UintegerValue (maxMissedBeacons),
                "Ssid", SsidValue (ssidA));
@@ -1652,6 +1658,12 @@ main (int argc, char *argv[])
 
       // Network "B"
       Ssid ssidB = Ssid ("B");
+      if (enableObssPd)
+        {
+          wifi.SetObssPdAlgorithm ("ns3::ConstantObssPdAlgorithm",
+                                   "ObssPdLevel", DoubleValue (obssPdThresholdBss2));
+        }
+
       mac.SetType ("ns3::StaWifiMac",
                    "MaxMissedBeacons", UintegerValue (maxMissedBeacons),
                    "Ssid", SsidValue (ssidB));
@@ -1700,6 +1712,12 @@ main (int argc, char *argv[])
 
       // Network "C"
       Ssid ssidC = Ssid ("C");
+      if (enableObssPd)
+        {
+          wifi.SetObssPdAlgorithm ("ns3::ConstantObssPdAlgorithm",
+                                   "ObssPdLevel", DoubleValue (obssPdThresholdBss3));
+        }
+
       mac.SetType ("ns3::StaWifiMac",
                    "MaxMissedBeacons", UintegerValue (maxMissedBeacons),
                    "Ssid", SsidValue (ssidC));
@@ -1748,6 +1766,12 @@ main (int argc, char *argv[])
 
       // Network "D"
       Ssid ssidD = Ssid ("D");
+      if (enableObssPd)
+        {
+          wifi.SetObssPdAlgorithm ("ns3::ConstantObssPdAlgorithm",
+                                   "ObssPdLevel", DoubleValue (obssPdThresholdBss4));
+        }
+
       mac.SetType ("ns3::StaWifiMac",
                    "MaxMissedBeacons", UintegerValue (maxMissedBeacons),
                    "Ssid", SsidValue (ssidD));
@@ -1796,6 +1820,12 @@ main (int argc, char *argv[])
 
       // Network "E"
       Ssid ssidE = Ssid ("E");
+      if (enableObssPd)
+        {
+          wifi.SetObssPdAlgorithm ("ns3::ConstantObssPdAlgorithm",
+                                   "ObssPdLevel", DoubleValue (obssPdThresholdBss5));
+        }
+
       mac.SetType ("ns3::StaWifiMac",
                    "MaxMissedBeacons", UintegerValue (maxMissedBeacons),
                    "Ssid", SsidValue (ssidE));
@@ -1844,6 +1874,12 @@ main (int argc, char *argv[])
 
       // Network "F"
       Ssid ssidF = Ssid ("F");
+      if (enableObssPd)
+        {
+          wifi.SetObssPdAlgorithm ("ns3::ConstantObssPdAlgorithm",
+                                   "ObssPdLevel", DoubleValue (obssPdThresholdBss6));
+        }
+
       mac.SetType ("ns3::StaWifiMac",
                    "MaxMissedBeacons", UintegerValue (maxMissedBeacons),
                    "Ssid", SsidValue (ssidF));
@@ -1891,6 +1927,12 @@ main (int argc, char *argv[])
 
       // Network "G"
       Ssid ssidG = Ssid ("G");
+      if (enableObssPd)
+        {
+          wifi.SetObssPdAlgorithm ("ns3::ConstantObssPdAlgorithm",
+                                   "ObssPdLevel", DoubleValue (obssPdThresholdBss7));
+        }
+
       mac.SetType ("ns3::StaWifiMac",
                    "MaxMissedBeacons", UintegerValue (maxMissedBeacons),
                    "Ssid", SsidValue (ssidG));

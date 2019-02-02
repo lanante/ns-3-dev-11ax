@@ -198,6 +198,48 @@ function run_one () {
   # else
   #   echo "colorBss7 is set to $colorBss7";
   fi
+  if [ -z "$obssPdThresholdBss1" ]; then
+  # echo "obssPdThresholdBss1 is not set, defaulting to obssPdThreshold.";
+  export obssPdThresholdBss1=${obssPdThreshold}
+  # else
+  #   echo "obssPdThresholdBss1 is set to $obssPdThresholdBss1";
+  fi
+  if [ -z "$obssPdThresholdBss2" ]; then
+  # echo "obssPdThresholdBss2 is not set, defaulting to obssPdThreshold.";
+  export obssPdThresholdBss2=${obssPdThreshold}
+  # else
+  #   echo "obssPdThresholdBss2 is set to $obssPdThresholdBss2";
+  fi
+  if [ -z "$obssPdThresholdBss3" ]; then
+  # echo "obssPdThresholdBss3 is not set, defaulting to obssPdThreshold.";
+  export obssPdThresholdBss3=${obssPdThreshold}
+  # else
+  #   echo "obssPdThresholdBss3 is set to $obssPdThresholdBss3";
+  fi
+  if [ -z "$obssPdThresholdBss4" ]; then
+  # echo "obssPdThresholdBss4 is not set, defaulting to obssPdThreshold.";
+  export obssPdThresholdBss4=${obssPdThreshold}
+  # else
+  #   echo "obssPdThresholdBss4 is set to $obssPdThresholdBss4";
+  fi
+  if [ -z "$obssPdThresholdBss5" ]; then
+  # echo "obssPdThresholdBss5 is not set, defaulting to obssPdThreshold.";
+  export obssPdThresholdBss5=${obssPdThreshold}
+  # else
+  #   echo "obssPdThresholdBss5 is set to $obssPdThresholdBss5";
+  fi
+  if [ -z "$obssPdThresholdBss6" ]; then
+  # echo "obssPdThresholdBss6 is not set, defaulting to obssPdThreshold.";
+  export obssPdThresholdBss6=${obssPdThreshold}
+  # else
+  #   echo "obssPdThresholdBss6 is set to $obssPdThresholdBss6";
+  fi
+  if [ -z "$obssPdThresholdBss7" ]; then
+  # echo "obssPdThresholdBss7 is not set, defaulting to obssPdThreshold.";
+  export obssPdThresholdBss7=${obssPdThreshold}
+  # else
+  #   echo "obssPdThresholdBss7 is set to $obssPdThresholdBss7";
+  fi
   echo Running ${test}
   # run the test
   ../../../waf --run "spatial-reuse \
@@ -218,7 +260,13 @@ function run_one () {
         --payloadSizeUplink=${payloadSizeUplink} \
         --payloadSizeDownlink=${payloadSizeDownlink} \
         --txStartOffset=${txStartOffset} \
-        --enableObssPd=${enableObssPd} \
+        --enableObssPdBss1=${enableObssPdBss1} \
+        --enableObssPdBss2=${enableObssPdBss2} \
+        --enableObssPdBss3=${enableObssPdBss3} \
+        --enableObssPdBss4=${enableObssPdBss4} \
+        --enableObssPdBss5=${enableObssPdBss5} \
+        --enableObssPdBss6=${enableObssPdBss6} \
+        --enableObssPdBss7=${enableObssPdBss7} \
         --txGain=${txGain} \
         --rxGain=${rxGain} \
         --antennas=${antennas} \
