@@ -59,8 +59,6 @@ Rework scripts to avoid files in top-level directory (#77)
 
 pngcairo not readily available on MacOS (issue #77)
 
-ascii trace file not generated (issue #84)
-
 unequal split of the UL throughput for calibration tests (issue #86)
 
 Indoor small BSS and residential scenarios give lower results than expected  (issue #87)
