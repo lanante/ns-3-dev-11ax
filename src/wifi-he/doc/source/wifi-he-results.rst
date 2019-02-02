@@ -937,7 +937,7 @@ Study 2 Results
 ===============
 
 The figures in the section were generated using the ns-3-dev-11ax
-repository as of commit changeset c673c043c29f7063ea666504518b5c432b0344fc.
+repository as of commit changeset 003396927f1fa07b3681af0066c50436be1ec952.
 
 TODO: generate for various OBSS PD levels.
 

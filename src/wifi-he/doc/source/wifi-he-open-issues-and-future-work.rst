@@ -31,8 +31,6 @@ theoretical results on the plots vs. the simulation results. (issue #73)
 
 Block ack frame format (issue #80)
 
-Getting half throughput when doubling simulation time (#issue 89)
-
 Open Issues and Future Work in the spatial reuse scenarios
 ==========================================================
 
@@ -46,8 +44,6 @@ obss_pd script failing on Mac (issue #81)
 Merge study1.sh and study2.sh into single script; study2.sh does not presently
 work (issue #82)
 
-Do not hardcode a maximum number of BSS (issue #94)
-
 Open Issues and Future Work in the other scenarios
 ==================================================
 
@@ -58,8 +54,6 @@ Integrate and test LAA code (issue #5)
 Some Calibration Box5 scenarios crash ns-3 (issue #43)
 
 Reduce drop radius to r=10 as some nodes on edge are not heard by AP (issue #45)
-
-study simulation result sensitivity to duration, start-offset, RngRun (issue #57)
 
 Regression testing on scenario scripts is needed (issue #65)
 
