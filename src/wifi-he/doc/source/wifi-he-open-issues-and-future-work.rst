@@ -53,8 +53,6 @@ Integrate and test LAA code (issue #5)
 
 Some Calibration Box5 scenarios crash ns-3 (issue #43)
 
-Reduce drop radius to r=10 as some nodes on edge are not heard by AP (issue #45)
-
 Regression testing on scenario scripts is needed (issue #65)
 
 Rework scripts to avoid files in top-level directory (#77)
