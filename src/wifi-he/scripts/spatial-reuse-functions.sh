@@ -156,6 +156,48 @@ function run_one () {
   # else
   #   echo "maxAmpduSizeBss7 is set to $maxAmpduSizeBss7";
   fi
+  if [ -z "$colorBss1" ]; then
+  # echo "colorBss1 is not set, defaulting to 1.";
+  export colorBss1=1
+  # else
+  #   echo "colorBss1 is set to $colorBss1";
+  fi
+  if [ -z "$colorBss2" ]; then
+  # echo "colorBss2 is not set, defaulting to 2.";
+  export colorBss2=2
+  # else
+  #   echo "colorBss2 is set to $colorBss2";
+  fi
+  if [ -z "$colorBss3" ]; then
+  # echo "colorBss3 is not set, defaulting to 3.";
+  export colorBss3=3
+  # else
+  #   echo "colorBss3 is set to $colorBss3";
+  fi
+  if [ -z "$colorBss4" ]; then
+  # echo "colorBss4 is not set, defaulting to 4.";
+  export colorBss4=4
+  # else
+  #   echo "colorBss4 is set to $colorBss4";
+  fi
+  if [ -z "$colorBss5" ]; then
+  # echo "colorBss5 is not set, defaulting to 5.";
+  export colorBss5=5
+  # else
+  #   echo "colorBss5 is set to $colorBss5";
+  fi
+  if [ -z "$colorBss6" ]; then
+  # echo "colorBss6 is not set, defaulting to 6.";
+  export colorBss6=6
+  # else
+  #   echo "colorBss6 is set to $colorBss6";
+  fi
+  if [ -z "$colorBss7" ]; then
+  # echo "colorBss7 is not set, defaulting to 7.";
+  export colorBss7=7
+  # else
+  #   echo "colorBss7 is set to $colorBss7";
+  fi
   echo Running ${test}
   # run the test
   ../../../waf --run "spatial-reuse \
@@ -207,7 +249,14 @@ function run_one () {
         --useExplicitBarAfterMissedBlockAck=${useExplicitBarAfterMissedBlockAck} \
         --enableFrameCapture=${enableFrameCapture} \
         --enableThresholdPreambleDetection=${enableThresholdPreambleDetection} \
-        --disableArp=${disableArp}"
+        --disableArp=${disableArp} \
+        --colorBss1=${colorBss1} \
+        --colorBss2=${colorBss2} \
+        --colorBss3=${colorBss3} \
+        --colorBss4=${colorBss4} \
+        --colorBss5=${colorBss5} \
+        --colorBss6=${colorBss6} \
+        --colorBss7=${colorBss7}"
 
   # copy results files
   cd ../scripts

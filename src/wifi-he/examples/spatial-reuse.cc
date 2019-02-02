@@ -1048,6 +1048,13 @@ main (int argc, char *argv[])
   bool enableFrameCapture = false;
   bool enableThresholdPreambleDetection = false;
   bool disableArp = true;
+  uint16_t colorBss1 = 1;
+  uint16_t colorBss2 = 2;
+  uint16_t colorBss3 = 3;
+  uint16_t colorBss4 = 4;
+  uint16_t colorBss5 = 5;
+  uint16_t colorBss6 = 6;
+  uint16_t colorBss7 = 7;
 
   CommandLine cmd;
   cmd.AddValue ("duration", "Duration of simulation (s)", duration);
@@ -1106,6 +1113,13 @@ main (int argc, char *argv[])
   cmd.AddValue ("enableFrameCapture", "Enable or disable frame capture", enableFrameCapture);
   cmd.AddValue ("enableThresholdPreambleDetection", "Enable or disable threshold-based preamble detection (if not set, preamble detection is always successful)", enableThresholdPreambleDetection);
   cmd.AddValue ("disableArp", "Flag whether we disable ARP mechanism (populate cache before simulation starts and set a very high timeout).", disableArp);
+  cmd.AddValue ("colorBss1", "The color for BSS 1.", colorBss1);
+  cmd.AddValue ("colorBss2", "The color for BSS 2.", colorBss2);
+  cmd.AddValue ("colorBss3", "The color for BSS 3.", colorBss3);
+  cmd.AddValue ("colorBss4", "The color for BSS 4.", colorBss4);
+  cmd.AddValue ("colorBss5", "The color for BSS 5.", colorBss5);
+  cmd.AddValue ("colorBss6", "The color for BSS 6.", colorBss6);
+  cmd.AddValue ("colorBss7", "The color for BSS 7.", colorBss7);
   cmd.Parse (argc, argv);
 
   if (bianchi)
@@ -1620,7 +1634,7 @@ main (int argc, char *argv[])
   if ((enableObssPd))
     {
       Ptr<HeConfiguration> heConfiguration = apDevice->GetHeConfiguration ();
-      heConfiguration->SetAttribute ("BssColor", UintegerValue (1));
+      heConfiguration->SetAttribute ("BssColor", UintegerValue (colorBss1));
     }
 
   if (nBss >= 2)
@@ -1667,7 +1681,7 @@ main (int argc, char *argv[])
       if (enableObssPd)
         {
           Ptr <HeConfiguration> heConfiguration = ap2Device->GetHeConfiguration ();
-          heConfiguration->SetAttribute ("BssColor", UintegerValue (2));
+          heConfiguration->SetAttribute ("BssColor", UintegerValue (colorBss2));
         }
     }
 
@@ -1715,7 +1729,7 @@ main (int argc, char *argv[])
       if (enableObssPd)
         {
           Ptr <HeConfiguration> heConfiguration = ap3Device->GetHeConfiguration ();
-          heConfiguration->SetAttribute ("BssColor", UintegerValue (3));
+          heConfiguration->SetAttribute ("BssColor", UintegerValue (colorBss3));
         }
     }
 
@@ -1763,7 +1777,7 @@ main (int argc, char *argv[])
       if (enableObssPd)
         {
           Ptr <HeConfiguration> heConfiguration = ap4Device->GetHeConfiguration ();
-          heConfiguration->SetAttribute ("BssColor", UintegerValue (4));
+          heConfiguration->SetAttribute ("BssColor", UintegerValue (colorBss4));
         }
     }
 
@@ -1811,7 +1825,7 @@ main (int argc, char *argv[])
       if (enableObssPd)
         {
           Ptr <HeConfiguration> heConfiguration = ap5Device->GetHeConfiguration ();
-          heConfiguration->SetAttribute ("BssColor", UintegerValue (5));
+          heConfiguration->SetAttribute ("BssColor", UintegerValue (colorBss5));
         }
     }
 
@@ -1859,7 +1873,7 @@ main (int argc, char *argv[])
       if (enableObssPd)
         {
           Ptr <HeConfiguration> heConfiguration = ap6Device->GetHeConfiguration ();
-          heConfiguration->SetAttribute ("BssColor", UintegerValue (6));
+          heConfiguration->SetAttribute ("BssColor", UintegerValue (colorBss6));
         }
     }
 
@@ -1895,7 +1909,7 @@ main (int argc, char *argv[])
       if (enableObssPd)
         {
           Ptr <HeConfiguration> heConfiguration = ap7Device->GetHeConfiguration ();
-          heConfiguration->SetAttribute ("BssColor", UintegerValue (7));
+          heConfiguration->SetAttribute ("BssColor", UintegerValue (colorBss7));
         }
     }
 
