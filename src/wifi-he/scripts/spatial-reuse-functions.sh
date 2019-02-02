@@ -53,6 +53,8 @@ function run_one () {
   check_file "./results/spatial-reuse-rx-sniff-$test-ap1-noise.png"
   check_file "./results/spatial-reuse-rx-sniff-$test-ap2-signal.png"
   check_file "./results/spatial-reuse-rx-sniff-$test-ap2-noise.png"
+  check_file "./results/spatial-reuse-rx-sniff-$test-ap1-snr.png"
+  check_file "./results/spatial-reuse-rx-sniff-$test-ap2-snr.png"
 
   if [ -z "$maxSlrc" ]; then
     export maxSlrc=7
@@ -249,7 +251,7 @@ function run_one () {
   mkdir -p results
   cp "../../../spatial-reuse-positions-$test.csv" "results/spatial-reuse-positions-$test.csv"
   # to save on disk space, the rx-sniff file is not copied to the results/ folder, as this
-  # file can grow to be very large and is only used to create the noise and signal cdf plots.
+  # file can grow to be very large and is only used to create the noise, signal and snr cdf plots.
   # cp "../../../spatial-reuse-rx-sniff-$test.dat"  "results/spatial-reuse-rx-sniff-$test.dat"
   cp "../../../spatial-reuse-SR-stats-$test.dat"  "results/spatial-reuse-SR-stats-$test.dat"
   cp "../../../spatial-reuse-A-$test.flowmon"  "results/spatial-reuse-A-$test.flowmon"
@@ -268,9 +270,10 @@ function run_one () {
   # rx-sniff file
   cd ../scripts
   cp "../../../spatial-reuse-rx-sniff-$test.dat" "spatial-reuse-rx-sniff-$test.dat"
-  # in the *rx-sniff.dat file, column 7 is the signal, column 6 is the noise
+  # in the *rx-sniff.dat file, column 7 is the signal, column 6 is the noise, column 9 is snr
   signal=7
   noise=6
+  snr=9
   # node id of AP1 is 0
   ap1=0
   # noide is of first STA for AP1 is 1
@@ -286,12 +289,16 @@ function run_one () {
   # note:  only getting received packets > 1500b (last parameter below...)
   # AP1 signal
   python ecdf2.py "spatial-reuse-rx-sniff-$test.dat" "$signal" 0 "$ap1" "$sta1_1" "$sta1_n" "spatial-reuse-rx-sniff-$test-ap1-signal.png" 1500 &
-  # AP2 noise
+  # AP1 noise
   python ecdf2.py "spatial-reuse-rx-sniff-$test.dat" "$noise"  0 "$ap1" "$sta1_1" "$sta1_n" "spatial-reuse-rx-sniff-$test-ap1-noise.png" 1500 &
+  # AP1 snr
+  python ecdf2.py "spatial-reuse-rx-sniff-$test.dat" "$snr"  0 "$ap1" "$sta1_1" "$sta1_n" "spatial-reuse-rx-sniff-$test-ap1-snr.png" 1500 &
   # AP2 signal
   python ecdf2.py "spatial-reuse-rx-sniff-$test.dat" "$signal" 1 "$ap2" "$sta2_1" "$sta2_n" "spatial-reuse-rx-sniff-$test-ap2-signal.png" 1500 &
   # AP2 noise
   python ecdf2.py "spatial-reuse-rx-sniff-$test.dat" "$noise"  1 "$ap2" "$sta2_1" "$sta2_n" "spatial-reuse-rx-sniff-$test-ap2-noise.png" 1500 &
+  # AP2 snr
+  python ecdf2.py "spatial-reuse-rx-sniff-$test.dat" "$snr"  1 "$ap2" "$sta2_1" "$sta2_n" "spatial-reuse-rx-sniff-$test-ap2-snr.png" 1500 &
   wait
 
   # to reduce disk space usage, the 'rx-sniff' files are deleted here, after
@@ -304,10 +311,14 @@ function run_one () {
   cp "spatial-reuse-rx-sniff-$test-ap1-noise.png" ./results/.
   cp "spatial-reuse-rx-sniff-$test-ap2-signal.png" ./results/.
   cp "spatial-reuse-rx-sniff-$test-ap2-noise.png" ./results/.
+  cp "spatial-reuse-rx-sniff-$test-ap1-snr.png" ./results/.
+  cp "spatial-reuse-rx-sniff-$test-ap2-snr.png" ./results/.
   rm "spatial-reuse-rx-sniff-$test-ap1-signal.png"
   rm "spatial-reuse-rx-sniff-$test-ap1-noise.png"
   rm "spatial-reuse-rx-sniff-$test-ap2-signal.png"
   rm "spatial-reuse-rx-sniff-$test-ap2-noise.png"
+  rm "spatial-reuse-rx-sniff-$test-ap1-snr.png"
+  rm "spatial-reuse-rx-sniff-$test-ap2-snr.png"
 
   # clean up all the output files that are in the root folder
   echo "Complete.  Removing the following files:"

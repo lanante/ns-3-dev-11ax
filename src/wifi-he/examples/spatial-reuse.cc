@@ -805,7 +805,7 @@ void ProcessPacket (std::string context,
           g_noiseDbmAvg += ((signalNoise.noise - g_noiseDbmAvg) / g_samples);
           Address rxNodeAddress = allNodes.Get (rxNodeId)->GetDevice (0)->GetAddress ();
           uint32_t pktSize = packet->GetSize ();
-          g_rxSniffFile << rxNodeId << ", " << dstNodeId << ", " << srcNodeId << ", " << rxNodeAddress << ", " << addr1 << ", " << addr2 << ", " << signalNoise.noise << ", " << signalNoise.signal << ", " << pktSize << std::endl;
+          g_rxSniffFile << rxNodeId << ", " << dstNodeId << ", " << srcNodeId << ", " << rxNodeAddress << ", " << addr1 << ", " << addr2 << ", " << signalNoise.noise << ", " << signalNoise.signal << ", " << pktSize << ", " << signalNoise.signal - signalNoise.noise << std::endl;
           if (signalNoise.signal < g_min_signal)
             {
               g_min_signal = signalNoise.signal;
