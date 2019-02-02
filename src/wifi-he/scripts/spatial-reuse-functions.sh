@@ -254,6 +254,7 @@ function run_one () {
   cp "../../../spatial-reuse-SR-stats-$test.dat"  "results/spatial-reuse-SR-stats-$test.dat"
   cp "../../../spatial-reuse-A-$test.flowmon"  "results/spatial-reuse-A-$test.flowmon"
   cp "../../../spatial-reuse-operatorA-$test"  "results/spatial-reuse-operatorA-$test"
+  cp "../../../spatial-reuse-$test.tr"  "results/spatial-reuse-$test.tr"
   if (("${performTgaxTimingChecks}" == "1")); then
     cp "../../../spatial-reuse-tgax-calibration-timings-$test.dat"  "results/spatial-reuse-tgax-calibration-timings-${test}.dat"
   fi
