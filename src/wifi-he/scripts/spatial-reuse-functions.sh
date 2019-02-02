@@ -55,191 +55,129 @@ function run_one () {
   check_file "./results/spatial-reuse-rx-sniff-$test-ap2-noise.png"
 
   if [ -z "$maxSlrc" ]; then
-    # echo "maxSlrc is not set, defaulting to 7.";
     export maxSlrc=7
-  # else
-  #  # echo "maxSlrc is set to $maxSlrc";
   fi
+
   if [ -z "$bianchi" ]; then
-    # echo "bianchi is not set, defaulting to 'false'.";
     export bianchi=0
-  # else
-  #  # echo "bianchi is set to $bianchi";
   fi
+
   if [ -z "$sigma" ]; then
-    # echo "sigma is not set, defaulting to 5.0.";
     export sigma=5.0
-  # else
-  #   echo "sigma is set to $sigma";
   fi
+
   if [ -z "$applicationTxStart" ]; then
-    # echo "applicationTxStart is not set, defaulting to 1.0.";
     export applicationTxStart=1.0
-  # else
-  #   echo "applicationTxStart is set to $applicationTxStart";
   fi
+
   if [ -z "$rxSensitivity" ]; then
-    # echo "rxSensitivity is not set, defaulting to -91.0.";
     export rxSensitivity=-91.0
-  # else
-  #   echo "rxSensitivity is set to $rxSensitivity";
   fi
+
   if [ -z "$filterOutNonAddbaEstablished" ]; then
-    # echo "filterOutNonAddbaEstablished is not set, defaulting to 0.";
     export filterOutNonAddbaEstablished=0
-  # else
-  #   echo "filterOutNonAddbaEstablished is set to $filterOutNonAddbaEstablished";
   fi
+
   if [ -z "$useExplicitBarAfterMissedBlockAck" ]; then
-  # echo "useExplicitBarAfterMissedBlockAck is not set, defaulting to 1.";
-  export useExplicitBarAfterMissedBlockAck=1
-  # else
-  #   echo "useExplicitBarAfterMissedBlockAck is set to $useExplicitBarAfterMissedBlockAck";
+    export useExplicitBarAfterMissedBlockAck=1
   fi
+
   if [ -z "$enableFrameCapture" ]; then
-  # echo "enableFrameCapture is not set, defaulting to 0.";
-  export enableFrameCapture=0
-  # else
-  #   echo "enableFrameCapture is set to $enableFrameCapture";
+    export enableFrameCapture=0
   fi
+
   if [ -z "$enableThresholdPreambleDetection" ]; then
-  # echo "enableThresholdPreambleDetection is not set, defaulting to 0.";
-  export enableThresholdPreambleDetection=0
-  # else
-  #   echo "enableThresholdPreambleDetection is set to $enableThresholdPreambleDetection";
+    export enableThresholdPreambleDetection=0
   fi
+
   if [ -z "$disableArp" ]; then
-  # echo "disableArp is not set, defaulting to 1.";
-  export disableArp=1
-  # else
-  #   echo "disableArp is set to $disableArp";
+    export disableArp=1
   fi
+
   if [ -z "$maxAmpduSizeBss1" ]; then
-  # echo "maxAmpduSizeBss1 is not set, defaulting to maxAmpduSize.";
-  export maxAmpduSizeBss1=${maxAmpduSize}
-  # else
-  #   echo "maxAmpduSizeBss1 is set to $maxAmpduSizeBss1";
+    export maxAmpduSizeBss1=${maxAmpduSize}
   fi
+
   if [ -z "$maxAmpduSizeBss2" ]; then
-  # echo "maxAmpduSizeBss2 is not set, defaulting to maxAmpduSize.";
-  export maxAmpduSizeBss2=${maxAmpduSize}
-  # else
-  #   echo "maxAmpduSizeBss2 is set to $maxAmpduSizeBss2";
+    export maxAmpduSizeBss2=${maxAmpduSize}
   fi
+
   if [ -z "$maxAmpduSizeBss3" ]; then
-  # echo "maxAmpduSizeBss3 is not set, defaulting to maxAmpduSize.";
-  export maxAmpduSizeBss3=${maxAmpduSize}
-  # else
-  #   echo "maxAmpduSizeBss3 is set to $maxAmpduSizeBss3";
+    export maxAmpduSizeBss3=${maxAmpduSize}
   fi
+
   if [ -z "$maxAmpduSizeBss4" ]; then
-  # echo "maxAmpduSizeBss4 is not set, defaulting to maxAmpduSize.";
-  export maxAmpduSizeBss4=${maxAmpduSize}
-  # else
-  #   echo "maxAmpduSizeBss4 is set to $maxAmpduSizeBss4";
+    export maxAmpduSizeBss4=${maxAmpduSize}
   fi
+
   if [ -z "$maxAmpduSizeBss5" ]; then
-  # echo "maxAmpduSizeBss5 is not set, defaulting to maxAmpduSize.";
-  export maxAmpduSizeBss5=${maxAmpduSize}
-  # else
-  #   echo "maxAmpduSizeBss5 is set to $maxAmpduSizeBss5";
+    export maxAmpduSizeBss5=${maxAmpduSize}
   fi
+
   if [ -z "$maxAmpduSizeBss6" ]; then
-  # echo "maxAmpduSizeBss6 is not set, defaulting to maxAmpduSize.";
-  export maxAmpduSizeBss6=${maxAmpduSize}
-  # else
-  #   echo "maxAmpduSizeBss6 is set to $maxAmpduSizeBss6";
+    export maxAmpduSizeBss6=${maxAmpduSize}
   fi
+
   if [ -z "$maxAmpduSizeBss7" ]; then
-  # echo "maxAmpduSizeBss7 is not set, defaulting to maxAmpduSize.";
-  export maxAmpduSizeBss7=${maxAmpduSize}
-  # else
-  #   echo "maxAmpduSizeBss7 is set to $maxAmpduSizeBss7";
+    export maxAmpduSizeBss7=${maxAmpduSize}
   fi
+
   if [ -z "$colorBss1" ]; then
-  # echo "colorBss1 is not set, defaulting to 1.";
-  export colorBss1=1
-  # else
-  #   echo "colorBss1 is set to $colorBss1";
+    export colorBss1=1
   fi
+
   if [ -z "$colorBss2" ]; then
-  # echo "colorBss2 is not set, defaulting to 2.";
-  export colorBss2=2
-  # else
-  #   echo "colorBss2 is set to $colorBss2";
+    export colorBss2=2
   fi
+
   if [ -z "$colorBss3" ]; then
-  # echo "colorBss3 is not set, defaulting to 3.";
-  export colorBss3=3
-  # else
-  #   echo "colorBss3 is set to $colorBss3";
+    export colorBss3=3
   fi
+
   if [ -z "$colorBss4" ]; then
-  # echo "colorBss4 is not set, defaulting to 4.";
-  export colorBss4=4
-  # else
-  #   echo "colorBss4 is set to $colorBss4";
+    export colorBss4=4
   fi
+
   if [ -z "$colorBss5" ]; then
-  # echo "colorBss5 is not set, defaulting to 5.";
-  export colorBss5=5
-  # else
-  #   echo "colorBss5 is set to $colorBss5";
+    export colorBss5=5
   fi
+
   if [ -z "$colorBss6" ]; then
-  # echo "colorBss6 is not set, defaulting to 6.";
-  export colorBss6=6
-  # else
-  #   echo "colorBss6 is set to $colorBss6";
+    export colorBss6=6
   fi
+
   if [ -z "$colorBss7" ]; then
-  # echo "colorBss7 is not set, defaulting to 7.";
-  export colorBss7=7
-  # else
-  #   echo "colorBss7 is set to $colorBss7";
+    export colorBss7=7
   fi
+
   if [ -z "$obssPdThresholdBss1" ]; then
-  # echo "obssPdThresholdBss1 is not set, defaulting to obssPdThreshold.";
-  export obssPdThresholdBss1=${obssPdThreshold}
-  # else
-  #   echo "obssPdThresholdBss1 is set to $obssPdThresholdBss1";
+    export obssPdThresholdBss1=${obssPdThreshold}
   fi
+
   if [ -z "$obssPdThresholdBss2" ]; then
-  # echo "obssPdThresholdBss2 is not set, defaulting to obssPdThreshold.";
-  export obssPdThresholdBss2=${obssPdThreshold}
-  # else
-  #   echo "obssPdThresholdBss2 is set to $obssPdThresholdBss2";
+    export obssPdThresholdBss2=${obssPdThreshold}
   fi
+
   if [ -z "$obssPdThresholdBss3" ]; then
-  # echo "obssPdThresholdBss3 is not set, defaulting to obssPdThreshold.";
-  export obssPdThresholdBss3=${obssPdThreshold}
-  # else
-  #   echo "obssPdThresholdBss3 is set to $obssPdThresholdBss3";
+    export obssPdThresholdBss3=${obssPdThreshold}
   fi
+
   if [ -z "$obssPdThresholdBss4" ]; then
-  # echo "obssPdThresholdBss4 is not set, defaulting to obssPdThreshold.";
-  export obssPdThresholdBss4=${obssPdThreshold}
-  # else
-  #   echo "obssPdThresholdBss4 is set to $obssPdThresholdBss4";
+    export obssPdThresholdBss4=${obssPdThreshold}
   fi
+
   if [ -z "$obssPdThresholdBss5" ]; then
-  # echo "obssPdThresholdBss5 is not set, defaulting to obssPdThreshold.";
-  export obssPdThresholdBss5=${obssPdThreshold}
-  # else
-  #   echo "obssPdThresholdBss5 is set to $obssPdThresholdBss5";
+    export obssPdThresholdBss5=${obssPdThreshold}
   fi
+
   if [ -z "$obssPdThresholdBss6" ]; then
-  # echo "obssPdThresholdBss6 is not set, defaulting to obssPdThreshold.";
-  export obssPdThresholdBss6=${obssPdThreshold}
-  # else
-  #   echo "obssPdThresholdBss6 is set to $obssPdThresholdBss6";
+    export obssPdThresholdBss6=${obssPdThreshold}
   fi
+
   if [ -z "$obssPdThresholdBss7" ]; then
-  # echo "obssPdThresholdBss7 is not set, defaulting to obssPdThreshold.";
-  export obssPdThresholdBss7=${obssPdThreshold}
-  # else
-  #   echo "obssPdThresholdBss7 is set to $obssPdThresholdBss7";
+    export obssPdThresholdBss7=${obssPdThreshold}
   fi
+
   echo Running ${test}
   # run the test
   ../../../waf --run "spatial-reuse \
