@@ -244,11 +244,8 @@ void TxAmpduCallback (std::string context, Ptr<const Packet> p, const WifiMacHea
 
   Time ampduDuration = t_cp2 - t_cp1;  // same as t_duration
 
-  // if (ampduDuration != lastAmpduDuration)
-  {
-    WriteCalibrationResult (context, "A-MPDU-duration", ampduDuration, p, hdr);
-    lastAmpduDuration = ampduDuration;
-  }
+  WriteCalibrationResult (context, "A-MPDU-duration", ampduDuration, p, hdr);
+  lastAmpduDuration = ampduDuration;
 
   lastTxAmpduEnd = t_cp2;
 
@@ -258,12 +255,8 @@ void TxAmpduCallback (std::string context, Ptr<const Packet> p, const WifiMacHea
       Time t_cp4 = lastRxBlockAckEnd;
 
       Time deferAndBackoffDuration = t_cp5 - t_cp4;
-
-      // if (deferAndBackoffDuration != lastDeferAndBackoffDuration)
-      {
-        WriteCalibrationResult (context, "Defer-and-backoff-duration", deferAndBackoffDuration, p, hdr);
-        lastDeferAndBackoffDuration = deferAndBackoffDuration;
-      }
+      WriteCalibrationResult (context, "Defer-and-backoff-duration", deferAndBackoffDuration, p, hdr);
+      lastDeferAndBackoffDuration = deferAndBackoffDuration;
     }
 }
 
@@ -277,20 +270,12 @@ void RxBlockAckCallback (std::string context, Ptr<const Packet> p, const WifiMac
   Time t_cp4 = t_now + t_duration;
 
   Time sifsDuration = t_cp3 - lastTxAmpduEnd;
-  // if (sifsDuration != lastSifsDuration)
-  {
-    // std::cout << "t_cp3 " << t_cp3 << " lastTxAmpduEnd " << lastTxAmpduEnd << std::endl;
-    WriteCalibrationResult (context, "Sifs-duration", sifsDuration, p, hdr);
-    lastSifsDuration = sifsDuration;
-  }
+  WriteCalibrationResult (context, "Sifs-duration", sifsDuration, p, hdr);
+  lastSifsDuration = sifsDuration;
 
   Time blockAckDuration = t_cp4 - t_cp3;  // same as t_duration
-
-  // if (blockAckDuration != lastBlockAckDuration)
-  {
-    WriteCalibrationResult (context, "Block-ACK-duration", blockAckDuration, p, hdr);
-    lastBlockAckDuration = blockAckDuration;
-  }
+  WriteCalibrationResult (context, "Block-ACK-duration", blockAckDuration, p, hdr);
+  lastBlockAckDuration = blockAckDuration;
 
   lastRxBlockAckEnd = t_cp4;
 }
@@ -304,27 +289,6 @@ StateCb (std::string context, Time start, Time duration, WifiPhyState state)
 void
 AddbaStateCb (std::string context, Time t, Mac48Address recipient, uint8_t tid, OriginatorBlockAckAgreement::State state)
 {
-  /*switch (state)
-  {
-    case OriginatorBlockAckAgreement::INACTIVE:
-      std::cout<<ContextToNodeId (context)<<" -> "<<recipient<<": INACTIVE"<<std::endl;
-      break;
-    case OriginatorBlockAckAgreement::ESTABLISHED:
-      std::cout<<ContextToNodeId (context)<<" -> "<<recipient<<": ESTABLISHED"<<std::endl;
-      break;
-    case OriginatorBlockAckAgreement::PENDING:
-      std::cout<<ContextToNodeId (context)<<" -> "<<recipient<<": PENDING"<<std::endl;
-      break;
-    case OriginatorBlockAckAgreement::REJECTED:
-      std::cout<<ContextToNodeId (context)<<" -> "<<recipient<<": REJECTED"<<std::endl;
-      break;
-    case OriginatorBlockAckAgreement::NO_REPLY:
-      std::cout<<ContextToNodeId (context)<<" -> "<<recipient<<": NO_REPLY"<<std::endl;
-      break;
-    case OriginatorBlockAckAgreement::RESET:
-      std::cout<<ContextToNodeId (context)<<" -> "<<recipient<<": RESET"<<std::endl;
-      break;
-  }*/
   bool isAp = false;
   for (uint32_t bss = 1; bss <= nBss; bss++)
   {
@@ -335,7 +299,6 @@ AddbaStateCb (std::string context, Time t, Mac48Address recipient, uint8_t tid, 
   }
   if (state == OriginatorBlockAckAgreement::ESTABLISHED)
     {
-      //std::cout << t << ": ADDBA ESTABLISHED for node " << ContextToNodeId (context) << " with " << recipient << std::endl;
       if ((aggregateDownlinkMbps != 0) && (aggregateUplinkMbps != 0)) //UP + DL
         {
           nEstablishedAddaBa++;
@@ -800,11 +763,6 @@ MacAddressToNodeId (Mac48Address macAddress)
           break;
         }
     }
-  if (nodeId == -1)
-    {
-      // not found
-      //std::cout << "No node with addr " << macAddress << std::endl;
-    }
   return nodeId;
 }
 
@@ -1068,7 +1026,7 @@ main (int argc, char *argv[])
   std::string outputFilePrefix = "spatial-reuse";
   uint32_t payloadSizeUplink = 1500; // bytes
   uint32_t payloadSizeDownlink = 300; // bytes
-  uint16_t mcs = 0; // MCS value
+  uint16_t mcs = 0; // MCS value (if constant rate)
   Time interval = MicroSeconds (1000);
   bool enableObssPd = false;
   uint32_t maxAmpduSizeBss1 = 65535;
@@ -1079,8 +1037,7 @@ main (int argc, char *argv[])
   uint32_t maxAmpduSizeBss6 = 65535;
   uint32_t maxAmpduSizeBss7 = 65535;
   std::string nodePositionsFile ("");
-  // brief delay (s) for the network to settle into a steady state before applications start sending packets
-  double applicationTxStart = 1.0;
+  double applicationTxStart = 1.0; // brief delay (s) for the network to settle into a steady state before applications start sending packets
   bool useIdealWifiManager = false;
   bool bianchi = false;
   double sigma = 5.0;
@@ -1126,7 +1083,7 @@ main (int argc, char *argv[])
   cmd.AddValue ("obssPdThresholdMax", "Maximum value (dBm) of OBSS_PD threshold.", obssPdThresholdMax);
   cmd.AddValue ("checkTimings", "Perform TGax timings checks (for MAC simulation calibrations).", performTgaxTimingChecks);
   cmd.AddValue ("scenario", "The spatial-reuse scenario (residential, enterprise, indoor, outdoor, study1, study2).", scenario);
-  cmd.AddValue ("nBss", "The number of BSSs.  Can be either 1 or 2 (default).", nBss);
+  cmd.AddValue ("nBss", "The number of BSSs.", nBss);
   cmd.AddValue ("maxAmpduSizeBss1", "The maximum A-MPDU size for BSS 1 (bytes).", maxAmpduSizeBss1);
   cmd.AddValue ("maxAmpduSizeBss2", "The maximum A-MPDU size for BSS 2 (bytes).", maxAmpduSizeBss2);
   cmd.AddValue ("maxAmpduSizeBss3", "The maximum A-MPDU size for BSS 3 (bytes).", maxAmpduSizeBss3);
@@ -1235,11 +1192,10 @@ main (int argc, char *argv[])
   // [7 19.4dB]
   // [8 23.5dB]
   // [9 25.1dB]
-  // Caclculating CSR for MCS0, assuming gamma = 3, we get
+  // Calculating CSR for MCS0, assuming gamma = 3, we get
   double s0 = 0.7;
   double gamma = 3.0;
   csr = txRange * pow (s0, 1.0 / gamma);
-  // std::cout << "S0 " << s0 << " gamma " << gamma << " txRange " << txRange << " csr " << csr << std::endl;
 
   WifiHelper wifi;
   std::string dataRate;
@@ -1548,8 +1504,7 @@ main (int argc, char *argv[])
       return 1;
     }
 
-  Ptr<ConstantSpeedPropagationDelayModel> delayModel
-    = CreateObject<ConstantSpeedPropagationDelayModel> ();
+  Ptr<ConstantSpeedPropagationDelayModel> delayModel = CreateObject<ConstantSpeedPropagationDelayModel> ();
   spectrumChannel->SetPropagationDelayModel (delayModel);
 
   spectrumPhy.SetPcapDataLinkType (WifiPhyHelper::DLT_IEEE802_11_RADIO);
@@ -1949,7 +1904,6 @@ main (int argc, char *argv[])
   Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator> ();
 
   // allocate in the order of AP_A, STAs_A, AP_B, STAs_B
-
   std::string filename = outputFilePrefix + "-positions-" + testname + ".csv";
   std::ofstream positionOutFile;
   positionOutFile.open (filename.c_str (), std::ofstream::out | std::ofstream::trunc);
@@ -1961,7 +1915,6 @@ main (int argc, char *argv[])
       NS_LOG_ERROR ("Can't open file " << filename);
       return 1;
     }
-
 
   // bounding box
   if ((scenario != "study1") && (scenario != "study2"))
@@ -2101,7 +2054,7 @@ main (int argc, char *argv[])
 
       // Network "A"
       // AP1
-      positionAlloc->Add (Vector (x1, y1, 0.0));        // AP1
+      positionAlloc->Add (Vector (x1, y1, 0.0));
       // STAs for AP1
       // STAs for each AP are allocated uwing a different instance of a UnitDiscPositionAllocation.  To
       // ensure unique randomness of positions,  each allocator must be allocated a different stream number.
@@ -2122,7 +2075,7 @@ main (int argc, char *argv[])
 
       // Network "B"
       // AP2
-      positionAlloc->Add (Vector (x2, y2, 0.0));        // AP2
+      positionAlloc->Add (Vector (x2, y2, 0.0));
       // STAs for AP2
       // STAs for each AP are allocated uwing a different instance of a UnitDiscPositionAllocation.  To
       // ensure unique randomness of positions,  each allocator must be allocated a different stream number.
@@ -2143,7 +2096,7 @@ main (int argc, char *argv[])
 
       // Network "C"
       // AP3
-      positionAlloc->Add (Vector (x3, y3, 0.0));        // AP3
+      positionAlloc->Add (Vector (x3, y3, 0.0));
       // STAs for AP3
       // STAs for each AP are allocated uwing a different instance of a UnitDiscPositionAllocation.  To
       // ensure unique randomness of positions,  each allocator must be allocated a different stream number.
@@ -2164,7 +2117,7 @@ main (int argc, char *argv[])
 
       // Network "D"
       // AP4
-      positionAlloc->Add (Vector (x4, y4, 0.0));        // AP4
+      positionAlloc->Add (Vector (x4, y4, 0.0));
       // STAs for AP4
       // STAs for each AP are allocated uwing a different instance of a UnitDiscPositionAllocation.  To
       // ensure unique randomness of positions,  each allocator must be allocated a different stream number.
@@ -2185,7 +2138,7 @@ main (int argc, char *argv[])
 
       // Network "E"
       // AP5
-      positionAlloc->Add (Vector (x5, y5, 0.0));        // AP5
+      positionAlloc->Add (Vector (x5, y5, 0.0));
       // STAs for AP5
       // STAs for each AP are allocated uwing a different instance of a UnitDiscPositionAllocation.  To
       // ensure unique randomness of positions,  each allocator must be allocated a different stream number.
@@ -2206,7 +2159,7 @@ main (int argc, char *argv[])
 
       // Network "F"
       // AP6
-      positionAlloc->Add (Vector (x6, y6, 0.0));        // AP6
+      positionAlloc->Add (Vector (x6, y6, 0.0));
       // STAs for AP6
       // STAs for each AP are allocated uwing a different instance of a UnitDiscPositionAllocation.  To
       // ensure unique randomness of positions,  each allocator must be allocated a different stream number.
@@ -2227,7 +2180,7 @@ main (int argc, char *argv[])
 
       // Network "G"
       // AP7
-      positionAlloc->Add (Vector (x7, y7, 0.0));        // AP7
+      positionAlloc->Add (Vector (x7, y7, 0.0));
       // STAs for AP7
       // STAs for each AP are allocated uwing a different instance of a UnitDiscPositionAllocation.  To
       // ensure unique randomness of positions,  each allocator must be allocated a different stream number.
@@ -2274,7 +2227,7 @@ main (int argc, char *argv[])
 
       // Network "A"
       // AP1
-      positionAlloc->Add (Vector (0.0, 0.0, 0.0));        // AP1
+      positionAlloc->Add (Vector (0.0, 0.0, 0.0));
       // STAs for AP1
       // STAs for each AP are allocated uwing a different instance of a UnitDiscPositionAllocation.  To
       // ensure unique randomness of positions,  each allocator must be allocated a different stream number.
@@ -2297,7 +2250,7 @@ main (int argc, char *argv[])
         {
           // Network "B"
           // AP2
-          positionAlloc->Add (Vector (d, 0.0, 0.0));        // AP2
+          positionAlloc->Add (Vector (d, 0.0, 0.0));
           // STAs for AP2
           Ptr<UniformDiscPositionAllocator> unitDiscPositionAllocator2 = CreateObject<UniformDiscPositionAllocator> ();
           // see comments above - each allocator must have unique stream number.
@@ -2327,7 +2280,7 @@ main (int argc, char *argv[])
         {
           // Network "C"
           // AP3
-          positionAlloc->Add (Vector (0.0, -d, 0.0));        // AP3
+          positionAlloc->Add (Vector (0.0, -d, 0.0));
           // STAs for AP3
           Ptr<UniformDiscPositionAllocator> unitDiscPositionAllocator3 = CreateObject<UniformDiscPositionAllocator> ();
           // see comments above - each allocator must have unique stream number.
@@ -2357,7 +2310,7 @@ main (int argc, char *argv[])
         {
           // Network "D"
           // AP4
-          positionAlloc->Add (Vector (d, -d, 0.0));        // AP4
+          positionAlloc->Add (Vector (d, -d, 0.0));
           // STAs for AP4
           Ptr<UniformDiscPositionAllocator> unitDiscPositionAllocator4 = CreateObject<UniformDiscPositionAllocator> ();
           // see comments above - each allocator must have unique stream number.
