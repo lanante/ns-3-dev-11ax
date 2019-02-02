@@ -48,7 +48,7 @@ echo "export enablePcap=0" >> ../scripts/study2.sh
 echo "export enableAscii=0" >> ../scripts/study2.sh
 echo "export bw=20" >> ../scripts/study2.sh
 # for starters, base everything off of the Residential Scenerio
-echo "export scenario=study2" >> ../scripts/study2.sh
+echo "export scenario=indoor" >> ../scripts/study2.sh
 echo "export txRange=15" >> ../scripts/study2.sh
 echo "export useIdealWifiManager=1" >> ../scripts/study2.sh
 echo "export filterOutNonAddbaEstablished=1" >> ../scripts/study2.sh

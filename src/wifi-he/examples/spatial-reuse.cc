@@ -1097,7 +1097,7 @@ main (int argc, char *argv[])
   cmd.AddValue ("obssPdThresholdBss6", "Energy threshold (dBm) for BSS 6 of received signal below which the PHY layer can avoid declaring CCA BUSY for inter-BSS frames.", obssPdThresholdBss6);
   cmd.AddValue ("obssPdThresholdBss7", "Energy threshold (dBm) for BSS 7 of received signal below which the PHY layer can avoid declaring CCA BUSY for inter-BSS frames.", obssPdThresholdBss7);
   cmd.AddValue ("checkTimings", "Perform TGax timings checks (for MAC simulation calibrations).", performTgaxTimingChecks);
-  cmd.AddValue ("scenario", "The spatial-reuse scenario (residential, enterprise, indoor, outdoor, study1, study2).", scenario);
+  cmd.AddValue ("scenario", "The spatial-reuse scenario (residential, enterprise, indoor or outdoor).", scenario);
   cmd.AddValue ("nBss", "The number of BSSs.", nBss);
   cmd.AddValue ("maxAmpduSizeBss1", "The maximum A-MPDU size for BSS 1 (bytes).", maxAmpduSizeBss1);
   cmd.AddValue ("maxAmpduSizeBss2", "The maximum A-MPDU size for BSS 2 (bytes).", maxAmpduSizeBss2);
@@ -1142,11 +1142,6 @@ main (int argc, char *argv[])
     {
       maxQueueDelay = duration * 1000; //make sure there is no MSDU lifetime expired
       disableArp = true;
-    }
-
-  if ((scenario == "study1") || (scenario == "study2"))
-    {
-      nBss = 7;
     }
 
   if ((nBss < 1) || (nBss > 7))
@@ -1503,7 +1498,7 @@ main (int argc, char *argv[])
       lossModel->AssignStreams (lossModelStream);
       spectrumChannel->AddPropagationLossModel (lossModel);
     }
-  else if ((scenario == "indoor") || (scenario == "study1") || (scenario == "study2"))
+  else if (scenario == "indoor")
     {
       Config::SetDefault ("ns3::Ieee80211axIndoorPropagationLossModel::DistanceBreakpoint", DoubleValue (10.0));
       Config::SetDefault ("ns3::Ieee80211axIndoorPropagationLossModel::Walls", DoubleValue (0.0));
@@ -1522,7 +1517,7 @@ main (int argc, char *argv[])
     }
   else
     {
-      std::cout << "Unknown scenario: " << scenario << ". Must be one of:  residential, enterprise, indoor, outdoor." << std::endl;
+      std::cout << "Unknown scenario: " << scenario << ". Must be one of:  residential, enterprise, indoor or outdoor." << std::endl;
       return 1;
     }
 
@@ -1973,7 +1968,7 @@ main (int argc, char *argv[])
     }
 
   // bounding box
-  if ((scenario != "study1") && (scenario != "study2"))
+  if ((nBss != 7) || (scenario != "indoor"))
     {
       double boundingBoxExtension = 10.0;
       double dx = d;
@@ -1994,7 +1989,7 @@ main (int argc, char *argv[])
     }
   else
     {
-      // study1 scenario bounding box
+      // study1 and study 2 scenario bounding box
       positionOutFile << -40.0 <<  ", " << -40.0 << std::endl;
       positionOutFile <<  40.0 <<  ", " << -40.0 << std::endl;
       positionOutFile <<  40.0 <<  ", " <<  40.0 << std::endl;
@@ -2050,7 +2045,7 @@ main (int argc, char *argv[])
       // since the post-processnig script expects there to be something here.
       positionOutFile << d << ", " << 0 << std::endl;
     }
-  else if ((scenario == "study1") || (scenario == "study2"))
+  else if ((nBss == 7) && (scenario == "indoor")) //study 1 and 2
     {
       double x1 = 0.0;
       double y1 = 0.0;
