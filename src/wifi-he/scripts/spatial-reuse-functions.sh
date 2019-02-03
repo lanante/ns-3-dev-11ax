@@ -56,6 +56,10 @@ function run_one () {
   check_file "./results/spatial-reuse-rx-sniff-$test-ap1-snr.png"
   check_file "./results/spatial-reuse-rx-sniff-$test-ap2-snr.png"
 
+  if [ -z "$MCS" ]; then
+    export MCS=0
+  fi
+
   if [ -z "$maxSlrc" ]; then
     export maxSlrc=7
   fi

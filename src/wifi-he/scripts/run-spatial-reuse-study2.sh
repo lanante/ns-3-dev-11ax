@@ -62,8 +62,6 @@ echo "export d=${d}" >> ../scripts/study2.sh
 echo "export r=10" >> ../scripts/study2.sh
 echo "export nBss=7" >> ../scripts/study2.sh
 
-# use ideal channel model.  MCS will be ignored
-echo "export MCS=0" >> ../scripts/study2.sh
 # increasae max ampdu size to maximum to maximize throughput
 echo "export maxAmpduSize=65535" >> ../scripts/study2.sh
 echo "" >> ../scripts/study2.sh
