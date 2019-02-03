@@ -78,6 +78,8 @@ protected:
   virtual void RxSuccess (Ptr<Packet> p, double snr, double rxPower, WifiTxVector txVector);
   /**
    * PHY receive failure callback function
+   * \param p the packet
+   * \param snr the SNR
    */
   virtual void RxFailure (Ptr<Packet> p, double snr);
   /**
