@@ -156,6 +156,10 @@ function run_one () {
     export colorBss7=7
   fi
 
+  if [ -z "$obssPdThreshold" ]; then
+    export obssPdThresholdBss1=-99.0
+  fi
+
   if [ -z "$obssPdThresholdBss1" ]; then
     export obssPdThresholdBss1=${obssPdThreshold}
   fi

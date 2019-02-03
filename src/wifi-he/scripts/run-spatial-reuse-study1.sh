@@ -50,7 +50,6 @@ echo "export bw=20" >> ../scripts/study1.sh
 # for starters, base everything off of the Residential Scenerio
 echo "export scenario=indoor" >> ../scripts/study1.sh
 echo "export txRange=15" >> ../scripts/study1.sh
-echo "export obssPdThreshold=-82" >> ../scripts/study1.sh
 echo "export useIdealWifiManager=1" >> ../scripts/study1.sh
 echo "export filterOutNonAddbaEstablished=1" >> ../scripts/study1.sh
 
