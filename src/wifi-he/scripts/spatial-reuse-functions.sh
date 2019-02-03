@@ -157,7 +157,7 @@ function run_one () {
   fi
 
   if [ -z "$obssPdThreshold" ]; then
-    export obssPdThresholdBss1=-99.0
+    export obssPdThreshold=-99.0
   fi
 
   if [ -z "$obssPdThresholdBss1" ]; then
