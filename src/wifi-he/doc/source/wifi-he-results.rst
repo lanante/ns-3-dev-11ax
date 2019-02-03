@@ -968,7 +968,7 @@ of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
 .. _throughput-study2-62:
 
 .. figure:: figures/throughput-study2-62.*
-:align: center
+   :align: center
 
 Throughput with OBSS_PD level -62 dBm for the BSS of interest in the center of the Study 2 parametric study.
 
@@ -1005,7 +1005,7 @@ of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
 .. _area-capacity-study2-62:
 
 .. figure:: figures/area-capacity-study2-62.*
-:align: center
+   :align: center
 
 Area capacity with OBSS_PD level -62 dBm for the BSS of interest in the center of the Study 2 parametric study.
 
@@ -1042,7 +1042,7 @@ of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
 .. _spectrum-efficiency-study2-62:
 
 .. figure:: figures/spectrum-efficiency-study2-62.*
-:align: center
+   :align: center
 
 Spectrum efficiency with OBSS_PD level -62 dBm for the BSS of interest in the center of the Study 2 parametric study.
 
