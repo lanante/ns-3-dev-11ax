@@ -36,6 +36,13 @@ rm ./results/spatial-reuse-experiments-spectrum-efficiency-ap2.dat
 grep 'Spectrum Efficiency, AP1 Uplink' ./results/spatial-reuse-SR-stats-experiments-*.dat > ./results/spatial-reuse-experiments-spectrum-efficiency-ap1.dat
 grep 'Spectrum Efficiency, AP2 Uplink' ./results/spatial-reuse-SR-stats-experiments-*.dat > ./results/spatial-reuse-experiments-spectrum-efficiency-ap2.dat
 
+#Air-time Utilization
+rm ./results/spatial-reuse-experiments-airtime-utilization-ap1.dat
+rm ./results/spatial-reuse-experiments-airtime-utilization-ap2.dat
+
+grep 'Air-time utilization, AP1' ./results/spatial-reuse-SR-stats-experiments-*.dat > ./results/spatial-reuse-experiments-airtime-utilization-ap1.dat
+grep 'Air-time utilization, AP2' ./results/spatial-reuse-SR-stats-experiments-*.dat > ./results/spatial-reuse-experiments-airtime-utilization-ap2.dat
+
 # Study 2
 
 # results for study 2 are from the perspective of AP1
@@ -54,3 +61,8 @@ grep 'Area Capacity, AP1 Uplink' ./results/spatial-reuse-SR-stats-study2-*.dat >
 rm ./results/spatial-reuse-study2-spectrum-efficiency-ap1.dat
 
 grep 'Spectrum Efficiency, AP1 Uplink' ./results/spatial-reuse-SR-stats-study2-*.dat > ./results/spatial-reuse-study2-spectrum-efficiency-ap1.dat
+
+#Air-time Utilization
+rm ./results/spatial-reuse-study2-airtime-utilization-ap1.dat
+
+grep 'Air-time utilization, AP1' ./results/spatial-reuse-SR-stats-study2-*.dat > ./results/spatial-reuse-study2-airtime-utilization-ap1.dat

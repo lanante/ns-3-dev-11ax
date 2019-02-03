@@ -121,6 +121,8 @@ uint32_t nAssociatedStas = 0;
 bool allStasAssociated = false;
 std::vector<uint32_t> nAssociatedStasPerBss (0);
 
+std::vector<Time> busyTime;
+
 NetDeviceContainer apDeviceA;
 NetDeviceContainer staDevicesA;
 NetDeviceContainer apDeviceB;
@@ -283,6 +285,24 @@ void RxBlockAckCallback (std::string context, Ptr<const Packet> p, const WifiMac
 void
 StateCb (std::string context, Time start, Time duration, WifiPhyState state)
 {
+  uint32_t nodeId = ContextToNodeId (context);
+  uint32_t bss = 1;
+  bool isAp = false;
+  for (; bss <= nBss; bss++)
+    {
+      if (nodeId == (((bss - 1) * n) + bss - 1))
+      {
+        isAp = true;
+      }
+      if (nodeId <= (bss * n) + bss - 1)
+        {
+          break;
+        }
+    }
+  if ((!filterOutNonAddbaEstablished || allAddBaEstablished) && isAp && ((state == WifiPhyState::TX) || (state == WifiPhyState::RX)))
+    {
+      busyTime[bss - 1] += duration;
+    }
   g_stateFile << ContextToNodeId (context) << " " << start.GetSeconds () << " " << duration.GetSeconds () << " " << StateToString (state) << std::endl;
 }
 
@@ -612,6 +632,16 @@ SaveSpatialReuseStats (const std::string filename,
   std::cout << "Uplink [Mbps]: " << uplink << std::endl;
   std::cout << "Downlink [Mbps]: " << downlink << std::endl;
 
+  double effectiveDuration;
+  if (filterOutNonAddbaEstablished)
+    {
+      effectiveDuration = (timeLastPacketReceived - timeAllAddBaEstablished).GetNanoSeconds () / 1e9;
+    }
+  else
+    {
+      effectiveDuration = duration;
+    }
+
   double tputApUplinkTotal = 0;
   double tputApDownlinkTotal = 0;
   for (uint32_t bss = 1; bss <= nBss; bss++)
@@ -635,17 +665,9 @@ SaveSpatialReuseStats (const std::string filename,
 
       double tputApUplink;
       double tputApDownlink;
-      if (filterOutNonAddbaEstablished)
-        {
-          Time delta = timeLastPacketReceived - timeAllAddBaEstablished;
-          tputApUplink = static_cast<double>(bytesReceivedApUplink * 8) / static_cast<double>(delta.GetMicroSeconds ());
-          tputApDownlink = static_cast<double>(bytesReceivedApDownlink * 8) / static_cast<double>(delta.GetMicroSeconds ());
-        }
-      else
-        {
-          tputApUplink = bytesReceivedApUplink * 8 / 1e6 / duration;
-          tputApDownlink = bytesReceivedApDownlink * 8 / 1e6 / duration;
-        }
+
+      tputApUplink = static_cast<double>(bytesReceivedApUplink * 8) / 1e6 / effectiveDuration;
+      tputApDownlink = static_cast<double>(bytesReceivedApDownlink * 8) / 1e6 / effectiveDuration;
 
       tputApUplinkTotal += tputApUplink;
       tputApDownlinkTotal += tputApDownlink;
@@ -688,6 +710,8 @@ SaveSpatialReuseStats (const std::string filename,
 
       outFile << "Spectrum Efficiency, AP" << bss << " Uplink   [Mbps/Hz] : " << tputApUplink / freqHz << std::endl;
       outFile << "Spectrum Efficiency, AP" << bss << " Downlink [Mbps/Hz] : " << tputApDownlink / freqHz << std::endl;
+
+      outFile << "Air-time utilization, AP" << bss << " [%] : " << (static_cast<double> (busyTime[bss - 1].GetNanoSeconds ()) / 1e9 / effectiveDuration) * 100 << std::endl;
     }
 
   std::cout << "Total Throughput Uplink   [Mbps] : " << tputApUplinkTotal << std::endl;
@@ -1322,6 +1346,12 @@ main (int argc, char *argv[])
   packetsReceived = std::vector<uint64_t> (numNodes);
   bytesReceived = std::vector<uint64_t> (numNodes);
   nAssociatedStasPerBss = std::vector<uint32_t> (nBss * n);
+
+  busyTime = std::vector<Time> (nBss);
+  for (uint32_t bss = 1; bss <= nBss; bss++)
+    {
+      busyTime[bss - 1] = Seconds (0);
+    }
 
   packetsReceivedPerNode.resize (numNodes, std::vector<uint64_t> (numNodes, 0));
   rssiPerNode.resize (numNodes, std::vector<double> (numNodes, 0.0));

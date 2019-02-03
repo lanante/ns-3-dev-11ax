@@ -16,6 +16,9 @@ for experiment in 20-10-02-05 20-10-02-20 20-30-02-05 20-30-02-20 80-10-02-05 80
     cp "./images/png/spectrum-efficiency-$experiment-ap1.png" ../doc/source/figures/.
     cp "./images/png/spectrum-efficiency-$experiment-ap2.png" ../doc/source/figures/.
     cp "./images/png/spectrum-efficiency-$experiment-both.png" ../doc/source/figures/.
+    cp "./images/png/airtime-utilization-$experiment-ap1.png" ../doc/source/figures/.
+    cp "./images/png/airtime-utilization-$experiment-ap2.png" ../doc/source/figures/.
+    cp "./images/png/airtime-utilization-$experiment-both.png" ../doc/source/figures/.
 done
 
 # selected plots for sensitivity studies
@@ -88,6 +91,7 @@ cp "./results/spatial-reuse-positions-test-study1.png" ../doc/source/figures/.
 cp "./images/png/throughput-study1.png" ../doc/source/figures/.
 cp "./images/png/area-capacity-study1.png" ../doc/source/figures/.
 cp "./images/png/spectrum-efficiency-study1.png" ../doc/source/figures/.
+cp "./images/png/airtime-utilization-study1.png" ../doc/source/figures/.
 cp "./results/study1-1732-10-05-2-180.0-20.0-ap1-ecdf.png" ../doc/source/figures/.
 cp "./results/study1-1732-10-20-2-180.0-20.0-ap1-ecdf.png" ../doc/source/figures/.
 cp "./results/spatial-reuse-rx-sniff-study1-1732-10-05-2-180.0-20.0-ap1-signal.png" ../doc/source/figures/.

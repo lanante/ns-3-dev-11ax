@@ -29,10 +29,10 @@ lbtTxop=8
 LATENCY_CDF_RANGE="[0:500][0:1]"
 HI_RES_LATENCY_CDF_RANGE="[0:50][0:1]"
 THROUGHPUT_CDF_RANGE="[0:150][0:1]"
-THROUGHPUT_RANGE="[1:6][1:6]"
-AREA_CAPCITY_RANGE="[1:6][0:0.02]"
-SPECTRUM_EFFICIENCY_RANGE="[1:6][0:0.002]"
-STUDY2_SPECTRUM_EFFICIENCY_RANGE="[1.0:3.0][0:0.00050]"
+THROUGHPUT_RANGE="[1:3][1:3]"
+AREA_CAPACITY_RANGE="[1:3][0:0.02]"
+SPECTRUM_EFFICIENCY_RANGE="[1.0:3.0][0:0.002]"
+AIRTIME_UTILIZATION_RANGE="[1.0:3.0][0:100]"
 
 # params that remain constant
 d=17.32
@@ -60,12 +60,11 @@ for ap in ap1 ; do
             rm -f "xxx-$patt-$ap.dat"
 
             while read p ; do
-                #echo "$p"
                 IFS=':'; arrP=($p); unset IFS;
                 F="${arrP[0]}"
                 IFS='-'; arrF=($F); unset IFS;
-                    echo "${arrF[8]}, ${arrP[2]}"
-                    echo "${arrF[8]}, ${arrP[2]}" >> "xxx-$patt-$ap.dat"
+                echo "${arrF[8]}, ${arrP[2]}"
+                echo "${arrF[8]}, ${arrP[2]}" >> "xxx-$patt-$ap.dat"
             done <./results/plot_tmp.dat
 
             # sort the data points before plotting
@@ -82,7 +81,7 @@ for ap in ap1 ; do
         PLOTTYPE="with linespoints"
         XLABEL="Offered Load [Mbps]"
         YLABEL="Throughput [Mbps]"
-        RANGE=$THOUGHPUT_RANGE
+        RANGE=$THROUGHPUT_RANGE
         OPTIONS="$BASE_OPTIONS ; set key top left"
         IMGFILENAME="throughput-study2-${pd_thresh}"
         plot
@@ -116,7 +115,6 @@ for ap in ap1 ; do
             rm -f "xxx-$patt-$ap.dat"
 
             while read p ; do
-                #echo "$p"
                 IFS=':'; arrP=($p); unset IFS;
                 F="${arrP[0]}"
                 IFS='-'; arrF=($F); unset IFS;
@@ -172,12 +170,11 @@ for ap in ap1 ; do
             rm -f "xxx-$patt-$ap.dat"
 
             while read p ; do
-                #echo "$p"
                 IFS=':'; arrP=($p); unset IFS;
                 F="${arrP[0]}"
                 IFS='-'; arrF=($F); unset IFS;
-                    echo "${arrF[8]}, ${arrP[2]}"
-                    echo "${arrF[8]}, ${arrP[2]}" >> "xxx-$patt-$ap.dat"
+                echo "${arrF[8]}, ${arrP[2]}"
+                echo "${arrF[8]}, ${arrP[2]}" >> "xxx-$patt-$ap.dat"
             done <./results/plot_tmp.dat
 
             # sort the data points before plotting
@@ -194,9 +191,64 @@ for ap in ap1 ; do
         PLOTTYPE="with linespoints"
         XLABEL="Offered Load [Mbps]"
         YLABEL="Spectrum Efficiency [Mbps/Hz/m^2]"
-        RANGE=$STUDY2_SPECTRUM_EFFICIENCY_RANGE
+        RANGE=$SPECTRUM_EFFICIENCY_RANGE
         OPTIONS="$BASE_OPTIONS ; set key top left"
         IMGFILENAME="spectrum-efficiency-study2-${pd_thresh}"
+        plot
+
+        unset FILES
+        unset LABELS
+        unset YCOLS
+        unset XCOLS
+
+    done
+done
+
+# Air-time Utilization, as n varies, all on one chart
+
+for ap in ap1 ; do
+    for pd_thresh in 82 77 72 67 62; do
+        if [ -z "$(grep -r ${pd_thresh}dbm ./results/spatial-reuse-study2-airtime-utilization-$ap.dat)" ]; then
+            echo "results for OBSS_PD threshold -$pd_thresh not available: skip"
+            continue
+        fi
+        echo "Process results for OBSS_PD threshold -$pd_thresh"
+
+        # params that will vary
+        index=0
+        for n in 5 10 15 20 25 30 35 40 ; do
+            d1=$(awk "BEGIN {print $d*100}")
+            patt=$(printf "%0.f-%02d-%02d" ${d1} ${r} ${n})
+            echo "pattern=$patt"
+            grep "$patt" "./results/spatial-reuse-study2-airtime-utilization-$ap.dat" | grep "${pd_thresh}dbm" > ./results/plot_tmp.dat
+
+            rm -f "xxx-$patt-$ap.dat"
+
+            while read p ; do
+                IFS=':'; arrP=($p); unset IFS;
+                F="${arrP[0]}"
+                IFS='-'; arrF=($F); unset IFS;
+                echo "${arrF[8]}, ${arrP[2]}"
+                echo "${arrF[8]}, ${arrP[2]}" >> "xxx-$patt-$ap.dat"
+            done <./results/plot_tmp.dat
+
+            # sort the data points before plotting
+            sort -o "xxx-$patt-$ap.dat" "xxx-$patt-$ap.dat"
+            echo "plotting"
+            FILES[$index]="xxx-$patt-$ap.dat"
+            YCOLS[$index]='($2)'
+            XCOLS[$index]='($1)'
+            LABELS[$index]="n=$n"
+
+            index=`expr $index + 1`
+        done
+
+        PLOTTYPE="with linespoints"
+        XLABEL="Offered Load [Mbps]"
+        YLABEL="Airtime Utilization [%]"
+        RANGE=$AIRTIME_UTILIZATION_RANGE
+        OPTIONS="$BASE_OPTIONS ; set key top left"
+        IMGFILENAME="airtime-utilization-study2-${pd_thresh}"
         plot
 
         unset FILES
