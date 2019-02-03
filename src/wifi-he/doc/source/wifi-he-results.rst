@@ -939,8 +939,6 @@ Study 2 Results
 The figures in the section were generated using the ns-3-dev-11ax
 repository as of commit changeset 003396927f1fa07b3681af0066c50436be1ec952.
 
-TODO: generate for various OBSS PD levels.
-
 System Throughput
 #################
 
@@ -958,6 +956,23 @@ of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
    Throughput with OBSS_PD level -82 dBm for the BSS of interest in the center of the Study 2 parametric study.
 
 Figure :ref:`throughput-study2-82` illustrates the system throughput for BSS1.
+
+It is observed that TBD...
+
+The throughput with OBSS_PD level -62 dBm as offered load is increased is shown below for
+the center BSS of interest.  A separate line is plotted for each value
+of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
+
+.
+
+.. _throughput-study2-62:
+
+.. figure:: figures/throughput-study2-62.*
+:align: center
+
+Throughput with OBSS_PD level -62 dBm for the BSS of interest in the center of the Study 2 parametric study.
+
+Figure :ref:`throughput-study2-62` illustrates the system throughput for BSS1.
 
 It is observed that TBD...
 
@@ -981,6 +996,23 @@ Figure :ref:`area-capacity-study2-82` illustrates the system throughput for BSS1
 
 It is observed that TBD...
 
+The area capacity with OBSS_PD level -62 dBm as offered load is increased is shown below for
+the center BSS of interest.  A separate line is plotted for each value
+of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
+
+.
+
+.. _area-capacity-study2-62:
+
+.. figure:: figures/area-capacity-study2-62.*
+:align: center
+
+Area capacity with OBSS_PD level -62 dBm for the BSS of interest in the center of the Study 2 parametric study.
+
+Figure :ref:`area-capacity-study2-62` illustrates the system throughput for BSS1.
+
+It is observed that TBD...
+
 Spectrum Efficiency
 ###################
 
@@ -998,6 +1030,23 @@ of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
    Spectrum efficiency with OBSS_PD level -82 dBm for the BSS of interest in the center of the Study 2 parametric study.
 
 Figure :ref:`spectrum-efficiency-study2-82` illustrates the system throughput for BSS1.
+
+It is observed that TBD...
+
+The spectrum efficiency with OBSS_PD level -62 dBm as offered load is increased is shown below for
+the center BSS of interest.  A separate line is plotted for each value
+of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
+
+.
+
+.. _spectrum-efficiency-study2-62:
+
+.. figure:: figures/spectrum-efficiency-study2-62.*
+:align: center
+
+Spectrum efficiency with OBSS_PD level -62 dBm for the BSS of interest in the center of the Study 2 parametric study.
+
+Figure :ref:`spectrum-efficiency-study2-62` illustrates the system throughput for BSS1.
 
 It is observed that TBD...
 
