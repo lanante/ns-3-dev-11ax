@@ -606,8 +606,6 @@ private:
   Time m_failedAddBaTimeout;                            //!< timeout after failed BA agreement
   bool m_useExplicitBarAfterMissedBlockAck;             //!< flag whether explicit Block Ack Request should be sent upon missed Block Ack Response
 
-  TracedValue<uint32_t> m_backoffTrace;   //!< backoff trace value
-  TracedValue<uint32_t> m_cwTrace;        //!< CW trace value
   TracedCallback<Time, Time> m_txopTrace; //!< TXOP trace callback
 };
 
