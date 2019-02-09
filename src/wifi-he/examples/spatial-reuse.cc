@@ -104,6 +104,18 @@ struct SignalArrival
   double m_power;
 };
 
+// Global variables for use in callbacks.
+double g_signalDbmAvg;
+double g_noiseDbmAvg;
+uint32_t g_samples;
+std::ofstream g_rxSniffFile;
+std::ofstream g_txPowerFile;
+
+double g_min_signal = 1000.0;
+double g_max_signal = -1000.0;
+double g_min_noise = 1000.0;
+double g_max_noise = -1000.0;
+
 uint32_t beaconInterval = 102400; // microseconds
 double duration = 20.0; // seconds
 uint32_t nBss = 2; // number of BSSs.  Can be 1 or 2 (default)
@@ -162,6 +174,44 @@ ContextToNodeId (std::string context)
   uint32_t nodeId = atoi (sub.substr (0, pos).c_str ());
   NS_LOG_DEBUG ("Found NodeId " << nodeId);
   return nodeId;
+}
+
+// Find nodeId given a MacAddress
+int
+MacAddressToNodeId (Mac48Address macAddress)
+{
+  int nodeId = -1;
+  Mac48Address inAddress = macAddress;
+  uint32_t nNodes = allNodes.GetN ();
+  for (uint32_t n = 0; n < nNodes; n++)
+    {
+      Mac48Address nodeAddress = Mac48Address::ConvertFrom (allNodes.Get (n)->GetDevice (0)->GetAddress ());
+      if (inAddress == nodeAddress)
+        {
+          nodeId = n;
+          break;
+        }
+    }
+  return nodeId;
+}
+
+void
+PacketTx (std::string context, Ptr<const Packet> packet, double txPowerW)
+{
+  if (packet)
+    {
+      WifiMacHeader hdr;
+      packet->PeekHeader (hdr);
+      Mac48Address addr1 = hdr.GetAddr1 ();
+      Mac48Address addr2 = hdr.GetAddr2 ();
+      Mac48Address whatsThis = Mac48Address ("00:00:00:00:00:00");
+      if (!addr1.IsBroadcast () && (addr2 != whatsThis))
+        {
+          int dstNodeId = MacAddressToNodeId (addr1);
+          int srcNodeId = MacAddressToNodeId (addr2);
+          g_txPowerFile << srcNodeId << ", " << dstNodeId << ", " << WToDbm (txPowerW) << std::endl;
+        }
+    }
 }
 
 void
@@ -770,36 +820,6 @@ SaveSpatialReuseStats (const std::string filename,
   std::cout << "Spatial Reuse Stats written to: " << filename << std::endl;
 
 }
-
-// Find nodeId given a MacAddress
-int
-MacAddressToNodeId (Mac48Address macAddress)
-{
-  int nodeId = -1;
-  Mac48Address inAddress = macAddress;
-  uint32_t nNodes = allNodes.GetN ();
-  for (uint32_t n = 0; n < nNodes; n++)
-    {
-      Mac48Address nodeAddress = Mac48Address::ConvertFrom (allNodes.Get (n)->GetDevice (0)->GetAddress ());
-      if (inAddress == nodeAddress)
-        {
-          nodeId = n;
-          break;
-        }
-    }
-  return nodeId;
-}
-
-// Global variables for use in callbacks.
-double g_signalDbmAvg;
-double g_noiseDbmAvg;
-uint32_t g_samples;
-std::ofstream g_rxSniffFile;
-
-double g_min_signal = 1000.0;
-double g_max_signal = -1000.0;
-double g_min_noise = 1000.0;
-double g_max_noise = -1000.0;
 
 void ProcessPacket (std::string context,
                     Ptr<const Packet> packet,
@@ -2872,6 +2892,7 @@ main (int argc, char *argv[])
     }
   
   Config::Connect ("/NodeList/*/DeviceList/*/Phy/MonitorSnifferRx", MakeCallback (&MonitorSniffRx));
+  Config::Connect ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Phy/PhyTxBegin", MakeCallback (&PacketTx));
   Config::Connect ("/NodeList/*/ApplicationList/*/$ns3::UdpServer/RxWithAddresses", MakeCallback (&PacketRx));
 
   if (performTgaxTimingChecks)
@@ -2897,6 +2918,10 @@ main (int argc, char *argv[])
   g_rxSniffFile.open (outputFilePrefix + "-rx-sniff-" + testname + ".dat", std::ofstream::out | std::ofstream::trunc);
   g_rxSniffFile.setf (std::ios_base::fixed);
   g_rxSniffFile << "RxNodeId, DstNodeId, SrcNodeId, RxNodeAddr, DA, SA, Noise, Signal " << std::endl;
+
+  g_txPowerFile.open (outputFilePrefix + "-tx-power-" + testname + ".dat", std::ofstream::out | std::ofstream::trunc);
+  g_txPowerFile.setf (std::ios_base::fixed);
+  g_txPowerFile << "RxNodeId, DstNodeId, TxPowerDbm " << std::endl;
 
   g_TGaxCalibrationTimingsFile.open (outputFilePrefix + "-tgax-calibration-timings-" + testname + ".dat", std::ofstream::out | std::ofstream::trunc);
   g_TGaxCalibrationTimingsFile.setf (std::ios_base::fixed);
