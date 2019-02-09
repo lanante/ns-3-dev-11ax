@@ -62,7 +62,7 @@ echo "export d=${d}" >> ../scripts/study1.sh
 echo "export r=10" >> ../scripts/study1.sh
 echo "export nBss=7" >> ../scripts/study1.sh
 
-# increasae max ampdu size to maximum to maximize throughput
+# increase max ampdu size to maximum to maximize throughput
 echo "export maxAmpduSize=65535" >> ../scripts/study1.sh
 echo "" >> ../scripts/study1.sh
 

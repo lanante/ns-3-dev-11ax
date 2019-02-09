@@ -62,19 +62,19 @@ echo "export d=${d}" >> ../scripts/study2.sh
 echo "export r=10" >> ../scripts/study2.sh
 echo "export nBss=7" >> ../scripts/study2.sh
 
-# increasae max ampdu size to maximum to maximize throughput
+# increase max ampdu size to maximum to maximize throughput
 echo "export maxAmpduSize=65535" >> ../scripts/study2.sh
 echo "" >> ../scripts/study2.sh
 
 # params that will vary
-for pd_thresh in 82 77 72 67 62; do
-    echo "export obssPdThreshold=-${pd_thresh}" >> ../scripts/study2.sh
+for pd_thresh in -82 -77 -72 -67 -62; do
+    echo "export obssPdThreshold=${pd_thresh}" >> ../scripts/study2.sh
     echo "" >> ../scripts/study2.sh
     # vary n from 5 to 40  in steps of 5
     for n in 5 10 15 20 25 30 35 40 ; do
         echo "export n=${n}" >> ../scripts/study2.sh
         echo "" >> ../scripts/study2.sh
-        for offeredLoad in 1.0 1.5 2.0 2.5 3.0 ; do
+        for offeredLoad in 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0 5.5 6.0 ; do
             echo "export offeredLoad=${offeredLoad}" >> ../scripts/study2.sh
             ol1=$(awk "BEGIN {print $offeredLoad*1.0}")
             # uplink is 90% of total offered load
@@ -86,16 +86,16 @@ for pd_thresh in 82 77 72 67 62; do
             d1=$(awk "BEGIN {print $d*100}")
             ul1=$(awk "BEGIN {print $uplink*100}")
             dl1=$(awk "BEGIN {print $downlink*100}")
-            test=$(printf "study2-%0.f-%02d-%02d-%0.2g-%0.1f-%0.1f-_-%ddbm\n" ${d1} ${r} ${n} ${ol1} ${ul1} ${dl1} ${pd_thresh})
+            test=$(printf "study2-%0.f-%02d-%02d-%0.2g-%0.1f-%0.1f-%ddbm\n" ${d1} ${r} ${n} ${ol1} ${ul1} ${dl1} ${pd_thresh})
             echo "export test=${test}" >> ../scripts/study2.sh
             echo "# run $test" >> ../scripts/study2.sh
             # fork each simulation for parallelism
             echo "sleep 1; run_one &" >> ../scripts/study2.sh
             echo "" >> ../scripts/study2.sh
         done
+        # fork and wait
+        echo "wait" >> ../scripts/study2.sh
     done
-    # fork and wait
-    echo "wait" >> ../scripts/study2.sh
 done
 
 chmod +x ../scripts/study2.sh
