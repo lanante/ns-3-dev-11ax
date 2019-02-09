@@ -1040,6 +1040,20 @@ main (int argc, char *argv[])
   double obssPdThresholdBss5 = -99.0;
   double obssPdThresholdBss6 = -99.0;
   double obssPdThresholdBss7 = -99.0;
+  double obssPdThresholdMinBss1 = -82.0;
+  double obssPdThresholdMinBss2 = -82.0;
+  double obssPdThresholdMinBss3 = -82.0;
+  double obssPdThresholdMinBss4 = -82.0;
+  double obssPdThresholdMinBss5 = -82.0;
+  double obssPdThresholdMinBss6 = -82.0;
+  double obssPdThresholdMinBss7 = -82.0;
+  double obssPdThresholdMaxBss1 = -62.0;
+  double obssPdThresholdMaxBss2 = -62.0;
+  double obssPdThresholdMaxBss3 = -62.0;
+  double obssPdThresholdMaxBss4 = -62.0;
+  double obssPdThresholdMaxBss5 = -62.0;
+  double obssPdThresholdMaxBss6 = -62.0;
+  double obssPdThresholdMaxBss7 = -62.0;
   double txGain = 0.0; // dBi
   double rxGain = 0.0; // dBi
   uint16_t antennas = 1;
@@ -1083,6 +1097,7 @@ main (int argc, char *argv[])
   uint16_t colorBss5 = 5;
   uint16_t colorBss6 = 6;
   uint16_t colorBss7 = 7;
+  bool powerBackoff = true;
 
   CommandLine cmd;
   cmd.AddValue ("duration", "Duration of simulation (s)", duration);
@@ -1152,7 +1167,19 @@ main (int argc, char *argv[])
   cmd.AddValue ("colorBss5", "The color for BSS 5.", colorBss5);
   cmd.AddValue ("colorBss6", "The color for BSS 6.", colorBss6);
   cmd.AddValue ("colorBss7", "The color for BSS 7.", colorBss7);
+  cmd.AddValue ("powerBackoff", "Enable/disable OBSS_PD SR power backoff.", powerBackoff);
   cmd.Parse (argc, argv);
+  
+  if (!powerBackoff)
+    {
+      obssPdThresholdMinBss1 = obssPdThresholdBss1;
+      obssPdThresholdMinBss2 = obssPdThresholdBss2;
+      obssPdThresholdMinBss3 = obssPdThresholdBss3;
+      obssPdThresholdMinBss4 = obssPdThresholdBss4;
+      obssPdThresholdMinBss5 = obssPdThresholdBss5;
+      obssPdThresholdMinBss6 = obssPdThresholdBss6;
+      obssPdThresholdMinBss7 = obssPdThresholdBss7;
+    }
 
   if (bianchi)
     {
@@ -1626,9 +1653,11 @@ main (int argc, char *argv[])
 
   // Network "A"
   Ssid ssidA = Ssid ("A");
-    if (enableObssPd)
+  if (enableObssPd)
     {
       wifi.SetObssPdAlgorithm ("ns3::ConstantObssPdAlgorithm",
+                               "ObssPdLevelMin", DoubleValue (obssPdThresholdMinBss1),
+                               "ObssPdLevelMax", DoubleValue (obssPdThresholdMaxBss1),
                                "ObssPdLevel", DoubleValue (obssPdThresholdBss1));
     }
 
@@ -1686,6 +1715,8 @@ main (int argc, char *argv[])
       if (enableObssPd)
         {
           wifi.SetObssPdAlgorithm ("ns3::ConstantObssPdAlgorithm",
+                                   "ObssPdLevelMin", DoubleValue (obssPdThresholdMinBss2),
+                                   "ObssPdLevelMax", DoubleValue (obssPdThresholdMaxBss2),
                                    "ObssPdLevel", DoubleValue (obssPdThresholdBss2));
         }
 
@@ -1740,6 +1771,8 @@ main (int argc, char *argv[])
       if (enableObssPd)
         {
           wifi.SetObssPdAlgorithm ("ns3::ConstantObssPdAlgorithm",
+                                   "ObssPdLevelMin", DoubleValue (obssPdThresholdMinBss3),
+                                   "ObssPdLevelMax", DoubleValue (obssPdThresholdMaxBss3),
                                    "ObssPdLevel", DoubleValue (obssPdThresholdBss3));
         }
 
@@ -1794,6 +1827,8 @@ main (int argc, char *argv[])
       if (enableObssPd)
         {
           wifi.SetObssPdAlgorithm ("ns3::ConstantObssPdAlgorithm",
+                                   "ObssPdLevelMin", DoubleValue (obssPdThresholdMinBss4),
+                                   "ObssPdLevelMax", DoubleValue (obssPdThresholdMaxBss4),
                                    "ObssPdLevel", DoubleValue (obssPdThresholdBss4));
         }
 
@@ -1848,6 +1883,8 @@ main (int argc, char *argv[])
       if (enableObssPd)
         {
           wifi.SetObssPdAlgorithm ("ns3::ConstantObssPdAlgorithm",
+                                   "ObssPdLevelMin", DoubleValue (obssPdThresholdMinBss5),
+                                   "ObssPdLevelMax", DoubleValue (obssPdThresholdMaxBss5),
                                    "ObssPdLevel", DoubleValue (obssPdThresholdBss5));
         }
 
@@ -1902,6 +1939,8 @@ main (int argc, char *argv[])
       if (enableObssPd)
         {
           wifi.SetObssPdAlgorithm ("ns3::ConstantObssPdAlgorithm",
+                                   "ObssPdLevelMin", DoubleValue (obssPdThresholdMinBss6),
+                                   "ObssPdLevelMax", DoubleValue (obssPdThresholdMaxBss6),
                                    "ObssPdLevel", DoubleValue (obssPdThresholdBss6));
         }
 
@@ -1955,16 +1994,18 @@ main (int argc, char *argv[])
       if (enableObssPd)
         {
           wifi.SetObssPdAlgorithm ("ns3::ConstantObssPdAlgorithm",
+                                   "ObssPdLevelMin", DoubleValue (obssPdThresholdMinBss7),
+                                   "ObssPdLevelMax", DoubleValue (obssPdThresholdMaxBss7),
                                    "ObssPdLevel", DoubleValue (obssPdThresholdBss7));
         }
 
       mac.SetType ("ns3::StaWifiMac",
                    "MaxMissedBeacons", UintegerValue (maxMissedBeacons),
                    "Ssid", SsidValue (ssidG));
-      
+    
       staDevicesG = wifi.Install (spectrumPhy, mac, stasG);
       wifi.AssignStreams (staDevicesG, wifiStream + 12);
-      
+    
       mac.SetType ("ns3::ApWifiMac",
                    "Ssid", SsidValue (ssidG));
 
@@ -2926,3 +2967,5 @@ main (int argc, char *argv[])
   Simulator::Destroy ();
   return 0;
 }
+
+

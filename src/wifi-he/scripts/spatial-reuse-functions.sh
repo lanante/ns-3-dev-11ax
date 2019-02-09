@@ -188,6 +188,10 @@ function run_one () {
     export obssPdThresholdBss7=${obssPdThreshold}
   fi
 
+  if [ -z "$powerBackoff" ]; then
+    export powerBackoff=1
+  fi
+
   echo Running ${test}
   # run the test
   ../../../waf --run "spatial-reuse \
@@ -252,7 +256,8 @@ function run_one () {
         --colorBss4=${colorBss4} \
         --colorBss5=${colorBss5} \
         --colorBss6=${colorBss6} \
-        --colorBss7=${colorBss7}"
+        --colorBss7=${colorBss7} \
+        --powerBackoff=${powerBackoff}"
 
   # copy results files
   cd ../scripts
