@@ -1114,18 +1114,6 @@ Latency
 offered load.  There will be a separate line for each combination of 
 n STAs - i.e., n=5, n=10, n=15, ..., n=40).
 
-OBSS PD Levels
-##############
-
-(Here, there will be charts showing the sensitivity of the performance
-to the changes in the OBSS_PD levels.
-several figures will be provided.  Each figure will be for a 
-given offered load and number of STAs that saturate (or nearly 
-saturate) the given network of interest.  For each figure, 
-the area capacity will be shown as a function of OBSS_PD level.
-There will be a separate line for each combination of OBSS_PD 
-level - i.e., -82 dB, -77 dB, ..., -62 db).
-
 Study 3 - Coexistence
 =====================
 
