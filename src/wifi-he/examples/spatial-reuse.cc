@@ -164,6 +164,12 @@ ApplicationContainer downlinkClientApps;
 
 NodeContainer allNodes;
 
+bool verifyResults = false; //for regression
+double minExpectedThroughputBss1Up = 0; //for regression
+double maxExpectedThroughputBss1Up = 0; //for regression
+double minExpectedThroughputBss1Down = 0; //for regression
+double maxExpectedThroughputBss1Down = 0; //for regression
+
 // Parse context strings of the form "/NodeList/3/DeviceList/1/Mac/Assoc"
 // to extract the NodeId
 uint32_t
@@ -718,6 +724,18 @@ SaveSpatialReuseStats (const std::string filename,
 
       tputApUplink = static_cast<double>(bytesReceivedApUplink * 8) / 1e6 / effectiveDuration;
       tputApDownlink = static_cast<double>(bytesReceivedApDownlink * 8) / 1e6 / effectiveDuration;
+      
+      if (verifyResults && (bss == 1))
+        {
+          if ((tputApUplink < minExpectedThroughputBss1Up) || (tputApUplink > maxExpectedThroughputBss1Up))
+            {
+              NS_FATAL_ERROR ("Obtained upstream throughput for BSS1 " << tputApUplink << " is not expected!");
+            }
+          if ((tputApDownlink < minExpectedThroughputBss1Down) || (tputApDownlink > maxExpectedThroughputBss1Down))
+            {
+              NS_FATAL_ERROR ("Obtained downstream throughput for BSS1 " << tputApDownlink << " is not expected!");
+            }
+        }
 
       tputApUplinkTotal += tputApUplink;
       tputApDownlinkTotal += tputApDownlink;
@@ -1188,6 +1206,11 @@ main (int argc, char *argv[])
   cmd.AddValue ("colorBss6", "The color for BSS 6.", colorBss6);
   cmd.AddValue ("colorBss7", "The color for BSS 7.", colorBss7);
   cmd.AddValue ("powerBackoff", "Enable/disable OBSS_PD SR power backoff.", powerBackoff);
+  cmd.AddValue ("verifyResults", "Flag used by regression to indicate resuts should be verified at the end of the simulation run.", verifyResults);
+  cmd.AddValue ("minExpectedThroughputBss1Up", "The minimum expected upstream throughput in Mbps for BSS 1 (used by regression).", minExpectedThroughputBss1Up);
+  cmd.AddValue ("maxExpectedThroughputBss1Up", "The maximum expected upstream throughput in Mbps for BSS 1 (used by regression).", maxExpectedThroughputBss1Up);
+  cmd.AddValue ("minExpectedThroughputBss1Down", "The minimum expected downstream throughput in Mbps for BSS 1 (used by regression).", minExpectedThroughputBss1Down);
+  cmd.AddValue ("maxExpectedThroughputBss1Down", "The maximum expected downstream throughput in Mbps for BSS 1 (used by regression).", maxExpectedThroughputBss1Down);
   cmd.Parse (argc, argv);
   
   if (!powerBackoff)
