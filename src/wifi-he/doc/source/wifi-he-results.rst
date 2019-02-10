@@ -1070,6 +1070,43 @@ Figure :ref:`spectrum-efficiency-study2a-62` illustrates the system throughput f
 
 It is observed that TBD...
 
+Airtime utilization
+###################
+
+The airtime utilization with OBSS_PD level -82 dBm as offered load is increased is shown below for
+the center BSS of interest.  A separate line is plotted for each value
+of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
+
+.
+
+.. _airtime-utilization-study2a-82:
+
+.. figure:: figures/airtime-utilization-study2a-82.*
+   :align: center
+
+   Airtime utilization with OBSS_PD level -82 dBm for the BSS of interest in the center of the Study 2 parametric study.
+
+Figure :ref:`airtime-utilization-study2a-82` illustrates the airtime utilization for BSS1.
+
+It is observed that TBD...
+
+The airtime utilization with OBSS_PD level -62 dBm as offered load is increased is shown below for
+the center BSS of interest.  A separate line is plotted for each value
+of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
+
+.
+
+.. _airtime-utilization-study2a-62:
+
+.. figure:: figures/airtime-utilization-study2a-62.*
+   :align: center
+
+   Airtime utilization with OBSS_PD level -62 dBm for the BSS of interest in the center of the Study 2 parametric study.
+
+Figure :ref:`airtime-utilization-study2a-62` illustrates the airtime utilization for BSS1.
+
+It is observed that TBD...
+
 Latency
 #######
 
