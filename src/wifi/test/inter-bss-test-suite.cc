@@ -261,7 +261,7 @@ TestInterBssConstantObssPdAlgo::SetupSimulation ()
   Simulator::Schedule (Seconds (1.6), &TestInterBssConstantObssPdAlgo::SendOnePacket, this, ap_device2, sta_device2, m_payloadSize2);
   // STA1 sends a packet #7 100us later. Even though AP2 is still transmitting, STA1 can transmit simultaneously if it's PHY was reset by OBSS PD SR.
   Simulator::Schedule (Seconds (1.6) + MicroSeconds (100), &TestInterBssConstantObssPdAlgo::SendOnePacket, this, sta_device1, ap_device1, m_payloadSize1);
-  if (expectPhyReset && (m_obssPdLevelDbm > -82))
+  if (expectPhyReset)
     {
       // In this case, we check the TX power is restricted
       double expectedTxPower = std::min (m_txPowerDbm, 21 - (m_obssPdLevelDbm + 82));
@@ -312,22 +312,22 @@ TestInterBssConstantObssPdAlgo::NotifyPhyTxBegin (std::string context, Ptr<const
   if ((idx == 0) && (pktSize == m_payloadSize1))
     {
       m_numSta1PacketsSent++;
-      NS_TEST_ASSERT_MSG_EQ (WToDbm (txPowerW), m_expectedTxPowerDbm, "Tx power is not correct!");
+      NS_TEST_EXPECT_MSG_EQ (TestDoubleIsEqual (WToDbm (txPowerW), m_expectedTxPowerDbm, 1e-12), true, "Tx power is not correct!");
     }
   else if ((idx == 1) && (pktSize == m_payloadSize2))
     {
       m_numSta2PacketsSent++;
-      NS_TEST_ASSERT_MSG_EQ (WToDbm (txPowerW), m_expectedTxPowerDbm, "Tx power is not correct!");
+      NS_TEST_EXPECT_MSG_EQ (TestDoubleIsEqual (WToDbm (txPowerW), m_expectedTxPowerDbm, 1e-12), true, "Tx power is not correct!");
     }
   else if ((idx == 2) && (pktSize == m_payloadSize1))
     {
       m_numAp1PacketsSent++;
-      NS_TEST_ASSERT_MSG_EQ (WToDbm (txPowerW), m_expectedTxPowerDbm, "Tx power is not correct!");
+      NS_TEST_EXPECT_MSG_EQ (TestDoubleIsEqual (WToDbm (txPowerW), m_expectedTxPowerDbm, 1e-12), true, "Tx power is not correct!");
     }
   else if ((idx == 3) && (pktSize == m_payloadSize2))
     {
       m_numAp2PacketsSent++;
-      NS_TEST_ASSERT_MSG_EQ (WToDbm (txPowerW), m_expectedTxPowerDbm, "Tx power is not correct!");
+      NS_TEST_EXPECT_MSG_EQ (TestDoubleIsEqual (WToDbm (txPowerW), m_expectedTxPowerDbm, 1e-12), true, "Tx power is not correct!");
     }
 }
 
