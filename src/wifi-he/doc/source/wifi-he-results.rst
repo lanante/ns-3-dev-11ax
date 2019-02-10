@@ -936,11 +936,13 @@ documentation figures, the following scripts should be executed in order:
 
 3) make-data-files-study2.sh - this creates data files for plotting, from the set of all simulation results.
 
-4) plot-study2.sh - this generates plots of results.
+4) plot-study2a.sh - this generates study2a plots of results.
 
-5) plot-study2-ecdf.sh - this generates additional plots (ECDFs) from results.
+5) plot-study2b.sh - this generates study2b plots of results.
 
-6) copy-study2-plots-to-doc-figures.sh - this copies a subset of plots generated into
+6) plot-study2-ecdf.sh - this generates additional plots (ECDFs) from results.
+
+7) copy-study2-plots-to-doc-figures.sh - this copies a subset of plots generated into
 the doc/figures folder, for inclusion of those results into the documentation.
 
 After the above have been executed, the doc/figures folder should contain the newly
@@ -966,14 +968,14 @@ of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
 
 .
 
-.. _throughput-study2-82:
+.. _throughput-study2a-82:
 
-.. figure:: figures/throughput-study2-82.*
+.. figure:: figures/throughput-study2a-82.*
    :align: center
 
    Throughput with OBSS_PD level -82 dBm for the BSS of interest in the center of the Study 2 parametric study.
 
-Figure :ref:`throughput-study2-82` illustrates the system throughput for BSS1.
+Figure :ref:`throughput-study2a-82` illustrates the system throughput for BSS1.
 
 It is observed that TBD...
 
@@ -983,14 +985,14 @@ of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
 
 .
 
-.. _throughput-study2-62:
+.. _throughput-study2a-62:
 
-.. figure:: figures/throughput-study2-62.*
+.. figure:: figures/throughput-study2a-62.*
    :align: center
 
 Throughput with OBSS_PD level -62 dBm for the BSS of interest in the center of the Study 2 parametric study.
 
-Figure :ref:`throughput-study2-62` illustrates the system throughput for BSS1.
+Figure :ref:`throughput-study2a-62` illustrates the system throughput for BSS1.
 
 It is observed that TBD...
 
@@ -1003,14 +1005,14 @@ of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
 
 .
 
-.. _area-capacity-study2-82:
+.. _area-capacity-study2a-82:
 
-.. figure:: figures/area-capacity-study2-82.*
+.. figure:: figures/area-capacity-study2a-82.*
    :align: center
 
    Area capacity with OBSS_PD level -82 dBm for the BSS of interest in the center of the Study 2 parametric study.
 
-Figure :ref:`area-capacity-study2-82` illustrates the system throughput for BSS1.
+Figure :ref:`area-capacity-study2a-82` illustrates the system throughput for BSS1.
 
 It is observed that TBD...
 
@@ -1020,14 +1022,14 @@ of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
 
 .
 
-.. _area-capacity-study2-62:
+.. _area-capacity-study2a-62:
 
-.. figure:: figures/area-capacity-study2-62.*
+.. figure:: figures/area-capacity-study2a-62.*
    :align: center
 
 Area capacity with OBSS_PD level -62 dBm for the BSS of interest in the center of the Study 2 parametric study.
 
-Figure :ref:`area-capacity-study2-62` illustrates the system throughput for BSS1.
+Figure :ref:`area-capacity-study2a-62` illustrates the system throughput for BSS1.
 
 It is observed that TBD...
 
@@ -1040,14 +1042,14 @@ of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
 
 .
 
-.. _spectrum-efficiency-study2-82:
+.. _spectrum-efficiency-study2a-82:
 
-.. figure:: figures/spectrum-efficiency-study2-82.*
+.. figure:: figures/spectrum-efficiency-study2a-82.*
    :align: center
 
    Spectrum efficiency with OBSS_PD level -82 dBm for the BSS of interest in the center of the Study 2 parametric study.
 
-Figure :ref:`spectrum-efficiency-study2-82` illustrates the system throughput for BSS1.
+Figure :ref:`spectrum-efficiency-study2a-82` illustrates the system throughput for BSS1.
 
 It is observed that TBD...
 
@@ -1057,14 +1059,14 @@ of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
 
 .
 
-.. _spectrum-efficiency-study2-62:
+.. _spectrum-efficiency-study2a-62:
 
-.. figure:: figures/spectrum-efficiency-study2-62.*
+.. figure:: figures/spectrum-efficiency-study2a-62.*
    :align: center
 
 Spectrum efficiency with OBSS_PD level -62 dBm for the BSS of interest in the center of the Study 2 parametric study.
 
-Figure :ref:`spectrum-efficiency-study2-62` illustrates the system throughput for BSS1.
+Figure :ref:`spectrum-efficiency-study2a-62` illustrates the system throughput for BSS1.
 
 It is observed that TBD...
 
