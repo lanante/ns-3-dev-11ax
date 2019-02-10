@@ -70,7 +70,7 @@ echo "" >> ../scripts/study1.sh
 # vary n from 5 to 40  in steps of 5
 for n in 5 10 15 20 25 30 35 40 ; do
     echo "export n=${n}" >> ../scripts/study1.sh
-    for offeredLoad in 1.0 1.5 2.0 2.5 3.0 ; do
+    for offeredLoad in 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0 5.5 6.0; do
         echo "export offeredLoad=${offeredLoad}" >> ../scripts/study1.sh
         ol1=$(awk "BEGIN {print $offeredLoad*1.0}")
         # uplink is 90% of total offered load
@@ -89,10 +89,9 @@ for n in 5 10 15 20 25 30 35 40 ; do
         echo "sleep 1; run_one &" >> ../scripts/study1.sh
         echo "" >> ../scripts/study1.sh
     done
+    # fork and wait
+    echo "wait" >> ../scripts/study1.sh
 done
-
-# fork and wait
-echo "wait" >> ../scripts/study1.sh
 
 chmod +x ../scripts/study1.sh
 
