@@ -736,7 +736,7 @@ Study 1 Results
 ===============
 
 The figures in the section were generated using the ns-3-dev-11ax 
-repository as of commit changeset c673c043c29f7063ea666504518b5c432b0344fc.
+repository as of commit changeset 8d5cd31b78fb862d7e9280ca3bc7468306ab6168.
 
 System Throughput
 #################
@@ -849,6 +849,24 @@ Figure :ref:`spectrum-efficiency-study1` illustrates the system throughput for B
 It is observed that spectrum efficiency increases as offered load increases, and plateaus
 generally in the range of 0.0002 - 0.0004 Mbps / Hz / m^2.  Furthermore, spectrum efficiency decreases
 as the number of STAs, n, per BSS increases.
+
+Airtime utilization
+###################
+
+The airtime utilization as offered load is increased is shown below for 
+the center BSS of interest.  A separate line is plotted for each value
+of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
+
+.
+
+.. _airtime-utilization-study1:
+
+.. figure:: figures/airtime-utilization-study1.*
+   :align: center 
+
+   Airtime utilization for the BSS of interest in the center of the Study 1 parametric study.
+
+Figure :ref:`airtime-utilization-study1` illustrates the airtime utilization for BSS1.
 
 Latency
 #######
