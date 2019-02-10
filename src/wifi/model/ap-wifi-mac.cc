@@ -199,7 +199,11 @@ ApWifiMac::SetBeaconInterval (Time interval)
   NS_LOG_FUNCTION (this << interval);
   if ((interval.GetMicroSeconds () % 1024) != 0)
     {
-      NS_LOG_WARN ("beacon interval should be multiple of 1024us (802.11 time unit), see IEEE Std. 802.11-2012");
+      NS_FATAL_ERROR ("beacon interval should be multiple of 1024us (802.11 time unit), see IEEE Std. 802.11-2012");
+    }
+  if (interval.GetMicroSeconds () > (1024 * 65535))
+    {
+      NS_FATAL_ERROR ("beacon interval should be smaller then or equal to 65535 * 1024us (802.11 time unit)");
     }
   m_low->SetBeaconInterval (interval);
 }
@@ -1092,8 +1096,14 @@ ApWifiMac::Receive (Ptr<Packet> packet, const WifiMacHeader *hdr)
       if (hdr->IsProbeReq ())
         {
           NS_ASSERT (hdr->GetAddr1 ().IsBroadcast ());
-          NS_LOG_DEBUG ("Probe request received from " << from << ": send probe response");
-          SendProbeResp (from);
+          MgtProbeRequestHeader probeRequestHeader;
+          packet->RemoveHeader (probeRequestHeader);
+          Ssid ssid = probeRequestHeader.GetSsid ();
+          if (ssid == GetSsid () || ssid.IsBroadcast ())
+            {
+              NS_LOG_DEBUG ("Probe request received from " << from << ": send probe response");
+              SendProbeResp (from);
+            }
           return;
         }
       else if (hdr->GetAddr1 () == GetAddress ())

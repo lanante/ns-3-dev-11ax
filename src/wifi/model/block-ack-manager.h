@@ -23,6 +23,7 @@
 
 #include <map>
 #include "ns3/nstime.h"
+#include "ns3/traced-callback.h"
 #include "wifi-mac-header.h"
 #include "originator-block-ack-agreement.h"
 #include "block-ack-type.h"
@@ -192,6 +193,15 @@ public:
    * An acknowledged MPDU is removed from the buffer, retransmitted otherwise.
    */
   void NotifyGotBlockAck (const CtrlBAckResponseHeader *blockAck, Mac48Address recipient, double rxSnr, WifiMode txMode, double dataSnr);
+  /**
+   * \param recipient Sender of the expected block ack frame.
+   * \param tid Traffic ID.
+   *
+   * Invoked upon missed reception of a block ack frame. Typically, this function, is called
+   * by ns3::QosTxop object. Performs a check on which MPDUs, previously sent
+   * with ack policy set to Block Ack, should be placed in the retransmission queue.
+   */
+  void NotifyMissedBlockAck (Mac48Address recipient, uint8_t tid);
   /**
    * \param recipient Address of peer station involved in block ack mechanism.
    * \param tid Traffic ID.
@@ -408,6 +418,16 @@ public:
    */
   void SetTxFailedCallback (TxFailed callback);
 
+  /**
+   * TracedCallback signature for state changes.
+   *
+   * \param [in] now Time when the \p state changed.
+   * \param [in] recipient MAC address of the recipient.
+   * \param [in] tid the TID.
+   * \param [in] state The state.
+   */
+  typedef void (* AgreementStateTracedCallback)(Time now, Mac48Address recipient, uint8_t tid, OriginatorBlockAckAgreement::State state);
+
 
 private:
   /**
@@ -529,6 +549,11 @@ private:
   TxOk m_txOkCallback; ///< transmit ok callback
   TxFailed m_txFailedCallback; ///< transmit failed callback
   Ptr<WifiRemoteStationManager> m_stationManager; ///< the station manager
+
+  /**
+   * The trace source fired when a state transition occured.
+   */
+  TracedCallback<Time, Mac48Address, uint8_t, OriginatorBlockAckAgreement::State> m_agreementState;
 };
 
 } //namespace ns3

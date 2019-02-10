@@ -166,6 +166,52 @@ WifiPhyHelper::SetErrorRateModel (std::string name,
 }
 
 void
+WifiPhyHelper::SetFrameCaptureModel (std::string name,
+                                     std::string n0, const AttributeValue &v0,
+                                     std::string n1, const AttributeValue &v1,
+                                     std::string n2, const AttributeValue &v2,
+                                     std::string n3, const AttributeValue &v3,
+                                     std::string n4, const AttributeValue &v4,
+                                     std::string n5, const AttributeValue &v5,
+                                     std::string n6, const AttributeValue &v6,
+                                     std::string n7, const AttributeValue &v7)
+{
+  m_frameCaptureModel = ObjectFactory ();
+  m_frameCaptureModel.SetTypeId (name);
+  m_frameCaptureModel.Set (n0, v0);
+  m_frameCaptureModel.Set (n1, v1);
+  m_frameCaptureModel.Set (n2, v2);
+  m_frameCaptureModel.Set (n3, v3);
+  m_frameCaptureModel.Set (n4, v4);
+  m_frameCaptureModel.Set (n5, v5);
+  m_frameCaptureModel.Set (n6, v6);
+  m_frameCaptureModel.Set (n7, v7);
+}
+
+void
+WifiPhyHelper::SetPreambleDetectionModel (std::string name,
+                                          std::string n0, const AttributeValue &v0,
+                                          std::string n1, const AttributeValue &v1,
+                                          std::string n2, const AttributeValue &v2,
+                                          std::string n3, const AttributeValue &v3,
+                                          std::string n4, const AttributeValue &v4,
+                                          std::string n5, const AttributeValue &v5,
+                                          std::string n6, const AttributeValue &v6,
+                                          std::string n7, const AttributeValue &v7)
+{
+  m_preambleDetectionModel = ObjectFactory ();
+  m_preambleDetectionModel.SetTypeId (name);
+  m_preambleDetectionModel.Set (n0, v0);
+  m_preambleDetectionModel.Set (n1, v1);
+  m_preambleDetectionModel.Set (n2, v2);
+  m_preambleDetectionModel.Set (n3, v3);
+  m_preambleDetectionModel.Set (n4, v4);
+  m_preambleDetectionModel.Set (n5, v5);
+  m_preambleDetectionModel.Set (n6, v6);
+  m_preambleDetectionModel.Set (n7, v7);
+}
+
+void
 WifiPhyHelper::PcapSniffTxEvent (
   Ptr<PcapFileWrapper> file,
   Ptr<const Packet>    packet,
@@ -747,6 +793,9 @@ WifiHelper::Install (const WifiPhyHelper &phy,
 void
 WifiHelper::EnableLogComponents (void)
 {
+  LogComponentEnableAll (LOG_PREFIX_TIME);
+  LogComponentEnableAll (LOG_PREFIX_NODE);
+
   LogComponentEnable ("AarfWifiManager", LOG_LEVEL_ALL);
   LogComponentEnable ("AarfcdWifiManager", LOG_LEVEL_ALL);
   LogComponentEnable ("AdhocWifiMac", LOG_LEVEL_ALL);
@@ -779,9 +828,11 @@ WifiHelper::EnableLogComponents (void)
   LogComponentEnable ("RegularWifiMac", LOG_LEVEL_ALL);
   LogComponentEnable ("RraaWifiManager", LOG_LEVEL_ALL);
   LogComponentEnable ("RrpaaWifiManager", LOG_LEVEL_ALL);
+  LogComponentEnable ("SimpleFrameCaptureModel", LOG_LEVEL_ALL);
   LogComponentEnable ("SpectrumWifiPhy", LOG_LEVEL_ALL);
   LogComponentEnable ("StaWifiMac", LOG_LEVEL_ALL);
   LogComponentEnable ("SupportedRates", LOG_LEVEL_ALL);
+  LogComponentEnable ("ThresholdPreambleDetectionModel", LOG_LEVEL_ALL);
   LogComponentEnable ("WifiMac", LOG_LEVEL_ALL);
   LogComponentEnable ("WifiMacQueueItem", LOG_LEVEL_ALL);
   LogComponentEnable ("WifiNetDevice", LOG_LEVEL_ALL);

@@ -122,7 +122,7 @@ public:
   void SetCapabilitiesChangedCallback (Callback<void> callback);
 
   /**
-   * Starting receiving the PHY preamble of a packet (i.e. the first bit of the preamble has arrived).
+   * Start receiving the PHY preamble of a packet (i.e. the first bit of the preamble has arrived).
    *
    * \param packet the arriving packet
    * \param rxPowerW the receive power in W
@@ -133,7 +133,7 @@ public:
                              Time rxDuration);
 
   /**
-   * Starting receiving the PHY header of a packet (i.e. after the end of receiving the preamble).
+   * Start receiving the PHY header of a packet (i.e. after the end of receiving the preamble).
    *
    * \param packet the arriving packet
    * \param txVector the TXVECTOR of the arriving packet
@@ -147,17 +147,30 @@ public:
                            Time rxDuration);
 
   /**
-   * Starting receiving the payload of a packet (i.e. the first bit of the packet has arrived).
+   * Continue receiving the PHY header of a packet (i.e. after the end of receiving the legacy header part).
    *
    * \param packet the arriving packet
    * \param txVector the TXVECTOR of the arriving packet
    * \param mpdutype the type of the MPDU as defined in WifiPhy::MpduType.
    * \param event the corresponding event of the first time the packet arrives
    */
-  void StartReceivePacket (Ptr<Packet> packet,
-                           WifiTxVector txVector,
-                           MpduType mpdutype,
-                           Ptr<Event> event);
+  void ContinueReceiveHeader (Ptr<Packet> packet,
+                              WifiTxVector txVector,
+                              MpduType mpdutype,
+                              Ptr<Event> event);
+
+  /**
+   * Start receiving the payload of a packet (i.e. the first bit of the packet has arrived).
+   *
+   * \param packet the arriving packet
+   * \param txVector the TXVECTOR of the arriving packet
+   * \param mpdutype the type of the MPDU as defined in WifiPhy::MpduType.
+   * \param event the corresponding event of the first time the packet arrives
+   */
+  void StartReceivePayload (Ptr<Packet> packet,
+                            WifiTxVector txVector,
+                            MpduType mpdutype,
+                            Ptr<Event> event);
 
   /**
    * The last bit of the packet has arrived.
@@ -1867,6 +1880,7 @@ private:
   Ptr<PreambleDetectionModel> m_preambleDetectionModel; //!< Preamble detection model
   Ptr<WifiRadioEnergyModel> m_wifiRadioEnergyModel; //!< Wifi radio energy model
   Ptr<ErrorModel> m_postReceptionErrorModel; //!< Error model for receive packet events
+  Time m_timeLastPreambleDetected; //!< Record the time the last preamble was detected
 
   Callback<void> m_capabilitiesChangedCallback; //!< Callback when PHY capabilities changed
 };
