@@ -736,7 +736,7 @@ Study 1 Results
 ===============
 
 The figures in the section were generated using the ns-3-dev-11ax 
-repository as of commit changeset 8d5cd31b78fb862d7e9280ca3bc7468306ab6168.
+repository as of commit changeset 9bd25fef3784187303f5c92271bece656a1ddd66.
 
 System Throughput
 #################
