@@ -141,6 +141,8 @@ nodes of the network have been placed, measured in Mbps / m^2.
 which the nodes of the network have been placed, measured in 
 Mbps / Hz / m^2.
 
+Airtime utilization will also be plotted for parametric studies.
+
 Examples of these metrics with further explanation are given below.
 
 Example Scenarios
@@ -501,8 +503,7 @@ features.
 Topology / Environment Description
 ##################################
 
-BSSs are place a regular and symmetric grid as in Figure X
-for spatial resue with reuse frequency of N=3.
+BSSs are place a regular and symmetric grid with a reuse frequency of N=3.
 
 The node positions for n=5 STAs per BSS in Study 1 are given below.
 
@@ -535,27 +536,19 @@ describe any deviations from those described in [TGax15]_ Scenario 3.
 Topology
 ########
 
-* BSSs - BSSs are placed in a regular and symmetric grid as shown 
-in the Figure above, with reuse frequency N=3.  Each hexagon of the grid 
-is modeled as a circle with radius r=10m into which the positions of the 
-STAs are uniformly distributed.
+* BSSs - BSSs are placed in a regular and symmetric grid as shown in the Figure above, with reuse frequency N=3. Each hexagon of the grid is modeled as a circle with radius r=10m into which the positions of the STAs are uniformly distributed.
 
 * Reuse Frequency - N=3.
 
 * AP location - APs are placed at the center of each circle.
 
-* Inter BSS Distance (ICD) - BSSs are separated from one another 
-by an inter BSS distance (ICD) of 2 * h, where 
-h = sqrt(r^2-r^2/4) = 17.32m.
+* Inter BSS Distance (ICD) - BSSs are separated from one another by an inter BSS distance (ICD) of 2 * h, where h = sqrt(r^2-r^2/4) = 17.32m.
 
-* AP antenna height - a 2D model is assumed, and heights of nodes, including
-the AP antenna height, are not modeled.
+* AP antenna height - a 2D model is assumed, and heights of nodes, including the AP antenna height, are not modeled.
 
-* STA locations - STAs are uniformly distributed throughout the circle 
-(radius r) of each BSS.
+* STA locations - STAs are uniformly distributed throughout the circle (radius r) of each BSS.
 
-* Number of STAs - the number of STAs is varied for this study from 5 to 40 
-in steps of 5.
+* Number of STAs - the number of STAs is varied for this study from 5 to 40 in steps of 5.
 
 Channel Model
 #############
@@ -575,11 +568,9 @@ PHY Parameters
 
 * STA TX power - 15 dBm per antenna.
 
-* MCS - the ns-3 ideal channel model is used.  This is a minor deviation from the
-[TGax15]_ described scenario of MCS0 or MCS7 only.
+* MCS - the ns-3 ideal rate manager is used.  This is a minor deviation from the [TGax15]_ described scenario of MCS0 or MCS7 only.
 
-* antennas - (SISO) one antenna is modeled per AP and per STA.  This is a deviation from
-the parameters described in [TGax15]_.
+* Antennas - (SISO) one antenna is modeled per AP and per STA.  This is a deviation from the parameters described in [TGax15]_.
 
 * TX gain - 0 dBm
 
@@ -596,16 +587,13 @@ MAC Parameters
 
 * Access protocol parameters - EDCA with default EDCA parameter set.
 
-* Primary channels - All BSS at 5GHz with 20 MHz BSS with reuse 3.  Assignment
-of 20 MHz bands is a deviation from the parameters described in [TGax11].
+* Primary channels - All BSS at 5GHz with 20 MHz BSS with reuse 3.  Assignment of 20 MHz bands is a deviation from the parameters described in [TGax11].
 
-* Aggregation - A-MPDU aggregation size of 3140.
+* Aggregation - A-MPDU aggregation size of up to 65535 bytes.
 
 * RTS/CTS Threshold - no RTS/CTS.
 
-* Association - STAs are associated with the BSS for the circle into which the 
-STA has been dropped.  This varies from the association scheme described in [TGax15]_,
-although the resulting number of associated STAs per BSS remains the same.
+* Association - STAs are associated with the BSS for the circle into which the STA has been dropped.  This varies from the association scheme described in [TGax15]_, although the resulting number of associated STAs per BSS remains the same.
 
 Traffic Model
 #############
@@ -638,16 +626,15 @@ All traffic is assumed a Constant Bit Rate (CBR) and transmissions use UDP datag
 Conducting the Study 1 Experiments
 ##################################
 
-To conduct the exeriments for Study 1, a bash script is used to repeatedly
+To conduct the experiments for Study 1, a bash script is used to repeatedly
 run the ns-3 spatial-reuse.cc script.  
 
 Parameters are fixed as described above, with the exception of the number of
 STAs.
 
 The total offered load for each BSS is a balanced load, with the same load
-for each BSS.  The offered load is increased from 1 Mbps, 
-in steps of 1 Mbps, until the simulation shows that the (central) BSS of 
-interest becomes saturated.
+for each BSS.  The offered load is increased from 1 Mbps to 6 Mbps, 
+in steps of 1 Mbps.
 
 The traffic mix is 90% uplink and 10% dowblink, with a uplink 
 payload size of 1500 bytes, and an downlink payload size of 300 bytes.
@@ -668,14 +655,16 @@ as given earlier):
 
 * spectrum efficiency
 
+* air-time utilization
+
 * latency
 
 To run the Study 1 scenarios, plot results, and transfer those results to the 
 documentation figures, the following scripts should be executed in order:
 
-1) run-spatial-reuse-study1.sh - this generates a script file "./study1.sh".
+1) run-spatial-reuse-study1.sh - this generates a script file "study1.sh".
 
-2) ./study1.sh - this is the script generate by (1), and should be run to generate all results.
+2) study1.sh - this is the script generated by (1), and should be run to generate all results.
 
 3) make-data-files-study1.sh - this creates data files for plotting, from the set of all simulation results.
 
@@ -709,21 +698,6 @@ Furthermore, changes to the offererdLoad parameter in the 'run-spatial-reuse-stu
 script may require the axis ranges at the top of the 'plot-study1.sh'
 script to be adjusted.
 
-For example, if the offered load is changed to the following:
-
-for offeredLoad in 1.5 2.0 2.5 3.0 ; do
-
-then the x-axis values of the following may need to be adjusted, to match
-the range specified by the offeredLoad parameter
-
-THROUGHPUT_RANGE="[1:6][1:6]"
-
-AREA_CAPCITY_RANGE="[1:6][0:0.02]"
-
-SPECTRUM_EFFICIENCY_RANGE="[1:6][0:0.002]"
-
-STUDY1_SPECTRUM_EFFICIENCY_RANGE="[1.0:3.0][0:0.00050]"
-
 After the above have been executed, the doc/figures folder should contain the newly
 generated plots for inclusion in the documentation.  The documentation can then be
 regenerated, e.g.:
@@ -745,8 +719,6 @@ The throughput as offered load is increased is shown below for
 the center BSS of interest.  A separate line is plotted for each value
 of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
 
-.
-
 .. _throughput-study1:
 
 .. figure:: figures/throughput-study1.*
@@ -756,9 +728,8 @@ of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
 
 Figure :ref:`throughput-study1` illustrates the system throughput for BSS1.
 
-It is observed that system throughput increases as offered load increases, and plateaus
-generally in the range of 1.2 - 2.2 Mbps.  Furthermore, system throughput decreases
-as the number of STAs, n, per BSS increases.
+It is observed that system throughput increases as offered load increases.
+Furthermore, system throughput decreases as the number of STAs, n, per BSS increases.
 
 Distribution of Node Contributions to Downlink Throughput
 #########################################################
@@ -777,8 +748,6 @@ into the distribution of the behaviors among the nodes.
 The ECDF of node contributions to downlink throughput for the offered load of
 2 Mbps is shown below for cases of n=5 and n=20 nodes.
 
-.
-
 .. _study1-05-ecdf:
 
 .. figure:: figures/study1-1732-10-05-2-180.0-20.0-ap1-ecdf.*
@@ -791,7 +760,6 @@ Figure :ref:`study1-05-ecdf` illustrates the ECDF of node contributions to downl
 It is observed that 100% of all n=5 STAs contributed the same amount of throughput per node, 
 at approximately 0.04 Mbps per node, and that no STAs delivered 0 packets.  This indicates that
 the network is not saturated, and packet delivery occurs with high success rates across all nodes.
-.
 
 .. _study1-20-ecdf:
 
@@ -813,8 +781,6 @@ The area capacity as offered load is increased is shown below for
 the center BSS of interest.  A separate line is plotted for each value
 of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
 
-.
-
 .. _area-capacity-study1:
 
 .. figure:: figures/area-capacity-study1.*
@@ -824,9 +790,8 @@ of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
 
 Figure :ref:`area-capacity-study1` illustrates the system throughput for BSS1.
 
-It is observed that area capacity increases as offered load increases, and plateaus
-generally in the range of 0.0025 - 0.007 Mbps / m^2.  Furthermore, area capacity decreases
-as the number of STAs, n, per BSS increases.
+It is observed that area capacity increases as offered load increases.
+Furthermore, area capacity decreases as the number of STAs, n, per BSS increases.
 
 Spectrum Efficiency
 ###################
@@ -834,8 +799,6 @@ Spectrum Efficiency
 The spectrum efficiency as offered load is increased is shown below for 
 the center BSS of interest.  A separate line is plotted for each value
 of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
-
-.
 
 .. _spectrum-efficiency-study1:
 
@@ -846,9 +809,8 @@ of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
 
 Figure :ref:`spectrum-efficiency-study1` illustrates the system throughput for BSS1.
 
-It is observed that spectrum efficiency increases as offered load increases, and plateaus
-generally in the range of 0.0002 - 0.0004 Mbps / Hz / m^2.  Furthermore, spectrum efficiency decreases
-as the number of STAs, n, per BSS increases.
+It is observed that spectrum efficiency increases as offered load increases.
+Furthermore, spectrum efficiency decreases as the number of STAs, n, per BSS increases.
 
 Airtime utilization
 ###################
@@ -856,8 +818,6 @@ Airtime utilization
 The airtime utilization as offered load is increased is shown below for 
 the center BSS of interest.  A separate line is plotted for each value
 of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
-
-.
 
 .. _airtime-utilization-study1:
 
@@ -867,6 +827,8 @@ of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
    Airtime utilization for the BSS of interest in the center of the Study 1 parametric study.
 
 Figure :ref:`airtime-utilization-study1` illustrates the airtime utilization for BSS1.
+
+It is observed that TBD...
 
 Latency
 #######
@@ -881,8 +843,6 @@ Noise and Signal Distributions
 The ECDF of the signal level received at the AP of the BSS of interest is
 shown below, for the scenario of n=20 nodes, and offered load of 2 Mbps.
 
-.
-
 .. _study1-20-ap1-signal:
 
 .. figure:: figures/spatial-reuse-rx-sniff-study1-1732-10-20-2-180.0-20.0-ap1-signal.*
@@ -896,8 +856,6 @@ It is observed that TBD...
 
 The ECDF of the noise level at the AP of the BSS of interest is
 shown below, for the scenario of n=20 nodes, and offered load of 2 Mbps.
-
-.
 
 .. _study1-20-ap1-noise:
 
@@ -918,11 +876,9 @@ changes:
 
 * standard - all nodes operate using 802.11ax
 
-* BSS color - each BSS is assigned its own unique color.  For
-example, BSS #1 uses BSS color 1, BSS #2 uses BSS color 2, etc.
+* BSS color - each BSS is assigned its own unique color.  For example, BSS #1 uses BSS color 1, BSS #2 uses BSS color 2, etc.
 
-* OBSS_PD level - as an additional sensitivity study, this value 
-is varied from -82 dB to -62 dB, in steps of 5 dB.
+* OBSS_PD level - as an additional sensitivity study, this value is varied from -82 dB to -62 dB, in steps of 5 dB.
 
 Conducting the Study 2 Experiments
 ##################################
@@ -930,20 +886,19 @@ Conducting the Study 2 Experiments
 To run the Study 2 scenarios, plot results, and transfer those results to the
 documentation figures, the following scripts should be executed in order:
 
-1) run-spatial-reuse-study2.sh - this generates a script file "./study2.sh".
+1) run-spatial-reuse-study2.sh - this generates a script file "study2.sh".
 
-2) ./study2.sh - this is the script generate by (2), and should be run to generate all results.
+2) study2.sh - this is the script generate by (2), and should be run to generate all results.
 
 3) make-data-files-study2.sh - this creates data files for plotting, from the set of all simulation results.
 
-4) plot-study2a.sh - this generates study2a plots of results.
+4) plot-study2a.sh - this generates study2a plots of results (metric under study versus offered load)
 
-5) plot-study2b.sh - this generates study2b plots of results.
+5) plot-study2b.sh - this generates study2b plots of results. (metric under study versus OBSS_PD level, not presented in this document)
 
 6) plot-study2-ecdf.sh - this generates additional plots (ECDFs) from results.
 
-7) copy-study2-plots-to-doc-figures.sh - this copies a subset of plots generated into
-the doc/figures folder, for inclusion of those results into the documentation.
+7) copy-study2-plots-to-doc-figures.sh - this copies a subset of plots generated into the doc/figures folder, for inclusion of those results into the documentation.
 
 After the above have been executed, the doc/figures folder should contain the newly
 generated plots for inclusion in the documentation.  The documentation can then be
@@ -966,8 +921,6 @@ The throughput with OBSS_PD level -82 dBm as offered load is increased is shown 
 the center BSS of interest.  A separate line is plotted for each value
 of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
 
-.
-
 .. _throughput-study2a-82:
 
 .. figure:: figures/throughput-study2a-82.*
@@ -982,8 +935,6 @@ It is observed that TBD...
 The throughput with OBSS_PD level -62 dBm as offered load is increased is shown below for
 the center BSS of interest.  A separate line is plotted for each value
 of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
-
-.
 
 .. _throughput-study2a-62:
 
@@ -1003,8 +954,6 @@ The area capacity with OBSS_PD level -82 dBm as offered load is increased is sho
 the center BSS of interest.  A separate line is plotted for each value
 of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
 
-.
-
 .. _area-capacity-study2a-82:
 
 .. figure:: figures/area-capacity-study2a-82.*
@@ -1019,8 +968,6 @@ It is observed that TBD...
 The area capacity with OBSS_PD level -62 dBm as offered load is increased is shown below for
 the center BSS of interest.  A separate line is plotted for each value
 of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
-
-.
 
 .. _area-capacity-study2a-62:
 
@@ -1040,8 +987,6 @@ The spectrum efficiency with OBSS_PD level -82 dBm as offered load is increased 
 the center BSS of interest.  A separate line is plotted for each value
 of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
 
-.
-
 .. _spectrum-efficiency-study2a-82:
 
 .. figure:: figures/spectrum-efficiency-study2a-82.*
@@ -1056,8 +1001,6 @@ It is observed that TBD...
 The spectrum efficiency with OBSS_PD level -62 dBm as offered load is increased is shown below for
 the center BSS of interest.  A separate line is plotted for each value
 of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
-
-.
 
 .. _spectrum-efficiency-study2a-62:
 
@@ -1077,8 +1020,6 @@ The airtime utilization with OBSS_PD level -82 dBm as offered load is increased 
 the center BSS of interest.  A separate line is plotted for each value
 of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
 
-.
-
 .. _airtime-utilization-study2a-82:
 
 .. figure:: figures/airtime-utilization-study2a-82.*
@@ -1093,8 +1034,6 @@ It is observed that TBD...
 The airtime utilization with OBSS_PD level -62 dBm as offered load is increased is shown below for
 the center BSS of interest.  A separate line is plotted for each value
 of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
-
-.
 
 .. _airtime-utilization-study2a-62:
 
@@ -1160,7 +1099,7 @@ BSS #6 is an 802.11ax network with an overlaid LAA network.  The ratio of nodes
 within that network is allocated as (X% TBD) as 802.11ax nodes and (Y% TBD) as
 LAA nodes.
 
-The simulation paramters for each network are determined as follows:
+The simulation parameters for each network are determined as follows:
 
 * 802.11ac - "best performing" parameters as identified by Study 1.
 

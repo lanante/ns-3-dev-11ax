@@ -10,7 +10,7 @@
 Open Issues and Future Work
 ***************************
 Open issues are tracked in the Bitbucket issue tracker.  Below is a summary
-of open issues as of changeset aa56aab1 (Jan 3, 2019).
+of open issues as of changeset 91d7fd4e24da998d284b8c434a24bbfecc4d17ae (February 11, 2019).
 
 Open Issues and Future Work in the underlying Wi-Fi model
 =========================================================
