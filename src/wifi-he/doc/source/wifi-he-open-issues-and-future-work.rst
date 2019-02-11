@@ -39,8 +39,6 @@ Plot the CDF of latency per flow (issue #33)
 Implement additional wish-list of spatial reuse scenario features
 and metrics (issues #10 #14)
 
-obss_pd script failing on Mac (issue #81)
-
 Merge study1.sh and study2.sh into single script; study2.sh does not presently
 work (issue #82)
 
@@ -53,11 +51,9 @@ Integrate and test LAA code (issue #5)
 
 Some Calibration Box5 scenarios crash ns-3 (issue #43)
 
-Regression testing on scenario scripts is needed (issue #65)
+Rework scripts to avoid files in top-level directory ((issue #77)
 
-Rework scripts to avoid files in top-level directory (#77)
-
-pngcairo not readily available on MacOS (issue #77)
+pngcairo not readily available on MacOS (issue #78)
 
 unequal split of the UL throughput for calibration tests (issue #86)
 
