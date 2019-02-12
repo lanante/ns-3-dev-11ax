@@ -446,7 +446,8 @@ VhtSigHeader::VhtSigHeader ()
     m_nsts (0),
     m_sgi (0),
     m_sgi_disambiguation (0),
-    m_suMcs (0)
+    m_suMcs (0),
+    m_mu (false)
 {
 }
 
@@ -482,7 +483,17 @@ VhtSigHeader::GetSerializedSize (void) const
   uint32_t size = 0;
   size += 3; //VHT-SIG-A1
   size += 3; //VHT-SIG-A2
+  if (m_mu)
+    {
+      size += 4; //VHT-SIG-B
+    }
   return size;
+}
+
+void
+VhtSigHeader::SetMuFlag (bool mu)
+{
+  m_mu = mu;
 }
 
 void
@@ -594,6 +605,12 @@ VhtSigHeader::Serialize (Buffer::Iterator start) const
   start.WriteU8 (byte);
   bytes = (0x01 << (9 - 8)); //Set Reserved bit #9 to 1
   start.WriteU16 (bytes);
+
+  if (m_mu)
+    {
+      //VHT-SIG-B
+      start.WriteU32 (0);
+    }
 }
 
 uint32_t
@@ -614,6 +631,12 @@ VhtSigHeader::Deserialize (Buffer::Iterator start)
   m_suMcs = ((byte >> 4) & 0x0f);
   i.ReadU16 ();
 
+  if (m_mu)
+    {
+      //VHT-SIG-B
+      i.ReadU32 ();
+    }
+
   return i.GetDistanceFrom (start);
 }
 
@@ -628,7 +651,8 @@ HeSigHeader::HeSigHeader ()
     m_spatialReuse (0),
     m_bandwidth (0),
     m_gi_ltf_size (0),
-    m_nsts (0)
+    m_nsts (0),
+    m_mu (false)
 {
 }
 
@@ -665,7 +689,17 @@ HeSigHeader::GetSerializedSize (void) const
   uint32_t size = 0;
   size += 4; //HE-SIG-A1
   size += 4; //HE-SIG-A2
+  if (m_mu)
+    {
+      size += 1; //HE-SIG-B
+    }
   return size;
+}
+
+void
+HeSigHeader::SetMuFlag (bool mu)
+{
+  m_mu = mu;
 }
 
 void
@@ -805,6 +839,12 @@ HeSigHeader::Serialize (Buffer::Iterator start) const
 
   //HE-SIG-A2
   start.WriteU32 (0);
+
+  if (m_mu)
+    {
+      //HE-SIG-B
+      start.WriteU8 (0);
+    }
 }
 
 uint32_t
@@ -828,6 +868,12 @@ HeSigHeader::Deserialize (Buffer::Iterator start)
 
   //HE-SIG-A2
   i.ReadU32 ();
+
+  if (m_mu)
+    {
+      //HE-SIG-B
+      i.ReadU8 ();
+    }
 
   return i.GetDistanceFrom (start);
 }

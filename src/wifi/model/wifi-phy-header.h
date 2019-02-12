@@ -248,6 +248,13 @@ public:
   uint32_t Deserialize (Buffer::Iterator start);
 
   /**
+   * Set the Multi-User (MU) flag.
+   *
+   * \param mu the MU flag
+   */
+  void SetMuFlag (bool mu);
+
+  /**
    * Fill the channel width field of VHT-SIG-A1 (in MHz).
    *
    * \param width the channel width (in MHz)
@@ -320,8 +327,9 @@ private:
   uint8_t m_sgi_disambiguation; ///< Short GI NSYM Disambiguation
   uint8_t m_suMcs;              ///< SU VHT MCS
 
-  //TODO: add boolean to know whether this is part of a VHT SU or VHT MU PPDU (fields and positions are different! We currently only support VHT SU)
-};
+  /// This is used to decide whether MU SIG-B should be added or not
+  bool m_mu;
+  };
 
 
 /**
@@ -345,6 +353,13 @@ public:
   uint32_t GetSerializedSize (void) const;
   void Serialize (Buffer::Iterator start) const;
   uint32_t Deserialize (Buffer::Iterator start);
+
+  /**
+   * Set the Multi-User (MU) flag.
+   *
+   * \param mu the MU flag
+   */
+  void SetMuFlag (bool mu);
 
   /**
    * Fill the MCS field of HE-SIG-A1.
@@ -419,7 +434,9 @@ private:
   uint8_t m_bandwidth;    ///< Bandwidth field
   uint8_t m_gi_ltf_size;  ///< GI+LTF Size field
   uint8_t m_nsts;         ///< NSTS
-  //TODO: add boolean to know whether this is part of a HE SU or HE MU PPDU (fields and positions are different! We currently only support HE SU)
+
+  /// This is used to decide whether MU SIG-B should be added or not
+  bool m_mu;
 };
 
 } //namespace ns3
