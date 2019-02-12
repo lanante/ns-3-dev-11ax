@@ -1796,8 +1796,10 @@ WifiPhy::GetPlcpTrainingSymbolDuration (WifiTxVector txVector)
     case WIFI_PREAMBLE_HT_GF:
       return MicroSeconds ((4 * Ndltf) + (4 * Neltf));
     case WIFI_PREAMBLE_VHT_SU:
+    case WIFI_PREAMBLE_VHT_MU:
       return MicroSeconds (4 + (4 * Ndltf));
     case WIFI_PREAMBLE_HE_SU:
+    case WIFI_PREAMBLE_HE_MU:
       return MicroSeconds (4 + (8 * Ndltf));
     default:
       return MicroSeconds (0);
@@ -1826,6 +1828,8 @@ WifiPhy::GetPlcpSigA1Duration (WifiPreamble preamble)
     {
     case WIFI_PREAMBLE_VHT_SU:
     case WIFI_PREAMBLE_HE_SU:
+    case WIFI_PREAMBLE_VHT_MU:
+    case WIFI_PREAMBLE_HE_MU:
       //VHT-SIG-A1 and HE-SIG-A1
       return MicroSeconds (4);
     default:
@@ -1841,6 +1845,8 @@ WifiPhy::GetPlcpSigA2Duration (WifiPreamble preamble)
     {
     case WIFI_PREAMBLE_VHT_SU:
     case WIFI_PREAMBLE_HE_SU:
+    case WIFI_PREAMBLE_VHT_MU:
+    case WIFI_PREAMBLE_HE_MU:
       //VHT-SIG-A2 and HE-SIG-A2
       return MicroSeconds (4);
     default:
@@ -1857,9 +1863,6 @@ WifiPhy::GetPlcpSigBDuration (WifiPreamble preamble)
     case WIFI_PREAMBLE_VHT_MU:
     case WIFI_PREAMBLE_HE_MU:
       return MicroSeconds (4);
-    case WIFI_PREAMBLE_VHT_SU:
-    case WIFI_PREAMBLE_HE_SU:
-      return MicroSeconds (0);
     default:
       // no SIG-B
       return MicroSeconds (0);
@@ -2522,6 +2525,11 @@ WifiPhy::SendPacket (Ptr<const Packet> packet, WifiTxVector txVector, MpduType m
         {
           m = 1;
         }
+      else
+        {
+          m = 2;
+        }
+      
       uint16_t length = ((ceil ((static_cast<double> (ppduDuration.GetNanoSeconds () - (20 * 1000) - (sigExtention * 1000)) / 1000) / 4.0) * 3) - 3 - m);
       if ((txVector.GetMode ().GetModulationClass () == WIFI_MOD_CLASS_DSSS) || (txVector.GetMode ().GetModulationClass () == WIFI_MOD_CLASS_HR_DSSS))
         {
