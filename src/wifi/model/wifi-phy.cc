@@ -2497,6 +2497,7 @@ WifiPhy::SendPacket (Ptr<const Packet> packet, WifiTxVector txVector, MpduType m
       else if (txVector.GetMode ().GetModulationClass () == WIFI_MOD_CLASS_VHT)
         {
           VhtSigHeader vhtSig;
+          vhtSig.SetMuFlag (txVector.GetPreambleType () == WIFI_PREAMBLE_VHT_MU);
           vhtSig.SetChannelWidth (txVector.GetChannelWidth ());
           vhtSig.SetShortGuardInterval (txVector.GetGuardInterval () == 400);
           uint32_t nSymbols = (static_cast<double> ((ppduDuration - CalculatePlcpPreambleAndHeaderDuration (txVector)).GetNanoSeconds ()) / (3200 + txVector.GetGuardInterval ()));
@@ -2508,6 +2509,7 @@ WifiPhy::SendPacket (Ptr<const Packet> packet, WifiTxVector txVector, MpduType m
       else if (txVector.GetMode ().GetModulationClass () == WIFI_MOD_CLASS_HE)
         {
           HeSigHeader heSig;
+          heSig.SetMuFlag (txVector.GetPreambleType () == WIFI_PREAMBLE_HE_MU);
           heSig.SetMcs (txVector.GetMode ().GetMcsValue ());
           heSig.SetBssColor (txVector.GetBssColor ());
           heSig.SetChannelWidth (txVector.GetChannelWidth ());
@@ -2801,6 +2803,7 @@ WifiPhy::StartReceivePreamble (Ptr<Packet> packet, double rxPowerW, Time rxDurat
         }
       else if (modulation == WIFI_MOD_CLASS_VHT)
         {
+          vhtSigHdr.SetMuFlag (preamble == WIFI_PREAMBLE_VHT_MU);
           found = packet->RemoveHeader (vhtSigHdr);
           if (!found)
             {
@@ -2826,6 +2829,7 @@ WifiPhy::StartReceivePreamble (Ptr<Packet> packet, double rxPowerW, Time rxDurat
         }
       else if (modulation == WIFI_MOD_CLASS_HE)
         {
+          heSigHdr.SetMuFlag (preamble == WIFI_PREAMBLE_HE_MU);
           found = packet->RemoveHeader (heSigHdr);
           if (!found)
             {
