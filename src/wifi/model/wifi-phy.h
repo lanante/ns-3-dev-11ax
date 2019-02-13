@@ -43,6 +43,7 @@ class MobilityModel;
 class WifiPhyStateHelper;
 class FrameCaptureModel;
 class PreambleDetectionModel;
+class ChannelBondingManager;
 class WifiRadioEnergyModel;
 class UniformRandomVariable;
 
@@ -1634,6 +1635,12 @@ public:
    */
   void SetPreambleDetectionModel (const Ptr<PreambleDetectionModel> preambleDetectionModel);
   /**
+   * Sets the channel bonding manager.
+   *
+   * \param channelBondingManager the channel bonding manager
+   */
+  void SetChannelBondingManager (const Ptr<ChannelBondingManager> channelBondingManager);
+  /**
    * Sets the wifi radio energy model.
    *
    * \param wifiRadioEnergyModel the wifi radio energy model
@@ -2124,6 +2131,7 @@ private:
 
   Ptr<FrameCaptureModel> m_frameCaptureModel; //!< Frame capture model
   Ptr<PreambleDetectionModel> m_preambleDetectionModel; //!< Preamble detection model
+  Ptr<ChannelBondingManager> m_channelBondingManager; //!< Channel bonding manager
   Ptr<WifiRadioEnergyModel> m_wifiRadioEnergyModel; //!< Wifi radio energy model
   Ptr<ErrorModel> m_postReceptionErrorModel; //!< Error model for receive packet events
   Time m_timeLastPreambleDetected; //!< Record the time the last preamble was detected

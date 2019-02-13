@@ -41,6 +41,8 @@
 #include "wifi-psdu.h"
 #include "wifi-ppdu.h"
 #include "ap-wifi-mac.h"
+#include "wifi-phy-header.h"
+#include "channel-bonding-manager.h"
 
 namespace ns3 {
 
@@ -814,6 +816,13 @@ void
 WifiPhy::SetPreambleDetectionModel (const Ptr<PreambleDetectionModel> model)
 {
   m_preambleDetectionModel = model;
+}
+
+void
+WifiPhy::SetChannelBondingManager (const Ptr<ChannelBondingManager> manager)
+{
+  m_channelBondingManager = manager;
+  manager->SetPhy (this);
 }
 
 void
