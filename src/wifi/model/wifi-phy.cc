@@ -38,6 +38,7 @@
 #include "he-configuration.h"
 #include "mpdu-aggregator.h"
 #include "wifi-phy-header.h"
+#include "channel-bonding-manager.h"
 
 namespace ns3 {
 
@@ -798,6 +799,13 @@ WifiPhy::SetPreambleDetectionModel (const Ptr<PreambleDetectionModel> model)
 }
 
 void
+WifiPhy::SetChannelBondingManager (const Ptr<ChannelBondingManager> manager)
+{
+  m_channelBondingManager = manager;
+  manager->SetPhy (this);
+}
+
+void
 WifiPhy::SetWifiRadioEnergyModel (const Ptr<WifiRadioEnergyModel> wifiRadioEnergyModel)
 {
   m_wifiRadioEnergyModel = wifiRadioEnergyModel;
@@ -1370,6 +1378,16 @@ uint16_t
 WifiPhy::GetChannelWidth (void) const
 {
   return m_channelWidth;
+}
+
+uint16_t
+WifiPhy::GetUsableChannelWidth (void)
+{
+  if (m_channelBondingManager)
+    {
+      return m_channelBondingManager->GetUsableChannelWidth ();
+    }
+  return GetChannelWidth ();
 }
 
 void
