@@ -39,6 +39,7 @@
 #include "ns3/he-configuration.h"
 #include "ns3/obss-pd-algorithm.h"
 #include "ns3/wifi-ack-policy-selector.h"
+#include "ns3/channel-bonding-manager.h"
 #include "wifi-helper.h"
 
 namespace ns3 {
@@ -732,6 +733,29 @@ WifiHelper::SetAckPolicySelectorForAc (AcIndex ac, std::string type,
 }
 
 void
+WifiHelper::SetChannelBondingManager (std::string type,
+                                      std::string n0, const AttributeValue &v0,
+                                      std::string n1, const AttributeValue &v1,
+                                      std::string n2, const AttributeValue &v2,
+                                      std::string n3, const AttributeValue &v3,
+                                      std::string n4, const AttributeValue &v4,
+                                      std::string n5, const AttributeValue &v5,
+                                      std::string n6, const AttributeValue &v6,
+                                      std::string n7, const AttributeValue &v7)
+{
+  m_channelBondingManager = ObjectFactory ();
+  m_channelBondingManager.SetTypeId (type);
+  m_channelBondingManager.Set (n0, v0);
+  m_channelBondingManager.Set (n1, v1);
+  m_channelBondingManager.Set (n2, v2);
+  m_channelBondingManager.Set (n3, v3);
+  m_channelBondingManager.Set (n4, v4);
+  m_channelBondingManager.Set (n5, v5);
+  m_channelBondingManager.Set (n6, v6);
+  m_channelBondingManager.Set (n7, v7);
+}
+
+void
 WifiHelper::SetStandard (WifiPhyStandard standard)
 {
   m_standard = standard;
@@ -784,6 +808,11 @@ WifiHelper::Install (const WifiPhyHelper &phyHelper,
           Ptr<ObssPdAlgorithm> obssPdAlgorithm = m_obssPdAlgorithm.Create<ObssPdAlgorithm> ();
           device->AggregateObject (obssPdAlgorithm);
           obssPdAlgorithm->ConnectWifiNetDevice (device);
+        }
+      if ((m_standard >= WIFI_PHY_STANDARD_80211n_2_4GHZ) && (m_channelBondingManager.IsTypeIdSet ()))
+        {
+          Ptr<ChannelBondingManager> channelBondingManager = m_channelBondingManager.Create<ChannelBondingManager> ();
+          phy->SetChannelBondingManager (channelBondingManager);
         }
       devices.Add (device);
       NS_LOG_DEBUG ("node=" << node << ", mob=" << node->GetObject<MobilityModel> ());
@@ -885,6 +914,8 @@ WifiHelper::EnableLogComponents (void)
   LogComponentEnable ("BlockAckCache", LOG_LEVEL_ALL);
   LogComponentEnable ("BlockAckManager", LOG_LEVEL_ALL);
   LogComponentEnable ("CaraWifiManager", LOG_LEVEL_ALL);
+  LogComponentEnable ("ChannelBondingManager", LOG_LEVEL_ALL);
+  LogComponentEnable ("ConstantThresholdChannelBondingManager", LOG_LEVEL_ALL);
   LogComponentEnable ("ConstantObssPdAlgorithm", LOG_LEVEL_ALL);
   LogComponentEnable ("ConstantRateWifiManager", LOG_LEVEL_ALL);
   LogComponentEnable ("Txop", LOG_LEVEL_ALL);
