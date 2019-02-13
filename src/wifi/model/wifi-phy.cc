@@ -187,6 +187,12 @@ WifiPhy::GetTypeId (void)
                    MakeUintegerAccessor (&WifiPhy::SetChannelNumber,
                                          &WifiPhy::GetChannelNumber),
                    MakeUintegerChecker<uint8_t> (0, 196))
+    .AddAttribute ("SecondaryChannelOffset",
+                   "Indicates the position of the secondary channel compare to the primary channel",
+                   EnumValue (UPPER),
+                   MakeEnumAccessor (&WifiPhy::m_secondaryChannelOffset),
+                   MakeEnumChecker (UPPER, "Upper",
+                                    LOWER, "Lower"))
     .AddAttribute ("EnergyDetectionThreshold",
                    "The energy of a received signal should be higher than "
                    "this threshold (dbm) to allow the PHY layer to detect the signal.",
@@ -208,6 +214,13 @@ WifiPhy::GetTypeId (void)
                    DoubleValue (-62.0),
                    MakeDoubleAccessor (&WifiPhy::SetCcaEdThreshold,
                                        &WifiPhy::GetCcaEdThreshold),
+                   MakeDoubleChecker<double> ())
+    .AddAttribute ("CcaEdThresholdSecondary",
+                   "The energy of a non Wi-Fi received signal should be higher than "
+                   "this threshold (dbm) to allow the PHY layer to declare CCA BUSY state. "
+                   "This check is performed on the secondary channel(s) only.",
+                   DoubleValue (-62.0),
+                   MakeDoubleAccessor (&WifiPhy::m_ccaEdThresholdSecondaryW),
                    MakeDoubleChecker<double> ())
     .AddAttribute ("TxGain",
                    "Transmission gain (dB).",

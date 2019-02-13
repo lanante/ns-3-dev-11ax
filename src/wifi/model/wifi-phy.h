@@ -89,6 +89,13 @@ struct RxSignalInfo
   double rssi; ///< RSSI in dBm
 };
 
+/// SecondaryChannelOffset enumeration
+enum SecondaryChannelOffset
+{
+  UPPER,
+  LOWER
+};
+
 /**
  * \brief 802.11 PHY layer model
  * \ingroup wifi
@@ -2070,20 +2077,23 @@ private:
 
   std::vector<uint8_t> m_bssMembershipSelectorSet; //!< the BSS membership selector set
 
-  WifiPhyStandard m_standard;               //!< WifiPhyStandard
-  bool m_isConstructed;                     //!< true when ready to set frequency
-  uint16_t m_channelCenterFrequency;        //!< Center frequency in MHz
-  uint16_t m_initialFrequency;              //!< Store frequency until initialization
-  bool m_frequencyChannelNumberInitialized; //!< Store initialization state
-  uint16_t m_channelWidth;                  //!< Channel width
+  WifiPhyStandard m_standard;                       //!< WifiPhyStandard
+  bool m_isConstructed;                             //!< true when ready to set frequency
+  uint16_t m_channelCenterFrequency;                //!< Center frequency in MHz
+  uint16_t m_initialFrequency;                      //!< Store frequency until initialization
+  bool m_frequencyChannelNumberInitialized;         //!< Store initialization state
+  uint16_t m_channelWidth;                          //!< Channel width
+  SecondaryChannelOffset m_secondaryChannelOffset;  //!< Secondary channel offset
 
-  double   m_rxSensitivityW;      //!< Receive sensitivity threshold in watts
-  double   m_ccaEdThresholdW;     //!< Clear channel assessment (CCA) threshold in watts
-  double   m_txGainDb;            //!< Transmission gain (dB)
-  double   m_rxGainDb;            //!< Reception gain (dB)
-  double   m_txPowerBaseDbm;      //!< Minimum transmission power (dBm)
-  double   m_txPowerEndDbm;       //!< Maximum transmission power (dBm)
-  uint8_t  m_nTxPower;            //!< Number of available transmission power levels
+  double   m_rxSensitivityW;           //!< Receive sensitivity threshold in watts
+  double   m_ccaEdThresholdW;          //!< Clear channel assessment (CCA) threshold for primary channel in watts
+  double   m_ccaEdThresholdSecondaryW; //!< Clear channel assessment (CCA) threshold for secondary channel(s) in watts
+
+  double   m_txGainDb;       //!< Transmission gain (dB)
+  double   m_rxGainDb;       //!< Reception gain (dB)
+  double   m_txPowerBaseDbm; //!< Minimum transmission power (dBm)
+  double   m_txPowerEndDbm;  //!< Maximum transmission power (dBm)
+  uint8_t  m_nTxPower;       //!< Number of available transmission power levels
 
   bool m_powerRestricted;  //!< Flag whether transmit power is retricted by OBSS PD SR
   double m_txPowerMaxSiso; //!< SISO maximum transmit power due to OBSS PD SR power restriction
