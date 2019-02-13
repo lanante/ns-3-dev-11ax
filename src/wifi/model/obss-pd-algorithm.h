@@ -34,7 +34,7 @@ class WifiNetDevice;
 
 /**
  * \brief OBSS PD algorithm interface
- * \ingroup wifi-he
+ * \ingroup wifi
  *
  * This object provides the interface for all OBSS_PD algorithms
  * and is designed to be subclassed.
