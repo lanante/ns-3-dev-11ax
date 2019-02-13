@@ -187,6 +187,12 @@ WifiPhy::GetTypeId (void)
                    MakeUintegerAccessor (&WifiPhy::SetChannelNumber,
                                          &WifiPhy::GetChannelNumber),
                    MakeUintegerChecker<uint8_t> (0, 196))
+    .AddAttribute ("SecondaryChannelOffset",
+                   "Indicates the position of the secondary channel compare to the primary channel",
+                   EnumValue (UPPER),
+                   MakeEnumAccessor (&WifiPhy::m_secondaryChannelOffset),
+                   MakeEnumChecker (UPPER, "Upper",
+                                    LOWER, "Lower"))
     .AddAttribute ("EnergyDetectionThreshold",
                    "The energy of a received signal should be higher than "
                    "this threshold (dbm) to allow the PHY layer to detect the signal.",
@@ -208,6 +214,14 @@ WifiPhy::GetTypeId (void)
                    DoubleValue (-62.0),
                    MakeDoubleAccessor (&WifiPhy::SetCcaEdThreshold,
                                        &WifiPhy::GetCcaEdThreshold),
+                   MakeDoubleChecker<double> ())
+    .AddAttribute ("CcaEdThresholdSecondary",
+                   "The energy of a non Wi-Fi received signal should be higher than "
+                   "this threshold (dbm) to allow the PHY layer to declare CCA BUSY state. "
+                   "This check is performed on the secondary channel(s) only.",
+                   DoubleValue (-62.0),
+                   MakeDoubleAccessor (&WifiPhy::SetCcaEdThresholdSecondary,
+                                       &WifiPhy::GetCcaEdThresholdSecondary),
                    MakeDoubleChecker<double> ())
     .AddAttribute ("TxGain",
                    "Transmission gain (dB).",
@@ -555,6 +569,19 @@ WifiPhy::GetCcaEdThreshold (void) const
 }
 
 void
+WifiPhy::SetCcaEdThresholdSecondary (double threshold)
+{
+  NS_LOG_FUNCTION (this << threshold);
+  m_ccaEdThresholdSecondaryW = DbmToW (threshold);
+}
+
+double
+WifiPhy::GetCcaEdThresholdSecondary (void) const
+{
+  return WToDbm (m_ccaEdThresholdSecondaryW);
+}
+
+void
 WifiPhy::SetRxNoiseFigure (double noiseFigureDb)
 {
   NS_LOG_FUNCTION (this << noiseFigureDb);
@@ -882,30 +909,35 @@ WifiPhy::ConfigureDefaultsForStandard (WifiPhyStandard standard)
       NS_ASSERT (GetChannelNumber () == 36);
       break;
     case WIFI_PHY_STANDARD_80211n_2_4GHZ:
+      SetCcaEdThresholdSecondary (-62.0);
       SetChannelWidth (20);
       SetFrequency (2412);
       // Channel number should be aligned by SetFrequency () to 1
       NS_ASSERT (GetChannelNumber () == 1);
       break;
     case WIFI_PHY_STANDARD_80211n_5GHZ:
+      SetCcaEdThresholdSecondary (-62.0);
       SetChannelWidth (20);
       SetFrequency (5180);
       // Channel number should be aligned by SetFrequency () to 36
       NS_ASSERT (GetChannelNumber () == 36);
       break;
     case WIFI_PHY_STANDARD_80211ac:
+      SetCcaEdThresholdSecondary (-72.0);
       SetChannelWidth (80);
       SetFrequency (5210);
       // Channel number should be aligned by SetFrequency () to 42
       NS_ASSERT (GetChannelNumber () == 42);
       break;
     case WIFI_PHY_STANDARD_80211ax_2_4GHZ:
+      SetCcaEdThresholdSecondary (-72.0);
       SetChannelWidth (20);
       SetFrequency (2412);
       // Channel number should be aligned by SetFrequency () to 1
       NS_ASSERT (GetChannelNumber () == 1);
       break;
     case WIFI_PHY_STANDARD_80211ax_5GHZ:
+      SetCcaEdThresholdSecondary (-72.0);
       SetChannelWidth (80);
       SetFrequency (5210);
       // Channel number should be aligned by SetFrequency () to 42
