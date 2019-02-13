@@ -4132,7 +4132,7 @@ WifiPhy::GetTxPowerForTransmission (WifiTxVector txVector) const
 void
 WifiPhy::StartRx (Ptr<Packet> packet, WifiTxVector txVector, double rxPowerW, Time rxDuration, Ptr<Event> event, uint16_t length)
 {
-  NS_LOG_FUNCTION (this << packet << txVector << rxPowerW << rxDuration);
+  NS_LOG_FUNCTION (this << packet << rxPowerW << rxDuration);
 
   AmpduTag ampduTag;
   WifiPreamble preamble = txVector.GetPreambleType ();
