@@ -1652,6 +1652,10 @@ public:
    */
   uint16_t GetChannelWidth (void) const;
   /**
+   * \return the usable channel width
+   */
+  uint16_t GetUsableChannelWidth (void);
+  /**
    * \param channelwidth channel width
    */
   virtual void SetChannelWidth (uint16_t channelwidth);

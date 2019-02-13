@@ -1426,6 +1426,16 @@ WifiPhy::GetChannelWidth (void) const
   return m_channelWidth;
 }
 
+uint16_t
+WifiPhy::GetUsableChannelWidth (void)
+{
+  if (m_channelBondingManager)
+    {
+      return m_channelBondingManager->GetUsableChannelWidth ();
+    }
+  return GetChannelWidth ();
+}
+
 void
 WifiPhy::SetNumberOfAntennas (uint8_t antennas)
 {

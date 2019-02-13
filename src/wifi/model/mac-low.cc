@@ -1432,7 +1432,7 @@ MacLow::GetCtsTxVector (Mac48Address to, WifiMode rtsTxMode) const
   v.SetMode (ctsMode);
   v.SetPreambleType (GetPreambleForTransmission (ctsMode.GetModulationClass (), m_stationManager->GetShortPreambleEnabled (), m_stationManager->UseGreenfieldForDestination (to)));
   v.SetTxPowerLevel (m_stationManager->GetDefaultTxPowerLevel ());
-  v.SetChannelWidth (GetChannelWidthForTransmission (ctsMode, m_phy->GetChannelWidth ()));
+  v.SetChannelWidth (GetChannelWidthForTransmission (ctsMode, m_phy->GetUsableChannelWidth ()));
    uint16_t ctsTxGuardInterval = ConvertGuardIntervalToNanoSeconds (ctsMode, m_phy->GetShortGuardInterval (), m_phy->GetGuardInterval ());
   v.SetGuardInterval (ctsTxGuardInterval);
   v.SetNss (1);
@@ -1448,7 +1448,7 @@ MacLow::GetAckTxVector (Mac48Address to, WifiMode dataTxMode) const
   v.SetMode (ackMode);
   v.SetPreambleType (GetPreambleForTransmission (ackMode.GetModulationClass (), m_stationManager->GetShortPreambleEnabled (), m_stationManager->UseGreenfieldForDestination (to)));
   v.SetTxPowerLevel (m_stationManager->GetDefaultTxPowerLevel ());
-  v.SetChannelWidth (GetChannelWidthForTransmission (ackMode, m_phy->GetChannelWidth ()));
+  v.SetChannelWidth (GetChannelWidthForTransmission (ackMode, m_phy->GetUsableChannelWidth ()));
    uint16_t ackTxGuardInterval = ConvertGuardIntervalToNanoSeconds (ackMode, m_phy->GetShortGuardInterval (), m_phy->GetGuardInterval ());
   v.SetGuardInterval (ackTxGuardInterval);
   v.SetNss (1);
@@ -1464,7 +1464,7 @@ MacLow::GetBlockAckTxVector (Mac48Address to, WifiMode dataTxMode) const
   v.SetMode (blockAckMode);
   v.SetPreambleType (GetPreambleForTransmission (blockAckMode.GetModulationClass (), m_stationManager->GetShortPreambleEnabled (), m_stationManager->UseGreenfieldForDestination (to)));
   v.SetTxPowerLevel (m_stationManager->GetDefaultTxPowerLevel ());
-  v.SetChannelWidth (GetChannelWidthForTransmission (blockAckMode, m_phy->GetChannelWidth ()));
+  v.SetChannelWidth (GetChannelWidthForTransmission (blockAckMode, m_phy->GetUsableChannelWidth ()));
 uint16_t blockAckTxGuardInterval = ConvertGuardIntervalToNanoSeconds (blockAckMode, m_phy->GetShortGuardInterval (), m_phy->GetGuardInterval ());
   v.SetGuardInterval (blockAckTxGuardInterval);
   v.SetNss (1);
