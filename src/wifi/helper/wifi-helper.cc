@@ -648,7 +648,6 @@ WifiHelper::WifiHelper ()
     m_selectQueueCallback (&SelectQueueByDSField)
 {
   SetRemoteStationManager ("ns3::ArfWifiManager");
-  SetObssPdAlgorithm ("ns3::ConstantObssPdAlgorithm");
 }
 
 void

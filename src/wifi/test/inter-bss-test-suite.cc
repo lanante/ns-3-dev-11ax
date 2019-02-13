@@ -407,6 +407,9 @@ TestInterBssConstantObssPdAlgo::RunOne (void)
                                 "DataMode", StringValue ("HeMcs0"),
                                 "ControlMode", StringValue ("HeMcs0"));
 
+  wifi.SetObssPdAlgorithm ("ns3::ConstantObssPdAlgorithm",
+                           "ObssPdLevel", DoubleValue (m_obssPdLevelDbm));
+
   WifiMacHelper mac;
   Ssid ssid = Ssid ("ns-3-ssid");
   mac.SetType ("ns3::StaWifiMac",
@@ -430,16 +433,12 @@ TestInterBssConstantObssPdAlgo::RunOne (void)
         {
           heConfiguration->SetAttribute ("BssColor", UintegerValue (m_bssColor2));
         }
-      Ptr<ConstantObssPdAlgorithm> obssPdAlgorithm = DynamicCast<ConstantObssPdAlgorithm> (device->GetObssPdAlgorithm ());
-      obssPdAlgorithm->SetAttribute ("ObssPdLevel", DoubleValue (m_obssPdLevelDbm));
     }
   for (uint32_t i = 0; i < m_staDevices.GetN (); i++)
     {
       Ptr<WifiNetDevice> device = DynamicCast<WifiNetDevice> (m_staDevices.Get (i));
       Ptr<HeConfiguration> heConfiguration = device->GetHeConfiguration ();
       heConfiguration->SetAttribute ("BeMaxAmpduSize", UintegerValue (0));
-      Ptr<ConstantObssPdAlgorithm> obssPdAlgorithm = DynamicCast<ConstantObssPdAlgorithm> (device->GetObssPdAlgorithm ());
-      obssPdAlgorithm->SetAttribute ("ObssPdLevel", DoubleValue (m_obssPdLevelDbm));
     }
 
   MobilityHelper mobility;
