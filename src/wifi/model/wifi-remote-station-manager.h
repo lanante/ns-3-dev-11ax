@@ -1015,11 +1015,11 @@ protected:
    */
   Mac48Address GetAddress (const WifiRemoteStation *station) const;
   /**
-   * Return the channel width supported by the station.
+   * Return the maximum channel width that can be used to transmit to a station.
    *
    * \param station the station being queried
    *
-   * \return the channel width (in MHz) supported by the station
+   * \return the maximum channel width in MHz that can be used to transmit to a station
    */
   uint16_t GetChannelWidth (const WifiRemoteStation *station) const;
   /**

@@ -552,7 +552,7 @@ WifiRemoteStationManager::GetDataTxVector (Mac48Address address, const WifiMacHe
       v.SetMode (mode);
       v.SetPreambleType (GetPreambleForTransmission (mode.GetModulationClass (), GetShortPreambleEnabled (), UseGreenfieldForDestination (address)));
       v.SetTxPowerLevel (m_defaultTxPowerLevel);
-      v.SetChannelWidth (GetChannelWidthForTransmission (mode, m_wifiPhy->GetChannelWidth ()));
+      v.SetChannelWidth (GetChannelWidthForTransmission (mode, m_wifiPhy->GetUsableChannelWidth ()));
       v.SetGuardInterval (ConvertGuardIntervalToNanoSeconds (mode, DynamicCast<WifiNetDevice> (m_wifiPhy->GetDevice ())));
       v.SetNTx (1);
       v.SetNss (1);
@@ -582,7 +582,7 @@ WifiRemoteStationManager::GetDataTxVector (Mac48Address address, const WifiMacHe
         }
       txVector.SetMode (mgtMode);
       txVector.SetPreambleType (GetPreambleForTransmission (mgtMode.GetModulationClass (), GetShortPreambleEnabled (), UseGreenfieldForDestination (address)));
-      txVector.SetChannelWidth (GetChannelWidthForTransmission (mgtMode, m_wifiPhy->GetChannelWidth ()));
+      txVector.SetChannelWidth (GetChannelWidthForTransmission (mgtMode, m_wifiPhy->GetUsableChannelWidth ()));
       txVector.SetGuardInterval (ConvertGuardIntervalToNanoSeconds (mgtMode, DynamicCast<WifiNetDevice> (m_wifiPhy->GetDevice ())));
     }
   Ptr<WifiNetDevice> device = DynamicCast<WifiNetDevice> (m_wifiPhy->GetDevice ());
@@ -640,7 +640,7 @@ WifiRemoteStationManager::DoGetCtsToSelfTxVector (void)
                        GetNumberOfAntennas (),
                        GetMaxNumberOfTransmitStreams (),
                        0,
-                       GetChannelWidthForTransmission (defaultMode, m_wifiPhy->GetChannelWidth ()),
+                       GetChannelWidthForTransmission (defaultMode, m_wifiPhy->GetUsableChannelWidth ()),
                        false,
                        false);
 }
@@ -657,7 +657,7 @@ WifiRemoteStationManager::GetRtsTxVector (Mac48Address address, const WifiMacHea
         v.SetMode (mode);
         v.SetPreambleType (GetPreambleForTransmission (mode.GetModulationClass (), GetShortPreambleEnabled (), UseGreenfieldForDestination (address)));
         v.SetTxPowerLevel (m_defaultTxPowerLevel);
-        v.SetChannelWidth (GetChannelWidthForTransmission (mode, m_wifiPhy->GetChannelWidth ()));
+        v.SetChannelWidth (GetChannelWidthForTransmission (mode, m_wifiPhy->GetUsableChannelWidth ()));
         v.SetGuardInterval (ConvertGuardIntervalToNanoSeconds (mode, DynamicCast<WifiNetDevice> (m_wifiPhy->GetDevice ())));
         v.SetNTx (1);
         v.SetNss (1);
@@ -1541,7 +1541,7 @@ WifiRemoteStationManager::GetAddress (const WifiRemoteStation *station) const
 uint16_t
 WifiRemoteStationManager::GetChannelWidth (const WifiRemoteStation *station) const
 {
-  return station->m_state->m_channelWidth;
+  return std::min (m_wifiPhy->GetUsableChannelWidth (), station->m_state->m_channelWidth);
 }
 
 bool
