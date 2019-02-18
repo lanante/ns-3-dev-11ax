@@ -744,7 +744,8 @@ WifiHelper::Install (const WifiPhyHelper &phyHelper,
       device->SetPhy (phy);
       device->SetRemoteStationManager (manager);
       node->AddDevice (device);
-      if (m_standard >= WIFI_PHY_STANDARD_80211ax_2_4GHZ)
+      if ((m_standard >= WIFI_PHY_STANDARD_80211ax_2_4GHZ) && (m_obssPdAlgorithm.GetTypeId ().GetUid ()))
+
         {
           Ptr<ObssPdAlgorithm> obssPdAlgorithm = m_obssPdAlgorithm.Create<ObssPdAlgorithm> ();
           device->SetObssPdAlgorithm (obssPdAlgorithm);

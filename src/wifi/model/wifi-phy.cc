@@ -2574,6 +2574,20 @@ WifiPhy::StartReceiveHeader (Ptr<Packet> packet, WifiTxVector txVector, Ptr<Even
 
     m_timeLastPreambleDetected = Simulator::Now ();
 
+    m_currentTxVector = txVector;
+    event->SetTxVector (m_currentTxVector);
+
+    if (m_currentTxVector.GetNss () > GetMaxSupportedRxSpatialStreams ())
+      {
+        NS_LOG_DEBUG ("Packet reception could not be started because not enough RX antennas");
+        m_plcpSuccess = false;
+        m_mpdusNum = 0;
+        m_currentRemainingPpduDuration = Seconds (0);
+        NotifyRxDrop (packet);
+        MaybeCcaBusyDuration ();
+        return;
+      }
+
     NS_ASSERT (txVector.GetPreambleType () != WIFI_PREAMBLE_NONE);
     WifiModulationClass modulation = txVector.GetMode ().GetModulationClass ();
     if (modulation == WIFI_MOD_CLASS_HT)
@@ -3063,6 +3077,7 @@ WifiPhy::EndReceive (Ptr<Packet> packet, WifiPreamble preamble, MpduType mpdutyp
     {
       m_plcpSuccess = false;
       m_mpdusNum = 0;
+      m_currentRemainingPpduDuration = Seconds (0);
     }
 
 }
@@ -4098,6 +4113,7 @@ WifiPhy::AbortCurrentReception ()
   m_interference.NotifyRxEnd ();
   m_state->SwitchFromRxAbort ();
   m_currentEvent = 0;
+  m_currentRemainingPpduDuration = Seconds (0);
   m_plcpSuccess = false;
   m_mpdusNum = 0;
 }
@@ -4136,22 +4152,6 @@ WifiPhy::StartRx (Ptr<Packet> packet, WifiTxVector txVector, double rxPowerW, Ti
 
   AmpduTag ampduTag;
   WifiPreamble preamble = txVector.GetPreambleType ();
-
-  if (preamble != WIFI_PREAMBLE_NONE)
-    {
-      m_currentTxVector = txVector;
-    }
-
-  if (m_currentTxVector.GetNss () > GetMaxSupportedRxSpatialStreams ())
-   {
-     NS_LOG_DEBUG ("Packet reception could not be started because not enough RX antennas");
-     m_plcpSuccess = false;
-     m_mpdusNum = 0;
-     m_currentRemainingPpduDuration = Seconds (0);
-     NotifyRxDrop (packet);
-     MaybeCcaBusyDuration ();
-     return;
-   }
   
   if (preamble == WIFI_PREAMBLE_NONE && (m_mpdusNum == 0 || m_plcpSuccess == false))
     {
@@ -4165,11 +4165,11 @@ WifiPhy::StartRx (Ptr<Packet> packet, WifiTxVector txVector, double rxPowerW, Ti
     }
 
   NS_LOG_DEBUG ("sync to signal (power=" << rxPowerW << "W)");
-  event->SetTxVector (m_currentTxVector);
 
   m_interference.NotifyRxStart (); //We need to notify it now so that it starts recording events
   if (preamble == WIFI_PREAMBLE_NONE)
     {
+      event->SetTxVector (m_currentTxVector);
       NS_ASSERT (m_currentTxVector.IsAggregation ());
       NS_ASSERT (m_endPreambleDetectionEvent.IsExpired ());
 
@@ -4204,7 +4204,7 @@ WifiPhy::StartRx (Ptr<Packet> packet, WifiTxVector txVector, double rxPowerW, Ti
 
       NS_ASSERT (m_endRxEvent.IsExpired ());
       m_endRxEvent = Simulator::Schedule (rxDuration, &WifiPhy::EndReceive, this,
-                                          packet, txVector.GetPreambleType (), mpdutype, event);
+                                          packet, m_currentTxVector.GetPreambleType (), mpdutype, event);
     }
   else
     {
@@ -4212,6 +4212,7 @@ WifiPhy::StartRx (Ptr<Packet> packet, WifiTxVector txVector, double rxPowerW, Ti
         {
           m_plcpSuccess = false;
           m_mpdusNum = 0;
+          m_currentRemainingPpduDuration = Seconds (0);
           if (packet->PeekPacketTag (ampduTag))
           {
             m_mpdusNum = ampduTag.GetRemainingNbOfMpdus ();
@@ -4231,6 +4232,7 @@ WifiPhy::StartRx (Ptr<Packet> packet, WifiTxVector txVector, double rxPowerW, Ti
           m_endPreambleDetectionEvent.Cancel ();
           m_plcpSuccess = false;
           m_mpdusNum = 0;
+          m_currentRemainingPpduDuration = Seconds (0);
           if (packet->PeekPacketTag (ampduTag))
             {
               m_mpdusNum = ampduTag.GetRemainingNbOfMpdus ();
