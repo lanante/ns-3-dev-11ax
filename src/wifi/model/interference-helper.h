@@ -31,6 +31,11 @@ class Packet;
 class ErrorRateModel;
 
 /**
+ * A set of pairs of a center Frequency and a received power in Watt
+ */
+typedef std::set < std::pair < uint16_t, double > > RxPowerWattPerChannelBand;
+
+/**
  * \ingroup wifi
  * \brief handles interference calculations
  * \brief signal event for a packet.
@@ -44,9 +49,9 @@ public:
    * \param packet the packet
    * \param txVector TXVECTOR of the packet
    * \param duration duration of the signal
-   * \param rxPower the receive power (w)
+   * \param rxPower the receive power per 20 MHz channel band (w)
    */
-  Event (Ptr<const Packet> packet, WifiTxVector txVector, Time duration, double rxPower);
+  Event (Ptr<const Packet> packet, WifiTxVector txVector, Time duration, RxPowerWattPerChannelBand rxPower);
   ~Event ();
 
   /** Return the packet.
@@ -91,7 +96,7 @@ private:
   WifiTxVector m_txVector; ///< TXVECTOR
   Time m_startTime; ///< start time
   Time m_endTime; ///< end time
-  double m_rxPowerW; ///< receive power in watts
+  RxPowerWattPerChannelBand m_rxPowerW; ///< receive power in watts per 20MHz channel band
 };
 
 /**
@@ -159,18 +164,18 @@ public:
    * \param packet the packet
    * \param txVector TXVECTOR of the packet
    * \param duration the duration of the signal
-   * \param rxPower receive power (W)
+   * \param rxPower receive power per 20MHz channel band (W)
    *
    * \return Event
    */
-  Ptr<Event> Add (Ptr<const Packet> packet, WifiTxVector txVector, Time duration, double rxPower);
+  Ptr<Event> Add (Ptr<const Packet> packet, WifiTxVector txVector, Time duration, RxPowerWattPerChannelBand rxPowerW);
 
   /**
    * Add a non-Wifi signal to interference helper.
    * \param duration the duration of the signal
-   * \param rxPower receive power (W)
+   * \param rxPower receive power per 20MHz channel band (W)
    */
-  void AddForeignSignal (Time duration, double rxPower);
+  void AddForeignSignal (Time duration, RxPowerWattPerChannelBand rxPowerW);
   /**
    * Calculate the SNIR at the start of the payload and accumulate
    * all SNIR changes in the snir vector for each MPDU of an A-MPDU.

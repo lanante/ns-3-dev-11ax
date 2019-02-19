@@ -137,15 +137,17 @@ public:
   /**
    * Create a spectral density corresponding to the RF filter
    *
-   * \param centerFrequency center frequency (MHz)
-   * \param channelWidth channel width (MHz)
+   * \param firstCenterFrequency center frequency of the first 20 MHz band (MHz)
+   * \param totalChannelWidth total channel width (MHz)
    * \param bandBandwidth width of each band (Hz)
    * \param guardBandwidth width of the guard band (MHz)
+   * \param channelWidthInFilter channel width to be filtered (MHz)
+   * \param bandIndex index of the 20 MHz band to be filtered in the total channel width
    *
    * \return a pointer to a SpectrumValue representing the RF filter applied
    * to an received power spectral density
    */
-  static Ptr<SpectrumValue> CreateRfFilter (uint32_t centerFrequency, uint16_t channelWidth, double bandBandwidth, uint16_t guardBandwidth);
+  static Ptr<SpectrumValue> CreateRfFilter (uint32_t firstCenterFrequency, uint16_t totalChannelWidth, double bandBandwidth, uint16_t guardBandwidth, uint16_t channelWidthInFilter, uint8_t bandIndex);
 
   /**
    * typedef for a pair of start and stop sub-band indexes

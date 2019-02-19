@@ -2772,9 +2772,9 @@ WifiPhy::ContinueReceiveHeader (Ptr<Event> event)
 }
 
 void
-WifiPhy::StartReceivePreamble (Ptr<Packet> packet, double rxPowerW, Time rxDuration)
+WifiPhy::StartReceivePreamble (Ptr<Packet> packet, RxPowerWattPerChannelBand rxPowersW, Time rxDuration)
 {
-  NS_LOG_FUNCTION (this << packet << rxPowerW << rxDuration);
+  NS_LOG_FUNCTION (this << packet << rxDuration);
   WifiPhyTag tag;
   bool found = packet->RemovePacketTag (tag);
   if (!found)
@@ -2908,11 +2908,7 @@ WifiPhy::StartReceivePreamble (Ptr<Packet> packet, double rxPowerW, Time rxDurat
         }
     }
 
-  Ptr<Event> event;
-  event = m_interference.Add (packet,
-                              txVector,
-                              rxDuration,
-                              rxPowerW);
+  Ptr<Event> event = m_interference.Add (packet, txVector, rxDuration, rxPowersW);
 
   if (m_state->GetState () == WifiPhyState::OFF)
     {
@@ -2963,12 +2959,11 @@ WifiPhy::StartReceivePreamble (Ptr<Packet> packet, double rxPowerW, Time rxDurat
         {
           AbortCurrentReception (FRAME_CAPTURE_PACKET_SWITCH);
           NS_LOG_DEBUG ("Switch to new packet");
-          StartRx (event, rxPowerW, rxDuration);
+          StartRx (event, rxDuration);
         }
       else
         {
-          NS_LOG_DEBUG ("Drop packet because already in Rx (power=" <<
-                        rxPowerW << "W)");
+          NS_LOG_DEBUG ("Drop packet because already in Rx");
           NotifyRxDrop (packet, NOT_ALLOWED);
           if (endRx > Simulator::Now () + m_state->GetDelayUntilIdle ())
             {
@@ -2979,8 +2974,7 @@ WifiPhy::StartReceivePreamble (Ptr<Packet> packet, double rxPowerW, Time rxDurat
         }
       break;
     case WifiPhyState::TX:
-      NS_LOG_DEBUG ("Drop packet because already in Tx (power=" <<
-                    rxPowerW << "W)");
+      NS_LOG_DEBUG ("Drop packet because already in Tx");
       NotifyRxDrop (packet, NOT_ALLOWED);
       if (endRx > Simulator::Now () + m_state->GetDelayUntilIdle ())
         {
@@ -2991,7 +2985,7 @@ WifiPhy::StartReceivePreamble (Ptr<Packet> packet, double rxPowerW, Time rxDurat
       break;
     case WifiPhyState::CCA_BUSY:
     case WifiPhyState::IDLE:
-      StartRx (event, rxPowerW, rxDuration);
+      StartRx (event, rxDuration);
       break;
     case WifiPhyState::SLEEP:
       NS_LOG_DEBUG ("Drop packet because in sleep mode");
@@ -4251,8 +4245,9 @@ WifiPhy::GetTxPowerForTransmission (WifiTxVector txVector) const
 }
 
 void
-WifiPhy::StartRx (Ptr<Event> event, double rxPowerW, Time rxDuration)
+WifiPhy::StartRx (Ptr<Event> event, Time rxDuration)
 {
+  double rxPowerW = event->GetRxPowerW ();
   NS_LOG_FUNCTION (this << event->GetPacket () << event->GetTxVector () << event << rxPowerW << rxDuration);
 
   NS_LOG_DEBUG ("sync to signal (power=" << rxPowerW << "W)");

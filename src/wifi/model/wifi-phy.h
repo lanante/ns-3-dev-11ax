@@ -82,12 +82,12 @@ struct HePreambleParameters
   uint8_t bssColor; ///< BSS color
 };
 
-  /// SecondaryChannelOffset enumeration
-  enum SecondaryChannelOffset
-  {
-    UPPER,
-    LOWER
-  };
+/// SecondaryChannelOffset enumeration
+enum SecondaryChannelOffset
+{
+  UPPER,
+  LOWER
+};
 
 /**
  * \brief 802.11 PHY layer model
@@ -148,15 +148,17 @@ public:
    * Start receiving the PHY preamble of a packet (i.e. the first bit of the preamble has arrived).
    *
    * \param packet the arriving packet
-   * \param rxPowerW the receive power in W
+   * \param rxPowerW the receive power in W per 20 MHz channel band
    * \param rxDuration the duration needed for the reception of the packet
    */
-  void StartReceivePreamble (Ptr<Packet> packet, double rxPowerW, Time rxDuration);
+  void StartReceivePreamble (Ptr<Packet> packet,
+                             RxPowerWattPerChannelBand rxPowerW,
+                             Time rxDuration);
 
   /**
    * Start receiving the PHY header of a packet (i.e. after the end of receiving the preamble).
    *
-   * \param event the corresponding event of the first time the packet arrives (also storing packet and TxVector information)
+   * \param event the corresponding event of the first time the packet arrives (also storing packet, TxVector and power information)
    * \param rxDuration the duration needed for the reception of the header and payload of the packet
    */
   void StartReceiveHeader (Ptr<Event> event, Time rxDuration);
@@ -164,21 +166,21 @@ public:
   /**
    * Continue receiving the PHY header of a packet (i.e. after the end of receiving the legacy header part).
    *
-   * \param event the corresponding event of the first time the packet arrives (also storing packet and TxVector information)
+   * \param event the corresponding event of the first time the packet arrives (also storing packet, TxVector and power information)
    */
   void ContinueReceiveHeader (Ptr<Event> event);
 
   /**
    * Start receiving the payload of a packet (i.e. the first bit of the packet has arrived).
    *
-   * \param event the corresponding event of the first time the packet arrives (also storing packet and TxVector information)
+   * \param event the corresponding event of the first time the packet arrives (also storing packet, TxVector and power information)
    */
   void StartReceivePayload (Ptr<Event> event);
 
   /**
    * The last bit of the packet has arrived.
    *
-   * \param event the corresponding event of the first time the packet arrives (also storing packet and TxVector information)
+   * \param event the corresponding event of the first time the packet arrives (also storing packet, TxVector and power information)
    */
   void EndReceive (Ptr<Event> event);
 
@@ -1748,16 +1750,15 @@ private:
   /**
    * Starting receiving the packet after having detected the medium is idle or after a reception switch.
    *
-   * \param event the corresponding event of the first time the packet arrives (also storing packet and TxVector information)
-   * \param rxPowerW the receive power in W
+   * \param event the corresponding event of the first time the packet arrives (also storing packet, TxVector and power information)
    * \param rxDuration the duration needed for the reception of the packet
    */
-  void StartRx (Ptr<Event> event, double rxPowerW, Time rxDuration);
+  void StartRx (Ptr<Event> event, Time rxDuration);
   /**
    * Get the reception status for the provided MPDU and notify.
    *
    * \param mpdu the arriving MPDU
-   * \param event the corresponding event of the first time the packet arrives (also storing packet and TxVector information)
+   * \param event the corresponding event of the first time the packet arrives (also storing packet, TxVector and power information)
    * \param relativeMpduStart the relative start time of the MPDU within the A-MPDU. 0 for normal MPDUs
    * \param mpduDuration the duration of the MPDU
    *

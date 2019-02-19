@@ -19,6 +19,7 @@
  *          Sébastien Deronne <sebastien.deronne@gmail.com>
  */
 
+#include <numeric>
 #include "ns3/packet.h"
 #include "ns3/simulator.h"
 #include "ns3/log.h"
@@ -35,7 +36,7 @@ NS_LOG_COMPONENT_DEFINE ("InterferenceHelper");
  *       Phy event class
  ****************************************************************/
 
-Event::Event (Ptr<const Packet> packet, WifiTxVector txVector, Time duration, double rxPower)
+Event::Event (Ptr<const Packet> packet, WifiTxVector txVector, Time duration, RxPowerWattPerChannelBand rxPower)
   : m_packet (packet),
     m_txVector (txVector),
     m_startTime (Simulator::Now ()),
@@ -69,7 +70,11 @@ Event::GetEndTime (void) const
 double
 Event::GetRxPowerW (void) const
 {
-  return m_rxPowerW;
+  NS_ASSERT (m_rxPowerW.size () > 0);
+  double sum = std::accumulate (std::begin (m_rxPowerW), std::end (m_rxPowerW), 0.0,
+                               [](const double previous, const std::pair<uint16_t, double> &p)
+                               { return previous + p.second; });
+  return sum;
 }
 
 WifiTxVector
@@ -136,7 +141,7 @@ InterferenceHelper::~InterferenceHelper ()
 }
 
 Ptr<Event>
-InterferenceHelper::Add (Ptr<const Packet> packet, WifiTxVector txVector, Time duration, double rxPowerW)
+InterferenceHelper::Add (Ptr<const Packet> packet, WifiTxVector txVector, Time duration, RxPowerWattPerChannelBand rxPowerW)
 {
   Ptr<Event> event = Create<Event> (packet, txVector, duration, rxPowerW);
   AppendEvent (event);
@@ -144,7 +149,7 @@ InterferenceHelper::Add (Ptr<const Packet> packet, WifiTxVector txVector, Time d
 }
 
 void
-InterferenceHelper::AddForeignSignal (Time duration, double rxPowerW)
+InterferenceHelper::AddForeignSignal (Time duration, RxPowerWattPerChannelBand rxPowerW)
 {
   // Parameters other than duration and rxPowerW are unused for this type
   // of signal, so we provide dummy versions

@@ -203,24 +203,32 @@ SpectrumWifiPhy::StartRx (Ptr<SpectrumSignalParameters> rxParams)
   // Integrate over our receive bandwidth (i.e., all that the receive
   // spectral mask representing our filtering allows) to find the
   // total energy apparent to the "demodulator".
+  // This is done per 20 MHz channel band.
   uint16_t channelWidth = GetChannelWidth ();
-  Ptr<SpectrumValue> filter = WifiSpectrumValueHelper::CreateRfFilter (GetFrequency (), channelWidth, GetBandBandwidth (), GetGuardBandwidth (channelWidth));
-  SpectrumValue filteredSignal = (*filter) * (*receivedSignalPsd);
-  // Add receiver antenna gain
-  NS_LOG_DEBUG ("Signal power received (watts) before antenna gain: " << Integral (filteredSignal));
-  double rxPowerW = Integral (filteredSignal) * DbToRatio (GetRxGain ());
-  NS_LOG_DEBUG ("Signal power received after antenna gain: " << rxPowerW << " W (" << WToDbm (rxPowerW) << " dBm)");
+  double totalRxPowerW = 0;
+  RxPowerWattPerChannelBand rxPowerW;
+  for (uint8_t i = 0; i < (channelWidth / 20); i++)
+    {
+      Ptr<SpectrumValue> filter = WifiSpectrumValueHelper::CreateRfFilter (GetFrequency (), channelWidth, GetBandBandwidth (), GetGuardBandwidth (channelWidth), 20, i);
+      SpectrumValue filteredSignal = (*filter) * (*receivedSignalPsd);
+      NS_LOG_DEBUG ("Signal power received (watts) before antenna gain for channel band " << i << ": " << Integral (filteredSignal));
+      double rxPowerPerBandW = Integral (filteredSignal) * DbToRatio (GetRxGain ());
+      totalRxPowerW += rxPowerPerBandW;
+      rxPowerW.insert ({GetFrequency () + (i * 20), rxPowerPerBandW});
+      NS_LOG_DEBUG ("Signal power received after antenna gain for channel band " << i << ": " << rxPowerPerBandW << " W (" << WToDbm (rxPowerPerBandW) << " dBm)");
+    }
+  NS_LOG_DEBUG ("Total signal power received after antenna gain: " << totalRxPowerW << " W (" << WToDbm (totalRxPowerW) << " dBm)");
 
   Ptr<WifiSpectrumSignalParameters> wifiRxParams = DynamicCast<WifiSpectrumSignalParameters> (rxParams);
 
   // Log the signal arrival to the trace source
-  m_signalCb (wifiRxParams ? true : false, senderNodeId, WToDbm (rxPowerW), rxDuration);
+  m_signalCb (wifiRxParams ? true : false, senderNodeId, WToDbm (totalRxPowerW), rxDuration);
 
   // Do no further processing if signal is too weak
   // Current implementation assumes constant rx power over the packet duration
-  if (WToDbm (rxPowerW) < GetRxSensitivity ())
+  if (WToDbm (totalRxPowerW) < GetRxSensitivity ())
     {
-      NS_LOG_INFO ("Received signal too weak to process: " << WToDbm (rxPowerW) << " dBm");
+      NS_LOG_INFO ("Received signal too weak to process: " << WToDbm (totalRxPowerW) << " dBm");
       return;
     }
   if (wifiRxParams == 0)

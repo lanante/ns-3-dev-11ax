@@ -449,30 +449,50 @@ WifiSpectrumValueHelper::CreateNoisePowerSpectralDensity (double noiseFigureDb, 
 }
 
 Ptr<SpectrumValue>
-WifiSpectrumValueHelper::CreateRfFilter (uint32_t centerFrequency, uint16_t channelWidth, double bandGranularity, uint16_t guardBandwidth)
+WifiSpectrumValueHelper::CreateRfFilter (uint32_t firstCenterFrequency, uint16_t totalChannelWidth, double bandGranularity, uint16_t guardBandwidth, uint16_t channelWidthInFilter, uint8_t bandIndex)
 {
-  NS_LOG_FUNCTION (centerFrequency << channelWidth << bandGranularity << guardBandwidth);
-  Ptr<SpectrumValue> c = Create <SpectrumValue> (GetSpectrumModel (centerFrequency, channelWidth, bandGranularity, guardBandwidth));
+  NS_LOG_FUNCTION (firstCenterFrequency << totalChannelWidth << bandGranularity << guardBandwidth << channelWidthInFilter << +bandIndex);
+  Ptr<SpectrumValue> c = Create <SpectrumValue> (GetSpectrumModel (firstCenterFrequency, totalChannelWidth, bandGranularity, guardBandwidth));
   size_t numBands = c->GetSpectrumModel ()->GetNumBands ();
   Bands::const_iterator bit = c->ConstBandsBegin ();
   Values::iterator vit = c->ValuesBegin ();
   uint32_t bandBandwidth = static_cast<uint32_t> (bandGranularity);
-  size_t numBandsInFilter = static_cast<size_t> (channelWidth * 1e6 / bandBandwidth);
-  if (channelWidth % bandBandwidth != 0)
+  size_t numBandsInChannel = static_cast<size_t> (totalChannelWidth * 1e6 / bandBandwidth);
+  size_t numBandsInFilter = static_cast<size_t> (channelWidthInFilter * 1e6 / bandBandwidth);
+  if (totalChannelWidth % bandBandwidth != 0)
     {
-      numBandsInFilter += 1;
+      numBandsInChannel += 1;
+      if (bandIndex == 0)
+        {
+          numBandsInFilter += 1;
+        }
     }
-  NS_LOG_INFO ("Num bands in filter: " << numBandsInFilter);
-  // Set the value of the filter to 1 for the center-most numBandsInFilter
-  NS_ASSERT_MSG ((numBandsInFilter % 2 == 1) && (numBands % 2 == 1), "Should have odd number of bands");
-  size_t startIndex = (numBands - numBandsInFilter) / 2;
+  NS_ASSERT_MSG ((numBandsInChannel % 2 == 1) && (numBands % 2 == 1), "Should have odd number of bands");
+  size_t startIndex = ((numBands - numBandsInChannel) / 2) + (bandIndex * numBandsInFilter);
+  if (bandIndex != 0)
+    {
+      startIndex++;
+    }
+  size_t stopIndex = startIndex + numBandsInFilter;
+  bool lastBand = false;
+  if (((bandIndex + 1) * channelWidthInFilter) == totalChannelWidth)
+    {
+      lastBand = true;
+    }
   vit += startIndex;
   bit += startIndex;
-  for (size_t i = startIndex; i < startIndex + numBandsInFilter; i++, vit++, bit++)
+  for (size_t i = startIndex; i <= stopIndex; i++, vit++, bit++)
     {
-      *vit = 1;
+      if (((i == startIndex) && (bandIndex != 0)) || ((i == stopIndex) && !lastBand))
+        {
+          *vit = 0.5;
+        }
+      else
+        {
+          *vit = 1;
+        }
     }
-  NS_LOG_LOGIC ("Added subbands " << startIndex << " to " << startIndex + numBandsInFilter << " to filter");
+  NS_LOG_LOGIC ("Added subbands " << startIndex << " to " << stopIndex << " to filter");
   return c;
 }
 
