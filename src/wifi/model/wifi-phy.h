@@ -100,6 +100,16 @@ public:
   virtual ~WifiPhy ();
 
   /**
+   * A pair of a ChannelNumber and WifiPhyStandard
+   */
+  typedef std::pair<uint8_t, WifiPhyStandard> ChannelNumberStandardPair;
+  
+  /**
+   * A pair of a center Frequency (MHz) and a ChannelWidth (MHz)
+   */
+  typedef std::pair<uint16_t, uint16_t> FrequencyWidthPair;
+  
+  /**
    * Return the WifiPhyStateHelper of this PHY
    *
    * \return the WifiPhyStateHelper of this PHY
@@ -141,9 +151,9 @@ public:
    * Start receiving the PHY preamble of a PPDU (i.e. the first bit of the preamble has arrived).
    *
    * \param ppdu the arriving PPDU
-   * \param rxPowerW the receive power in W
+   * \param rxPowersW the receive power in W per 20 MHz channel band
    */
-  void StartReceivePreamble (Ptr<WifiPpdu> ppdu, double rxPowerW);
+  void StartReceivePreamble (Ptr<WifiPpdu> ppdu, RxPowerWattPerChannelBand rxPowersW);
 
   /**
    * Start receiving the PHY header of a PPDU (i.e. after the end of receiving the preamble).
@@ -170,7 +180,7 @@ public:
   /**
    * The last symbol of the PPDU has arrived.
    *
-   * \param event the corresponding event of the first time the packet arrives (also storing packet and TxVector information)
+   * \param event the event holding incoming PPDU's information
    */
   void EndReceive (Ptr<Event> event);
 
@@ -597,15 +607,6 @@ public:
    * \return true if the channel definition succeeded
    */
   bool DefineChannelNumber (uint8_t channelNumber, WifiPhyStandard standard, uint16_t frequency, uint16_t channelWidth);
-
-  /**
-   * A pair of a ChannelNumber and WifiPhyStandard
-   */
-  typedef std::pair<uint8_t, WifiPhyStandard> ChannelNumberStandardPair;
-  /**
-   * A pair of a center Frequency and a ChannelWidth
-   */
-  typedef std::pair<uint16_t, uint16_t> FrequencyWidthPair;
 
   /**
    * Return the Channel this WifiPhy is connected to.
@@ -1672,6 +1673,16 @@ protected:
    */
   virtual uint16_t GetStaId (void) const;
 
+  /**
+   * Get the start band index and the stop band index for a given band
+   *
+   * \param bandWidth the width of the band to be returned (MHz)
+   * \param bandIndex the index of the band to be returned
+   *
+   * \return a pair of start and stop indexes that defines the band
+   */
+  virtual WifiSpectrumBand GetBand (uint16_t bandWidth, uint8_t bandIndex = 0);
+
   InterferenceHelper m_interference;   //!< Pointer to InterferenceHelper
   Ptr<UniformRandomVariable> m_random; //!< Provides uniform random variables.
   Ptr<WifiPhyStateHelper> m_state;     //!< Pointer to WifiPhyStateHelper
@@ -1805,9 +1816,8 @@ private:
    * Starting receiving the PPDU after having detected the medium is idle or after a reception switch.
    *
    * \param event the event holding incoming PPDU's information
-   * \param rxPowerW the receive power in W
    */
-  void StartRx (Ptr<Event> event, double rxPowerW);
+  void StartRx (Ptr<Event> event);
   /**
    * Get the reception status for the provided MPDU and notify.
    *
