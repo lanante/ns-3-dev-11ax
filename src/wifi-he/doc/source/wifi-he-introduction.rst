@@ -30,8 +30,8 @@ occupied by the inter-BSS frame.
 
 This phase of the project is focused towards a basic dense-mode deployment
 simulation scenario with a number of (overlapping) BSS, each of which
-can be configured as legacy 802.11ac, 802.11ax, and also LTE Licensed-Assisted
-Access (LAA) BSS.  In such a scenario, the hypothesis that 802.11ax can 
+can be configured as 802.11ac or 802.11ax BSS. 
+In such a scenario, the hypothesis that 802.11ax can 
 lead to greater system performance can be tested.
 
 The software corresponding to this report resides in a private

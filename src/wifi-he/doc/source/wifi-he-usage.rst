@@ -303,7 +303,7 @@ This script runs several scenarios that conduct experiments with
 in this documentation.
 
 This script assume the use of standard 802.11ac, and serves as a baseline
-for comparison to 802.11ax and coexistence results.
+for comparison to 802.11ax results.
 
 calibration-scenarios.sh
 ########################

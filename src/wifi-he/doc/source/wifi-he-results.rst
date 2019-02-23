@@ -14,11 +14,9 @@ Results
 Overview
 ========
 
-In this chapter we provide simulation results obtained to evaluate 
-the WiFi HE features, especially spatial reuse and coexistence of 802.11ac, 
-802.11ax, and/or LTE networks. We first describe the framework used to launch
-simulation scenarios and process the results.  Then we present the results for
-some selected scenarios and parametric studies.
+In this chapter we provide simulation results obtained to evaluate the Wi-Fi HE features, especially spatial reuse.
+We first describe the framework used to launch simulation scenarios and process the results.
+Then we present the results for some selected scenarios and parametric studies.
 
 Scenario
 ========
@@ -473,19 +471,16 @@ Parametric Studies
 ==================
 
 In the nexgt sections, we discuss parametric studies that have been conducted to
-examine the behaviors of the spatial reuse and coexistence features of
-802.11ax.  We first describe the framework used to represent the scenarios
-in order to conduct simulation experiments for these studies.  Then we 
-present the results of those studies.
+examine the behaviors of the spatial reuse feature of 802.11ax.
+We first describe the framework used to represent the scenarios
+in order to conduct simulation experiments for these studies.
+Then we  present the results of those studies.
 
 The following three parametric studies are conducted:
 
 * Study 1 -- All nodes operate as 802.11ac (baseline)
 
 * Study 2 -- All nodes operate as 802.11ax with OBSS_PD features enabled.
-
-* Study 3 -- Several BSSs inter-operate using mixtures of 802.11ac, 802.11ax,
-and LAA nodes.
 
 Study 1 - 802.11ac (baseline)
 =============================
@@ -1045,92 +1040,6 @@ of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
 Figure :ref:`airtime-utilization-study2a-62` illustrates the airtime utilization for BSS1.
 
 It is observed that TBD...
-
-Latency
-#######
-
-(Here there will be a figure of the average latency as a function of 
-offered load.  There will be a separate line for each combination of 
-n STAs - i.e., n=5, n=10, n=15, ..., n=40).
-
-Study 3 - Coexistence
-=====================
-
-Study 3 examines coexistence of combinations of 802.11ac, 802.11ac, and
-LAA networks.
-
-The topology of Study 3 is similar to that of Study 1 and Study 2,
-and is illustrated below.
-
-The node positions for Study 3 are given below.
-
-.. _positions-test-study3:
-
-.. figure:: figures/spatial-reuse-positions-test-study3.*
-   :align: center 
-
-   Node positions for Study 3.
-
-Figure :ref:`positions-test-study3` illustrates the node positions 
-for Study 3.
-
-The system consists of 7 BSSs, with the BSS of interest (red) in the 
-center.  This BSS is surrounded by a set of BSSs placed in a 
-hexagonal pattern around it.  For illustrative purposes, the 
-surrounding BSSs in the figure are shown in one of two colors, blue
-or black, to indicate the placement and allocation of different
-types of neighboring networks.
-
-Study 3 thus consists of simulation where BSS of interest is an
-802.11ac network, while the mix of neighboring networks are varied
-(i.e., how many BSS are "blue" and how many are "black" ).
-
-The following topology is studied:
-
-* BSS #1 - the BSS off interest (center) - 802.11ax
-* BSS #2 - 802.11ac
-* BSS #3 - 802.11ax
-* BSS #4 - 802.11ax
-* BSS #5 - 802.11ac
-* BSS #6 - 802.11ax coexisting with LAA
-* BSS #7 - 802.11ax
-
-BSS #6 is an 802.11ax network with an overlaid LAA network.  The ratio of nodes 
-within that network is allocated as (X% TBD) as 802.11ax nodes and (Y% TBD) as
-LAA nodes.
-
-The simulation parameters for each network are determined as follows:
-
-* 802.11ac - "best performing" parameters as identified by Study 1.
-
-* 802.1asx - "best performing" parameter as identified by Study 2.
-
-* LAA - TBD
-
-
-Study 3 Results
-===============
-
-System Throughput
-#################
-
-(Here there will be a figure of the system throughput as a function of 
-offered load.  There will be a separate line for each combination of 
-n STAs - i.e., n=5, n=10, n=15, ..., n=40).
-
-Area Capacity
-#############
-
-(Here there will be a figure of the area capacity as a function of 
-offered load.  There will be a separate line for each combination of 
-n STAs - i.e., n=5, n=10, n=15, ..., n=40).
-
-Spectrum Efficiency
-###################
-
-(Here there will be a figure of the spectrum efficiency as a function of 
-offered load.  There will be a separate line for each combination of 
-n STAs - i.e., n=5, n=10, n=15, ..., n=40).
 
 Latency
 #######
