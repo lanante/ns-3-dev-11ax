@@ -64,13 +64,3 @@ Once a HE preamble and its header have been received by the PHY, ``ConstantObssP
 The algorithm then checks whether this is an OBSS frame by comparing its own BSS color with the BSS color of the received preamble.
 If this is an OBSS frame, it compare the received RSSI with its configured OBSS PD level value. The PHY then gets reset to IDLE
 state in case the received RSSI is lower than that constant OBSS PD level value, and is informed about a TX power limitations.
-
-Beacon RSSI OBSS PD Algorithm
-=============================
-
-Placeholder section
-
-Scope And Limitations
-=====================
-
-Placeholder section

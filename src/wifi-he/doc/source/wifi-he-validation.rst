@@ -739,14 +739,6 @@ The following parameters are set for all all calibration scenarios.
 * ``useIdealWifiManager`` = 0
 
 
-@TODO the box5 scenarios need to be rerun to generate results.
-
-@TODO suggest just documenting results for brevity of one of 
-those scenarios, such as Test 7 for 2BB UL only.
-
-NOTE:  More TBD to document these results
-
-
 Validation
 ==========
 
