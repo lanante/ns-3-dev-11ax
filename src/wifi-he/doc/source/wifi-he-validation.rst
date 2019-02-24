@@ -265,20 +265,7 @@ the common parameters.
 Results
 #######
 
-The node positions for the calibration test1b scenario are given below.
-
-.. _positions-calibration-test1b:
-
-.. figure:: figures/spatial-reuse-positions-calibration-test1b.*
-   :align: center
-
-   Node positions for the calibration test 1b.
-
-Figure :ref:`positions-calibration-test1b` illustrates the node positions
-of the calibration test 1b scenario.
-
-We can see that there is one BSS with one AP at its center, and 1 STA at
-a random position with the r=30m radius about the AP.
+The node positions for the calibration test1b scenario are identical to test1a.
 
 The simulation results in throughput at the AP of 6.4452 Mbps, or 64.45% of the
 10 Mbps offered load, indicating that this simulation scenario saturates the
@@ -291,30 +278,6 @@ as the STA is not moving, and there are no other signals in the network that
 interfere with its transmissions.  The Empirical Cumulative Distribution 
 Function (ECDF) for the signal level and noise levels are provided below,
 and show that there is no variation amoung the levels.
-
-The ECDF of the signals received by AP1 is given below.
-
-.. _calibration-test1b-ap1-signal:
-
-.. figure:: figures/spatial-reuse-rx-sniff-calibration-test1b-ap1-signal.*
-   :align: center
-
-   ECDF of the signals received by AP1 for the calibration test 1b.
-
-Figure :ref:`calibration-test1b-ap1-signal` illustrates the ECDF of the signals
-received by AP1 for the calibration test 1b scenario.
-
-The ECDF of the noise levels received by AP1 is given below.
-
-.. _calibration-test1b-ap1-noise:
-
-.. figure:: figures/spatial-reuse-rx-sniff-calibration-test1b-ap1-noise.*
-   :align: center
-
-   ECDF of the noise level received by AP1 for the calibration test 1b.
-
-Figure :ref:`calibration-test1b-ap1-noise` illustrates the ECDF of the noise levels
-received by AP1 for the calibration test 1b scenario.
 
 Test 2a - Deferral Test 1
 #########################
@@ -571,80 +534,12 @@ the common parameters.
 Results
 #######
 
-The node positions for the calibration test3 scenario are given below.
-
-.. _positions-calibration-test3:
-
-.. figure:: figures/spatial-reuse-positions-calibration-test3.*
-   :align: center
-
-   Node positions for the calibration test 3.
-
-Figure :ref:`positions-calibration-test3` illustrates the node positions
-of the calibration test 3 scenario.
-
-We can see that there are two BSS each with one AP at its center that are 
-separated by d=20m.  There is 1 STA for each BSS placed in 
-a random position within the r=10m radius about the correponding AP.  The two
-STAs are near one another.
-
 The simulation results in throughput of 3.2664 Mbps and 3.2076 Mbps at AP1 and AP2,
 respectively.  This is 32.66% and 32.08%, respectively, of the 10 Mbps offered load.  
 The results indicate that this simulation scenario saturates the
 network and results in significantly lower throughput as compared to the Test 1a, 
 where only 1 STA was transmitting without any potential transmission interference from
 other nodes.  The reduced throughput is explained by the deferral procedure.
-
-The signal levels at each receiving AP for the transmissions of its 
-associated STA should be identical, as the STA is not moving.  
-The Empirical Cumulative Distribution Function (ECDF) for the signal 
-level and noise levels are provided below, and show that there is no variation
-amoung the levels within each respective BSS.
-
-The ECDF of the signals received by AP1 and AP2 are given below.
-
-.. _calibration-test3-ap1-signal:
-
-.. figure:: figures/spatial-reuse-rx-sniff-calibration-test3-ap1-signal.*
-   :align: center
-
-   ECDF of the signals received by AP1 for the calibration test 3.
-
-Figure :ref:`calibration-test3-ap1-signal` illustrates the ECDF of the signals
-received by AP1 for the calibration test 3 scenario.
-
-.. _calibration-test3-ap2-signal:
-
-.. figure:: figures/spatial-reuse-rx-sniff-calibration-test3-ap2-signal.*
-   :align: center
-
-   ECDF of the signals received by AP2 for the calibration test 3.
-
-Figure :ref:`calibration-test3-ap2-signal` illustrates the ECDF of the signals
-received by AP2 for the calibration test 3 scenario.
-
-The ECDF of the noise levels received by AP1 and AP2 are given below.
-
-.. _calibration-test3-ap1-noise:
-
-.. figure:: figures/spatial-reuse-rx-sniff-calibration-test3-ap1-noise.*
-   :align: center
-
-   ECDF of the noise level received by AP1 for the calibration test 3.
-
-Figure :ref:`calibration-test3-ap1-noise` illustrates the ECDF of the noise levels
-received by AP1 for the calibration test 3 scenario.
-
-.. _calibration-test3-ap2-noise:
-
-.. figure:: figures/spatial-reuse-rx-sniff-calibration-test3-ap2-noise.*
-   :align: center
-
-   ECDF of the noise level received by AP2 for the calibration test 3.
-
-Figure :ref:`calibration-test3-ap2-noise` illustrates the ECDF of the noise levels
-received by AP2 for the calibration test 3 scenario.
-
 
 Box5 Calibration Tests
 ======================

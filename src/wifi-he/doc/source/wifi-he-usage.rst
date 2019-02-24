@@ -86,7 +86,7 @@ will include the name of the test that is specified with the
 "test".  Thus, for example, using the default configuration, there will
 be an output file found as '/scripts/results/spatial-reuse-positions-test.csv'.
 
- * ``'spatial-reuse-positions-<test name>.csv'`` - The positions of all nodes in
+ * ``spatial-reuse-positions-<test name>.csv`` - The positions of all nodes in
    the network, used for plotting the topology of the experiment.  This 
    file is divided into several sections, with each section separated by
    two blank lines.  The sections of the positions file are:  1) the 
@@ -94,30 +94,30 @@ be an output file found as '/scripts/results/spatial-reuse-positions-test.csv'.
    locations of the N APs of the network, and 3) the remaining N sections
    are the locations of the n STAs for each of the nBss BSSs.
 
- * ``'spatial-reuse-<test name>.tr'`` - Ascii trace files if --ascii=1 is specified
+ * ``spatial-reuse-<test name>.tr'`` - Ascii trace files if --ascii=1 is specified
 
- * ``'spatial-reuse-state-<test name>.dat'`` - WifiPhyState transition output
+ * ``spatial-reuse-state-<test name>.dat`` - PHY states transitions.
 
- * ``'spatial-reuse-rx-sniff-<test name>.dat'`` - CSV trace of all received 
+ * ``spatial-reuse-rx-sniff-<test name>.dat`` - CSV trace of all received 
    packets, including the receiving node id, the destination node id, the 
    source node id, the receiving node address, the MAC header addr1 and 
    addr2 fields, the noise level of the received packet, the RSSI of the 
    received packet, and the packet length of the received packet.
 
- * ``'spatial-reuse-phy-log-<test name>.dat'`` - The statistics of all packet 
-    arrivals.
+ * ``spatial-reuse-phy-log-<test name>.dat`` - The statistics of all packet 
+   arrivals.
 
- * ``'spatial-reuse-SR-stats-<test name>.dat'`` - Main spatial reuse statistics 
-    output file.  This includes 1) a summary of the scenario, 2) the totals of 
-    aggregated throughput (uplink and downlink), area capacity, and spectrum 
-    efficiency for each AP in the network, and 3) the per-node throughput 
-    received by each node in the network.
+ * ``spatial-reuse-SR-stats-<test name>.dat`` - Main spatial reuse statistics 
+   output file.  This includes 1) a summary of the scenario, 2) the totals of 
+   aggregated throughput (uplink and downlink), area capacity, and spectrum 
+   efficiency for each AP in the network, and 3) the per-node throughput 
+   received by each node in the network.
 
- * ``'spatial-reuse-A-<test name>.flowmon'`` - Flowmonitor output file for the 
-    UDP flows to and from the primary AP (i.e., for operator "A") in the
-    network).
+ * ``spatial-reuse-A-<test name>.flowmon`` - Flowmonitor output file for the 
+   UDP flows to and from the primary AP (i.e., for operator "A") in the
+   network).
 
- * ``'spatial-reuse-operatorA-<test name>'`` - Text formatted output of the 
+ * ``spatial-reuse-operatorA-<test name>`` - Text formatted output of the 
    "per-flow" UDP flows for Operator "A" in the network, including:
    source address, destination address, total packets sent, and total
    bytes sent.  For received packets, the total received bytes, throughput,
@@ -127,90 +127,12 @@ be an output file found as '/scripts/results/spatial-reuse-positions-test.csv'.
 Command Line Options
 ####################
 
-The complete list of program command lines options and there meanings are 
-listed below and can be obtained via:
+The complete list of program command lines options and there meanings can be obtained
+by running the following command:
 
 ::
 
   ../waf --run "spatial-reuse --PrintHelp"
-
-  Program Options:
-
-    --duration:                      Duration of simulation (s) [20]
-
-    --powSta:                        Power of STA (dBm) [10]
-
-    --powAp:                         Power of AP (dBm) [21]
-
-    --txGain:                        Transmission gain (dB) [0]
-
-    --rxGain:                        Reception gain (dB) [0]
-
-    --antennas:                      The number of antennas on each device. [1]
-
-    --maxSupportedTxSpatialStreams:  The maximum number of supported Tx spatial streams. [1]
-
-    --maxSupportedRxSpatialStreams:  The maximum number of supported Rx spatial streams. [1]
-
-    --ccaTrSta:                      CCA Threshold of STA (dBm) [-102]
-
-    --ccaTrAp:                       CCA Threshold of AP (dBm) [-82]
-
-    --d:                             Distance between AP1 and AP2 (m) [100]
-
-    --n:                             Number of STAs to scatter around each AP [1]
-
-    --r:                             Radius of circle around each AP in which to scatter STAs (m) [50]
-
-    --uplink:                        Aggregate uplink load, STAs-AP (Mbps) [1]
-
-    --downlink:                      Aggregate downlink load, AP-STAs (Mbps) [1]
-
-    --standard:                      Set standard (802.11a, 802.11b, 802.11g, 802.11n-5GHz, 802.11n-2.4GHz, 802.11ac, 802.11-holland, 802.11-10MHz, 802.11-5MHz, 802.11ax-5GHz, 802.11ax-2.4GHz) [11ax_5GHZ]
-
-    --bw:                            Bandwidth (consistent with standard, in MHz) [20]
-
-    --enableObssPd:                  Enable OBSS_PD [false]
-
-    --csr:                           Carrier Sense Range (CSR) [m] [1000]
-
-    --enableRts:                     Enable or disable RTS/CTS [false]
-
-    --maxSlrc:                       MaxSlrc [7]
-
-    --txRange:                       Max TX range [m] [54]
-
-    --payloadSizeUplink:             Payload size of 1 uplink packet [bytes] [1500]
-
-    --payloadSizeDownlink:           Payload size of 1 downlink packet [bytes] [300]
-
-    --MCS:                           Modulation and Coding Scheme (MCS) index (default=0) [0]
-
-    --txStartOffset:                 N(0, mu) offset for each node's start of packet transmission.  Default mu=5 [ns] [5]
-
-    --obssPdThreshold:               Energy threshold (dBm) of received signal below which the PHY layer can avoid declaring CCA BUSY for inter-BSS frames. [-99]
-
-    --obssPdThresholdMin:            Minimum value (dBm) of OBSS_PD threshold. [-82]
-
-    --obssPdThresholdMax:            Maximum value (dBm) of OBSS_PD threshold. [-62]
-
-    --checkTimings:                  Perform TGax timings checks (for MAC simulation calibrations). [0]
-
-    --scenario:                      The spatial-reuse scenario (residential, enterprise, indoor, outdoor, study1, study2). [residential]
-
-    --nBss:                          The number of BSSs.  Can be either 1 or 2 (default). [2]
-
-    --maxAmpduSize:                  The maximum A-MPDU size (bytes). [65535]
-
-    --nodePositionsFile:             Node positions file, ns-2 format for Ns2MobilityHelper. []
-
-    --enablePcap:                    Enable PCAP trace file generation. [false]
-
-    --enableAscii:                   Enable ASCII trace file generation. [false]
-
-    --useIdealWifiManager:           Use IdealWifiManager instead of ConstantRateWifiManager [false]
-
-    --test:                          The testname. [test]
 
 Utilities and Supporting Scripts
 ================================
@@ -304,6 +226,15 @@ in this documentation.
 
 This script assume the use of standard 802.11ac, and serves as a baseline
 for comparison to 802.11ax results.
+
+run-spatial-reuse-study2.sh
+###########################
+
+This script runs several scenarios that conduct experiments with
+7 BSSs and vary parameters, as defined by parametric study 2 defined
+in this documentation.
+
+This script assume the use of standard 802.11ax and OBSS_PD enabled.
 
 calibration-scenarios.sh
 ########################
@@ -408,10 +339,16 @@ The scripts are provided to allow researchers to recreate the calibration
 results.
 
 The 'calibration-box5.sh' script executes the following calibration tests:
-1) Box5 - 1BSS DL only, 2) Box5 - 1BSS UL only 1 STA, 3) Box5 - 1BSS UL only 2 STA,
-4) Box5 - 1BSS UL only 3 STA, 5) Box5 - 1BSS DL and UL, 6)
-Box5 - 2BSS Both DL only, 7) Box5 - 2BSS Both UL only, 8)
-Box5 - 2BSS A DL and B UL, and 9) Box5 - 2BSS A UL and B DL.
+1) Box5 - 1BSS DL only,
+2) Box5 - 1BSS UL only 1 STA,
+3) Box5 - 1BSS UL only 2 STA,
+4) Box5 - 1BSS UL only 3 STA,
+5) Box5 - 1BSS DL and UL,
+6) Box5 - 2BSS Both DL only,
+7) Box5 - 2BSS Both UL only,
+8) Box5 - 2BSS A DL and B UL,
+9) Box5 - 2BSS A UL and B DL.
+
 The tests are launched as separate ns-3 simulations
 that are run in parallel.  Details on these tests can be found in [TGax15]_.
 Results of these tests are provided in the Results section of this document.
@@ -613,8 +550,8 @@ expected to show that the use of the OBSS_PD feature additionally
 improves the spatial reuse efficiency as compared to the second 
 scenario in which the feature is disabled.
 
-Parametric Study 1
-==================
+Parametric Study
+================
 
 The purpose of the Parametric Study 1 is to evaluate spatial reuse
 effects for dense node scenarios, while varying several parameters,
@@ -661,3 +598,12 @@ scenario where all nodes are configured to operate according to the
 802.11ac standard.  The script serves as a starting point for researchers
 that wish to evaluate the comparable performance found by varying
 other key parameters.
+
+For 802.11ax and OBSS_PD enabled tests, the following bash script is available:
+
+::
+ 
+ ./run-spatial-reuse-study2.sh
+
+Running this script produces another script, 'study2.sh' that must then
+be run.
