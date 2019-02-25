@@ -121,7 +121,7 @@ void
 BeaconRssiObssPdAlgorithm::UpdateObssPdLevel (void)
 {
   NS_LOG_FUNCTION (this);
-  double tmpMax = std::max (GetObssPdLevelMin (), std::min(GetObssPdLevelMax (), GetObssPdLevelMin () + GetTxPowerRef () - m_txPower));
+  double tmpMax = std::max (GetObssPdLevelMin (), std::min(GetObssPdLevelMax (), GetObssPdLevelMin () + GetTxPowerRefSiso () - m_txPower));
   if (GetObssPdLevel () > tmpMax)
     {
       NS_LOG_DEBUG ("Updating ObssPdLevel value to " << tmpMax);

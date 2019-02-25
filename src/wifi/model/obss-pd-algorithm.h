@@ -100,17 +100,11 @@ public:
    */
   double GetObssPdLevelMax (void) const;
   /**
-   * Sets the SISO reference TX power level (in dBm).
-   *
-   * \param power the SISO reference TX power level in dBm
-   */
-  void SetTxPowerRef (double power);
-  /**
    * Returns the SISO reference TX power level (in dBm).
    *
    * \return the SISO reference TX power level in dBm
    */
-  double GetTxPowerRef (void) const;
+  double GetTxPowerRefSiso (void) const;
 
   /**
    * Reset PHY to IDLE.
@@ -138,9 +132,10 @@ public:
    * \param [in] bssColor The BSS color of frame triggering the reset
    * \param [in] rssiDbm The RSSI (dBm) of frame triggering the reset
    * \param [in] powerRestricted Whether a TX power restriction is triggered
-   * \param [in] txPowerMaxDbm The TX power restricted level (dBm)
+   * \param [in] txPowerMaxDbmSiso The SISO TX power restricted level (dBm)
+   * \param [in] txPowerMaxDbmMimo The MIMO TX power restricted level (dBm)
    */
-  typedef void (* ResetTracedCallback)(uint8_t bssColor, double rssiDbm, bool powerRestricted, double txPowerMaxDbm);
+  typedef void (* ResetTracedCallback)(uint8_t bssColor, double rssiDbm, bool powerRestricted, double txPowerMaxDbmSiso, double txPowerMaxDbmMimo);
 
 protected:
   virtual void DoDispose (void);
@@ -152,9 +147,10 @@ private:
   double m_obssPdLevelMin; ///< Minimum OBSS PD level
   double m_obssPdLevelMax; ///< Maximum OBSS PD level
   double m_obssPdLevel;    ///< Current OBSS PD level
-  double m_txPowerRef;     ///< SISO reference TX power level
+  double m_txPowerRefSiso; ///< SISO reference TX power level
+  double m_txPowerRefMimo; ///< MIMO reference TX power level
 
-  TracedCallback<uint8_t, double, bool, double>  m_resetEvent;
+  TracedCallback<uint8_t, double, bool, double, double>  m_resetEvent;
 };
 
 } //namespace ns3

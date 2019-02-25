@@ -4131,11 +4131,12 @@ WifiPhy::AbortCurrentReception ()
 }
 
 void
-WifiPhy::ResetCca (bool powerRestricted, double txPowerMax)
+WifiPhy::ResetCca (bool powerRestricted, double txPowerMaxSiso, double txPowerMaxMimo)
 {
-  NS_LOG_FUNCTION (this << powerRestricted << txPowerMax);
+  NS_LOG_FUNCTION (this << powerRestricted << txPowerMaxSiso << txPowerMaxMimo);
   m_powerRestricted = powerRestricted;
-  m_txPowerMax = txPowerMax;
+  m_txPowerMaxSiso = txPowerMaxSiso;
+  m_txPowerMaxMimo = txPowerMaxMimo;
   AbortCurrentReception ();
 }
 
@@ -4148,12 +4149,14 @@ WifiPhy::GetTxPowerForTransmission (WifiTxVector txVector) const
     }
   else
     {
-      double txPowerMax = m_txPowerMax;
       if (txVector.GetNss () > 1)
         {
-          txPowerMax += 4; //txPowerRef is increased by 4 dB if MIMO is used
+          return std::min (m_txPowerMaxMimo, GetPowerDbm (txVector.GetTxPowerLevel ()));
         }
-      return std::min (txPowerMax, GetPowerDbm (txVector.GetTxPowerLevel ()));
+      else
+        {
+          return std::min (m_txPowerMaxSiso, GetPowerDbm (txVector.GetTxPowerLevel ()));
+        }  
     }
 }
 

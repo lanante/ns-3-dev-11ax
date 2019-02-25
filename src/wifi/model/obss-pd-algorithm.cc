@@ -53,10 +53,15 @@ ObssPdAlgorithm::GetTypeId (void)
                    MakeDoubleAccessor (&ObssPdAlgorithm::SetObssPdLevelMax,
                                        &ObssPdAlgorithm::GetObssPdLevelMax),
                    MakeDoubleChecker<double> ())
-    .AddAttribute ("TxPowerRef",
+    .AddAttribute ("TxPowerRefSiso",
                    "The SISO reference TX power level (dBm).",
                    DoubleValue (21),
-                   MakeDoubleAccessor (&ObssPdAlgorithm::SetTxPowerRef),
+                   MakeDoubleAccessor (&ObssPdAlgorithm::m_txPowerRefSiso),
+                   MakeDoubleChecker<double> ())
+    .AddAttribute ("TxPowerRefMimo",
+                   "The MIMO reference TX power level (dBm).",
+                   DoubleValue (25),
+                   MakeDoubleAccessor (&ObssPdAlgorithm::m_txPowerRefMimo),
                    MakeDoubleChecker<double> ())
     .AddTraceSource ("Reset", "Trace CCA Reset event",
                      MakeTraceSourceAccessor (&ObssPdAlgorithm::m_resetEvent),
@@ -104,17 +109,10 @@ ObssPdAlgorithm::GetObssPdLevelMax (void) const
   return m_obssPdLevelMax;
 }
 
-void
-ObssPdAlgorithm::SetTxPowerRef (double power)
-{
-  NS_LOG_FUNCTION (this << power);
-  m_txPowerRef = power;
-}
-
 double
-ObssPdAlgorithm::GetTxPowerRef (void) const
+ObssPdAlgorithm::GetTxPowerRefSiso (void) const
 {
-  return m_txPowerRef;
+  return m_txPowerRefSiso;
 }
 
 void
@@ -140,7 +138,8 @@ ObssPdAlgorithm::GetWifiNetDevice (void) const
 void
 ObssPdAlgorithm::ResetPhy (HePreambleParameters params)
 {
-  double txPowerMax = 0;
+  double txPowerMaxSiso = 0;
+  double txPowerMaxMimo = 0;
   bool powerRestricted = false;
   // Fetch my BSS color
   Ptr<HeConfiguration> heConfiguration = GetWifiNetDevice ()->GetHeConfiguration ();
@@ -153,11 +152,12 @@ ObssPdAlgorithm::ResetPhy (HePreambleParameters params)
   Ptr<WifiPhy> phy = GetWifiNetDevice ()->GetPhy();
   if ((m_obssPdLevel > m_obssPdLevelMin) || (m_obssPdLevel <= m_obssPdLevelMax))
     {
-      txPowerMax = m_txPowerRef - (m_obssPdLevel - m_obssPdLevelMin);
+      txPowerMaxSiso = m_txPowerRefSiso - (m_obssPdLevel - m_obssPdLevelMin);
+      txPowerMaxMimo = m_txPowerRefMimo - (m_obssPdLevel - m_obssPdLevelMin);
       powerRestricted = true;
     }
-  m_resetEvent (bssColor, WToDbm (params.rssiW), powerRestricted, txPowerMax);
-  phy->ResetCca (powerRestricted, txPowerMax);
+  m_resetEvent (bssColor, WToDbm (params.rssiW), powerRestricted, txPowerMaxSiso, txPowerMaxMimo);
+  phy->ResetCca (powerRestricted, txPowerMaxSiso, txPowerMaxMimo);
 }
 
 } //namespace ns3
