@@ -31,7 +31,7 @@ TypeId
 ConstantChannelBondingManager::GetTypeId (void)
 {
   static ns3::TypeId tid = ns3::TypeId ("ns3::ConstantChannelBondingManager")
-    .SetParent<Object> ()
+    .SetParent<ChannelBondingManager> ()
     .SetGroupName ("Wifi")
   ;
   return tid;

@@ -110,7 +110,7 @@ WifiPreamble GetPreambleForTransmission (WifiModulationClass modulation, bool us
  * non-HT modes with HT/VHT/HE capable stations (with default width above 20 MHz).
  *
  * \param mode selected WifiMode
- * \param maxChannelWidth the maximum channel width suppthat can be used by the PHY layer
+ * \param maxChannelWidth the maximum channel width that can be used by the PHY layer
  * \return channel width adapted to the selected mode
  */
 uint16_t GetChannelWidthForTransmission (WifiMode mode, uint16_t maxChannelWidth);
