@@ -31,6 +31,8 @@ theoretical results on the plots vs. the simulation results. (issue #73)
 
 Block ack frame format (issue #80)
 
+OBSS_PD algorithm should check for backoff before imposing power restriction (issue #107)
+
 Open Issues and Future Work in the spatial reuse scenarios
 ==========================================================
 
@@ -41,6 +43,8 @@ and metrics (issues #10 #14)
 
 Merge study1.sh and study2.sh into single script; study2.sh does not presently
 work (issue #82)
+
+Spatial-reuse should be re-run with inter BSS distance of 34.64m instead of 17.32m (issue #110)
 
 Open Issues and Future Work in the other scenarios
 ==================================================

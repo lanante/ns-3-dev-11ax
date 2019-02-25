@@ -35,7 +35,7 @@ SPECTRUM_EFFICIENCY_RANGE="[1.0:6.0][0:0.002]"
 AIRTIME_UTILIZATION_RANGE="[1.0:6.0][0:100]"
 
 # params that remain constant
-d=17.32
+d=34.64
 r=10
 nBss=7
 

@@ -28,7 +28,7 @@ set -o errexit
 lbtTxop=8
 
 # params that remain constant
-d=17.32
+d=34.64
 r=10
 nBss=7
 

@@ -68,7 +68,7 @@ export duration=10
 
 # Test: 3 - Indoor Small BSS Scenario
 export test=TGax-test3
-export d=17.32
+export d=34.64
 export r=10
 export n=30
 export uplink=10.0

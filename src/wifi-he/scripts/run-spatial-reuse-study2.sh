@@ -56,7 +56,7 @@ echo "export filterOutNonAddbaEstablished=1" >> ../scripts/study2.sh
 cd ../examples
 
 # Run the test(s) for Spatial-Reuse study2
-d=17.32
+d=34.64 #d = 2 * h = 2 * 17.32m = 34.64m
 r=10
 echo "export d=${d}" >> ../scripts/study2.sh
 echo "export r=10" >> ../scripts/study2.sh
