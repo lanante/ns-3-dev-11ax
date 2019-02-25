@@ -31,9 +31,11 @@ class Packet;
 class ErrorRateModel;
 
 /**
- * A set of pairs of a center Frequency and a received power in Watt
+ * A pair of a center Frequency and a ChannelWidth
  */
-typedef std::set < std::pair < uint16_t, double > > RxPowerWattPerChannelBand;
+typedef std::pair<uint16_t, uint16_t> FrequencyWidthPair;
+
+typedef std::map <FrequencyWidthPair, double> RxPowerWattPerChannelBand; //!< channel band to rx power map typedef
 
 /**
  * \ingroup wifi
@@ -77,6 +79,25 @@ public:
    * \return the receive power (w)
    */
   double GetRxPowerW (void) const;
+  /**
+   * Return the receive power (w) for a given channel band.
+   *
+   * \param band the frequency band pair (center frequency, channel width)
+   * \return the receive power (w)
+   */
+  double GetRxPowerW (FrequencyWidthPair band) const;
+  /**
+   * Return the receive power (w) for all channel bands.
+   *
+   * \return the receive power (w) for all channel bands.
+   */
+  RxPowerWattPerChannelBand GetRxPowerWPerBand (void) const;
+  /**
+   * Set the TXVECTOR.
+   *
+   * \param txVector the TXVECTOR
+   */
+  void SetTxVector (WifiTxVector txVector);
   /**
    * Return the TXVECTOR of the packet.
    *
@@ -123,6 +144,13 @@ public:
   ~InterferenceHelper ();
 
   /**
+   * Set the frequency bands.
+   *
+   * \param startFrequency the first center frequency of the first band
+   * \param channelWidth the largest channel width among the bands to be defined
+   */
+  void SetFrequencyBands (uint16_t startFrequency, uint16_t channelWidth);
+  /**
    * Set the noise figure.
    *
    * \param value noise figure
@@ -151,12 +179,13 @@ public:
 
   /**
    * \param energyW the minimum energy (W) requested
+   * \param centerFrequency the center frequency of the band requested
    *
    * \returns the expected amount of time the observed
-   *          energy on the medium will be higher than
+   *          energy on the channel band will be higher than
    *          the requested threshold.
    */
-  Time GetEnergyDuration (double energyW) const;
+  Time GetEnergyDuration (double energyW, uint16_t centerFrequency, uint16_t channelWidth) const;
 
   /**
    * Add the packet-related signal to interference helper.
@@ -188,7 +217,7 @@ public:
    *
    * \return struct of SNR and PER (with PER being evaluated over the provided time window)
    */
-  struct InterferenceHelper::SnrPer CalculatePayloadSnrPer (Ptr<Event> event, std::pair<Time, Time> relativeMpduStartStop) const;
+  struct InterferenceHelper::SnrPer CalculatePayloadSnrPer (Ptr<Event> event, uint16_t primaryChannelFrequency, std::pair<Time, Time> relativeMpduStartStop) const;
   /**
    * Calculate the SNIR for the event (starting from now until the event end).
    *
@@ -196,7 +225,7 @@ public:
    *
    * \return the SNR for the packet
    */
-  double CalculateSnr (Ptr<Event> event) const;
+  double CalculateSnr (Ptr<Event> event, uint16_t primaryChannelFrequency) const;
   /**
    * Calculate the SNIR at the start of the legacy PHY header and accumulate
    * all SNIR changes in the snir vector.
@@ -205,7 +234,7 @@ public:
    *
    * \return struct of SNR and PER
    */
-  struct InterferenceHelper::SnrPer CalculateLegacyPhyHeaderSnrPer (Ptr<Event> event) const;
+  struct InterferenceHelper::SnrPer CalculateLegacyPhyHeaderSnrPer (Ptr<Event> event, uint16_t primaryChannelFrequency) const;
   /**
    * Calculate the SNIR at the start of the non-legacy PHY header and accumulate
    * all SNIR changes in the snir vector.
@@ -214,7 +243,7 @@ public:
    *
    * \return struct of SNR and PER
    */
-  struct InterferenceHelper::SnrPer CalculateNonLegacyPhyHeaderSnrPer (Ptr<Event> event) const;
+  struct InterferenceHelper::SnrPer CalculateNonLegacyPhyHeaderSnrPer (Ptr<Event> event, uint16_t primaryChannelFrequency) const;
 
   /**
    * Notify that RX has started.
@@ -270,9 +299,13 @@ private:
   };
 
   /**
-   * typedef for a multimap of NiChanges
+   * typedef for a multimap of NiChange
    */
   typedef std::multimap<Time, NiChange> NiChanges;
+  /**
+   * typedef for a map of NiChanges
+   */
+  typedef std::map <FrequencyWidthPair, NiChanges> NiChangesPerBand;
 
   /**
    * Append the given Event.
@@ -288,7 +321,7 @@ private:
    *
    * \return noise and interference power
    */
-  double CalculateNoiseInterferenceW (Ptr<Event> event, NiChanges *ni) const;
+  double CalculateNoiseInterferenceW (Ptr<Event> event, NiChangesPerBand *ni, FrequencyWidthPair band) const;
   /**
    * Calculate SNR (linear ratio) from the given signal power and noise+interference power.
    *
@@ -318,11 +351,12 @@ private:
    *
    * \param event
    * \param ni
+   * \param band
    * \param window time window (pair of start and end times) of PLCP payload to focus on
    *
    * \return the error rate of the payload
    */
-  double CalculatePayloadPer (Ptr<const Event> event, NiChanges *ni, std::pair<Time, Time> window) const;
+  double CalculatePayloadPer (Ptr<const Event> event, NiChangesPerBand *ni, FrequencyWidthPair band, std::pair<Time, Time> window) const;
   /**
    * Calculate the error rate of the legacy PHY header. The legacy PHY header
    * can be divided into multiple chunks (e.g. due to interference from other transmissions).
@@ -332,7 +366,7 @@ private:
    *
    * \return the error rate of the legacy PHY header
    */
-  double CalculateLegacyPhyHeaderPer (Ptr<const Event> event, NiChanges *ni) const;
+  double CalculateLegacyPhyHeaderPer (Ptr<const Event> event, NiChangesPerBand *ni) const;
   /**
    * Calculate the error rate of the non-legacy PHY header. The non-legacy PHY header
    * can be divided into multiple chunks (e.g. due to interference from other transmissions).
@@ -342,14 +376,13 @@ private:
    *
    * \return the error rate of the non-legacy PHY header
    */
-  double CalculateNonLegacyPhyHeaderPer (Ptr<const Event> event, NiChanges *ni) const;
+  double CalculateNonLegacyPhyHeaderPer (Ptr<const Event> event, NiChangesPerBand *ni) const;
 
   double m_noiseFigure; /**< noise figure (linear) */
   Ptr<ErrorRateModel> m_errorRateModel; ///< error rate model
   uint8_t m_numRxAntennas; /**< the number of RX antennas in the corresponding receiver */
-  /// Experimental: needed for energy duration calculation
-  NiChanges m_niChanges;
-  double m_firstPower; ///< first power
+  NiChangesPerBand m_niChangesPerBand; //!< first power of each channel band
+  std::map <FrequencyWidthPair, double> m_firstPowerPerBand; //!< first power of each channel band
   bool m_rxing; ///< flag whether it is in receiving state
 
   /**
@@ -358,21 +391,14 @@ private:
    * \param moment time to check from
    * \returns an iterator to the list of NiChanges
    */
-  NiChanges::const_iterator GetNextPosition (Time moment) const;
-  /**
-   * Returns an iterator to the first nichange that is later than moment
-   *
-   * \param moment time to check from
-   * \returns an iterator to the list of NiChanges
-   */
-  //NiChanges::iterator GetNextPosition (Time moment);
+  NiChanges::const_iterator GetNextPosition (Time moment, FrequencyWidthPair band) const;
   /**
    * Returns an iterator to the last nichange that is before than moment
    *
    * \param moment time to check from
    * \returns an iterator to the list of NiChanges
    */
-  NiChanges::const_iterator GetPreviousPosition (Time moment) const;
+  NiChanges::const_iterator GetPreviousPosition (Time moment, FrequencyWidthPair band) const;
 
   /**
    * Add NiChange to the list at the appropriate position and
@@ -382,7 +408,7 @@ private:
    * \param change
    * \returns the iterator of the new event
    */
-  NiChanges::iterator AddNiChangeEvent (Time moment, NiChange change);
+  NiChanges::iterator AddNiChangeEvent (Time moment, NiChange change, FrequencyWidthPair band);
 };
 
 } //namespace ns3

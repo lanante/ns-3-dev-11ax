@@ -72,9 +72,29 @@ Event::GetRxPowerW (void) const
 {
   NS_ASSERT (m_rxPowerW.size () > 0);
   double sum = std::accumulate (std::begin (m_rxPowerW), std::end (m_rxPowerW), 0.0,
-                               [](const double previous, const std::pair<uint16_t, double> &p)
-                               { return previous + p.second; });
+                               [](const double previous, const std::pair<std::pair<uint16_t, uint16_t>, double> &p)
+                               { return (p.first.second < 40) ? (previous + p.second) : 0.0; });
   return sum;
+}
+
+double
+Event::GetRxPowerW (FrequencyWidthPair band) const
+{
+  auto it = m_rxPowerW.find (band);
+  NS_ASSERT (it != m_rxPowerW.end ());
+  return it->second;
+}
+
+RxPowerWattPerChannelBand
+Event::GetRxPowerWPerBand (void) const
+{
+  return m_rxPowerW;
+}
+
+void
+Event::SetTxVector (WifiTxVector txVector)
+{
+  m_txVector = txVector;
 }
 
 WifiTxVector
@@ -127,11 +147,8 @@ InterferenceHelper::NiChange::GetEvent (void) const
 InterferenceHelper::InterferenceHelper ()
   : m_errorRateModel (0),
     m_numRxAntennas (1),
-    m_firstPower (0),
     m_rxing (false)
 {
-  // Always have a zero power noise event in the list
-  AddNiChangeEvent (Time (0), NiChange (0.0, 0));
 }
 
 InterferenceHelper::~InterferenceHelper ()
@@ -159,6 +176,73 @@ InterferenceHelper::AddForeignSignal (Time duration, RxPowerWattPerChannelBand r
 }
 
 void
+InterferenceHelper::SetFrequencyBands (uint16_t firstCenterFrequency, uint16_t channelWidth)
+{
+  if (firstCenterFrequency == 0 || channelWidth == 0)
+    {
+      //if at least one of the two is not initialized, do not add frequency bands yet
+      return;
+    }
+  if (channelWidth == 22)
+  {
+    channelWidth = 20;
+  }
+  NS_LOG_FUNCTION (this << firstCenterFrequency << channelWidth);
+  for (uint8_t i = 0; i < std::max (1, channelWidth / 20); i++)
+    {
+      uint16_t centerFrequency = firstCenterFrequency + (i * 20);
+      auto band = std::make_pair (centerFrequency, 20);
+      auto it = m_niChangesPerBand.find (band);
+      if (it == m_niChangesPerBand.end ())
+        {
+          NiChanges NiChanges;
+          m_niChangesPerBand.insert ({band, NiChanges});
+          AddNiChangeEvent (Time (0), NiChange (0.0, 0), band);
+          m_firstPowerPerBand.insert ({band, 0.0});
+        }
+    }
+  for (uint8_t i = 0; i < channelWidth / 40; i++)
+    {
+      uint16_t centerFrequency = firstCenterFrequency + (i * 40);
+      auto band = std::make_pair (centerFrequency, 40);
+      auto it = m_niChangesPerBand.find (band);
+      if (it == m_niChangesPerBand.end ())
+        {
+          NiChanges NiChanges;
+          m_niChangesPerBand.insert ({band, NiChanges});
+          AddNiChangeEvent (Time (0), NiChange (0.0, 0), band);
+          m_firstPowerPerBand.insert ({band, 0.0});
+        }
+    }
+  for (uint8_t i = 0; i < channelWidth / 80; i++)
+    {
+      uint16_t centerFrequency = firstCenterFrequency + (i * 80);
+      auto band = std::make_pair (centerFrequency, 80);
+      auto it = m_niChangesPerBand.find (band);
+      if (it == m_niChangesPerBand.end ())
+        {
+          NiChanges NiChanges;
+          m_niChangesPerBand.insert ({band, NiChanges});
+          AddNiChangeEvent (Time (0), NiChange (0.0, 0), band);
+          m_firstPowerPerBand.insert ({band, 0.0});
+        }
+    }
+  for (uint8_t i = 0; i < channelWidth / 160; i++)
+    {
+      uint16_t centerFrequency = firstCenterFrequency + (i * 160);
+      auto band = std::make_pair (centerFrequency, 160);
+      auto it = m_niChangesPerBand.find (band);
+      if (it == m_niChangesPerBand.end ())
+        {
+          NiChanges NiChanges;
+          m_niChangesPerBand.insert ({band, NiChanges});
+          AddNiChangeEvent (Time (0), NiChange (0.0, 0), band);
+          m_firstPowerPerBand.insert ({band, 0.0});
+        }
+    }
+}
+
+void
 InterferenceHelper::SetNoiseFigure (double value)
 {
   m_noiseFigure = value;
@@ -183,12 +267,15 @@ InterferenceHelper::SetNumberOfReceiveAntennas (uint8_t rx)
 }
 
 Time
-InterferenceHelper::GetEnergyDuration (double energyW) const
+InterferenceHelper::GetEnergyDuration (double energyW, uint16_t centerFrequency, uint16_t channelWidth) const
 {
+  NS_LOG_FUNCTION (this << centerFrequency);
   Time now = Simulator::Now ();
-  auto i = GetPreviousPosition (now);
+  auto band = std::make_pair (centerFrequency, channelWidth == 22 ? 20 : channelWidth);
+  auto i = GetPreviousPosition (now, band);
   Time end = i->first;
-  for (; i != m_niChanges.end (); ++i)
+  NS_ASSERT (m_niChangesPerBand.find (band) != m_niChangesPerBand.end ());
+  for (; i != m_niChangesPerBand.find (band)->second.end (); ++i)
     {
       double noiseInterferenceW = i->second.GetPower ();
       end = i->first;
@@ -204,29 +291,37 @@ void
 InterferenceHelper::AppendEvent (Ptr<Event> event)
 {
   NS_LOG_FUNCTION (this);
-  double previousPowerStart = 0;
-  double previousPowerEnd = 0;
-  previousPowerStart = GetPreviousPosition (event->GetStartTime ())->second.GetPower ();
-  previousPowerEnd = GetPreviousPosition (event->GetEndTime ())->second.GetPower ();
-
-  if (!m_rxing)
+  RxPowerWattPerChannelBand rxPowerWattPerChannelBand = event->GetRxPowerWPerBand ();
+  for (auto it : rxPowerWattPerChannelBand)
     {
-      m_firstPower = previousPowerStart;
-      // Always leave the first zero power noise event in the list
-      m_niChanges.erase (++(m_niChanges.begin ()),
-                         GetNextPosition (event->GetStartTime ()));
-    }
-  auto first = AddNiChangeEvent (event->GetStartTime (), NiChange (previousPowerStart, event));
-  auto last = AddNiChangeEvent (event->GetEndTime (), NiChange (previousPowerEnd, event));
-  for (auto i = first; i != last; ++i)
-    {
-      i->second.AddPower (event->GetRxPowerW ());
+      uint16_t centerFrequency = it.first.first;
+      uint16_t channelWidth = it.first.second;
+      auto band = std::make_pair (centerFrequency, channelWidth == 22 ? 20 : channelWidth);
+      auto ni = m_niChangesPerBand.find (band);
+      NS_ASSERT (ni != m_niChangesPerBand.end ());
+      double previousPowerStart = 0;
+      double previousPowerEnd = 0;
+      previousPowerStart = GetPreviousPosition (event->GetStartTime (), band)->second.GetPower ();
+      previousPowerEnd = GetPreviousPosition (event->GetEndTime (), band)->second.GetPower ();
+      if (!m_rxing)
+        {
+          m_firstPowerPerBand.find (band)->second = previousPowerStart;
+          // Always leave the first zero power noise event in the list
+          ni->second.erase (++(ni->second.begin ()), GetNextPosition (event->GetStartTime (), band));
+        }
+      auto first = AddNiChangeEvent (event->GetStartTime (), NiChange (previousPowerStart, event), band);
+      auto last = AddNiChangeEvent (event->GetEndTime (), NiChange (previousPowerEnd, event), band);
+      for (auto i = first; i != last; ++i)
+        {
+          i->second.AddPower (it.second);
+        }
     }
 }
 
 double
 InterferenceHelper::CalculateSnr (double signal, double noiseInterference, uint16_t channelWidth) const
 {
+  NS_LOG_FUNCTION (this << signal << noiseInterference << channelWidth);
   //thermal noise at 290K in J/s = W
   static const double BOLTZMANN = 1.3803e-23;
   //Nt is the power of thermal noise in W
@@ -240,22 +335,32 @@ InterferenceHelper::CalculateSnr (double signal, double noiseInterference, uint1
 }
 
 double
-InterferenceHelper::CalculateNoiseInterferenceW (Ptr<Event> event, NiChanges *ni) const
+InterferenceHelper::CalculateNoiseInterferenceW (Ptr<Event> event, NiChangesPerBand *nis, FrequencyWidthPair band) const
 {
-  double noiseInterferenceW = m_firstPower;
-  auto it = m_niChanges.find (event->GetStartTime ());
-  for (; it != m_niChanges.end () && it->first < Simulator::Now (); ++it)
+  NS_LOG_FUNCTION (this << band.first << band.second);
+  double noiseInterferenceW = 0.0;
+  NiChanges ni;
+  auto ni_it = m_niChangesPerBand.find (band);
+  NS_ASSERT (ni_it != m_niChangesPerBand.end ());
+  auto firstPower = m_firstPowerPerBand.find (band);
+  NS_ASSERT (firstPower != m_firstPowerPerBand.end ());
+  double noiseInterferencePerBand = firstPower->second;
+  auto it = ni_it->second.find (event->GetStartTime ());
+  for (; it != ni_it->second.end () && it->first < Simulator::Now (); ++it)
     {
-      noiseInterferenceW = it->second.GetPower () - event->GetRxPowerW ();
+      noiseInterferencePerBand = it->second.GetPower () - event->GetRxPowerW (band);
     }
-  it = m_niChanges.find (event->GetStartTime ());
-  for (; it != m_niChanges.end () && it->second.GetEvent () != event; ++it);
-  ni->emplace (event->GetStartTime (), NiChange (0, event));
-  while (++it != m_niChanges.end () && it->second.GetEvent () != event)
+  it = ni_it->second.find (event->GetStartTime ());
+  NS_ASSERT (it != ni_it->second.end ());
+  for (; it != ni_it->second.end () && it->second.GetEvent () != event; ++it);
+  ni.emplace (event->GetStartTime (), NiChange (0, event));
+  while (++it != ni_it->second.end () && it->second.GetEvent () != event)
     {
-      ni->insert (*it);
+      ni.insert (*it);
     }
-  ni->emplace (event->GetEndTime (), NiChange (0, event));
+  ni.emplace (event->GetEndTime (), NiChange (0, event));
+  nis->insert ({band, ni});
+  noiseInterferenceW += noiseInterferencePerBand;
   NS_ASSERT_MSG (noiseInterferenceW >= 0, "CalculateNoiseInterferenceW returns negative value " << noiseInterferenceW);
   return noiseInterferenceW;
 }
@@ -283,12 +388,13 @@ InterferenceHelper::CalculateChunkSuccessRate (double snir, Time duration, WifiM
 }
 
 double
-InterferenceHelper::CalculatePayloadPer (Ptr<const Event> event, NiChanges *ni, std::pair<Time, Time> window) const
+InterferenceHelper::CalculatePayloadPer (Ptr<const Event> event, NiChangesPerBand *nis, FrequencyWidthPair band, std::pair<Time, Time> window) const
 {
   NS_LOG_FUNCTION (this << window.first << window.second);
   const WifiTxVector txVector = event->GetTxVector ();
   double psr = 1.0; /* Packet Success Rate */
-  auto j = ni->begin ();
+  auto ni = nis->find (band)->second;
+  auto j = ni.begin ();
   Time previous = j->first;
   WifiMode payloadMode = event->GetPayloadMode ();
   WifiPreamble preamble = txVector.GetPreambleType ();
@@ -298,9 +404,9 @@ InterferenceHelper::CalculatePayloadPer (Ptr<const Event> event, NiChanges *ni, 
   Time plcpPayloadStart = plcpTrainingSymbolsStart + WifiPhy::GetPlcpTrainingSymbolDuration (txVector) + WifiPhy::GetPlcpSigBDuration (preamble); //packet start time + preamble + L-SIG + HT-SIG or SIG-A + Training + SIG-B
   Time windowStart = plcpPayloadStart + window.first;
   Time windowEnd = plcpPayloadStart + window.second;
-  double noiseInterferenceW = m_firstPower;
+  double noiseInterferenceW = m_firstPowerPerBand.begin ()->second;
   double powerW = event->GetRxPowerW ();
-  while (++j != ni->end ())
+  while (++j != ni.end ())
     {
       Time current = j->first;
       NS_LOG_DEBUG ("previous= " << previous << ", current=" << current);
@@ -339,12 +445,13 @@ InterferenceHelper::CalculatePayloadPer (Ptr<const Event> event, NiChanges *ni, 
 }
 
 double
-InterferenceHelper::CalculateLegacyPhyHeaderPer (Ptr<const Event> event, NiChanges *ni) const
+InterferenceHelper::CalculateLegacyPhyHeaderPer (Ptr<const Event> event, NiChangesPerBand *nis) const
 {
   NS_LOG_FUNCTION (this);
   const WifiTxVector txVector = event->GetTxVector ();
   double psr = 1.0; /* Packet Success Rate */
-  auto j = ni->begin ();
+  auto ni = nis->begin()->second; //assume first band is primary channel
+  auto j = ni.begin ();
   Time previous = j->first;
   WifiPreamble preamble = txVector.GetPreambleType ();
   WifiMode headerMode = WifiPhy::GetPlcpHeaderMode (txVector);
@@ -352,9 +459,9 @@ InterferenceHelper::CalculateLegacyPhyHeaderPer (Ptr<const Event> event, NiChang
   Time plcpHsigHeaderStart = plcpHeaderStart + WifiPhy::GetPlcpHeaderDuration (txVector); //packet start time + preamble + L-SIG
   Time plcpTrainingSymbolsStart = plcpHsigHeaderStart + WifiPhy::GetPlcpHtSigHeaderDuration (preamble) + WifiPhy::GetPlcpSigA1Duration (preamble) + WifiPhy::GetPlcpSigA2Duration (preamble); //packet start time + preamble + L-SIG + HT-SIG or SIG-A
   Time plcpPayloadStart = plcpTrainingSymbolsStart + WifiPhy::GetPlcpTrainingSymbolDuration (txVector) + WifiPhy::GetPlcpSigBDuration (preamble); //packet start time + preamble + L-SIG + HT-SIG or SIG-A + Training + SIG-B
-  double noiseInterferenceW = m_firstPower;
+  double noiseInterferenceW = m_firstPowerPerBand.begin ()->second;
   double powerW = event->GetRxPowerW ();
-  while (++j != ni->end ())
+  while (++j != ni.end ())
     {
       Time current = j->first;
       NS_LOG_DEBUG ("previous= " << previous << ", current=" << current);
@@ -483,12 +590,13 @@ InterferenceHelper::CalculateLegacyPhyHeaderPer (Ptr<const Event> event, NiChang
 }
 
 double
-InterferenceHelper::CalculateNonLegacyPhyHeaderPer (Ptr<const Event> event, NiChanges *ni) const
+InterferenceHelper::CalculateNonLegacyPhyHeaderPer (Ptr<const Event> event, NiChangesPerBand *nis) const
 {
   NS_LOG_FUNCTION (this);
   const WifiTxVector txVector = event->GetTxVector ();
   double psr = 1.0; /* Packet Success Rate */
-  auto j = ni->begin ();
+  auto ni = nis->begin()->second; //assume first band is primary channel
+  auto j = ni.begin ();
   Time previous = j->first;
   WifiPreamble preamble = txVector.GetPreambleType ();
   WifiMode mcsHeaderMode;
@@ -512,9 +620,9 @@ InterferenceHelper::CalculateNonLegacyPhyHeaderPer (Ptr<const Event> event, NiCh
   Time plcpHsigHeaderStart = plcpHeaderStart + WifiPhy::GetPlcpHeaderDuration (txVector); //packet start time + preamble + L-SIG
   Time plcpTrainingSymbolsStart = plcpHsigHeaderStart + WifiPhy::GetPlcpHtSigHeaderDuration (preamble) + WifiPhy::GetPlcpSigA1Duration (preamble) + WifiPhy::GetPlcpSigA2Duration (preamble); //packet start time + preamble + L-SIG + HT-SIG or SIG-A
   Time plcpPayloadStart = plcpTrainingSymbolsStart + WifiPhy::GetPlcpTrainingSymbolDuration (txVector) + WifiPhy::GetPlcpSigBDuration (preamble); //packet start time + preamble + L-SIG + HT-SIG or SIG-A + Training + SIG-B
-  double noiseInterferenceW = m_firstPower;
+  double noiseInterferenceW = m_firstPowerPerBand.begin ()->second;
   double powerW = event->GetRxPowerW ();
-  while (++j != ni->end ())
+  while (++j != ni.end ())
     {
       Time current = j->first;
       NS_LOG_DEBUG ("previous= " << previous << ", current=" << current);
@@ -852,18 +960,20 @@ InterferenceHelper::CalculateNonLegacyPhyHeaderPer (Ptr<const Event> event, NiCh
 }
 
 struct InterferenceHelper::SnrPer
-InterferenceHelper::CalculatePayloadSnrPer (Ptr<Event> event, std::pair<Time, Time> relativeMpduStartStop) const
+InterferenceHelper::CalculatePayloadSnrPer (Ptr<Event> event, uint16_t primaryChannelFrequency, std::pair<Time, Time> relativeMpduStartStop) const
 {
-  NiChanges ni;
-  double noiseInterferenceW = CalculateNoiseInterferenceW (event, &ni);
-  double snr = CalculateSnr (event->GetRxPowerW (),
+  NiChangesPerBand ni;
+  uint16_t channelWidth = event->GetTxVector ().GetChannelWidth ();
+  auto band = std::make_pair (primaryChannelFrequency, channelWidth == 22 ? 20 : channelWidth);
+  double noiseInterferenceW = CalculateNoiseInterferenceW (event, &ni, band);
+  double snr = CalculateSnr (event->GetRxPowerW (band),
                              noiseInterferenceW,
-                             event->GetTxVector ().GetChannelWidth ());
+                             channelWidth);
 
   /* calculate the SNIR at the start of the MPDU (located through windowing) and accumulate
    * all SNIR changes in the snir vector.
    */
-  double per = CalculatePayloadPer (event, &ni, relativeMpduStartStop);
+  double per = CalculatePayloadPer (event, &ni, band, relativeMpduStartStop);
 
   struct SnrPer snrPer;
   snrPer.snr = snr;
@@ -872,24 +982,37 @@ InterferenceHelper::CalculatePayloadSnrPer (Ptr<Event> event, std::pair<Time, Ti
 }
 
 double
-InterferenceHelper::CalculateSnr (Ptr<Event> event) const
+InterferenceHelper::CalculateSnr (Ptr<Event> event, uint16_t primaryChannelFrequency) const
 {
-  NiChanges ni;
-  double noiseInterferenceW = CalculateNoiseInterferenceW (event, &ni);
-  double snr = CalculateSnr (event->GetRxPowerW (),
+  NiChangesPerBand ni;
+  uint16_t channelWidth = event->GetTxVector ().GetChannelWidth ();
+  auto band = std::make_pair (primaryChannelFrequency, channelWidth == 22 ? 20 : channelWidth);
+  double noiseInterferenceW = CalculateNoiseInterferenceW (event, &ni, band);
+  double snr = CalculateSnr (event->GetRxPowerW (band),
                              noiseInterferenceW,
-                             event->GetTxVector ().GetChannelWidth ());
- return snr;
+                             channelWidth);
+  return snr;
 }
 
 struct InterferenceHelper::SnrPer
-InterferenceHelper::CalculateLegacyPhyHeaderSnrPer (Ptr<Event> event) const
+InterferenceHelper::CalculateLegacyPhyHeaderSnrPer (Ptr<Event> event, uint16_t primaryChannelFrequency) const
 {
-  NiChanges ni;
-  double noiseInterferenceW = CalculateNoiseInterferenceW (event, &ni);
-  double snr = CalculateSnr (event->GetRxPowerW (),
+  NS_LOG_FUNCTION (this << primaryChannelFrequency << event->GetTxVector ().GetChannelWidth ());
+  NiChangesPerBand ni;
+  uint16_t channelWidth;
+  if (event->GetTxVector ().GetChannelWidth () >= 40)
+    {
+      channelWidth = 20; //calculate PER on the 20 MHz primary channel for L-SIG
+    }
+  else
+    {
+      channelWidth = event->GetTxVector ().GetChannelWidth ();
+    }
+  auto band = std::make_pair (primaryChannelFrequency, channelWidth == 22 ? 20 : channelWidth);
+  double noiseInterferenceW = CalculateNoiseInterferenceW (event, &ni, band);
+  double snr = CalculateSnr (event->GetRxPowerW (band),
                              noiseInterferenceW,
-                             event->GetTxVector ().GetChannelWidth ());
+                             channelWidth);
 
   /* calculate the SNIR at the start of the plcp header and accumulate
    * all SNIR changes in the snir vector.
@@ -903,13 +1026,23 @@ InterferenceHelper::CalculateLegacyPhyHeaderSnrPer (Ptr<Event> event) const
 }
 
 struct InterferenceHelper::SnrPer
-InterferenceHelper::CalculateNonLegacyPhyHeaderSnrPer (Ptr<Event> event) const
+InterferenceHelper::CalculateNonLegacyPhyHeaderSnrPer (Ptr<Event> event, uint16_t primaryChannelFrequency) const
 {
-  NiChanges ni;
-  double noiseInterferenceW = CalculateNoiseInterferenceW (event, &ni);
-  double snr = CalculateSnr (event->GetRxPowerW (),
+  NiChangesPerBand ni;
+  uint16_t channelWidth;
+  if (event->GetTxVector ().GetChannelWidth () >= 40)
+    {
+      channelWidth = 20; //calculate PER on the 20 MHz primary channel for L-SIG
+    }
+  else
+    {
+      channelWidth = event->GetTxVector ().GetChannelWidth ();
+    }
+  auto band = std::make_pair (primaryChannelFrequency, channelWidth == 22 ? 20 : channelWidth);
+  double noiseInterferenceW = CalculateNoiseInterferenceW (event, &ni, band);
+  double snr = CalculateSnr (event->GetRxPowerW (band),
                              noiseInterferenceW,
-                             event->GetTxVector ().GetChannelWidth ());
+                             channelWidth);
   
   /* calculate the SNIR at the start of the plcp header and accumulate
    * all SNIR changes in the snir vector.
@@ -925,23 +1058,28 @@ InterferenceHelper::CalculateNonLegacyPhyHeaderSnrPer (Ptr<Event> event) const
 void
 InterferenceHelper::EraseEvents (void)
 {
-  m_niChanges.clear ();
-  // Always have a zero power noise event in the list
-  AddNiChangeEvent (Time (0), NiChange (0.0, 0));
+  for (auto it : m_niChangesPerBand)
+    {
+      it.second.clear ();
+      // Always have a zero power noise event in the list
+      AddNiChangeEvent (Time (0), NiChange (0.0, 0), it.first);
+      m_firstPowerPerBand.at(it.first) = 0.0;
+    }
   m_rxing = false;
-  m_firstPower = 0;
 }
 
 InterferenceHelper::NiChanges::const_iterator
-InterferenceHelper::GetNextPosition (Time moment) const
+InterferenceHelper::GetNextPosition (Time moment, FrequencyWidthPair band) const
 {
-  return m_niChanges.upper_bound (moment);
+  auto it = m_niChangesPerBand.find (band);
+  NS_ASSERT (it != m_niChangesPerBand.end ());
+  return it->second.upper_bound (moment);
 }
 
 InterferenceHelper::NiChanges::const_iterator
-InterferenceHelper::GetPreviousPosition (Time moment) const
+InterferenceHelper::GetPreviousPosition (Time moment, FrequencyWidthPair band) const
 {
-  auto it = GetNextPosition (moment);
+  auto it = GetNextPosition (moment, band);
   // This is safe since there is always an NiChange at time 0,
   // before moment.
   --it;
@@ -949,9 +1087,11 @@ InterferenceHelper::GetPreviousPosition (Time moment) const
 }
 
 InterferenceHelper::NiChanges::iterator
-InterferenceHelper::AddNiChangeEvent (Time moment, NiChange change)
+InterferenceHelper::AddNiChangeEvent (Time moment, NiChange change, FrequencyWidthPair band)
 {
-  return m_niChanges.insert (GetNextPosition (moment), std::make_pair (moment, change));
+  auto it = m_niChangesPerBand.find (band);
+  NS_ASSERT (it != m_niChangesPerBand.end ());
+  return it->second.insert (GetNextPosition (moment, band), std::make_pair (moment, change));
 }
 
 void
@@ -967,9 +1107,12 @@ InterferenceHelper::NotifyRxEnd ()
   NS_LOG_FUNCTION (this);
   m_rxing = false;
   //Update m_firstPower for frame capture
-  auto it = m_niChanges.find (Simulator::Now ());
-  it--;
-  m_firstPower = it->second.GetPower ();
+  for (auto ni : m_niChangesPerBand)
+    {
+      auto it = ni.second.find (Simulator::Now ());
+      it--;
+      m_firstPowerPerBand.find (ni.first)->second = it->second.GetPower ();
+    }
 }
 
 } //namespace ns3

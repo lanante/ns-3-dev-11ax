@@ -453,6 +453,8 @@ TestInterBssConstantObssPdAlgo::RunOne (void)
   for (uint32_t i = 0; i < m_apDevices.GetN (); i++)
     {
       Ptr<WifiNetDevice> device = DynamicCast<WifiNetDevice> (m_apDevices.Get (i));
+      Ptr<WifiPhy> wifiphy = device->GetPhy ();
+      wifiphy->SetChannelWidth (20); //TODO: to be removed
       Ptr<HeConfiguration> heConfiguration = device->GetHeConfiguration ();
       if (i == 0)
         {
@@ -466,6 +468,12 @@ TestInterBssConstantObssPdAlgo::RunOne (void)
         {
           heConfiguration->SetAttribute ("BssColor", UintegerValue (m_bssColor3));
         }
+    }
+  for (uint32_t i = 0; i < m_staDevices.GetN (); i++)
+    {
+      Ptr<WifiNetDevice> device = DynamicCast<WifiNetDevice> (m_staDevices.Get (i));
+      Ptr<WifiPhy> wifiphy = device->GetPhy ();
+      wifiphy->SetChannelWidth (20); //TODO: to be removed
     }
 
   MobilityHelper mobility;
@@ -509,7 +517,7 @@ TestInterBssConstantObssPdAlgo::DoRun (void)
   m_bssColor3 = 3;
   RunOne ();
 
-  //Test case 3: CCA CS Threshold = < m_obssPdLevelDbm = m_obssRxPowerDbm
+  //Test case 3: CCA CS Threshold < m_obssPdLevelDbm = m_obssRxPowerDbm
   m_obssPdLevelDbm = -72;
   m_obssRxPowerDbm = -72;
   m_bssColor1 = 1;

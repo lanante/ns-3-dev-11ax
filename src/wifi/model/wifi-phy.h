@@ -107,6 +107,11 @@ public:
   virtual ~WifiPhy ();
 
   /**
+   * A pair of a ChannelNumber and WifiPhyStandard
+   */
+  typedef std::pair<uint8_t, WifiPhyStandard> ChannelNumberStandardPair;
+  
+  /**
    * Return the WifiPhyStateHelper of this PHY
    *
    * \return the WifiPhyStateHelper of this PHY
@@ -550,15 +555,6 @@ public:
    * \return true if the channel definition succeeded
    */
   bool DefineChannelNumber (uint8_t channelNumber, WifiPhyStandard standard, uint16_t frequency, uint16_t channelWidth);
-
-  /**
-   * A pair of a ChannelNumber and WifiPhyStandard
-   */
-  typedef std::pair<uint8_t, WifiPhyStandard> ChannelNumberStandardPair;
-  /**
-   * A pair of a center Frequency and a ChannelWidth
-   */
-  typedef std::pair<uint16_t, uint16_t> FrequencyWidthPair;
 
   /**
    * Return the Channel this WifiPhy is connected to.

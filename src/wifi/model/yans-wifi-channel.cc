@@ -136,7 +136,22 @@ YansWifiChannel::Receive (Ptr<YansWifiPhy> phy, Ptr<Packet> packet, double rxPow
   uint8_t nBands = std::max (1, phy->GetChannelWidth () / 20);
   for (uint8_t i = 0; i < nBands; i++)
     {
-      rxPowerW.insert ({phy->GetFrequency () + (i * 20), ((DbmToW (rxPowerDbm + phy->GetRxGain ())) / nBands)});
+      rxPowerW.insert ({std::make_pair (phy->GetFrequency () + (i * 20), 20), ((DbmToW (rxPowerDbm + phy->GetRxGain ())) / nBands)});
+    }
+  nBands = phy->GetChannelWidth () / 40;
+  for (uint8_t i = 0; i < nBands; i++)
+    {
+      rxPowerW.insert ({std::make_pair (phy->GetFrequency () + (i * 40), 40), ((DbmToW (rxPowerDbm + phy->GetRxGain ())) / nBands)});
+    }
+  nBands = phy->GetChannelWidth () / 80;
+  for (uint8_t i = 0; i < nBands; i++)
+    {
+      rxPowerW.insert ({std::make_pair (phy->GetFrequency () + (i * 80), 80), ((DbmToW (rxPowerDbm + phy->GetRxGain ())) / nBands)});
+    }
+  nBands = phy->GetChannelWidth () / 160;
+  for (uint8_t i = 0; i < nBands; i++)
+    {
+      rxPowerW.insert ({std::make_pair (phy->GetFrequency () + (i * 160), 160), ((DbmToW (rxPowerDbm + phy->GetRxGain ())) / nBands)});
     }
   phy->StartReceivePreamble (packet, rxPowerW, duration);
 }
