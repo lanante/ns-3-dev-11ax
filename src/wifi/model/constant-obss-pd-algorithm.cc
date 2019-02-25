@@ -103,7 +103,7 @@ ConstantObssPdAlgorithm::ReceiveHeSig (HePreambleParameters params)
       if (WToDbm (params.rssiW) < GetObssPdLevel ())
         {
           NS_LOG_DEBUG ("Frame is OBSS and RSSI is below OBSS-PD level: reset PHY to IDLE");
-          ResetPhy ();
+          ResetPhy (params);
         }
       else
         {

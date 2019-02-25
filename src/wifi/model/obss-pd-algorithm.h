@@ -22,6 +22,8 @@
 #define OBSS_PD_ALGORITHM_H
 
 #include "ns3/object.h"
+#include "ns3/traced-callback.h"
+#include "he-configuration.h"
 
 namespace ns3 {
 
@@ -112,8 +114,9 @@ public:
 
   /**
    * Reset PHY to IDLE.
+   * \param params HePreambleParameters causing PHY reset
    */
-  void ResetPhy ();
+  void ResetPhy (HePreambleParameters params);
 
   /**
    * \param params the HE SIG parameters
@@ -129,6 +132,15 @@ public:
    */
   virtual void ReceiveBeacon (HeBeaconReceptionParameters params) = 0;
 
+  /**
+   * TracedCallback signature for OBSS_PD reset events.
+   *
+   * \param [in] bssColor The BSS color of frame triggering the reset
+   * \param [in] rssiDbm The RSSI (dBm) of frame triggering the reset
+   * \param [in] powerRestricted Whether a TX power restriction is triggered
+   * \param [in] txPowerMaxDbm The TX power restricted level (dBm)
+   */
+  typedef void (* ResetTracedCallback)(uint8_t bssColor, double rssiDbm, bool powerRestricted, double txPowerMaxDbm);
 
 protected:
   virtual void DoDispose (void);
@@ -141,6 +153,8 @@ private:
   double m_obssPdLevelMax; ///< Maximum OBSS PD level
   double m_obssPdLevel;    ///< Current OBSS PD level
   double m_txPowerRef;     ///< SISO reference TX power level
+
+  TracedCallback<uint8_t, double, bool, double>  m_resetEvent;
 };
 
 } //namespace ns3

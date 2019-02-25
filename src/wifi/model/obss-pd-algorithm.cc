@@ -58,6 +58,9 @@ ObssPdAlgorithm::GetTypeId (void)
                    DoubleValue (21),
                    MakeDoubleAccessor (&ObssPdAlgorithm::SetTxPowerRef),
                    MakeDoubleChecker<double> ())
+    .AddTraceSource ("Reset", "Trace CCA Reset event",
+                     MakeTraceSourceAccessor (&ObssPdAlgorithm::m_resetEvent),
+                     "ns3::ObssPdAlgorithm::ResetTracedCallback")
   ;
   return tid;
 }
@@ -135,16 +138,25 @@ ObssPdAlgorithm::GetWifiNetDevice (void) const
 }
 
 void
-ObssPdAlgorithm::ResetPhy()
+ObssPdAlgorithm::ResetPhy (HePreambleParameters params)
 {
   double txPowerMax = 0;
   bool powerRestricted = false;
+  // Fetch my BSS color
+  Ptr<HeConfiguration> heConfiguration = GetWifiNetDevice ()->GetHeConfiguration ();
+  NS_ASSERT (heConfiguration);
+  UintegerValue bssColorAttribute;
+  heConfiguration->GetAttribute ("BssColor", bssColorAttribute);
+  uint8_t bssColor = bssColorAttribute.Get ();
+  NS_LOG_DEBUG ("My BSS color " << (uint16_t) bssColor << " received frame " << (uint16_t) params.bssColor);
+
   Ptr<WifiPhy> phy = GetWifiNetDevice ()->GetPhy();
   if ((m_obssPdLevel > m_obssPdLevelMin) || (m_obssPdLevel <= m_obssPdLevelMax))
     {
       txPowerMax = m_txPowerRef - (m_obssPdLevel - m_obssPdLevelMin);
       powerRestricted = true;
     }
+  m_resetEvent (bssColor, WToDbm (params.rssiW), powerRestricted, txPowerMax);
   phy->ResetCca (powerRestricted, txPowerMax);
 }
 
