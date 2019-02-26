@@ -559,9 +559,9 @@ PHY Parameters
 
 * Antennas - (SISO) one antenna is modeled per AP and per STA. This is a deviation from the parameters described in [TGax15]_.
 
-* TX gain - 0 dBm
+* TX gain - 0 dB
 
-* RX gain - 0 dBm
+* RX gain - 0 dB
 
 ns-3 parameters:
 

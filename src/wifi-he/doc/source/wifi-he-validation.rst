@@ -765,9 +765,15 @@ The residential path loss model is given by:
 Pathloss model
 
 PL(d) = 40.05 + 20*log10(fc/2.4) + 20*log10(min(d,5)) + (d>5) * 35*log10(d/5) + 18.3*F^((F+2)/(F+1)-0.46) + 5*W
+
+where:
+
 –	d = max(3D distance [m], 1)
+
 –	fc = frequency [GHz]
+
 –	F = number of floors traversed
+
 –	W = number of walls traversed in x-direction plus number of walls traversed in y-direction
 
 This pathloss model is modelled in ns-3 using the 
@@ -911,8 +917,13 @@ The enterprise path loss model is given by:
 Pathloss model
 
 PL(d) = 40.05 + 20*log10(fc/2.4) + 20*log10(min(d,10)) + (d>10) * 35*log10(d/10) + 7*W
+
+where:
+
 –	d = max(3D-distance [m], 1)
+
 –	fc = frequency [GHz]
+
 –	W = number of office walls traversed in x-direction plus number of office walls traversed in y-direction
 
 
@@ -1065,7 +1076,11 @@ The Indoor Small BSSs path loss model is given by:
 Pathloss model
 
 PL(d) = 40.05 + 20*log10(fc/2.4) + 20*log10(min(d,10)) + (d>10) * 35*log10(d/10) 
+
+where:
+
 –	d = max(3D-distance [m], 1)
+
 –	fc = frequency [GHz
 
 This pathloss model is modelled in ns-3 using the 
