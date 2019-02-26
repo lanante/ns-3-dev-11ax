@@ -875,7 +875,7 @@ WifiHelper::EnableLogComponents (void)
   LogComponentEnable ("BlockAckManager", LOG_LEVEL_ALL);
   LogComponentEnable ("CaraWifiManager", LOG_LEVEL_ALL);
   LogComponentEnable ("ChannelBondingManager", LOG_LEVEL_ALL);
-  LogComponentEnable ("ConstantChannelBondingManager", LOG_LEVEL_ALL);
+  LogComponentEnable ("ConstantThresholdChannelBondingManager", LOG_LEVEL_ALL);
   LogComponentEnable ("ConstantObssPdAlgorithm", LOG_LEVEL_ALL);
   LogComponentEnable ("ConstantRateWifiManager", LOG_LEVEL_ALL);
   LogComponentEnable ("Txop", LOG_LEVEL_ALL);
