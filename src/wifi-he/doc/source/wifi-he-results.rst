@@ -157,7 +157,7 @@ As an example comparison, we consider two of these scenarios:
 The first scenario separates the two networks by a distance of 80m, and 
 places 20 nodes within a radius of 30m around each AP, while the second
 scenario reducies the AP separation to 20m and also reduces the number
-of APs and the radius into which they are positioned.
+of STAs and the radius into which they are positioned.
 
 
 Scenario 80-30-02-20
@@ -459,14 +459,6 @@ It is observed that the impact to area capacity is negligible when the network
 is not saturated. As the network reaches saturation, the area capacity generally
 increases as the number of STAs per network increases.
 
-
-Other things to do:
-##########################
-
-* the above scenario simulations can be extended to handle cases with 3 or 4 BSSs
-
-* add latency plots
-
 Parametric Studies
 ==================
 
@@ -652,8 +644,6 @@ as given earlier):
 
 * air-time utilization
 
-* latency
-
 To run the Study 1 scenarios, plot results, and transfer those results to the 
 documentation figures, the following scripts should be executed in order:
 
@@ -822,13 +812,6 @@ of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
    Airtime utilization for the BSS of interest in the center of the Study 1 parametric study.
 
 Figure :ref:`airtime-utilization-study1` illustrates the airtime utilization for BSS1.
-
-Latency
-#######
-
-(Here there will be a figure of the average latency as a function of 
-offered load. There will be a separate line for each combination of 
-n STAs - i.e., n=5, n=10, n=15, ..., n=40).
 
 Noise and Signal Distributions
 ##############################
@@ -1018,10 +1001,3 @@ of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
    Airtime utilization with OBSS_PD level -62 dBm for the BSS of interest in the center of the Study 2 parametric study.
 
 Figure :ref:`airtime-utilization-study2a-62` illustrates the airtime utilization for BSS1.
-
-Latency
-#######
-
-(Here there will be a figure of the average latency as a function of 
-offered load. There will be a separate line for each combination of 
-n STAs - i.e., n=5, n=10, n=15, ..., n=40).

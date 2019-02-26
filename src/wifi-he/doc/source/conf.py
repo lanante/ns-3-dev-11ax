@@ -178,7 +178,7 @@ html_theme = 'default'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('wifi-he', 'wifi-11ax-project.tex', u'ns-3 Wi-Fi 11ax project', u'S. Roy \\and T. Henderson \\and S. Deronne \\and L. Lanante \\and S. Carpenter \\and M. Mehrnoush', 'manual'),
+  ('wifi-he', 'wifi-11ax-project.tex', u'ns-3 Wi-Fi 11ax project', u'S. Deronne \\and T. Henderson \\and S. Carpenter \\and L. Lanante \\and S. Roy \\and M. Mehrnoush', 'manual'),
 ]
 
 # latex_elements = {
