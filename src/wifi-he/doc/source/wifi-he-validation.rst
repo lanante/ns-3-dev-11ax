@@ -892,7 +892,7 @@ received by AP2 for the Residential Scenario.
 
 It is observed that the distribution of the noise levels shows that
 noise levels are predominantly low, with greater than 80% of the time that 
-a packet is received, the noise level being approximately -86 dB.
+a packet is received, the noise level being approximately -86 dB (BW = 80 MHz).
 
 
 Test 2 - Enterprise Scenario
@@ -1046,7 +1046,7 @@ received by AP2 for the Enterprise Scenario.
 
 It is observed that the distribution of the noise levels shows that
 noise levels are predominantly low, with 60-80% of the time that 
-a packet is received, the noise level being approximately -86 dB.
+a packet is received, the noise level being approximately -86 dB (BW = 80 MHz).
 The remainder of noise levels concentrate in levels above -60 dB.
 
 
@@ -1199,7 +1199,7 @@ received by AP2 for the Indoor BSSs Scenario.
 
 It is observed that the distribution of the noise levels shows that
 noise levels are predominantly low, with 60-80% of the time that 
-a packet is received, the noise level being approximately -86 dB.
+a packet is received, the noise level being approximately -86 dB (BW = 80 MHz).
 The remainder of noise levels concentrate in levels above -60 dB.
 
 
@@ -1342,6 +1342,6 @@ received by AP2 for the Outdoor BSS Scenario.
 It is observed that the distribution of the noise levels shows that
 noise levels are high, as compared to other scenarios modelled here, 
 with only 40-60% of the time that a packet is received, the noise level 
-being approximately -86 dB.
+being approximately -86 dB (BW = 80 MHz).
 
 
