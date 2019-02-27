@@ -148,6 +148,7 @@ ChannelAccessManager::SetupPhyListener (Ptr<WifiPhy> phy)
   NS_ASSERT (m_phyListener == 0);
   m_phyListener = new PhyListener (this);
   phy->RegisterListener (m_phyListener);
+  m_phy = phy;
 }
 
 void
@@ -159,6 +160,7 @@ ChannelAccessManager::RemovePhyListener (Ptr<WifiPhy> phy)
       phy->UnregisterListener (m_phyListener);
       delete m_phyListener;
       m_phyListener = 0;
+      m_phy = 0;
     }
 }
 
@@ -281,6 +283,10 @@ void
 ChannelAccessManager::RequestAccess (Ptr<Txop> state, bool isCfPeriod)
 {
   NS_LOG_FUNCTION (this << state);
+  if (m_phy)
+    {
+      m_phy->NotifyChannelAccessRequested ();
+    }
   //Deny access if in sleep mode or off
   if (m_sleeping || m_off)
     {

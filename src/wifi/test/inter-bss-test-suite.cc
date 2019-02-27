@@ -273,7 +273,13 @@ TestInterBssConstantObssPdAlgo::SetupSimulation ()
   Simulator::Schedule (Seconds (1.6) + MicroSeconds (350), &TestInterBssConstantObssPdAlgo::CheckPhyState, this, sta_device2, WifiPhyState::RX);
   Simulator::Schedule (Seconds (1.6) + MicroSeconds (350), &TestInterBssConstantObssPdAlgo::CheckPhyState, this, ap_device2, WifiPhyState::TX);
 
-  Simulator::Stop (Seconds (1.7));
+  // AP2 sends another packet #8 0.1s later.
+  Simulator::Schedule (Seconds (1.7), &TestInterBssConstantObssPdAlgo::SetExpectedTxPower, this, m_txPowerDbm);
+  Simulator::Schedule (Seconds (1.7), &TestInterBssConstantObssPdAlgo::SendOnePacket, this, ap_device2, sta_device2, m_payloadSize2);
+  // STA1 sends a packet #9 0.1S later. Power retriction should not be applied.
+  Simulator::Schedule (Seconds (1.8), &TestInterBssConstantObssPdAlgo::SendOnePacket, this, sta_device1, ap_device1, m_payloadSize1);
+
+  Simulator::Stop (Seconds (1.9));
 }
 
 void
@@ -293,14 +299,14 @@ TestInterBssConstantObssPdAlgo::ResetResults ()
 void
 TestInterBssConstantObssPdAlgo::CheckResults ()
 {
-  NS_TEST_ASSERT_MSG_EQ (m_numSta1PacketsSent, 2, "The number of packets sent by STA1 is not correct!");
+  NS_TEST_ASSERT_MSG_EQ (m_numSta1PacketsSent, 3, "The number of packets sent by STA1 is not correct!");
   NS_TEST_ASSERT_MSG_EQ (m_numSta2PacketsSent, 1, "The number of packets sent by STA2 is not correct!");
   NS_TEST_ASSERT_MSG_EQ (m_numAp1PacketsSent, 1, "The number of packets sent by AP1 is not correct!");
-  NS_TEST_ASSERT_MSG_EQ (m_numAp2PacketsSent, 3, "The number of packets sent by AP2 is not correct!");
+  NS_TEST_ASSERT_MSG_EQ (m_numAp2PacketsSent, 4, "The number of packets sent by AP2 is not correct!");
 
   NS_TEST_ASSERT_MSG_EQ (m_numSta1PacketsReceived, 1, "The number of packets received by STA1 is not correct!");
-  NS_TEST_ASSERT_MSG_EQ (m_numSta2PacketsReceived, 3, "The number of packets received by STA2 is not correct!");
-  NS_TEST_ASSERT_MSG_EQ (m_numAp1PacketsReceived, 2, "The number of packets received by AP1 is not correct!");
+  NS_TEST_ASSERT_MSG_EQ (m_numSta2PacketsReceived, 4, "The number of packets received by STA2 is not correct!");
+  NS_TEST_ASSERT_MSG_EQ (m_numAp1PacketsReceived, 3, "The number of packets received by AP1 is not correct!");
   NS_TEST_ASSERT_MSG_EQ (m_numAp2PacketsReceived, 1, "The number of packets received by AP2 is not correct!");
 }
 

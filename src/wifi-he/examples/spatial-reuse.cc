@@ -1212,7 +1212,7 @@ main (int argc, char *argv[])
   cmd.AddValue ("minExpectedThroughputBss1Down", "The minimum expected downstream throughput in Mbps for BSS 1 (used by regression).", minExpectedThroughputBss1Down);
   cmd.AddValue ("maxExpectedThroughputBss1Down", "The maximum expected downstream throughput in Mbps for BSS 1 (used by regression).", maxExpectedThroughputBss1Down);
   cmd.Parse (argc, argv);
-  
+
   if (!powerBackoff)
     {
       obssPdThresholdMinBss1 = obssPdThresholdBss1;

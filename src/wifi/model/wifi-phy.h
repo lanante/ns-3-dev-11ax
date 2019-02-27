@@ -183,6 +183,12 @@ public:
   void EndReceive (Ptr<Packet> packet, WifiPreamble preamble, MpduType mpdutype, Ptr<Event> event);
 
   /**
+   * Identify the moment an ignored inter-BSS transmission finished.
+   * This is used to decide whether to keep or cancel power restriction imposed by OBSS_PD SR.
+   */
+  void EndReceiveInterBss ();
+
+  /**
    * \param packet the packet to send
    * \param txVector the TXVECTOR that has tx parameters such as mode, the transmission mode to use to send
    *        this packet, and txPowerLevel, a power level to use to send this packet. The real transmission
@@ -1567,6 +1573,14 @@ public:
    * \return the transmit power in dBm for the next transmission
    */
   double GetTxPowerForTransmission (WifiTxVector txVector) const;
+  /**
+   * Notify the PHY that an access to the channel was requested.
+   * This is typically called by the channel access manager to
+   * to notify the PHY about an ongoing transmission.
+   * The PHY will use this information to determine whether
+   * it should use power restriction as imposed by OBSS_PD SR.
+   */
+  void NotifyChannelAccessRequested ();
 
 
 protected:
@@ -1881,6 +1895,7 @@ private:
   bool m_powerRestricted;  //!< Flag whether transmit power is retricted by OBSS PD SR
   double m_txPowerMaxSiso; //!< SISO maximum transmit power due to OBSS PD SR power restriction
   double m_txPowerMaxMimo; //!< MIMO maximum transmit power due to OBSS PD SR power restriction
+  bool m_channelAccessRequested;
 
   bool     m_greenfield;         //!< Flag if GreenField format is supported (deprecated)
   bool     m_shortGuardInterval; //!< Flag if HT/VHT short guard interval is supported (deprecated)

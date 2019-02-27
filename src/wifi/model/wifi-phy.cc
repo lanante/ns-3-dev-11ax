@@ -389,6 +389,7 @@ WifiPhy::WifiPhy ()
     m_initialFrequency (0),
     m_frequencyChannelNumberInitialized (false),
     m_channelWidth (0),
+    m_channelAccessRequested (false),
     m_txSpatialStreams (0),
     m_rxSpatialStreams (0),
     m_channelNumber (0),
@@ -2571,7 +2572,6 @@ WifiPhy::StartReceiveHeader (Ptr<Packet> packet, WifiTxVector txVector, Ptr<Even
   NS_LOG_FUNCTION (this << packet << txVector.GetMode () << txVector.GetPreambleType ());
   NS_ASSERT (!IsStateRx ());
   NS_ASSERT (m_endPlcpRxEvent.IsExpired ());
-  m_powerRestricted = false;
 
   InterferenceHelper::SnrPer snrPer = m_interference.CalculateLegacyPhyHeaderSnrPer (event);
   double snr = snrPer.snr;
@@ -3094,6 +3094,23 @@ WifiPhy::EndReceive (Ptr<Packet> packet, WifiPreamble preamble, MpduType mpdutyp
 
 }
 
+void
+WifiPhy::EndReceiveInterBss ()
+{
+  NS_LOG_FUNCTION (this);
+  if (!m_channelAccessRequested)
+    {
+      m_powerRestricted = false;
+    }
+  m_channelAccessRequested = false;
+}
+
+void
+WifiPhy::NotifyChannelAccessRequested ()
+{
+  NS_LOG_FUNCTION (this);
+  m_channelAccessRequested = true;
+}
 
 // Clause 15 rates (DSSS)
 
@@ -4137,12 +4154,15 @@ WifiPhy::ResetCca (bool powerRestricted, double txPowerMaxSiso, double txPowerMa
   m_powerRestricted = powerRestricted;
   m_txPowerMaxSiso = txPowerMaxSiso;
   m_txPowerMaxMimo = txPowerMaxMimo;
+  NS_ASSERT ((m_currentEvent->GetEndTime () - Simulator::Now ()).IsPositive ());
+  Simulator::Schedule (m_currentEvent->GetEndTime () - Simulator::Now (), &WifiPhy::EndReceiveInterBss, this);
   AbortCurrentReception ();
 }
 
 double
 WifiPhy::GetTxPowerForTransmission (WifiTxVector txVector) const
 {
+  NS_LOG_FUNCTION (this << m_powerRestricted);
   if (!m_powerRestricted)
     {
       return GetPowerDbm (txVector.GetTxPowerLevel ());
@@ -4264,6 +4284,7 @@ WifiPhy::StartRx (Ptr<Packet> packet, WifiTxVector txVector, double rxPowerW, Ti
         {
           NS_LOG_DEBUG ("Drop packet because RX is already decoding preamble");
           NotifyRxDrop (packet);
+          return;
         }
     }
   m_currentEvent = event;
