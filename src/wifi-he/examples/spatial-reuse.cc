@@ -110,6 +110,7 @@ double g_noiseDbmAvg;
 uint32_t g_samples;
 std::ofstream g_rxSniffFile;
 std::ofstream g_txPowerFile;
+std::ofstream g_phyResetFile;
 
 double g_min_signal = 1000.0;
 double g_max_signal = -1000.0;
@@ -231,6 +232,13 @@ PacketRx (std::string context, const Ptr<const Packet> p, const Address &srcAddr
       packetsReceived[nodeId]++;
     }
   timeLastPacketReceived = Simulator::Now();
+}
+
+void
+PhyReset (std::string context, uint8_t bssColor, double rssiDbm, bool powerRestricted, double txPowerMaxDbmSiso, double txPowerMaxDbmMimo)
+{
+  uint32_t nodeId = ContextToNodeId (context);
+  g_phyResetFile << Simulator::Now () << ", " << nodeId<< ", " << +bssColor<< ", " << rssiDbm<< ", " << txPowerMaxDbmSiso<< ", " << txPowerMaxDbmMimo << std::endl;
 }
 
 // loggine arrivals to phy-log.dat file is
@@ -2917,6 +2925,7 @@ main (int argc, char *argv[])
   Config::Connect ("/NodeList/*/DeviceList/*/Phy/MonitorSnifferRx", MakeCallback (&MonitorSniffRx));
   Config::Connect ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Phy/PhyTxBegin", MakeCallback (&PacketTx));
   Config::Connect ("/NodeList/*/ApplicationList/*/$ns3::UdpServer/RxWithAddresses", MakeCallback (&PacketRx));
+  Config::Connect ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/ObssPdAlgorithm/Reset", MakeCallback (&PhyReset));
 
   if (performTgaxTimingChecks)
     {
@@ -2945,6 +2954,13 @@ main (int argc, char *argv[])
   g_txPowerFile.open (outputFilePrefix + "-tx-power-" + testname + ".dat", std::ofstream::out | std::ofstream::trunc);
   g_txPowerFile.setf (std::ios_base::fixed);
   g_txPowerFile << "RxNodeId, DstNodeId, TxPowerDbm " << std::endl;
+
+  if (enableObssPd)
+    {
+      g_phyResetFile.open (outputFilePrefix + "-phy-reset-" + testname + ".dat", std::ofstream::out | std::ofstream::trunc);
+      g_phyResetFile.setf (std::ios_base::fixed);
+      g_phyResetFile << "Time, NodeId, BssColor, RssiDbm, TxPowerMaxDbmSiso, txPowerMaxDbmMimo" << std::endl;
+    }
 
   g_TGaxCalibrationTimingsFile.open (outputFilePrefix + "-tgax-calibration-timings-" + testname + ".dat", std::ofstream::out | std::ofstream::trunc);
   g_TGaxCalibrationTimingsFile.setf (std::ios_base::fixed);
