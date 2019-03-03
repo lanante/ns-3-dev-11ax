@@ -91,14 +91,8 @@ by varying the parameters as follows:
 
 * downlink - 0 Mbps
 
-Other Simulation Parameters
-===========================
-
-Several other simulation parameters are held steady, including:
-
-* standard - 802.11ac
-
-* more to be documented
+Remarks
+=======
 
 The results of these experiments provide insights into the behaviors
 of the networks as the distances between them, and the number and
@@ -109,6 +103,12 @@ the separating distances between networks. As networks are more
 closely colocated, overlapping nodes from one networks would tend
 to interfere with the transmissions of other networks, reducing
 network throughput.
+
+It is also important to note that obtained curves are from only one run.
+Ideally, they should have been run for multiple runs that have different
+random seed. Due to the large aount of time needed to generate those plots,
+it was decided to limit to a single run, with ns-3 RngRun set to 1.
+One consequence of this is that curves might show some small irregularities.
 
 Performance Measures
 ====================
@@ -135,7 +135,7 @@ We consider further two additional metrics:
 1. Area capacity - throughput divided by the area within which the
 nodes of the network have been placed, measured in Mbps / m^2.
 
-2. Spectrum efficiency - throughput per Hertz divide by the area within
+2. Area spectrum efficiency - throughput per Hertz divide by the area within
 which the nodes of the network have been placed, measured in 
 Mbps / Hz / m^2.
 
@@ -255,21 +255,21 @@ It is observed that the shapes of the curves in the area capacity plots generall
 the corresponding shapes of the throughput curves for these two networks.  This is because
 the areas are identical for both networks into which the nodes have been placed.
 
-Spectrum Efficiency (Both AP1 and AP2 on the same plot)
-#######################################################
+Area Spectrum Efficiency (Both AP1 and AP2 on the same plot)
+############################################################
 
-The spectrum efficiency for both networks is plotted on a single plot below.
+The area spectrum efficiency for both networks is plotted on a single plot below.
 
 .. _spectrum-efficiency-80-30-02-20-both:
 
 .. figure:: figures/spectrum-efficiency-80-30-02-20-both.*
    :align: center 
 
-   Spectrum efficiency for AP1 and AP2 for the 80-30-02-20 experiment.
+   Area spectrum efficiency for AP1 and AP2 for the 80-30-02-20 experiment.
 
-Figure :ref:`spectrum-efficiency-80-30-02-20-both` illustrates the spectrum efficiency for AP1 and AP2.
+Figure :ref:`spectrum-efficiency-80-30-02-20-both` illustrates the area spectrum efficiency for AP1 and AP2.
 
-It is observed that the shapes of the curves in the spectrum efficiency plots generally follow
+It is observed that the shapes of the curves in the area spectrum efficiency plots generally follow
 the corresponding shapes of the throughput curves for these two networks.  This is because
 the areas are identical for both networks into which the nodes have been placed, and the 
 operating frequency (in Hz) is also identical for both networks, which 
@@ -347,21 +347,21 @@ It is observed that the shapes of the curves in the area capacity plots generall
 the corresponding shapes of the throughput curves for these two networks.  This is because
 the areas are identical for both networks into which the nodes have been placed.
 
-Spectrum Efficiency (Both AP1 and AP2 on the same plot)
-#######################################################
+Area Spectrum Efficiency (Both AP1 and AP2 on the same plot)
+############################################################
 
-The spectrum efficiency for both networks is plotted on a single plot below.
+The area spectrum efficiency for both networks is plotted on a single plot below.
 
 .. _spectrum-efficiency-20-10-02-05-both:
 
 .. figure:: figures/spectrum-efficiency-20-10-02-05-both.*
    :align: center 
 
-   Spectrum efficiency for AP1 and AP2 for the 20-10-02-05 experiment.
+   Area spectrum efficiency for AP1 and AP2 for the 20-10-02-05 experiment.
 
-Figure :ref:`spectrum-efficiency-20-10-02-05-both` illustrates the spectrum efficiency for AP1 and AP2.
+Figure :ref:`spectrum-efficiency-20-10-02-05-both` illustrates the area spectrum efficiency for AP1 and AP2.
 
-It is observed that the shapes of the curves in the spectrum efficiency plots generally follow
+It is observed that the shapes of the curves in the area spectrum efficiency plots generally follow
 the corresponding shapes of the throughput curves for these two networks. This is because
 the areas are identical for both networks into which the nodes have been placed, and the 
 operating frequency (in Hz) is also identical for both networks, which 
@@ -490,7 +490,7 @@ features.
 Topology / Environment Description
 ##################################
 
-BSSs are place a regular and symmetric grid with a reuse frequency of N=3.
+BSSs are place a regular and symmetric grid with a reuse frequency of N=7.
 
 The node positions for n=5 STAs per BSS in Study 1 are given below.
 
@@ -523,9 +523,9 @@ describe any deviations from those described in [TGax15]_ Scenario 3.
 Topology
 ########
 
-* BSSs - BSSs are placed in a regular and symmetric grid as shown in the Figure above, with reuse frequency N=3. Each hexagon of the grid is modeled as a circle with radius r=10m into which the positions of the STAs are uniformly distributed.
+* BSSs - BSSs are placed in a regular and symmetric grid as shown in the Figure above, with reuse frequency N=7. Each hexagon of the grid is modeled as a circle with radius r=10m into which the positions of the STAs are uniformly distributed.
 
-* Reuse Frequency - N=3.
+* Reuse Frequency - N=7.
 
 * AP location - APs are placed at the center of each circle.
 
@@ -574,7 +574,7 @@ MAC Parameters
 
 * Access protocol parameters - EDCA with default EDCA parameter set.
 
-* Primary channels - All BSS at 5GHz with 20 MHz BSS with reuse 3. Assignment of 20 MHz bands is a deviation from the parameters described in [TGax11].
+* Primary channels - All BSS at 5GHz with 20 MHz BSS with reuse 3. Assignment of 20 MHz bands is a deviation from the parameters described in [TGax15].
 
 * Aggregation - A-MPDU aggregation size of up to 65535 bytes.
 
@@ -640,7 +640,7 @@ as given earlier):
 
 * area capacity
 
-* spectrum efficiency
+* area spectrum efficiency
 
 * air-time utilization
 
@@ -778,10 +778,10 @@ Figure :ref:`area-capacity-study1` illustrates the system throughput for BSS1.
 It is observed that area capacity increases as offered load increases.
 Furthermore, area capacity decreases as the number of STAs, n, per BSS increases.
 
-Spectrum Efficiency
-###################
+Area Spectrum Efficiency
+########################
 
-The spectrum efficiency as offered load is increased is shown below for 
+The area spectrum efficiency as offered load is increased is shown below for 
 the center BSS of interest. A separate line is plotted for each value
 of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
 
@@ -790,12 +790,12 @@ of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
 .. figure:: figures/spectrum-efficiency-study1.*
    :align: center 
 
-   Spectrum efficiency for the BSS of interest in the center of the Study 1 parametric study.
+   Area spectrum efficiency for the BSS of interest in the center of the Study 1 parametric study.
 
 Figure :ref:`spectrum-efficiency-study1` illustrates the system throughput for BSS1.
 
-It is observed that spectrum efficiency increases as offered load increases.
-Furthermore, spectrum efficiency decreases as the number of STAs, n, per BSS increases.
+It is observed that area spectrum efficiency increases as offered load increases.
+Furthermore, area spectrum efficiency decreases as the number of STAs, n, per BSS increases.
 
 Airtime utilization
 ###################
@@ -944,10 +944,10 @@ Area capacity with OBSS_PD level -62 dBm for the BSS of interest in the center o
 
 Figure :ref:`area-capacity-study2a-62` illustrates the system throughput for BSS1.
 
-Spectrum Efficiency
-###################
+Area Spectrum Efficiency
+########################
 
-The spectrum efficiency with OBSS_PD level -82 dBm as offered load is increased is shown below for
+The area spectrum efficiency with OBSS_PD level -82 dBm as offered load is increased is shown below for
 the center BSS of interest. A separate line is plotted for each value
 of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
 
@@ -956,11 +956,11 @@ of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
 .. figure:: figures/spectrum-efficiency-study2a-82.*
    :align: center
 
-   Spectrum efficiency with OBSS_PD level -82 dBm for the BSS of interest in the center of the Study 2 parametric study.
+   Area spectrum efficiency with OBSS_PD level -82 dBm for the BSS of interest in the center of the Study 2 parametric study.
 
 Figure :ref:`spectrum-efficiency-study2a-82` illustrates the system throughput for BSS1.
 
-The spectrum efficiency with OBSS_PD level -62 dBm as offered load is increased is shown below for
+The area spectrum efficiency with OBSS_PD level -62 dBm as offered load is increased is shown below for
 the center BSS of interest. A separate line is plotted for each value
 of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
 
@@ -969,7 +969,7 @@ of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
 .. figure:: figures/spectrum-efficiency-study2a-62.*
    :align: center
 
-Spectrum efficiency with OBSS_PD level -62 dBm for the BSS of interest in the center of the Study 2 parametric study.
+Area spectrum efficiency with OBSS_PD level -62 dBm for the BSS of interest in the center of the Study 2 parametric study.
 
 Figure :ref:`spectrum-efficiency-study2a-62` illustrates the system throughput for BSS1.
 

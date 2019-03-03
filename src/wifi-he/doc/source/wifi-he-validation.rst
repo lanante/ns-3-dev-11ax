@@ -1061,8 +1061,8 @@ apart, each with n=30 STAs that are dropped within a circle of r=10m around
 the AP.
 
 This configuration as modelled in this ns-3 scenario is a simplification
-of the scenario as presented in [TGax11].  Whereas a 19 cell area is outlined
-in [TGax11], this model only deploys 2 adjacent cells.
+of the scenario as presented in [TGax15].  Whereas a 19 cell area is outlined
+in [TGax15], this model only deploys 2 adjacent cells.
 
 Traffic flow is modelled as a total aggregated offered load of 10 Mbps of 
 uplink traffic only.  With a total uplink load of 10 Mbps and n=30 STAs per
@@ -1215,8 +1215,8 @@ apart, each with n=50 STAs that are dropped within a circle of r=70m around
 the AP.
 
 This configuration as modelled in this ns-3 scenario is a simplification
-of the scenario as presented in [TGax11].  Whereas a 19 cell area is outlined
-in [TGax11], this model only deploys 2 adjacent cells.
+of the scenario as presented in [TGax15].  Whereas a 19 cell area is outlined
+in [TGax15], this model only deploys 2 adjacent cells.
 
 Traffic flow is modelled as a total aggregated offered load of 10 Mbps of 
 uplink traffic only.  With a total uplink load of 10 Mbps and n=50 STAs per
