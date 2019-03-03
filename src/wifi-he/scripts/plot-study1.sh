@@ -61,7 +61,8 @@ for ap in ap1 ; do
         done <./results/plot_tmp.dat
 
         # sort the data points before plotting
-        sort -o "xxx-$patt-$ap.dat" "xxx-$patt-$ap.dat"
+        sort -n -o "xxx-$patt-$ap.dat" "xxx-$patt-$ap.dat"
+
         echo "plotting"
 
         FILES[$index]="xxx-$patt-$ap.dat"
@@ -108,7 +109,7 @@ for ap in ap1 ; do
         done <./results/plot_tmp.dat
 
         # sort the data points before plotting
-        sort -o "xxx-$patt-$ap.dat" "xxx-$patt-$ap.dat"
+        sort -n -o "xxx-$patt-$ap.dat" "xxx-$patt-$ap.dat"
         echo "plotting"
 
         FILES[$index]="xxx-$patt-$ap.dat"
@@ -155,7 +156,7 @@ for n in 5 10 15 20 25 30 35 40 ; do
         done <./results/plot_tmp.dat
 
         # sort the data points before plotting
-        sort -o "xxx-$patt-$ap.dat" "xxx-$patt-$ap.dat"
+        sort -n -o "xxx-$patt-$ap.dat" "xxx-$patt-$ap.dat"
         echo "plotting"
 
         FILES[$index]="xxx-$patt-$ap.dat"
@@ -202,7 +203,7 @@ for ap in ap1 ; do
         done <./results/plot_tmp.dat
 
         # sort the data points before plotting
-        sort -o "xxx-$patt-$ap.dat" "xxx-$patt-$ap.dat"
+        sort -n -o "xxx-$patt-$ap.dat" "xxx-$patt-$ap.dat"
         echo "plotting"
 
         FILES[$index]="xxx-$patt-$ap.dat"
