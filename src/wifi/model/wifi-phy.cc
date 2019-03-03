@@ -2630,10 +2630,11 @@ WifiPhy::StartReceiveHeader (Ptr<Packet> packet, WifiTxVector txVector, Ptr<Even
         uint32_t nSymbols = floor (static_cast<double> ((calculatedRxDuration - preambleDuration).GetNanoSeconds ()) / tSymbol.GetNanoSeconds ());
         m_currentRemainingPpduDuration = preambleDuration + (nSymbols * tSymbol);
       }
-  
+
     MpduType mpdutype = NORMAL_MPDU;
     if (m_currentTxVector.IsAggregation ())
       {
+        NS_ASSERT (m_currentRemainingPpduDuration.IsStrictlyPositive ());
         m_currentRemainingPpduDuration -= rxDuration;
         //TODO: precision is 100ns, it should be investigated whether this can be improved
         if (m_currentRemainingPpduDuration > NanoSeconds (100))
@@ -2915,7 +2916,7 @@ WifiPhy::StartReceivePreamble (Ptr<Packet> packet, double rxPowerW, Time rxDurat
         {
           AbortCurrentReception ();
           NS_LOG_DEBUG ("Switch to new packet");
-          if (preamble != WIFI_PREAMBLE_NONE)
+          if (preamble != WIFI_PREAMBLE_NONE && (!m_endPreambleDetectionEvent.IsRunning () || ((m_frameCaptureModel != 0) && (rxPowerW > m_currentEvent->GetRxPowerW ()))))
             {
               m_currentDsssSigHdr = dsssSigHdr;
               m_currentLSigHdr = lSigHdr;
@@ -2954,7 +2955,7 @@ WifiPhy::StartReceivePreamble (Ptr<Packet> packet, double rxPowerW, Time rxDurat
       break;
     case WifiPhyState::CCA_BUSY:
     case WifiPhyState::IDLE:
-      if (preamble != WIFI_PREAMBLE_NONE)
+      if (preamble != WIFI_PREAMBLE_NONE && (!m_endPreambleDetectionEvent.IsRunning () || ((m_frameCaptureModel != 0) && (rxPowerW > m_currentEvent->GetRxPowerW ()))))
         {
           m_currentDsssSigHdr = dsssSigHdr;
           m_currentLSigHdr = lSigHdr;
@@ -2968,7 +2969,6 @@ WifiPhy::StartReceivePreamble (Ptr<Packet> packet, double rxPowerW, Time rxDurat
     case WifiPhyState::SLEEP:
       NS_LOG_DEBUG ("Drop packet because in sleep mode");
       NotifyRxDrop (packet);
-      m_plcpSuccess = false;
       break;
     default:
       NS_FATAL_ERROR ("Invalid WifiPhy state.");
@@ -4183,16 +4183,13 @@ WifiPhy::GetTxPowerForTransmission (WifiTxVector txVector) const
 void
 WifiPhy::StartRx (Ptr<Packet> packet, WifiTxVector txVector, double rxPowerW, Time rxDuration, Ptr<Event> event, uint16_t length)
 {
-  NS_LOG_FUNCTION (this << packet << rxPowerW << rxDuration);
+  NS_LOG_FUNCTION (this << packet << rxPowerW << rxDuration << length);
 
   AmpduTag ampduTag;
   WifiPreamble preamble = txVector.GetPreambleType ();
   
   if (preamble == WIFI_PREAMBLE_NONE && (m_mpdusNum == 0 || m_plcpSuccess == false))
     {
-      m_plcpSuccess = false;
-      m_mpdusNum = 0;
-      m_currentRemainingPpduDuration = Seconds (0);
       NS_LOG_DEBUG ("drop packet because no PLCP preamble/header has been received");
       NotifyRxDrop (packet);
       MaybeCcaBusyDuration ();
@@ -4211,10 +4208,12 @@ WifiPhy::StartRx (Ptr<Packet> packet, WifiTxVector txVector, double rxPowerW, Ti
       if (packet->PeekPacketTag (ampduTag) && m_mpdusNum > 0)
         {
           //received the other MPDUs that are part of the A-MPDU
-          if (ampduTag.GetRemainingNbOfMpdus () < (m_mpdusNum - 1))
+          if (ampduTag.GetRemainingNbOfMpdus () != (m_mpdusNum - 1))
             {
-              NS_LOG_DEBUG ("Missing MPDU from the A-MPDU " << m_mpdusNum - ampduTag.GetRemainingNbOfMpdus ());
-              m_mpdusNum = ampduTag.GetRemainingNbOfMpdus ();
+              NS_LOG_DEBUG ("Discard MPDU from another A-MPDU");
+              NotifyRxDrop (packet);
+              MaybeCcaBusyDuration ();
+              return;
             }
           else
             {
