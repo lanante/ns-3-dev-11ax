@@ -141,12 +141,14 @@ public:
    * \param event the corresponding event of the first time the packet arrives
    * \param rxDuration the duration needed for the reception of the packet
    * \param length the length value indicated in the received PHY header
+   * \param txNodeId the node ID of the transmitter
    */
   void StartReceiveHeader (Ptr<Packet> packet,
                            WifiTxVector txVector,
                            Ptr<Event> event,
                            Time rxDuration,
-                           uint16_t length);
+                           uint16_t length,
+                           uint32_t txNodeId);
 
   /**
    * Continue receiving the PHY header of a packet (i.e. after the end of receiving the legacy header part).
@@ -1746,13 +1748,15 @@ private:
    * \param rxDuration the duration needed for the reception of the packet
    * \param event the corresponding event of the first time the packet arrives
    * \param length the length value indicated in the received PHY header
+   * \param txNodeId the node ID of the transmitter
    */
   void StartRx (Ptr<Packet> packet,
                 WifiTxVector txVector,
                 double rxPowerW,
                 Time rxDuration,
                 Ptr<Event> event,
-                uint16_t length);
+                uint16_t length,
+                uint32_t txNodeId);
 
   /**
    * The trace source fired when a packet begins the transmission process on
@@ -1930,6 +1934,7 @@ private:
 
   WifiTxVector m_currentTxVector;      //!< Store the TxVector to process packets that are part of an A-MPDU
   Time m_currentRemainingPpduDuration; //!< Store the remaining duration of the PPDU that is being received (used for A-MPDU reception)
+  uint32_t m_currentTxId;              //!< Store the node ID of the transmitter the PHY is locked onto (used for A-MPDU reception)
 
   DsssSigHeader m_currentDsssSigHdr; //!< DSSS header of the currently received packet (if present)
   LSigHeader m_currentLSigHdr;       //!< L-SIG header of the currently received packet (if present)

@@ -398,7 +398,8 @@ WifiPhy::WifiPhy ()
     m_totalAmpduNumSymbols (0),
     m_currentEvent (0),
     m_wifiRadioEnergyModel (0),
-    m_timeLastPreambleDetected (Seconds (0))
+    m_timeLastPreambleDetected (Seconds (0)),
+    m_currentTxId (0)
 {
   NS_LOG_FUNCTION (this);
   m_random = CreateObject<UniformRandomVariable> ();
@@ -2438,6 +2439,7 @@ WifiPhy::SendPacket (Ptr<const Packet> packet, WifiTxVector txVector, MpduType m
   m_currentRemainingPpduDuration = Seconds (0);
   m_mpdusNum = 0;
   m_plcpSuccess = false;
+  m_currentTxId = 0;
 
   Time txDuration = CalculateTxDuration (packet->GetSize (), txVector, GetFrequency (), mpdutype, 1);
   if (ppduDuration.IsZero ())
@@ -2558,7 +2560,7 @@ WifiPhy::SendPacket (Ptr<const Packet> packet, WifiTxVector txVector, MpduType m
     {
       isFrameComplete = 0;
     }
-  WifiPhyTag tag (txVector.GetPreambleType (), txVector.GetMode ().GetModulationClass (), isFrameComplete);
+  WifiPhyTag tag (txVector.GetPreambleType (), txVector.GetMode ().GetModulationClass (), isFrameComplete, m_device ? m_device->GetNode ()->GetId () : 0);
   newPacket->AddPacketTag (tag);
 
   StartTx (newPacket, txVector, txDuration);
@@ -2567,7 +2569,7 @@ WifiPhy::SendPacket (Ptr<const Packet> packet, WifiTxVector txVector, MpduType m
 }
 
 void
-WifiPhy::StartReceiveHeader (Ptr<Packet> packet, WifiTxVector txVector, Ptr<Event> event, Time rxDuration, uint16_t length)
+WifiPhy::StartReceiveHeader (Ptr<Packet> packet, WifiTxVector txVector, Ptr<Event> event, Time rxDuration, uint16_t length, uint32_t txNodeId)
 {
   NS_LOG_FUNCTION (this << packet << txVector.GetMode () << txVector.GetPreambleType ());
   NS_ASSERT (!IsStateRx ());
@@ -2593,11 +2595,13 @@ WifiPhy::StartReceiveHeader (Ptr<Packet> packet, WifiTxVector txVector, Ptr<Even
         m_plcpSuccess = false;
         m_mpdusNum = 0;
         m_currentRemainingPpduDuration = Seconds (0);
+        m_currentTxId = 0;
         NotifyRxDrop (packet);
         MaybeCcaBusyDuration ();
         return;
       }
 
+    m_currentTxId = txNodeId;
     NS_ASSERT (txVector.GetPreambleType () != WIFI_PREAMBLE_NONE);
     WifiModulationClass modulation = txVector.GetMode ().GetModulationClass ();
     if (modulation == WIFI_MOD_CLASS_HT)
@@ -2925,7 +2929,7 @@ WifiPhy::StartReceivePreamble (Ptr<Packet> packet, double rxPowerW, Time rxDurat
               m_currentHeSigHdr = heSigHdr;
               m_currentRemainingPpduDuration = remainingPpduDuration;
             }
-          StartRx (packet, txVector, rxPowerW, rxDuration, event, length);
+          StartRx (packet, txVector, rxPowerW, rxDuration, event, length, tag.GetTxNodeId ());
         }
       else
         {
@@ -2964,7 +2968,7 @@ WifiPhy::StartReceivePreamble (Ptr<Packet> packet, double rxPowerW, Time rxDurat
           m_currentHeSigHdr = heSigHdr;
           m_currentRemainingPpduDuration = remainingPpduDuration;
         }
-      StartRx (packet, txVector, rxPowerW, rxDuration, event, length);
+      StartRx (packet, txVector, rxPowerW, rxDuration, event, length, tag.GetTxNodeId ());
       break;
     case WifiPhyState::SLEEP:
       NS_LOG_DEBUG ("Drop packet because in sleep mode");
@@ -3090,6 +3094,7 @@ WifiPhy::EndReceive (Ptr<Packet> packet, WifiPreamble preamble, MpduType mpdutyp
       m_plcpSuccess = false;
       m_mpdusNum = 0;
       m_currentRemainingPpduDuration = Seconds (0);
+      m_currentTxId = 0;
     }
 
 }
@@ -4145,6 +4150,7 @@ WifiPhy::AbortCurrentReception ()
   m_currentRemainingPpduDuration = Seconds (0);
   m_plcpSuccess = false;
   m_mpdusNum = 0;
+  m_currentTxId = 0;
 }
 
 void
@@ -4181,9 +4187,9 @@ WifiPhy::GetTxPowerForTransmission (WifiTxVector txVector) const
 }
 
 void
-WifiPhy::StartRx (Ptr<Packet> packet, WifiTxVector txVector, double rxPowerW, Time rxDuration, Ptr<Event> event, uint16_t length)
+WifiPhy::StartRx (Ptr<Packet> packet, WifiTxVector txVector, double rxPowerW, Time rxDuration, Ptr<Event> event, uint16_t length, uint32_t txNodeId)
 {
-  NS_LOG_FUNCTION (this << packet << rxPowerW << rxDuration << length);
+  NS_LOG_FUNCTION (this << packet << rxPowerW << rxDuration << length << txNodeId);
 
   AmpduTag ampduTag;
   WifiPreamble preamble = txVector.GetPreambleType ();
@@ -4204,21 +4210,18 @@ WifiPhy::StartRx (Ptr<Packet> packet, WifiTxVector txVector, double rxPowerW, Ti
       event->SetTxVector (m_currentTxVector);
       NS_ASSERT (m_currentTxVector.IsAggregation ());
       NS_ASSERT (m_endPreambleDetectionEvent.IsExpired ());
-
-      if (packet->PeekPacketTag (ampduTag) && m_mpdusNum > 0)
+      
+      if (txNodeId != m_currentTxId)
         {
-          //received the other MPDUs that are part of the A-MPDU
-          if (ampduTag.GetRemainingNbOfMpdus () != (m_mpdusNum - 1))
-            {
               NS_LOG_DEBUG ("Discard MPDU from another A-MPDU");
               NotifyRxDrop (packet);
               MaybeCcaBusyDuration ();
               return;
-            }
-          else
-            {
-              m_mpdusNum--;
-            }
+        }
+
+      if (packet->PeekPacketTag (ampduTag) && m_mpdusNum > 0)
+        {
+          m_mpdusNum--;
         }
 
       m_state->SwitchToRx (rxDuration);
@@ -4247,6 +4250,7 @@ WifiPhy::StartRx (Ptr<Packet> packet, WifiTxVector txVector, double rxPowerW, Ti
           m_plcpSuccess = false;
           m_mpdusNum = 0;
           m_currentRemainingPpduDuration = Seconds (0);
+          m_currentTxId = 0;
           if (packet->PeekPacketTag (ampduTag))
           {
             m_mpdusNum = ampduTag.GetRemainingNbOfMpdus ();
@@ -4256,7 +4260,7 @@ WifiPhy::StartRx (Ptr<Packet> packet, WifiTxVector txVector, double rxPowerW, Ti
           Time startOfPreambleDuration = GetPreambleDetectionDuration ();
           Time remainingRxDuration = rxDuration - startOfPreambleDuration;
           m_endPreambleDetectionEvent = Simulator::Schedule (startOfPreambleDuration, &WifiPhy::StartReceiveHeader, this,
-                                                             packet, txVector, event, remainingRxDuration, length);
+                                                             packet, txVector, event, remainingRxDuration, length, txNodeId);
         }
       else if ((m_frameCaptureModel != 0) && (rxPowerW > m_currentEvent->GetRxPowerW ()))
         {
@@ -4267,6 +4271,7 @@ WifiPhy::StartRx (Ptr<Packet> packet, WifiTxVector txVector, double rxPowerW, Ti
           m_plcpSuccess = false;
           m_mpdusNum = 0;
           m_currentRemainingPpduDuration = Seconds (0);
+          m_currentTxId = 0;
           if (packet->PeekPacketTag (ampduTag))
             {
               m_mpdusNum = ampduTag.GetRemainingNbOfMpdus ();
@@ -4277,7 +4282,7 @@ WifiPhy::StartRx (Ptr<Packet> packet, WifiTxVector txVector, double rxPowerW, Ti
           Time startOfPreambleDuration = GetPreambleDetectionDuration ();
           Time remainingRxDuration = rxDuration - startOfPreambleDuration;
           m_endPreambleDetectionEvent = Simulator::Schedule (startOfPreambleDuration, &WifiPhy::StartReceiveHeader, this,
-                                                             packet, txVector, event, remainingRxDuration, length);
+                                                             packet, txVector, event, remainingRxDuration, length, txNodeId);
         }
       else
         {

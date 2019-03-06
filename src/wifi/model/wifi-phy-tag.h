@@ -52,8 +52,9 @@ public:
    * \param preamble the preamble type
    * \param modulation the modulation
    * \param frameComplete the frameComplete
+   * \param txNodeId the node ID of the transmitter
    */
-  WifiPhyTag (WifiPreamble preamble, WifiModulationClass modulation, uint8_t frameComplete);
+  WifiPhyTag (WifiPreamble preamble, WifiModulationClass modulation, uint8_t frameComplete, uint32_t txNodeId = 0);
   /**
    * Getter for preamble parameter
    * \return the preamble type
@@ -69,6 +70,11 @@ public:
    * \return the frameComplete parameter, i.e. 0 if the frame is not complete, 1 otherwise.
    */
   uint8_t GetFrameComplete (void) const;
+  /**
+   * Getter for transmitter node ID
+   * \return the node ID of the transmitter
+   */
+  uint32_t GetTxNodeId (void) const;
 
   // From class Tag
   uint32_t GetSerializedSize (void) const;
@@ -81,6 +87,7 @@ private:
   WifiPreamble m_preamble;          ///< preamble type
   WifiModulationClass m_modulation; ///< modulation used for transmission
   uint8_t m_frameComplete;          ///< Used to indicate that TX stopped sending before the end of the frame
+  uint32_t m_txNodeId;              ///< Node ID of the transmitter
 };
 
 } // namespace ns3

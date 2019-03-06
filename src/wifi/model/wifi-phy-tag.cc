@@ -40,7 +40,7 @@ WifiPhyTag::GetInstanceTypeId (void) const
 uint32_t
 WifiPhyTag::GetSerializedSize (void) const
 {
-  return 3;
+  return 7;
 }
 
 void
@@ -49,6 +49,7 @@ WifiPhyTag::Serialize (TagBuffer i) const
   i.WriteU8 (static_cast<uint8_t> (m_preamble));
   i.WriteU8 (static_cast<uint8_t> (m_modulation));
   i.WriteU8 (m_frameComplete);
+  i.WriteU32 (m_txNodeId);
 }
 
 void
@@ -57,22 +58,24 @@ WifiPhyTag::Deserialize (TagBuffer i)
   m_preamble = static_cast<WifiPreamble> (i.ReadU8 ());
   m_modulation = static_cast<WifiModulationClass> (i.ReadU8 ());
   m_frameComplete = i.ReadU8 ();
+  m_txNodeId = i.ReadU32 ();
 }
 
 void
 WifiPhyTag::Print (std::ostream &os) const
 {
-  os << +m_preamble << " " << +m_modulation << " " << m_frameComplete;
+  os << +m_preamble << " " << +m_modulation << " " << m_frameComplete << " " << m_txNodeId;
 }
 
 WifiPhyTag::WifiPhyTag ()
 {
 }
 
-WifiPhyTag::WifiPhyTag (WifiPreamble preamble, WifiModulationClass modulation, uint8_t frameComplete)
+WifiPhyTag::WifiPhyTag (WifiPreamble preamble, WifiModulationClass modulation, uint8_t frameComplete, uint32_t txNodeId)
   : m_preamble (preamble),
     m_modulation (modulation),
-    m_frameComplete (frameComplete)
+    m_frameComplete (frameComplete),
+    m_txNodeId (txNodeId)
 {
 }
 
@@ -92,6 +95,12 @@ uint8_t
 WifiPhyTag::GetFrameComplete (void) const
 {
   return m_frameComplete;
+}
+
+uint32_t
+WifiPhyTag::GetTxNodeId (void) const
+{
+  return m_txNodeId;
 }
 
 } // namespace ns3
