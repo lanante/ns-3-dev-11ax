@@ -150,7 +150,7 @@ ObssPdAlgorithm::ResetPhy (HePreambleParameters params)
   NS_LOG_DEBUG ("My BSS color " << (uint16_t) bssColor << " received frame " << (uint16_t) params.bssColor);
 
   Ptr<WifiPhy> phy = GetWifiNetDevice ()->GetPhy();
-  if ((m_obssPdLevel > m_obssPdLevelMin) || (m_obssPdLevel <= m_obssPdLevelMax))
+  if ((m_obssPdLevel > m_obssPdLevelMin) && (m_obssPdLevel <= m_obssPdLevelMax))
     {
       txPowerMaxSiso = m_txPowerRefSiso - (m_obssPdLevel - m_obssPdLevelMin);
       txPowerMaxMimo = m_txPowerRefMimo - (m_obssPdLevel - m_obssPdLevelMin);
