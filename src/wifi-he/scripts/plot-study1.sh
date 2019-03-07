@@ -29,10 +29,10 @@ lbtTxop=8
 LATENCY_CDF_RANGE="[0:500][0:1]"
 HI_RES_LATENCY_CDF_RANGE="[0:50][0:1]"
 THROUGHPUT_CDF_RANGE="[0:150][0:1]"
-THROUGHPUT_RANGE="[1:6][1:6]"
-AREA_CAPACITY_RANGE="[1:6][0:0.02]"
-SPECTRUM_EFFICIENCY_RANGE="[1.0:6.0][0:0.002]"
-AIRTIME_UTILIZATION_RANGE="[1.0:6.0][0:100]"
+THROUGHPUT_RANGE="[1:12][1:10]"
+AREA_CAPACITY_RANGE="[1:12][0:0.05]"
+SPECTRUM_EFFICIENCY_RANGE="[1.0:12.0][0:0.002]"
+AIRTIME_UTILIZATION_RANGE="[1.0:12.0][0:100]"
 
 # params that remain constant
 d=34.64
@@ -43,35 +43,52 @@ nBss=7
 
 # params that will vary
 index=0
-for ap in ap1 ; do
-    for n in 5 10 15 20 25 30 35 40 ; do
-        d1=$(awk "BEGIN {print $d*100}")
-        patt=$(printf "%0.f-%02d-%02d" ${d1} ${r} ${n})
-        echo "pattern=$patt"
+for n in 5 10 15 20 25 30 35 40 ; do
+    d1=$(awk "BEGIN {print $d*100}")
+    patt=$(printf "%0.f-%02d-%02d" ${d1} ${r} ${n})
+    echo "pattern=$patt"
+    for ap in ap1 ap2 ap2 ap3 ap4 ap5 ap6 ap7; do
         grep "$patt" "./results/spatial-reuse-study1-throughput-$ap.dat" > ./results/plot_tmp.dat
 
         rm -f "xxx-$patt-$ap.dat"
-
         while read p ; do
             IFS=':'; arrP=($p); unset IFS;
             F="${arrP[0]}"
             IFS='-'; arrF=($F); unset IFS;
-            echo "${arrF[8]}, ${arrP[2]}"
-            echo "${arrF[8]}, ${arrP[2]}" >> "xxx-$patt-$ap.dat"
+            echo "${arrF[8]} ${arrP[2]}" >> "xxx-$patt-$ap.dat"
         done <./results/plot_tmp.dat
 
         # sort the data points before plotting
         sort -n -o "xxx-$patt-$ap.dat" "xxx-$patt-$ap.dat"
-
-        echo "plotting"
-
-        FILES[$index]="xxx-$patt-$ap.dat"
-        YCOLS[$index]='($2)'
-        XCOLS[$index]='($1)'
-        LABELS[$index]="n=$n"
-
-        index=`expr $index + 1`
     done
+
+    rm -f xxx-$patt.dat
+    declare -a sum
+    for ap in ap1 ap2 ap3 ap4 ap5 ap6 ap7; do
+        while read a b; do
+            if [ -z ${sum[a]} ]; then
+                sum[a]=$b
+            else
+                sum[a]="$( bc <<<"${sum[a]} + $b" )"
+            fi
+        done <xxx-$patt-$ap.dat
+    done
+
+    for idx in ${!sum[*]}; do
+        sum[$idx]="$( bc <<<"scale=6; ${sum[$idx]} / 7.0" )"
+        echo "$idx, ${sum[$idx]}"
+        echo  "$idx, ${sum[$idx]}" >> "xxx-$patt.dat"
+    done
+    unset sum
+
+    echo "plotting"
+
+    FILES[$index]="xxx-$patt.dat"
+    YCOLS[$index]='($2)'
+    XCOLS[$index]='($1)'
+    LABELS[$index]="n=$n"
+
+    index=`expr $index + 1`
 done
 
 PLOTTYPE="with linespoints"
@@ -91,34 +108,52 @@ unset XCOLS
 
 # params that will vary
 index=0
-for ap in ap1 ; do
-    for n in 5 10 15 20 25 30 35 40 ; do
-        d1=$(awk "BEGIN {print $d*100}")
-        patt=$(printf "%0.f-%02d-%02d" ${d1} ${r} ${n})
-        echo "pattern=$patt"
+for n in 5 10 15 20 25 30 35 40 ; do
+    d1=$(awk "BEGIN {print $d*100}")
+    patt=$(printf "%0.f-%02d-%02d" ${d1} ${r} ${n})
+    echo "pattern=$patt"
+    for ap in ap1 ap2 ap2 ap3 ap4 ap5 ap6 ap7; do
         grep "$patt" "./results/spatial-reuse-study1-area-capacity-$ap.dat" > ./results/plot_tmp.dat
 
         rm -f "xxx-$patt-$ap.dat"
-
         while read p ; do
             IFS=':'; arrP=($p); unset IFS;
             F="${arrP[0]}"
             IFS='-'; arrF=($F); unset IFS;
-            echo "${arrF[8]}, ${arrP[2]}"
-            echo "${arrF[8]}, ${arrP[2]}" >> "xxx-$patt-$ap.dat"
+            echo "${arrF[8]} ${arrP[2]}" >> "xxx-$patt-$ap.dat"
         done <./results/plot_tmp.dat
 
         # sort the data points before plotting
         sort -n -o "xxx-$patt-$ap.dat" "xxx-$patt-$ap.dat"
-        echo "plotting"
-
-        FILES[$index]="xxx-$patt-$ap.dat"
-        YCOLS[$index]='($2)'
-        XCOLS[$index]='($1)'
-        LABELS[$index]="n=$n"
-
-        index=`expr $index + 1`
     done
+
+    rm -f xxx-$patt.dat
+    declare -a sum
+    for ap in ap1 ap2 ap3 ap4 ap5 ap6 ap7; do
+        while read a b; do
+            if [ -z ${sum[a]} ]; then
+                sum[a]=$b
+            else
+                sum[a]="$( bc <<<"${sum[a]} + $b" )"
+            fi
+        done <xxx-$patt-$ap.dat
+    done
+
+    for idx in ${!sum[*]}; do
+        sum[$idx]="$( bc <<<"scale=6; ${sum[$idx]} / 7.0" )"
+        echo "$idx, ${sum[$idx]}"
+        echo  "$idx, ${sum[$idx]}" >> "xxx-$patt.dat"
+    done
+    unset sum
+
+    echo "plotting"
+
+    FILES[$index]="xxx-$patt.dat"
+    YCOLS[$index]='($2)'
+    XCOLS[$index]='($1)'
+    LABELS[$index]="n=$n"
+
+    index=`expr $index + 1`
 done
 
 PLOTTYPE="with linespoints"
@@ -139,33 +174,51 @@ unset XCOLS
 # params that will vary
 index=0
 for n in 5 10 15 20 25 30 35 40 ; do
-    for ap in ap1 ; do
-        d1=$(awk "BEGIN {print $d*100}")
-        patt=$(printf "%0.f-%02d-%02d" ${d1} ${r} ${n})
-        echo "pattern=$patt"
+    d1=$(awk "BEGIN {print $d*100}")
+    patt=$(printf "%0.f-%02d-%02d" ${d1} ${r} ${n})
+    echo "pattern=$patt"
+    for ap in ap1 ap2 ap2 ap3 ap4 ap5 ap6 ap7; do
         grep "$patt" "./results/spatial-reuse-study1-spectrum-efficiency-$ap.dat" > ./results/plot_tmp.dat
 
         rm -f "xxx-$patt-$ap.dat"
-
         while read p ; do
             IFS=':'; arrP=($p); unset IFS;
             F="${arrP[0]}"
             IFS='-'; arrF=($F); unset IFS;
-            echo "${arrF[8]}, ${arrP[2]}"
-            echo "${arrF[8]}, ${arrP[2]}" >> "xxx-$patt-$ap.dat"
+            echo "${arrF[8]} ${arrP[2]}" >> "xxx-$patt-$ap.dat"
         done <./results/plot_tmp.dat
 
         # sort the data points before plotting
         sort -n -o "xxx-$patt-$ap.dat" "xxx-$patt-$ap.dat"
-        echo "plotting"
-
-        FILES[$index]="xxx-$patt-$ap.dat"
-        YCOLS[$index]='($2)'
-        XCOLS[$index]='($1)'
-        LABELS[$index]="n=$n"
-
-        index=`expr $index + 1`
     done
+
+    rm -f xxx-$patt.dat
+    declare -a sum
+    for ap in ap1 ap2 ap3 ap4 ap5 ap6 ap7; do
+        while read a b; do
+            if [ -z ${sum[a]} ]; then
+                sum[a]=$b
+            else
+                sum[a]="$( bc <<<"${sum[a]} + $b" )"
+            fi
+        done <xxx-$patt-$ap.dat
+    done
+
+    for idx in ${!sum[*]}; do
+        sum[$idx]="$( bc <<<"scale=6; ${sum[$idx]} / 7.0" )"
+        echo "$idx, ${sum[$idx]}"
+        echo  "$idx, ${sum[$idx]}" >> "xxx-$patt.dat"
+    done
+    unset sum
+
+    echo "plotting"
+
+    FILES[$index]="xxx-$patt.dat"
+    YCOLS[$index]='($2)'
+    XCOLS[$index]='($1)'
+    LABELS[$index]="n=$n"
+
+    index=`expr $index + 1`
 done
 
 PLOTTYPE="with linespoints"
@@ -185,34 +238,52 @@ unset XCOLS
 
 # params that will vary
 index=0
-for ap in ap1 ; do
-    for n in 5 10 15 20 25 30 35 40 ; do
-        d1=$(awk "BEGIN {print $d*100}")
-        patt=$(printf "%0.f-%02d-%02d" ${d1} ${r} ${n})
-        echo "pattern=$patt"
+for n in 5 10 15 20 25 30 35 40 ; do
+    d1=$(awk "BEGIN {print $d*100}")
+    patt=$(printf "%0.f-%02d-%02d" ${d1} ${r} ${n})
+    echo "pattern=$patt"
+    for ap in ap1 ap2 ap2 ap3 ap4 ap5 ap6 ap7; do
         grep "$patt" "./results/spatial-reuse-study1-airtime-utilization-$ap.dat" > ./results/plot_tmp.dat
 
         rm -f "xxx-$patt-$ap.dat"
-
         while read p ; do
             IFS=':'; arrP=($p); unset IFS;
             F="${arrP[0]}"
             IFS='-'; arrF=($F); unset IFS;
-            echo "${arrF[8]}, ${arrP[2]}"
-            echo "${arrF[8]}, ${arrP[2]}" >> "xxx-$patt-$ap.dat"
+            echo "${arrF[8]} ${arrP[2]}" >> "xxx-$patt-$ap.dat"
         done <./results/plot_tmp.dat
 
         # sort the data points before plotting
         sort -n -o "xxx-$patt-$ap.dat" "xxx-$patt-$ap.dat"
-        echo "plotting"
-
-        FILES[$index]="xxx-$patt-$ap.dat"
-        YCOLS[$index]='($2)'
-        XCOLS[$index]='($1)'
-        LABELS[$index]="n=$n"
-
-        index=`expr $index + 1`
     done
+
+    rm -f xxx-$patt.dat
+    declare -a sum
+    for ap in ap1 ap2 ap3 ap4 ap5 ap6 ap7; do
+        while read a b; do
+            if [ -z ${sum[a]} ]; then
+                sum[a]=$b
+            else
+                sum[a]="$( bc <<<"${sum[a]} + $b" )"
+            fi
+        done <xxx-$patt-$ap.dat
+    done
+
+    for idx in ${!sum[*]}; do
+        sum[$idx]="$( bc <<<"scale=6; ${sum[$idx]} / 7.0" )"
+        echo "$idx, ${sum[$idx]}"
+        echo  "$idx, ${sum[$idx]}" >> "xxx-$patt.dat"
+    done
+    unset sum
+
+    echo "plotting"
+
+    FILES[$index]="xxx-$patt.dat"
+    YCOLS[$index]='($2)'
+    XCOLS[$index]='($1)'
+    LABELS[$index]="n=$n"
+
+    index=`expr $index + 1`
 done
 
 PLOTTYPE="with linespoints"
