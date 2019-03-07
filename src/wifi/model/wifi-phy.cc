@@ -2563,6 +2563,15 @@ WifiPhy::SendPacket (Ptr<const Packet> packet, WifiTxVector txVector, MpduType m
   WifiPhyTag tag (txVector.GetPreambleType (), txVector.GetMode ().GetModulationClass (), isFrameComplete, m_device ? m_device->GetNode ()->GetId () : 0);
   newPacket->AddPacketTag (tag);
 
+  if (m_powerRestricted)
+    {
+      NS_LOG_DEBUG("Transmitting with power restriction");
+    }
+  else
+    {
+      NS_LOG_DEBUG("Transmitting without power restriction");
+    }
+
   StartTx (newPacket, txVector, txDuration);
 
   m_powerRestricted = false;
