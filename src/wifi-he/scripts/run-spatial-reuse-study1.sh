@@ -70,7 +70,7 @@ echo "" >> ../scripts/study1.sh
 # vary n from 5 to 40  in steps of 5
 for n in 5 10 15 20 25 30 35 40 ; do
     echo "export n=${n}" >> ../scripts/study1.sh
-    for offeredLoad in 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0 5.5 6.0; do
+    for offeredLoad in 1.0 2.0 3.0 4.0 5.0 6.0 7.0 8.0 9.0 10.0 11.0 12.0; do
         echo "export offeredLoad=${offeredLoad}" >> ../scripts/study1.sh
         ol1=$(awk "BEGIN {print $offeredLoad*1.0}")
         # uplink is 90% of total offered load
