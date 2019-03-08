@@ -314,7 +314,7 @@ These experiments are decomposed into the following subsets:
 
 * OBSS_PD Study
 
-* Parametric Study 1
+* Parametric Studies
 
 Calibration Tests
 =================
@@ -550,8 +550,8 @@ expected to show that the use of the OBSS_PD feature additionally
 improves the spatial reuse efficiency as compared to the second 
 scenario in which the feature is disabled.
 
-Parametric Study
-================
+Parametric Studies
+==================
 
 The purpose of the Parametric Study 1 is to evaluate spatial reuse
 effects for dense node scenarios, while varying several parameters,
@@ -564,11 +564,11 @@ in Mb/s
 
 The scenario places one BSS of interest at the center of the topology,
 surrounded by 6 other BSSs arranged in a hexagonal pattern.  There is 
-1 AP at the center of each of the 7 total BSSs.  The APs are separated
+1 AP at the center of each of the 7 total BSSs. The APs are separated
 by a distance of r=34.64m, as modeled in the Residential Scenario described
-in [TGax15]_.  Around each AP there are n
-STAs that are randomly placed within a circle of radius r=10m centered
-at the AP.  The number of STAs varies from 5 to 40 STAs per BSS.
+in [TGax15]_. 
+Around each AP there are n STAs that are randomly placed within a circle
+of radius r=10m centered at the AP.  The number of STAs varies from 5 to 40 STAs per BSS.
 
 Transmitted packets use a payload size of 1500 bytes, with a MaxAmpduSize=65535.
 Packets are sent using the ns-3 Wifi IdealRateManager, which adapts the 
