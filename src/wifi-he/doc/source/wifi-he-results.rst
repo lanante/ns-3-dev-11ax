@@ -146,9 +146,6 @@ Examples of these metrics with further explanation are given below.
 Example Scenarios
 =================
 
-The figures in the section were generated using the ns-3-dev-11ax 
-repository as of commit changeset 7d56f75.
-
 As an example comparison, we consider two of these scenarios:
 
 1. Scenario 80-30-02-20 and
@@ -694,27 +691,24 @@ make latexpdf
 Study 1 Results
 ===============
 
-The figures in the section were generated using the ns-3-dev-11ax 
-repository as of commit changeset 9bd25fef3784187303f5c92271bece656a1ddd66.
-
 System Throughput
 #################
 
-The throughput as offered load is increased is shown below for 
-the center BSS of interest. A separate line is plotted for each value
-of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
+The average throughput as offered load per BSS is increased is shown below.
+A separate line is plotted for each value of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
 
 .. _throughput-study1:
 
 .. figure:: figures/throughput-study1.*
    :align: center 
 
-   Throughput for the BSS of interest in the center of the Study 1 parametric study.
+   Average throughput for the Study 1 parametric study.
 
-Figure :ref:`throughput-study1` illustrates the system throughput for BSS1.
+Figure :ref:`throughput-study1` illustrates the average system throughput.
 
-It is observed that system throughput increases as offered load increases.
-Furthermore, system throughput decreases as the number of STAs, n, per BSS increases.
+It is observed that the average system throughput increases as offered load increases.
+Furthermore, system throughput decreases at higher load as the number of STAs, n, per BSS increases.
+Note that the saturation point is not reached yet at 12 Mbps.
 
 Distribution of Node Contributions to Downlink Throughput
 #########################################################
@@ -762,61 +756,58 @@ for most nodes.
 Area Capacity
 #############
 
-The area capacity as offered load is increased is shown below for 
-the center BSS of interest. A separate line is plotted for each value
-of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
+The average area capacity as offered load per BSS is increased is shown below.
+A separate line is plotted for each value of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
 
 .. _area-capacity-study1:
 
 .. figure:: figures/area-capacity-study1.*
    :align: center 
 
-   Area capacity for the BSS of interest in the center of the Study 1 parametric study.
+   Average area capacity for the Study 1 parametric study.
 
-Figure :ref:`area-capacity-study1` illustrates the system throughput for BSS1.
+Figure :ref:`area-capacity-study1` illustrates the average system area capacity.
 
-It is observed that area capacity increases as offered load increases.
-Furthermore, area capacity decreases as the number of STAs, n, per BSS increases.
+It is observed that the average area capacity increases as offered load increases.
+Furthermore, area capacity at higher load decreases as the number of STAs, n, per BSS increases.
 
 Area Spectrum Efficiency
 ########################
 
-The area spectrum efficiency as offered load is increased is shown below for 
-the center BSS of interest. A separate line is plotted for each value
-of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
+The average area spectrum efficiency as offered load per BSS is increased is shown below.
+A separate line is plotted for each value of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
 
 .. _spectrum-efficiency-study1:
 
 .. figure:: figures/spectrum-efficiency-study1.*
    :align: center 
 
-   Area spectrum efficiency for the BSS of interest in the center of the Study 1 parametric study.
+   Average area spectrum efficiency for the BSS Study 1 parametric study.
 
-Figure :ref:`spectrum-efficiency-study1` illustrates the system throughput for BSS1.
+Figure :ref:`spectrum-efficiency-study1` illustrates the average system area spectrum efficiency.
 
-It is observed that area spectrum efficiency increases as offered load increases.
-Furthermore, area spectrum efficiency decreases as the number of STAs, n, per BSS increases.
+It is observed that the average area spectrum efficiency increases as offered load increases.
+Furthermore, area spectrum efficiency at higher load decreases as the number of STAs, n, per BSS increases.
 
 Airtime utilization
 ###################
 
-The airtime utilization as offered load is increased is shown below for 
-the center BSS of interest. A separate line is plotted for each value
-of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
+The average airtime utilization as offered load per BSS is increased is shown below.
+A separate line is plotted for each value of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
 
 .. _airtime-utilization-study1:
 
 .. figure:: figures/airtime-utilization-study1.*
    :align: center 
 
-   Airtime utilization for the BSS of interest in the center of the Study 1 parametric study.
+   Average airtime utilization for the Study 1 parametric study.
 
-Figure :ref:`airtime-utilization-study1` illustrates the airtime utilization for BSS1.
+Figure :ref:`airtime-utilization-study1` illustrates the average airtime utilization.
 
 Noise and Signal Distributions
 ##############################
 
-The ECDF of the signal level received at the AP of the BSS of interest is
+The ECDF of the signal level received at the AP of the BSS1 is
 shown below, for the scenario of n=20 nodes, and offered load of 2 Mbps.
 
 .. _study1-20-ap1-signal:
@@ -824,11 +815,11 @@ shown below, for the scenario of n=20 nodes, and offered load of 2 Mbps.
 .. figure:: figures/spatial-reuse-rx-sniff-study1-3464-10-20-2-180.0-20.0-ap1-signal.*
    :align: center 
 
-   ECDF of the signal level at the AP for the BSS of interest in the center of the Study 1 parametric study, with n=20 STAs per BSS.
+   ECDF of the signal level at the AP for the BSS1 in the center of the Study 1 parametric study, with n=20 STAs per BSS.
 
 Figure :ref:`study1-20-ap1-signal` illustrates the ECDF of the signal levels received for BSS1 with n=20 STAs per BSS..
 
-The ECDF of the noise level at the AP of the BSS of interest is
+The ECDF of the noise level at the AP of the BSS1 is
 shown below, for the scenario of n=20 nodes, and offered load of 2 Mbps.
 
 .. _study1-20-ap1-noise:
@@ -836,7 +827,7 @@ shown below, for the scenario of n=20 nodes, and offered load of 2 Mbps.
 .. figure:: figures/spatial-reuse-rx-sniff-study1-3464-10-20-2-180.0-20.0-ap1-noise.*
    :align: center 
 
-   ECDF of the noise level at the AP for the BSS of interest in the center of the Study 1 parametric study, with n=20 STAs per BSS..
+   ECDF of the noise level at the AP for the BSS1 in the center of the Study 1 parametric study, with n=20 STAs per BSS..
 
 Figure :ref:`study1-20-ap1-signal` illustrates the ECDF of the noise levels at BSS1 with n=20 STAs per BSS.
 
@@ -883,121 +874,110 @@ make latexpdf
 Study 2 Results
 ===============
 
-The figures in the section were generated using the ns-3-dev-11ax
-repository as of commit changeset 003396927f1fa07b3681af0066c50436be1ec952.
-
 System Throughput
 #################
 
-The throughput with OBSS_PD level -82 dBm as offered load is increased is shown below for
-the center BSS of interest. A separate line is plotted for each value
-of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
+The average throughput with OBSS_PD level -82 dBm as offered load per BSS is increased is shown below.
+A separate line is plotted for each value of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
 
 .. _throughput-study2a-82:
 
 .. figure:: figures/throughput-study2a-82.*
    :align: center
 
-   Throughput with OBSS_PD level -82 dBm for the BSS of interest in the center of the Study 2 parametric study.
+   Average throughput with OBSS_PD level -82 dBm for the Study 2 parametric study.
 
-Figure :ref:`throughput-study2a-82` illustrates the system throughput for BSS1.
+Figure :ref:`throughput-study2a-82` illustrates the average system throughput with OBSS_PD level -82 dBm.
 
-The throughput with OBSS_PD level -62 dBm as offered load is increased is shown below for
-the center BSS of interest. A separate line is plotted for each value
-of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
+The average throughput with OBSS_PD level -62 dBm as offered load per BSS is increased is shown below.
+A separate line is plotted for each value of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
 
 .. _throughput-study2a-62:
 
 .. figure:: figures/throughput-study2a-62.*
    :align: center
 
-Throughput with OBSS_PD level -62 dBm for the BSS of interest in the center of the Study 2 parametric study.
+Average throughput with OBSS_PD level -62 dBm for the Study 2 parametric study.
 
-Figure :ref:`throughput-study2a-62` illustrates the system throughput for BSS1.
+Figure :ref:`throughput-study2a-62` illustrates the average system throughput with OBSS_PD level -62 dBm.
 
 Area Capacity
 #############
 
-The area capacity with OBSS_PD level -82 dBm as offered load is increased is shown below for
-the center BSS of interest. A separate line is plotted for each value
-of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
+The  for BSS1.average area capacity with OBSS_PD level -82 dBm as offered load per BSS is increased is shown below.
+A separate line is plotted for each value of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
 
 .. _area-capacity-study2a-82:
 
 .. figure:: figures/area-capacity-study2a-82.*
    :align: center
 
-   Area capacity with OBSS_PD level -82 dBm for the BSS of interest in the center of the Study 2 parametric study.
+   Average area capacity with OBSS_PD level -82 dBm for the Study 2 parametric study.
 
-Figure :ref:`area-capacity-study2a-82` illustrates the system throughput for BSS1.
+Figure :ref:`area-capacity-study2a-82` illustrates the average system area capacity with OBSS_PD level -82 dBm.
 
-The area capacity with OBSS_PD level -62 dBm as offered load is increased is shown below for
-the center BSS of interest. A separate line is plotted for each value
-of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
+The average area capacity with OBSS_PD level -62 dBm as offered load per BSS is increased is shown below.
+A separate line is plotted for each value of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
 
 .. _area-capacity-study2a-62:
 
 .. figure:: figures/area-capacity-study2a-62.*
    :align: center
 
-Area capacity with OBSS_PD level -62 dBm for the BSS of interest in the center of the Study 2 parametric study.
+Average area capacity with OBSS_PD level -62 dBm for the Study 2 parametric study.
 
-Figure :ref:`area-capacity-study2a-62` illustrates the system throughput for BSS1.
+Figure :ref:`area-capacity-study2a-62` illustrates the average system area capacity with OBSS_PD level -62 dBm.
 
 Area Spectrum Efficiency
 ########################
 
-The area spectrum efficiency with OBSS_PD level -82 dBm as offered load is increased is shown below for
-the center BSS of interest. A separate line is plotted for each value
-of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
+The average area spectrum efficiency with OBSS_PD level -82 dBm as offered load per BSS is increased is shown below.
+A separate line is plotted for each value of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
 
 .. _spectrum-efficiency-study2a-82:
 
 .. figure:: figures/spectrum-efficiency-study2a-82.*
    :align: center
 
-   Area spectrum efficiency with OBSS_PD level -82 dBm for the BSS of interest in the center of the Study 2 parametric study.
+   Average area spectrum efficiency with OBSS_PD level -82 dBm for the Study 2 parametric study.
 
-Figure :ref:`spectrum-efficiency-study2a-82` illustrates the system throughput for BSS1.
+Figure :ref:`spectrum-efficiency-study2a-82` illustrates the average system area spectrum efficiency with OBSS_PD level -82 dBm.
 
-The area spectrum efficiency with OBSS_PD level -62 dBm as offered load is increased is shown below for
-the center BSS of interest. A separate line is plotted for each value
-of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
+The average area spectrum efficiency with OBSS_PD level -62 dBm as offered load per BSS is increased is shown below.
+A separate line is plotted for each value of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
 
 .. _spectrum-efficiency-study2a-62:
 
 .. figure:: figures/spectrum-efficiency-study2a-62.*
    :align: center
 
-Area spectrum efficiency with OBSS_PD level -62 dBm for the BSS of interest in the center of the Study 2 parametric study.
+Average area spectrum efficiency with OBSS_PD level -62 dBm for the the Study 2 parametric study.
 
-Figure :ref:`spectrum-efficiency-study2a-62` illustrates the system throughput for BSS1.
+Figure :ref:`spectrum-efficiency-study2a-62` illustrates the average system area spectrum efficiency with OBSS_PD level -62 dBm.
 
 Airtime utilization
 ###################
 
-The airtime utilization with OBSS_PD level -82 dBm as offered load is increased is shown below for
-the center BSS of interest. A separate line is plotted for each value
-of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
+The average airtime utilization with OBSS_PD level -82 dBm as offered load per BSS is increased is shown below.
+A separate line is plotted for each value of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
 
 .. _airtime-utilization-study2a-82:
 
 .. figure:: figures/airtime-utilization-study2a-82.*
    :align: center
 
-   Airtime utilization with OBSS_PD level -82 dBm for the BSS of interest in the center of the Study 2 parametric study.
+   Average irtime utilization with OBSS_PD level -82 dBm for the Study 2 parametric study.
 
-Figure :ref:`airtime-utilization-study2a-82` illustrates the airtime utilization for BSS1.
+Figure :ref:`airtime-utilization-study2a-82` illustrates the average airtime utilization with OBSS_PD level -82 dBm.
 
-The airtime utilization with OBSS_PD level -62 dBm as offered load is increased is shown below for
-the center BSS of interest. A separate line is plotted for each value
-of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
+The average airtime utilization with OBSS_PD level -62 dBm as offered load per BSS is increased is shown below.
+A separate line is plotted for each value of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
 
 .. _airtime-utilization-study2a-62:
 
 .. figure:: figures/airtime-utilization-study2a-62.*
    :align: center
 
-   Airtime utilization with OBSS_PD level -62 dBm for the BSS of interest in the center of the Study 2 parametric study.
+   Average airtime utilization with OBSS_PD level -62 dBm for the Study 2 parametric study.
 
-Figure :ref:`airtime-utilization-study2a-62` illustrates the airtime utilization for BSS1.
+Figure :ref:`airtime-utilization-study2a-62` illustrates the average airtime utilization with OBSS_PD level -62 dBm.
