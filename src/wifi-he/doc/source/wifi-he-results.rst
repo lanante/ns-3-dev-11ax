@@ -897,7 +897,7 @@ A separate line is plotted for each value of the number of STAs (e.g., n=5, n=10
 .. figure:: figures/throughput-study2a-62.*
    :align: center
 
-Average throughput with OBSS_PD level -62 dBm for the Study 2 parametric study.
+   Average throughput with OBSS_PD level -62 dBm for the Study 2 parametric study.
 
 Figure :ref:`throughput-study2a-62` illustrates the average system throughput with OBSS_PD level -62 dBm.
 
@@ -924,7 +924,7 @@ A separate line is plotted for each value of the number of STAs (e.g., n=5, n=10
 .. figure:: figures/area-capacity-study2a-62.*
    :align: center
 
-Average area capacity with OBSS_PD level -62 dBm for the Study 2 parametric study.
+   Average area capacity with OBSS_PD level -62 dBm for the Study 2 parametric study.
 
 Figure :ref:`area-capacity-study2a-62` illustrates the average system area capacity with OBSS_PD level -62 dBm.
 
@@ -951,9 +951,10 @@ A separate line is plotted for each value of the number of STAs (e.g., n=5, n=10
 .. figure:: figures/spectrum-efficiency-study2a-62.*
    :align: center
 
-Average area spectrum efficiency with OBSS_PD level -62 dBm for the the Study 2 parametric study.
+   Average area spectrum efficiency with OBSS_PD level -62 dBm for the Study 2 parametric study.
 
 Figure :ref:`spectrum-efficiency-study2a-62` illustrates the average system area spectrum efficiency with OBSS_PD level -62 dBm.
+
 
 Airtime utilization
 ###################
@@ -966,7 +967,7 @@ A separate line is plotted for each value of the number of STAs (e.g., n=5, n=10
 .. figure:: figures/airtime-utilization-study2a-82.*
    :align: center
 
-   Average irtime utilization with OBSS_PD level -82 dBm for the Study 2 parametric study.
+   Average airtime utilization with OBSS_PD level -82 dBm for the Study 2 parametric study.
 
 Figure :ref:`airtime-utilization-study2a-82` illustrates the average airtime utilization with OBSS_PD level -82 dBm.
 

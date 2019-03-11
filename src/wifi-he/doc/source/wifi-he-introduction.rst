@@ -52,4 +52,4 @@ Outline
 
 * Section 5 provides in-depth results from different parametric studies.
 
-* Section 6 summarizes the report and describes open issues and future work.
+* Section 6 describes open issues and future work.

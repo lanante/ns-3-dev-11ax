@@ -312,8 +312,6 @@ These experiments are decomposed into the following subsets:
 
 * Simulation Parameter Sensitivity Study
 
-* OBSS_PD Study
-
 * Parametric Studies
 
 Calibration Tests
@@ -510,45 +508,6 @@ The tests are launched as separate ns-3 simulations
 that are run in parallel.  The scripts are provided to allow 
 researchers to study the parametric effects of varying 
 parameters that may influence simulation results.
-
-OBSS_PD Study
-=============
-
-The purpose of the OBSS_PD Study is to evaluate identical networks
-with nBss=7 BSSs each with n=5 STA, as further evaluated for 3 different 
-scenarios:
-
-1) All nodes operating as 802.11ac
-
-2) All nodes operating as 802.11ax without OBSS_PD enabled
-
-3) All nodes operating as 802.11ax with OBSS_PD enabled and an
-ObssPdThreshold of -81 dBm.
-
-The script is based on the Bianchi Validation test (Test4) for fully
-saturated uplink traffic for n=5 nodes.
-
-Transmitted packets use a payload size of 1500 bytes, with an A-MDPU
-set to aggregate at most 2 packets (i.e., MaxAmpduSize=3142).  Packets
-are sent at a data rate using MCS=7.
-
-The following bash script is available:
-
-::
-
- ./obss-pd-test1.sh
-
-The tests are launched as separate ns-3 simulations
-that are run in parallel.  The scripts are provided to allow 
-researchers to study the effects of the Constant OBSS_PD
-algorithm in an 11ax network.
-
-Results show that performance (e.g., total aggregated system
-throughput) for the 802.11ax (without OBSS_PD) increases as compared to 
-the 802.11ac only scenario.  Furthermore, the third scenario is
-expected to show that the use of the OBSS_PD feature additionally 
-improves the spatial reuse efficiency as compared to the second 
-scenario in which the feature is disabled.
 
 Parametric Studies
 ==================

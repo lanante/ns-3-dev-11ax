@@ -9,8 +9,6 @@
 
 Open Issues and Future Work
 ***************************
-Open issues are tracked in the Bitbucket issue tracker.  Below is a summary
-of open issues as of changeset 91d7fd4e24da998d284b8c434a24bbfecc4d17ae (February 11, 2019).
 
 Open Issues and Future Work in the underlying Wi-Fi model
 =========================================================
@@ -31,8 +29,6 @@ theoretical results on the plots vs. the simulation results. (issue #73)
 
 Block ack frame format (issue #80)
 
-OBSS_PD algorithm should check for backoff before imposing power restriction (issue #107)
-
 Open Issues and Future Work in the spatial reuse scenarios
 ==========================================================
 
@@ -41,10 +37,7 @@ Plot the CDF of latency per flow (issue #33)
 Implement additional wish-list of spatial reuse scenario features
 and metrics (issues #10 #14)
 
-Merge study1.sh and study2.sh into single script; study2.sh does not presently
-work (issue #82)
-
-Spatial-reuse should be re-run with inter BSS distance of 34.64m instead of 17.32m (issue #110)
+Merge study1.sh and study2.sh into single script (issue #82)
 
 Open Issues and Future Work in the other scenarios
 ==================================================
