@@ -63,7 +63,7 @@ for n in 5 10 20 ; do
                 for uplink in 1 2 3 4 5 6 ; do
                     downlink=0
                     test=$(printf "experiments-%02d-%02d-%02d-%02d-%04d-%04d" ${d} ${r} ${nBss} ${n} ${uplink} ${downlink})
-                    run_one &
+                    sleep 1; run_one &
                 done
             done
         done
