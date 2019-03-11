@@ -4,6 +4,8 @@
 # the results from several specific individual simulations into
 # one chart.
 
+export LC_NUMERIC="en_US.UTF-8"
+
 set -o errexit
 
 # params that remain constant
@@ -11,16 +13,10 @@ d=34.64
 r=10
 nBss=7
 
-# ECDF of System Throughput as a distribution of each STA, 
-# for n=5 nodes
-
-# params that will vary
+# ECDF of System Throughput as a distribution of each STA
 index=0
-# for n in 5 10 15 20 25 30 35 40 ; do
 for n in 5 20 ; do
     for ap in ap1 ; do
-#        for offeredLoad in 1.0 2.0 3.0 4.0 5.0 6.0 ; do
-        # arbitrarily pick the total offered load = 3 Mbps scenario
         for offeredLoad in 2.0 ; do
             ol1=$(awk "BEGIN {print $offeredLoad*1.0}")
             # uplink is 90% of total offered load
@@ -37,7 +33,6 @@ for n in 5 20 ; do
             for i in $(seq 1 $n); do
                 nodeIdx=$(awk "BEGIN {print $i+6}")
                 grepPattern="Node $nodeIdx,"
-                # echo "$grepPattern";
                 grep "$grepPattern" "./results/spatial-reuse-SR-stats-study1-$patt.dat" >> ./results/plot_tmp.dat
             done
 
@@ -47,14 +42,12 @@ for n in 5 20 ; do
             echo "0, 0, 0, 0, 0, 0, 0, 0, 0" >> "xxx-$patt-$ap-ecdf.dat"
 
             while read p ; do
-                #  echo "$p"
                 IFS=','; arrP=($p); unset IFS;
                 F="${arrP[3]}"
                 IFS=' '; arrF=($F); unset IFS;
-                    # echo "${arrF[2]}, ${arrP[0]}"
-                    # prepare the output file for the ecdf2.py script
-                    echo "0, 0, 0, 0, ${arrF[2]}, ${arrP[0]}, 0, 0, 0" >> "xxx-$patt-$ap-ecdf.dat"
-                done <./results/plot_tmp.dat
+                # prepare the output file for the ecdf2.py script
+                echo "0, 0, 0, 0, ${arrF[2]}, ${arrP[0]}, 0, 0, 0" >> "xxx-$patt-$ap-ecdf.dat"
+            done <./results/plot_tmp.dat
 
             # generate ECDF plots using the python script
             echo "plotting"
