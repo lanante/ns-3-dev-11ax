@@ -49,11 +49,3 @@ Integrate and test LAA code (issue #5)
 Some Calibration Box5 scenarios crash ns-3 (issue #43)
 
 Rework scripts to avoid files in top-level directory ((issue #77)
-
-pngcairo not readily available on MacOS (issue #78)
-
-unequal split of the UL throughput for calibration tests (issue #86)
-
-Indoor small BSS and residential scenarios give lower results than expected  (issue #87)
-
-Get lower throughput than expected for 80-30-02-20 experiments (issue #88)
