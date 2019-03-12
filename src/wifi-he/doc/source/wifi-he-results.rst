@@ -459,7 +459,7 @@ increases as the number of STAs per network increases.
 Parametric Studies
 ==================
 
-In the nexgt sections, we discuss parametric studies that have been conducted to
+In the next sections, we discuss parametric studies that have been conducted to
 examine the behaviors of the spatial reuse feature of 802.11ax.
 We first describe the framework used to represent the scenarios
 in order to conduct simulation experiments for these studies.
@@ -627,8 +627,7 @@ The number of STAs, n, is varied from 5 to 40 in steps of 5.
 
 All nodes in Study 1 use 802.11ac.
 
-Results are collected in terms of the one, central BSS of high-interest
-(i.e., the "red" BSS area within the figure above).
+Results are collected in terms of the average of all BSS.
 
 Performance metrics collected include the following (using the same definitions
 as given earlier):
@@ -694,7 +693,7 @@ Study 1 Results
 System Throughput
 #################
 
-The average throughput as offered load per BSS is increased is shown below.
+The average upstream throughput as offered load per BSS is increased is shown below.
 A separate line is plotted for each value of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
 
 .. _throughput-study1:
@@ -702,12 +701,12 @@ A separate line is plotted for each value of the number of STAs (e.g., n=5, n=10
 .. figure:: figures/throughput-study1.*
    :align: center 
 
-   Average throughput for the Study 1 parametric study.
+   Average upstream throughput for the Study 1 parametric study.
 
-Figure :ref:`throughput-study1` illustrates the average system throughput.
+Figure :ref:`throughput-study1` illustrates the average upstream system throughput.
 
-It is observed that the average system throughput increases as offered load increases.
-Furthermore, system throughput decreases at higher load as the number of STAs, n, per BSS increases.
+It is observed that the average upstream system throughput increases as offered load increases.
+Furthermore, upstream system throughput decreases at higher load as the number of STAs, n, per BSS increases.
 Note that the saturation point is not reached yet at 12 Mbps.
 
 Distribution of Node Contributions to Downlink Throughput
@@ -877,7 +876,7 @@ Study 2 Results
 System Throughput
 #################
 
-The average throughput with OBSS_PD level -82 dBm as offered load per BSS is increased is shown below.
+The average upstream throughput with OBSS_PD level -82 dBm as offered load per BSS is increased is shown below.
 A separate line is plotted for each value of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
 
 .. _throughput-study2a-82:
@@ -885,11 +884,14 @@ A separate line is plotted for each value of the number of STAs (e.g., n=5, n=10
 .. figure:: figures/throughput-study2a-82.*
    :align: center
 
-   Average throughput with OBSS_PD level -82 dBm for the Study 2 parametric study.
+   Average upstream throughput with OBSS_PD level -82 dBm for the Study 2 parametric study.
 
-Figure :ref:`throughput-study2a-82` illustrates the average system throughput with OBSS_PD level -82 dBm.
+Figure :ref:`throughput-study2a-82` illustrates the average upstream system throughput with OBSS_PD level -82 dBm.
 
-The average throughput with OBSS_PD level -62 dBm as offered load per BSS is increased is shown below.
+We can observe that study 2 with OBSS_PD level -82 dBm ignores STA transmissions with RSSI lower than -82dBm.
+Because it sees fewer STAs, the effect of the number of STA induced degradation is lower compared to previous study 1 results.
+
+The average upstream throughput with OBSS_PD level -62 dBm as offered load per BSS is increased is shown below.
 A separate line is plotted for each value of the number of STAs (e.g., n=5, n=10, n=15, ..., n=40).
 
 .. _throughput-study2a-62:
@@ -897,9 +899,12 @@ A separate line is plotted for each value of the number of STAs (e.g., n=5, n=10
 .. figure:: figures/throughput-study2a-62.*
    :align: center
 
-   Average throughput with OBSS_PD level -62 dBm for the Study 2 parametric study.
+   Average upstream throughput with OBSS_PD level -62 dBm for the Study 2 parametric study.
 
-Figure :ref:`throughput-study2a-62` illustrates the average system throughput with OBSS_PD level -62 dBm.
+Figure :ref:`throughput-study2a-62` illustrates the average upstream system throughput with OBSS_PD level -62 dBm.
+
+We notice that results obtained with OBSS_PD level -62 dBm and -82 dBm do not have noticeable difference.
+This is because the saturation is not reached yet even at 12 Mbit/s.
 
 Area Capacity
 #############
