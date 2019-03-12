@@ -1056,7 +1056,7 @@ Test 3 - Indoor Small BSSs Scenario
 The indoor small BSSs scenario has the objective to be representative
 of real-world deployments with high density of APs and STAs [TGax15]_.
 
-The scenario is simulated in ns-3 as follows:  2 APs are placed d=17.32m 
+The scenario is simulated in ns-3 as follows: 2 APs are placed d=34.64m 
 apart, each with n=30 STAs that are dropped within a circle of r=10m around
 the AP.
 
@@ -1093,7 +1093,7 @@ from the common parameters.
 
 * ``test`` = TGax-test3
 
-* ``d`` = 17.32
+* ``d`` = 34.64
 
 * ``r`` = 10
 
