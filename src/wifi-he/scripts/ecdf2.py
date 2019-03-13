@@ -32,7 +32,7 @@ for line in fd:
             j=j+1
     i=i+1
 
-print(j, " matching data points.")
+print("%d matching data points" % j)
 # print(np.sort(x))
 
 # a = np.array(x)
@@ -46,6 +46,8 @@ print(j, " matching data points.")
 
 # plot 2"x2" plot area
 plt.figure(figsize=(2.5,2.5))
+ax = plt.gca()
+ax.autoscale()
 # endpoint=True means include last point
 plt.plot(np.sort(x), np.linspace(0, 1, len(x), endpoint=True))
 plt.savefig(sys.argv[7])

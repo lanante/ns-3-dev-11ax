@@ -270,7 +270,9 @@ function run_one () {
   cp "../../../spatial-reuse-SR-stats-$test.dat"  "results/spatial-reuse-SR-stats-$test.dat"
   cp "../../../spatial-reuse-A-$test.flowmon"  "results/spatial-reuse-A-$test.flowmon"
   cp "../../../spatial-reuse-operatorA-$test"  "results/spatial-reuse-operatorA-$test"
-  cp "../../../spatial-reuse-$test.tr"  "results/spatial-reuse-$test.tr"
+  if [ -f "../../../spatial-reuse-$test.tr" ]; then
+      cp "../../../spatial-reuse-$test.tr"  "results/spatial-reuse-$test.tr"
+  fi
   if (("${performTgaxTimingChecks}" == "1")); then
     cp "../../../spatial-reuse-tgax-calibration-timings-$test.dat"  "results/spatial-reuse-tgax-calibration-timings-${test}.dat"
   fi
@@ -317,10 +319,10 @@ function run_one () {
 
   # to reduce disk space usage, the 'rx-sniff' and 'tx-power' files are deleted here, after
   # the simulation has completed, and after the noise and signal plots have been generated
-  rm "../../../spatial-reuse-rx-sniff-$test.dat"
-  rm "spatial-reuse-rx-sniff-$test.dat"
-  rm "../../../spatial-reuse-tx-power-$test.dat"
-  rm "spatial-reuse-tx-power-$test.dat"
+  rm -f "../../../spatial-reuse-rx-sniff-$test.dat"
+  rm -f "spatial-reuse-rx-sniff-$test.dat"
+  rm -f "../../../spatial-reuse-tx-power-$test.dat"
+  rm -f "spatial-reuse-tx-power-$test.dat"
 
   # copy the signal and noise png files
   cp "spatial-reuse-rx-sniff-$test-ap1-signal.png" ./results/.

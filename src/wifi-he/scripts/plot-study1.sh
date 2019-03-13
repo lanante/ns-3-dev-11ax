@@ -286,6 +286,7 @@ for n in 5 10 15 20 25 30 35 40 ; do
     index=`expr $index + 1`
 done
 
+
 PLOTTYPE="with linespoints"
 XLABEL="Offered Load [Mbps]"
 YLABEL="Airtime Utilization [%]"
@@ -293,6 +294,9 @@ RANGE=$AIRTIME_UTILIZATION_RANGE
 OPTIONS="$BASE_OPTIONS ; set key top left"
 IMGFILENAME="airtime-utilization-study1"
 plot
+
+wait
+rm xxx-3464-10*.dat
 
 unset FILES
 unset LABELS

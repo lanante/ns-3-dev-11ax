@@ -3,7 +3,9 @@
 
 cd ../scripts
 
-cp "./results/spatial-reuse-positions-test-study1.png" ../doc/source/figures/.
+if [ -f "./results/spatial-reuse-positions-test-study1.png" ]; then
+    cp "./results/spatial-reuse-positions-test-study1.png" ../doc/source/figures/.
+fi
 cp "./images/png/throughput-study1.png" ../doc/source/figures/.
 cp "./images/png/area-capacity-study1.png" ../doc/source/figures/.
 cp "./images/png/spectrum-efficiency-study1.png" ../doc/source/figures/.
