@@ -44,40 +44,36 @@ by default with 20 MHz channels and a SISO antenna system,
 using the constant rate wifi manager for a constant VHT MCS 0.  The residential 
 scenario is used, which uses the Ieee80211IndoorPropagationLossModel.
 
-./waf --run spatial-reuse
+.. sourcecode:: bash
+
+    $ ./waf --run spatial-reuse
 
 The above output shows the following results:
 
 ::
 
- Uplink interval:+12000000.0ns Downlink interval:+2400000.0ns
+    Uplink interval:+12000000.0ns Downlink interval:+2400000.0ns
+    ApplicationTxStart: 1 Duration: 20
+    nBss: 2 nStas/Bss: 1 => nStas: 2
+    Spatial Reuse Statistics
+    Scenario: residential
+    APs: 2
+    Nodes per AP: 1
+    Distance between APs [m]: 100
+    Radius [m]: 50
+    Uplink [Mbps]: 1
+    Downlink [Mbps]: 1
+    Uplink Efficiency   95.64 [%]
+    Downlink Efficiency 95.604 [%]
+    Throughput,  AP1 Uplink   [Mbps] : 0.9564
+    Throughput,  AP1 Downlink [Mbps] : 0.95604
+    Throughput,  AP2 Uplink   [Mbps] : 0.9552
+    Throughput,  AP2 Downlink [Mbps] : 0.95604
+    Total Throughput Uplink   [Mbps] : 1.9116
+    Total Throughput Downlink [Mbps] : 1.91208
 
- Scenario: residential
-
- Uplink Efficiency   0 [%]
-
- Downlink Efficiency 0 [%]
-
- Throughput,  AP1 Uplink   [Mbps] : 0
-
- Throughput,  AP1 Downlink [Mbps] : 0
-
- Throughput,  AP2 Uplink   [Mbps] : 1.0002
-
- Throughput,  AP2 Downlink [Mbps] : 0.99996
-
- Spatial Reuse Stats written to: spatial-reuse-SR-stats-test.dat
-
- writing flowmon results to spatial-reuse-A-test.flowmon
-
-These results show that the network with AP2 was successful in delivering
-the intended uplink and downlink aggregated offered loads of 1 Mbps, while
-the first network with AP1 did not achieve any successful data deliveries.
-This is because of the randomized node placements of the STAs. For the first
-network, the STA is positioned beyond the transmission range of AP1, whereas
-the STA for second network is within AP2's transmission range. This
-shows that the indoor propagation loss model has limited transmission
-range.
+These results show that the two networks delivered comparable throughput
+performance in this scenario.
 
 Additionally, the spatial-reuse script produces a number of output 
 files that are placed in the ``scripts/results/`` folder.  These output files 
@@ -127,12 +123,12 @@ be an output file found as '/scripts/results/spatial-reuse-positions-test.csv'.
 Command Line Options
 ####################
 
-The complete list of program command lines options and there meanings can be obtained
+The complete list of program command lines options and their meanings can be obtained
 by running the following command:
 
-::
+.. sourcecode:: bash
 
-  ../waf --run "spatial-reuse --PrintHelp"
+  $ ../waf --run "spatial-reuse --PrintHelp"
 
 Utilities and Supporting Scripts
 ================================
@@ -150,16 +146,16 @@ The script is invoked by first
 setting variable values as environment variables.  For example, a caller
 may set a variable as follows:
 
-::
+.. sourcecode:: bash
 
-  export RngRun=7
+  $ export RngRun=7
 
 The caller may then invoke the ``run_one`` function, which uses 
 such parameters to invoke the spatial-reuse.cc script.  For example,
 the following shows the first few lines of the run_one() function and
 show the invocation of 3 parameters.
 
-::
+.. sourcecode:: bash
 
   #!/bin/bash
 
@@ -375,9 +371,9 @@ and APs, and use different propagation loss model parameters.
 
 The following bash script is available:
 
-::
+.. sourcecode:: bash
 
-  ./run-scenarios.sh
+  $ ./run-scenarios.sh
 
 The tests are launched as separate ns-3 simulations
 that are run in parallel.  Details on these tests can be found in [TGax15]_.
@@ -402,9 +398,9 @@ are sent at a data rate using MCS=0.
 
 The following bash script is available:
 
-:: 
+.. sourcecode:: bash
 
- ./run-spatial-reuse-scenarios.sh
+   $ ./run-spatial-reuse-scenarios.sh
 
 The following parameters are varied:
 
@@ -447,15 +443,15 @@ resulting throughput realized by the ns-3 simulation.
 
 The following bash scripts are available:
 
-::
+.. sourcecode:: bash
 
- ./bianchi-test1-dl-only.sh
+    $ ./bianchi-test1-dl-only.sh
 
- ./bianchi-test2-up-only.sh
+    $ ./bianchi-test2-up-only.sh
 
- ./bianchi-test3-dl-only.sh
+    $ ./bianchi-test3-dl-only.sh
 
- ./bianchi-test4-ul-only.sh
+    $ ./bianchi-test4-ul-only.sh
 
 Test 1 considers the scenario where the BSSs are fully decoupled (with
 separation distance of 120m between APs) with 40 STAs per BSS receiving
@@ -500,9 +496,9 @@ saturated uplink traffic for n=5 nodes per BSS, with 1 AP in each of
 
 The following bash script is available:
 
-::
+.. sourcecode:: bash
 
- ./bianchi-test2-run-sensitivity.sh
+  $ ./bianchi-test2-run-sensitivity.sh
 
 The tests are launched as separate ns-3 simulations
 that are run in parallel.  The scripts are provided to allow 
@@ -535,9 +531,9 @@ transmission rate per node based on the received SNR.
 
 The following bash script is available:
 
-::
- 
- ./run-spatial-reuse-study1.sh
+.. sourcecode:: bash
+
+  $ ./run-spatial-reuse-study1.sh
 
 Running this script produces another script, 'study1.sh' that must then
 be run.
@@ -560,9 +556,9 @@ other key parameters.
 
 For 802.11ax and OBSS_PD enabled tests, the following bash script is available:
 
-::
+.. sourcecode:: bash
  
- ./run-spatial-reuse-study2.sh
+ $ ./run-spatial-reuse-study2.sh
 
 Running this script produces another script, 'study2.sh' that must then
 be run.

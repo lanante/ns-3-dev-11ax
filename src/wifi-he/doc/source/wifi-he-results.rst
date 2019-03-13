@@ -538,10 +538,10 @@ Channel Model
 #############
 
 * Fading model - the TGac channel model D NLOS as mentioned in [TGax15]_ is 
-not modeled in this study.
+  not modeled in this study.
 
 * Pathloss model - the pathloss model as given in [TGax15]_ for the Indoor 
-Small BSSs (Scenario 3) is modeled.
+  Small BSSs (Scenario 3) is modeled.
 
 * Shadowing - Log-normal with 5 dB standard deviation, iid across all links.
 
