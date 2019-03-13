@@ -523,6 +523,10 @@ StaAssocCb (std::string context, Mac48Address bssid)
   if (nAssociatedStas == (n * nBss))
     {
       allStasAssociated = true;
+      if (!filterOutNonAddbaEstablished)
+        {
+          Simulator::Stop (Seconds (duration));
+        }
     }
 }
 
@@ -2984,14 +2988,7 @@ main (int argc, char *argv[])
     }
 
   Time durationTime = Seconds (duration + applicationTxStart);
-  if (!filterOutNonAddbaEstablished)
-    {
-      Simulator::Stop (durationTime);
-    }
-  else
-    {
-      Simulator::Stop (durationTime + Seconds (100)); //We expect ADDBA to be established much before 100s, this is just a protection to make sure simulation finishes oneday
-    }
+  Simulator::Stop (durationTime + Seconds (100)); //protection to make sure simulation finishes oneday
   Simulator::Run ();
 
   SchedulePhyLogDisconnect ();
