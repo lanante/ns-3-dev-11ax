@@ -651,9 +651,7 @@ documentation figures, the following scripts should be executed in order:
 
 4) plot-study1.sh - this generates plots of results.
 
-5) plot-study1-ecdf.sh - this generates additional plots (ECDFs) from results.
-
-6) copy-study1-plots-to-doc-figures.sh - this copies a subset of plots generated into
+5) copy-study1-plots-to-doc-figures.sh - this copies a subset of plots generated into
 the doc/figures folder, for inclusion of those results into the documentation.
 
 Note that any modifications that are made to change the values of n in the 
@@ -713,44 +711,13 @@ Distribution of Node Contributions to Downlink Throughput
 #########################################################
 
 Total throughput of the system is divided into uplink and downlink portions.
-The downlink portions (from the AP to the STAs) are then further divided equally
-among the STAs. For example, for a total system throughput target of 0.6 Mbps
-per BSS that is divided into 90% uplink and 10% downlink, then 0.6 Mbps x 0.1 = 0.06 Mbps
-is allocated in downlink traffic. If there are 5 STAs in the BSS, then the AP 
-attemps to deliver 0.06 Mbps / 5 = 0.012 Mbps from the AP to each of the 5 STAs.
-However, the packet performance measure of each STA, in terms of actual downlink 
-throughput, may vary from one STA to another. The per-STA performance of the 
-ability to successfully receive packets is a measure that can provide insights
-into the distribution of the behaviors among the nodes.
-
-The ECDF of node contributions to downlink throughput for the offered load of
-2 Mbps is shown below for cases of n=5 and n=20 nodes.
-
-.. _study1-05-ecdf:
-
-.. figure:: figures/study1-3464-10-05-2-180.0-20.0-ap1-ecdf.*
-   :align: center 
-
-   ECDF of node contributions to downlink throughput for n=5 nodes and offered load of 2 Mbps.
-
-Figure :ref:`study1-05-ecdf` illustrates the ECDF of node contributions to downlink throughput for n=5 nodes.
-
-It is observed that 100% of all n=5 STAs contributed the same amount of throughput per node, 
-at approximately 0.04 Mbps per node, and that no STAs delivered 0 packets. This indicates that
-the network is not saturated, and packet delivery occurs with high success rates across all nodes.
-
-.. _study1-20-ecdf:
-
-.. figure:: figures/study1-3464-10-20-2-180.0-20.0-ap1-ecdf.*
-   :align: center 
-
-   ECDF of node contributions to downlink throughput for n=20 nodes and offered load of 2 Mbps.
-
-Figure :ref:`study1-20-ecdf` illustrates the ECDF of node contributions to downlink throughput for n=20 nodes.
-
-It is observed that the majority of STAs contributed throughput per node of approximately 0.01 Mbps per node,
-and that a small number of STAs delivered 0 packets. This indicates that packet delivery occurs successfully
-for most nodes. 
+The downlink portions (from the AP to the STAs) are further divided equally
+among the STAs. For example, for a total system throughput target of 2 Mbps
+per BSS that is divided into 90% uplink and 10% downlink, then 2 Mbps x 0.1 = 0.2 Mbps
+is allocated to each STA in downlink traffic. If there are 5 STAs in the BSS, then the AP 
+attemps to deliver 0.2 Mbps / 5 = 0.04 Mbps from the AP to each of the 5 STAs.
+However, when saturated, the packet performance measure of each STA, in terms of actual downlink 
+throughput, may vary from one STA to another. 
 
 Area Capacity
 #############
