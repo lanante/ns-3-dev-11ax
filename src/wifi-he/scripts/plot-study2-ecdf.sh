@@ -58,3 +58,4 @@ for n in 5 20 ; do
         done
     done
 done
+rm -f xxx-*.dat

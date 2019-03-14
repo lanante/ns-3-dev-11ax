@@ -326,3 +326,5 @@ for pd_thresh in 82 77 72 67 62; do
     unset YCOLS
     unset XCOLS
 done
+
+rm -f xxx-3464-10*.dat

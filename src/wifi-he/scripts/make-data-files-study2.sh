@@ -14,13 +14,13 @@
 cd ../scripts
 
 # Throughput
-rm ./results/spatial-reuse-study2-throughput-ap1.dat
-rm ./results/spatial-reuse-study2-throughput-ap2.dat
-rm ./results/spatial-reuse-study2-throughput-ap3.dat
-rm ./results/spatial-reuse-study2-throughput-ap4.dat
-rm ./results/spatial-reuse-study2-throughput-ap5.dat
-rm ./results/spatial-reuse-study2-throughput-ap6.dat
-rm ./results/spatial-reuse-study2-throughput-ap7.dat
+rm -f ./results/spatial-reuse-study2-throughput-ap1.dat
+rm -f ./results/spatial-reuse-study2-throughput-ap2.dat
+rm -f ./results/spatial-reuse-study2-throughput-ap3.dat
+rm -f ./results/spatial-reuse-study2-throughput-ap4.dat
+rm -f ./results/spatial-reuse-study2-throughput-ap5.dat
+rm -f ./results/spatial-reuse-study2-throughput-ap6.dat
+rm -f ./results/spatial-reuse-study2-throughput-ap7.dat
 
 grep 'Throughput,  AP1 Uplink' ./results/spatial-reuse-SR-stats-study2-*.dat > ./results/spatial-reuse-study2-throughput-ap1.dat
 grep 'Throughput,  AP2 Uplink' ./results/spatial-reuse-SR-stats-study2-*.dat > ./results/spatial-reuse-study2-throughput-ap2.dat
@@ -31,13 +31,13 @@ grep 'Throughput,  AP6 Uplink' ./results/spatial-reuse-SR-stats-study2-*.dat > .
 grep 'Throughput,  AP7 Uplink' ./results/spatial-reuse-SR-stats-study2-*.dat > ./results/spatial-reuse-study2-throughput-ap7.dat
 
 # Area Capacity
-rm ./results/spatial-reuse-study2-area-capacity-ap1.dat
-rm ./results/spatial-reuse-study2-area-capacity-ap2.dat
-rm ./results/spatial-reuse-study2-area-capacity-ap3.dat
-rm ./results/spatial-reuse-study2-area-capacity-ap4.dat
-rm ./results/spatial-reuse-study2-area-capacity-ap5.dat
-rm ./results/spatial-reuse-study2-area-capacity-ap6.dat
-rm ./results/spatial-reuse-study2-area-capacity-ap7.dat
+rm -f ./results/spatial-reuse-study2-area-capacity-ap1.dat
+rm -f ./results/spatial-reuse-study2-area-capacity-ap2.dat
+rm -f ./results/spatial-reuse-study2-area-capacity-ap3.dat
+rm -f ./results/spatial-reuse-study2-area-capacity-ap4.dat
+rm -f ./results/spatial-reuse-study2-area-capacity-ap5.dat
+rm -f ./results/spatial-reuse-study2-area-capacity-ap6.dat
+rm -f ./results/spatial-reuse-study2-area-capacity-ap7.dat
 
 grep 'Area Capacity, AP1 Uplink' ./results/spatial-reuse-SR-stats-study2-*.dat > ./results/spatial-reuse-study2-area-capacity-ap1.dat
 grep 'Area Capacity, AP2 Uplink' ./results/spatial-reuse-SR-stats-study2-*.dat > ./results/spatial-reuse-study2-area-capacity-ap2.dat
@@ -48,13 +48,13 @@ grep 'Area Capacity, AP6 Uplink' ./results/spatial-reuse-SR-stats-study2-*.dat >
 grep 'Area Capacity, AP7 Uplink' ./results/spatial-reuse-SR-stats-study2-*.dat > ./results/spatial-reuse-study2-area-capacity-ap7.dat
 
 # Spectrum Efficiency
-rm ./results/spatial-reuse-study2-spectrum-efficiency-ap1.dat
-rm ./results/spatial-reuse-study2-spectrum-efficiency-ap2.dat
-rm ./results/spatial-reuse-study2-spectrum-efficiency-ap3.dat
-rm ./results/spatial-reuse-study2-spectrum-efficiency-ap4.dat
-rm ./results/spatial-reuse-study2-spectrum-efficiency-ap5.dat
-rm ./results/spatial-reuse-study2-spectrum-efficiency-ap6.dat
-rm ./results/spatial-reuse-study2-spectrum-efficiency-ap7.dat
+rm -f ./results/spatial-reuse-study2-spectrum-efficiency-ap1.dat
+rm -f ./results/spatial-reuse-study2-spectrum-efficiency-ap2.dat
+rm -f ./results/spatial-reuse-study2-spectrum-efficiency-ap3.dat
+rm -f ./results/spatial-reuse-study2-spectrum-efficiency-ap4.dat
+rm -f ./results/spatial-reuse-study2-spectrum-efficiency-ap5.dat
+rm -f ./results/spatial-reuse-study2-spectrum-efficiency-ap6.dat
+rm -f ./results/spatial-reuse-study2-spectrum-efficiency-ap7.dat
 
 grep 'Spectrum Efficiency, AP1 Uplink' ./results/spatial-reuse-SR-stats-study2-*.dat > ./results/spatial-reuse-study2-spectrum-efficiency-ap1.dat
 grep 'Spectrum Efficiency, AP2 Uplink' ./results/spatial-reuse-SR-stats-study2-*.dat > ./results/spatial-reuse-study2-spectrum-efficiency-ap2.dat
@@ -65,13 +65,13 @@ grep 'Spectrum Efficiency, AP6 Uplink' ./results/spatial-reuse-SR-stats-study2-*
 grep 'Spectrum Efficiency, AP7 Uplink' ./results/spatial-reuse-SR-stats-study2-*.dat > ./results/spatial-reuse-study2-spectrum-efficiency-ap7.dat
 
 #Air-time Utilization
-rm ./results/spatial-reuse-study2-airtime-utilization-ap1.dat
-rm ./results/spatial-reuse-study2-airtime-utilization-ap2.dat
-rm ./results/spatial-reuse-study2-airtime-utilization-ap3.dat
-rm ./results/spatial-reuse-study2-airtime-utilization-ap4.dat
-rm ./results/spatial-reuse-study2-airtime-utilization-ap5.dat
-rm ./results/spatial-reuse-study2-airtime-utilization-ap6.dat
-rm ./results/spatial-reuse-study2-airtime-utilization-ap7.dat
+rm -f ./results/spatial-reuse-study2-airtime-utilization-ap1.dat
+rm -f ./results/spatial-reuse-study2-airtime-utilization-ap2.dat
+rm -f ./results/spatial-reuse-study2-airtime-utilization-ap3.dat
+rm -f ./results/spatial-reuse-study2-airtime-utilization-ap4.dat
+rm -f ./results/spatial-reuse-study2-airtime-utilization-ap5.dat
+rm -f ./results/spatial-reuse-study2-airtime-utilization-ap6.dat
+rm -f ./results/spatial-reuse-study2-airtime-utilization-ap7.dat
 
 grep 'Air-time utilization, AP1' ./results/spatial-reuse-SR-stats-study2-*.dat > ./results/spatial-reuse-study2-airtime-utilization-ap1.dat
 grep 'Air-time utilization, AP2' ./results/spatial-reuse-SR-stats-study2-*.dat > ./results/spatial-reuse-study2-airtime-utilization-ap2.dat

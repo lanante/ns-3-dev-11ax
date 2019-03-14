@@ -283,3 +283,5 @@ for ap in ap1 ; do
 
     done
 done
+
+rm -f xxx-3464-10*.dat

@@ -4,8 +4,8 @@
 
 export LC_NUMERIC="en_US.UTF-8"
 
-rm ./results/spatial-reuse-study2*.*
-rm ./results/spatial-reuse-SR-stats-study2*.*
+rm -f ./results/spatial-reuse-study2*.*
+rm -f ./results/spatial-reuse-SR-stats-study2*.*
 
 trap ctrl_c INT
 
@@ -16,7 +16,7 @@ function ctrl_c() {
 
 source spatial-reuse-functions.sh
 
-rm ../scripts/study2.sh
+rm -f ../scripts/study2.sh
 
 echo "# import helper scripts" >> ../scripts/study2.sh
 echo "source spatial-reuse-functions.sh" >> ../scripts/study2.sh
