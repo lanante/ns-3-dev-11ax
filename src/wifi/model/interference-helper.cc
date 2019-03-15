@@ -73,7 +73,7 @@ Event::GetRxPowerW (void) const
   NS_ASSERT (m_rxPowerW.size () > 0);
   double sum = std::accumulate (std::begin (m_rxPowerW), std::end (m_rxPowerW), 0.0,
                                [](const double previous, const std::pair<std::pair<uint16_t, uint16_t>, double> &p)
-                               { return (p.first.second < 40) ? (previous + p.second) : 0.0; });
+                               { return (p.first.second < 40) ? (previous + p.second) : previous; });
   return sum;
 }
 

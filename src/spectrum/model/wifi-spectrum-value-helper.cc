@@ -462,35 +462,15 @@ WifiSpectrumValueHelper::CreateRfFilter (uint32_t firstCenterFrequency, uint16_t
   if (totalChannelWidth % bandBandwidth != 0)
     {
       numBandsInChannel += 1;
-      if (bandIndex == 0)
-        {
-          numBandsInFilter += 1;
-        }
     }
   NS_ASSERT_MSG ((numBandsInChannel % 2 == 1) && (numBands % 2 == 1), "Should have odd number of bands");
   size_t startIndex = ((numBands - numBandsInChannel) / 2) + (bandIndex * numBandsInFilter);
-  if (bandIndex != 0)
-    {
-      startIndex++;
-    }
-  size_t stopIndex = startIndex + numBandsInFilter;
-  bool lastBand = false;
-  if (((bandIndex + 1) * channelWidthInFilter) == totalChannelWidth)
-    {
-      lastBand = true;
-    }
+  size_t stopIndex = startIndex + numBandsInFilter - 1;
   vit += startIndex;
   bit += startIndex;
   for (size_t i = startIndex; i <= stopIndex; i++, vit++, bit++)
     {
-      if (((i == startIndex) && (bandIndex != 0)) || ((i == stopIndex) && !lastBand))
-        {
-          *vit = 0.5;
-        }
-      else
-        {
-          *vit = 1;
-        }
+      *vit = 1;
     }
   NS_LOG_LOGIC ("Added subbands " << startIndex << " to " << stopIndex << " to filter");
   return c;
