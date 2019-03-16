@@ -366,7 +366,7 @@ private:
    *
    * \return the error rate of the legacy PHY header
    */
-  double CalculateLegacyPhyHeaderPer (Ptr<const Event> event, NiChangesPerBand *ni) const;
+  double CalculateLegacyPhyHeaderPer (Ptr<const Event> event, NiChangesPerBand *ni, FrequencyWidthPair band) const;
   /**
    * Calculate the error rate of the non-legacy PHY header. The non-legacy PHY header
    * can be divided into multiple chunks (e.g. due to interference from other transmissions).
@@ -376,7 +376,7 @@ private:
    *
    * \return the error rate of the non-legacy PHY header
    */
-  double CalculateNonLegacyPhyHeaderPer (Ptr<const Event> event, NiChangesPerBand *ni) const;
+  double CalculateNonLegacyPhyHeaderPer (Ptr<const Event> event, NiChangesPerBand *ni, FrequencyWidthPair band) const;
 
   double m_noiseFigure; /**< noise figure (linear) */
   Ptr<ErrorRateModel> m_errorRateModel; ///< error rate model

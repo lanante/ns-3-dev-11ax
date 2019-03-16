@@ -404,8 +404,8 @@ InterferenceHelper::CalculatePayloadPer (Ptr<const Event> event, NiChangesPerBan
   Time plcpPayloadStart = plcpTrainingSymbolsStart + WifiPhy::GetPlcpTrainingSymbolDuration (txVector) + WifiPhy::GetPlcpSigBDuration (preamble); //packet start time + preamble + L-SIG + HT-SIG or SIG-A + Training + SIG-B
   Time windowStart = plcpPayloadStart + window.first;
   Time windowEnd = plcpPayloadStart + window.second;
-  double noiseInterferenceW = m_firstPowerPerBand.begin ()->second;
-  double powerW = event->GetRxPowerW ();
+  double noiseInterferenceW = m_firstPowerPerBand.find (band)->second;
+  double powerW = event->GetRxPowerW (band);
   while (++j != ni.end ())
     {
       Time current = j->first;
@@ -445,7 +445,7 @@ InterferenceHelper::CalculatePayloadPer (Ptr<const Event> event, NiChangesPerBan
 }
 
 double
-InterferenceHelper::CalculateLegacyPhyHeaderPer (Ptr<const Event> event, NiChangesPerBand *nis) const
+InterferenceHelper::CalculateLegacyPhyHeaderPer (Ptr<const Event> event, NiChangesPerBand *nis, FrequencyWidthPair band) const
 {
   NS_LOG_FUNCTION (this);
   const WifiTxVector txVector = event->GetTxVector ();
@@ -459,8 +459,8 @@ InterferenceHelper::CalculateLegacyPhyHeaderPer (Ptr<const Event> event, NiChang
   Time plcpHsigHeaderStart = plcpHeaderStart + WifiPhy::GetPlcpHeaderDuration (txVector); //packet start time + preamble + L-SIG
   Time plcpTrainingSymbolsStart = plcpHsigHeaderStart + WifiPhy::GetPlcpHtSigHeaderDuration (preamble) + WifiPhy::GetPlcpSigA1Duration (preamble) + WifiPhy::GetPlcpSigA2Duration (preamble); //packet start time + preamble + L-SIG + HT-SIG or SIG-A
   Time plcpPayloadStart = plcpTrainingSymbolsStart + WifiPhy::GetPlcpTrainingSymbolDuration (txVector) + WifiPhy::GetPlcpSigBDuration (preamble); //packet start time + preamble + L-SIG + HT-SIG or SIG-A + Training + SIG-B
-  double noiseInterferenceW = m_firstPowerPerBand.begin ()->second;
-  double powerW = event->GetRxPowerW ();
+  double noiseInterferenceW = m_firstPowerPerBand.find (band)->second;
+  double powerW = event->GetRxPowerW (band);
   while (++j != ni.end ())
     {
       Time current = j->first;
@@ -590,7 +590,7 @@ InterferenceHelper::CalculateLegacyPhyHeaderPer (Ptr<const Event> event, NiChang
 }
 
 double
-InterferenceHelper::CalculateNonLegacyPhyHeaderPer (Ptr<const Event> event, NiChangesPerBand *nis) const
+InterferenceHelper::CalculateNonLegacyPhyHeaderPer (Ptr<const Event> event, NiChangesPerBand *nis, FrequencyWidthPair band) const
 {
   NS_LOG_FUNCTION (this);
   const WifiTxVector txVector = event->GetTxVector ();
@@ -620,8 +620,8 @@ InterferenceHelper::CalculateNonLegacyPhyHeaderPer (Ptr<const Event> event, NiCh
   Time plcpHsigHeaderStart = plcpHeaderStart + WifiPhy::GetPlcpHeaderDuration (txVector); //packet start time + preamble + L-SIG
   Time plcpTrainingSymbolsStart = plcpHsigHeaderStart + WifiPhy::GetPlcpHtSigHeaderDuration (preamble) + WifiPhy::GetPlcpSigA1Duration (preamble) + WifiPhy::GetPlcpSigA2Duration (preamble); //packet start time + preamble + L-SIG + HT-SIG or SIG-A
   Time plcpPayloadStart = plcpTrainingSymbolsStart + WifiPhy::GetPlcpTrainingSymbolDuration (txVector) + WifiPhy::GetPlcpSigBDuration (preamble); //packet start time + preamble + L-SIG + HT-SIG or SIG-A + Training + SIG-B
-  double noiseInterferenceW = m_firstPowerPerBand.begin ()->second;
-  double powerW = event->GetRxPowerW ();
+  double noiseInterferenceW = m_firstPowerPerBand.find (band)->second;
+  double powerW = event->GetRxPowerW (band);
   while (++j != ni.end ())
     {
       Time current = j->first;
@@ -1017,7 +1017,7 @@ InterferenceHelper::CalculateLegacyPhyHeaderSnrPer (Ptr<Event> event, uint16_t p
   /* calculate the SNIR at the start of the plcp header and accumulate
    * all SNIR changes in the snir vector.
    */
-  double per = CalculateLegacyPhyHeaderPer (event, &ni);
+  double per = CalculateLegacyPhyHeaderPer (event, &ni, band);
 
   struct SnrPer snrPer;
   snrPer.snr = snr;
@@ -1047,7 +1047,7 @@ InterferenceHelper::CalculateNonLegacyPhyHeaderSnrPer (Ptr<Event> event, uint16_
   /* calculate the SNIR at the start of the plcp header and accumulate
    * all SNIR changes in the snir vector.
    */
-  double per = CalculateNonLegacyPhyHeaderPer (event, &ni);
+  double per = CalculateNonLegacyPhyHeaderPer (event, &ni, band);
   
   struct SnrPer snrPer;
   snrPer.snr = snr;
