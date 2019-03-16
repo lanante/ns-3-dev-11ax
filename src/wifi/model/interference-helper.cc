@@ -392,6 +392,7 @@ InterferenceHelper::CalculatePayloadPer (Ptr<const Event> event, NiChangesPerBan
 {
   NS_LOG_FUNCTION (this << window.first << window.second);
   const WifiTxVector txVector = event->GetTxVector ();
+  uint16_t channelWidth = txVector.GetChannelWidth ();
   double psr = 1.0; /* Packet Success Rate */
   auto ni = nis->find (band)->second;
   auto j = ni.begin ();
@@ -416,7 +417,7 @@ InterferenceHelper::CalculatePayloadPer (Ptr<const Event> event, NiChangesPerBan
         {
           psr *= CalculateChunkSuccessRate (CalculateSnr (powerW,
                                                           noiseInterferenceW,
-                                                          txVector.GetChannelWidth ()),
+                                                          channelWidth),
                                             current - previous,
                                             payloadMode, txVector);
           NS_LOG_DEBUG ("Both previous and current point to the windowed payload: mode=" << payloadMode << ", psr=" << psr);
@@ -426,7 +427,7 @@ InterferenceHelper::CalculatePayloadPer (Ptr<const Event> event, NiChangesPerBan
         {
           psr *= CalculateChunkSuccessRate (CalculateSnr (powerW,
                                                           noiseInterferenceW,
-                                                          txVector.GetChannelWidth ()),
+                                                          channelWidth),
                                             current - windowStart,
                                             payloadMode, txVector);
           NS_LOG_DEBUG ("previous is before windowed payload and current is in the windowed payload: mode=" << payloadMode << ", psr=" << psr);
@@ -449,6 +450,7 @@ InterferenceHelper::CalculateLegacyPhyHeaderPer (Ptr<const Event> event, NiChang
 {
   NS_LOG_FUNCTION (this);
   const WifiTxVector txVector = event->GetTxVector ();
+  uint16_t channelWidth = txVector.GetChannelWidth () >= 40 ? 20 : txVector.GetChannelWidth ();
   double psr = 1.0; /* Packet Success Rate */
   auto ni = nis->begin()->second; //assume first band is primary channel
   auto j = ni.begin ();
@@ -495,7 +497,7 @@ InterferenceHelper::CalculateLegacyPhyHeaderPer (Ptr<const Event> event, NiChang
             {
               psr *= CalculateChunkSuccessRate (CalculateSnr (powerW,
                                                               noiseInterferenceW,
-                                                              txVector.GetChannelWidth ()),
+                                                              channelWidth),
                                                 plcpHsigHeaderStart - previous,
                                                 headerMode, txVector);
               NS_LOG_DEBUG ("Case 4a - previous in L-SIG and current after payload start: mode=" << headerMode << ", psr=" << psr);
@@ -506,7 +508,7 @@ InterferenceHelper::CalculateLegacyPhyHeaderPer (Ptr<const Event> event, NiChang
               NS_ASSERT ((preamble != WIFI_PREAMBLE_LONG) && (preamble != WIFI_PREAMBLE_SHORT));
               psr *= CalculateChunkSuccessRate (CalculateSnr (powerW,
                                                               noiseInterferenceW,
-                                                              txVector.GetChannelWidth ()),
+                                                              channelWidth),
                                                 plcpHsigHeaderStart - previous,
                                                 headerMode, txVector);
               NS_LOG_DEBUG ("Case 4a - previous in L-SIG and current is in training or in SIG-B: mode=" << headerMode << ", psr=" << psr);
@@ -517,7 +519,7 @@ InterferenceHelper::CalculateLegacyPhyHeaderPer (Ptr<const Event> event, NiChang
               NS_ASSERT ((preamble != WIFI_PREAMBLE_LONG) && (preamble != WIFI_PREAMBLE_SHORT));
               psr *= CalculateChunkSuccessRate (CalculateSnr (powerW,
                                                               noiseInterferenceW,
-                                                              txVector.GetChannelWidth ()),
+                                                              channelWidth),
                                                 plcpHsigHeaderStart - previous,
                                                 headerMode, txVector);
               NS_LOG_DEBUG ("Case 4ci - previous is in L-SIG and current in HT-SIG or in SIG-A: mode=" << headerMode << ", psr=" << psr);
@@ -527,7 +529,7 @@ InterferenceHelper::CalculateLegacyPhyHeaderPer (Ptr<const Event> event, NiChang
             {
               psr *= CalculateChunkSuccessRate (CalculateSnr (powerW,
                                                               noiseInterferenceW,
-                                                              txVector.GetChannelWidth ()),
+                                                              channelWidth),
                                                 current - previous,
                                                 headerMode, txVector);
               NS_LOG_DEBUG ("Case 4d - current with previous in L-SIG: mode=" << headerMode << ", psr=" << psr);
@@ -541,7 +543,7 @@ InterferenceHelper::CalculateLegacyPhyHeaderPer (Ptr<const Event> event, NiChang
             {
               psr *= CalculateChunkSuccessRate (CalculateSnr (powerW,
                                                               noiseInterferenceW,
-                                                              txVector.GetChannelWidth ()),
+                                                              channelWidth),
                                                 plcpHsigHeaderStart - plcpHeaderStart,
                                                 headerMode, txVector);
               NS_LOG_DEBUG ("Case 5aii - previous is in the preamble and current is after payload start: mode=" << headerMode << ", psr=" << psr);
@@ -552,7 +554,7 @@ InterferenceHelper::CalculateLegacyPhyHeaderPer (Ptr<const Event> event, NiChang
               NS_ASSERT ((preamble != WIFI_PREAMBLE_LONG) && (preamble != WIFI_PREAMBLE_SHORT));
               psr *= CalculateChunkSuccessRate (CalculateSnr (powerW,
                                                               noiseInterferenceW,
-                                                              txVector.GetChannelWidth ()),
+                                                              channelWidth),
                                                 plcpHsigHeaderStart - plcpHeaderStart,
                                                 headerMode, txVector);
               NS_LOG_DEBUG ("Case 5b - previous is in the preamble and current is in training or in SIG-B: mode=" << headerMode << ", psr=" << psr);
@@ -563,7 +565,7 @@ InterferenceHelper::CalculateLegacyPhyHeaderPer (Ptr<const Event> event, NiChang
               NS_ASSERT ((preamble != WIFI_PREAMBLE_LONG) && (preamble != WIFI_PREAMBLE_SHORT));
               psr *= CalculateChunkSuccessRate (CalculateSnr (powerW,
                                                               noiseInterferenceW,
-                                                              txVector.GetChannelWidth ()),
+                                                              channelWidth),
                                                 plcpHsigHeaderStart - plcpHeaderStart,
                                                 headerMode, txVector);
               NS_LOG_DEBUG ("Case 5b - previous is in the preamble and current in HT-SIG or in SIG-A: mode=" << headerMode << ", psr=" << psr);
@@ -574,7 +576,7 @@ InterferenceHelper::CalculateLegacyPhyHeaderPer (Ptr<const Event> event, NiChang
               NS_ASSERT (preamble != WIFI_PREAMBLE_HT_GF);
               psr *= CalculateChunkSuccessRate (CalculateSnr (powerW,
                                                               noiseInterferenceW,
-                                                              txVector.GetChannelWidth ()),
+                                                              channelWidth),
                                                 current - plcpHeaderStart,
                                                 headerMode, txVector);
               NS_LOG_DEBUG ("Case 5d - previous is in the preamble and current is in L-SIG: mode=" << headerMode << ", psr=" << psr);
@@ -594,6 +596,7 @@ InterferenceHelper::CalculateNonLegacyPhyHeaderPer (Ptr<const Event> event, NiCh
 {
   NS_LOG_FUNCTION (this);
   const WifiTxVector txVector = event->GetTxVector ();
+  uint16_t channelWidth = txVector.GetChannelWidth () >= 40 ? 20 : txVector.GetChannelWidth ();
   double psr = 1.0; /* Packet Success Rate */
   auto ni = nis->begin()->second; //assume first band is primary channel
   auto j = ni.begin ();
@@ -642,7 +645,7 @@ InterferenceHelper::CalculateNonLegacyPhyHeaderPer (Ptr<const Event> event, NiCh
             {
               psr *= CalculateChunkSuccessRate (CalculateSnr (powerW,
                                                               noiseInterferenceW,
-                                                              txVector.GetChannelWidth ()),
+                                                              channelWidth),
                                                 plcpPayloadStart - previous,
                                                 mcsHeaderMode, txVector);
               NS_LOG_DEBUG ("Case 2a - previous is in training or in SIG-B and current after payload start: mode=" << mcsHeaderMode << ", psr=" << psr);
@@ -652,7 +655,7 @@ InterferenceHelper::CalculateNonLegacyPhyHeaderPer (Ptr<const Event> event, NiCh
             {
               psr *= CalculateChunkSuccessRate (CalculateSnr (powerW,
                                                               noiseInterferenceW,
-                                                              txVector.GetChannelWidth ()),
+                                                              channelWidth),
                                                 current - previous,
                                                 mcsHeaderMode, txVector);
               NS_LOG_DEBUG ("Case 2b - previous is in training or in SIG-B and current is in training or in SIG-B: mode=" << mcsHeaderMode << ", psr=" << psr);
@@ -667,7 +670,7 @@ InterferenceHelper::CalculateNonLegacyPhyHeaderPer (Ptr<const Event> event, NiCh
             {
               psr *= CalculateChunkSuccessRate (CalculateSnr (powerW,
                                                               noiseInterferenceW,
-                                                              txVector.GetChannelWidth ()),
+                                                              channelWidth),
                                                 plcpPayloadStart - plcpTrainingSymbolsStart,
                                                 mcsHeaderMode, txVector);
               //Case 3ai: VHT or HE format
@@ -676,7 +679,7 @@ InterferenceHelper::CalculateNonLegacyPhyHeaderPer (Ptr<const Event> event, NiCh
                   //SIG-A is sent using legacy OFDM modulation
                   psr *= CalculateChunkSuccessRate (CalculateSnr (powerW,
                                                                   noiseInterferenceW,
-                                                                  txVector.GetChannelWidth ()),
+                                                                  channelWidth),
                                                     plcpTrainingSymbolsStart - previous,
                                                     headerMode, txVector);
                   NS_LOG_DEBUG ("Case 3ai - previous is in SIG-A and current after payload start: mcs mode=" << mcsHeaderMode << ", legacy mode=" << headerMode << ", psr=" << psr);
@@ -686,7 +689,7 @@ InterferenceHelper::CalculateNonLegacyPhyHeaderPer (Ptr<const Event> event, NiCh
                 {
                   psr *= CalculateChunkSuccessRate (CalculateSnr (powerW,
                                                                   noiseInterferenceW,
-                                                                  txVector.GetChannelWidth ()),
+                                                                  channelWidth),
                                                     plcpTrainingSymbolsStart - previous,
                                                     mcsHeaderMode, txVector);
                   NS_LOG_DEBUG ("Case 3aii - previous is in HT-SIG and current after payload start: mode=" << mcsHeaderMode << ", psr=" << psr);
@@ -697,7 +700,7 @@ InterferenceHelper::CalculateNonLegacyPhyHeaderPer (Ptr<const Event> event, NiCh
             {
               psr *= CalculateChunkSuccessRate (CalculateSnr (powerW,
                                                               noiseInterferenceW,
-                                                              txVector.GetChannelWidth ()),
+                                                              channelWidth),
                                                 current - plcpTrainingSymbolsStart,
                                                 mcsHeaderMode, txVector);
               //Case 3bi: VHT or HE format
@@ -706,7 +709,7 @@ InterferenceHelper::CalculateNonLegacyPhyHeaderPer (Ptr<const Event> event, NiCh
                   //SIG-A is sent using legacy OFDM modulation
                   psr *= CalculateChunkSuccessRate (CalculateSnr (powerW,
                                                                   noiseInterferenceW,
-                                                                  txVector.GetChannelWidth ()),
+                                                                  channelWidth),
                                                     plcpTrainingSymbolsStart - previous,
                                                     headerMode, txVector);
                   NS_LOG_DEBUG ("Case 3bi - previous is in SIG-A and current is in training or in SIG-B: mode=" << headerMode << ", psr=" << psr);
@@ -716,7 +719,7 @@ InterferenceHelper::CalculateNonLegacyPhyHeaderPer (Ptr<const Event> event, NiCh
                 {
                   psr *= CalculateChunkSuccessRate (CalculateSnr (powerW,
                                                                   noiseInterferenceW,
-                                                                  txVector.GetChannelWidth ()),
+                                                                  channelWidth),
                                                     plcpTrainingSymbolsStart - previous,
                                                     mcsHeaderMode, txVector);
                   NS_LOG_DEBUG ("Case 3bii - previous is in HT-SIG and current is in HT training: mode=" << mcsHeaderMode << ", psr=" << psr);
@@ -731,7 +734,7 @@ InterferenceHelper::CalculateNonLegacyPhyHeaderPer (Ptr<const Event> event, NiCh
                   //SIG-A is sent using legacy OFDM modulation
                   psr *= CalculateChunkSuccessRate (CalculateSnr (powerW,
                                                                   noiseInterferenceW,
-                                                                  txVector.GetChannelWidth ()),
+                                                                  channelWidth),
                                                     current - previous,
                                                     headerMode, txVector);
                   NS_LOG_DEBUG ("Case 3ci - previous with current in SIG-A: mode=" << headerMode << ", psr=" << psr);
@@ -741,7 +744,7 @@ InterferenceHelper::CalculateNonLegacyPhyHeaderPer (Ptr<const Event> event, NiCh
                 {
                   psr *= CalculateChunkSuccessRate (CalculateSnr (powerW,
                                                                   noiseInterferenceW,
-                                                                  txVector.GetChannelWidth ()),
+                                                                  channelWidth),
                                                     current - previous,
                                                     mcsHeaderMode, txVector);
                   NS_LOG_DEBUG ("Case 3cii - previous with current in HT-SIG: mode=" << mcsHeaderMode << ", psr=" << psr);
@@ -766,12 +769,12 @@ InterferenceHelper::CalculateNonLegacyPhyHeaderPer (Ptr<const Event> event, NiCh
                 {
                   psr *= CalculateChunkSuccessRate (CalculateSnr (powerW,
                                                                   noiseInterferenceW,
-                                                                  txVector.GetChannelWidth ()),
+                                                                  channelWidth),
                                                     plcpPayloadStart - plcpTrainingSymbolsStart,
                                                     mcsHeaderMode, txVector);
                   psr *= CalculateChunkSuccessRate (CalculateSnr (powerW,
                                                                   noiseInterferenceW,
-                                                                  txVector.GetChannelWidth ()),
+                                                                  channelWidth),
                                                     plcpTrainingSymbolsStart - plcpHsigHeaderStart,
                                                     headerMode, txVector);
                   NS_LOG_DEBUG ("Case 4aii - previous is in L-SIG and current after payload start: mcs mode=" << mcsHeaderMode << ", legacy mode=" << headerMode << ", psr=" << psr);
@@ -781,7 +784,7 @@ InterferenceHelper::CalculateNonLegacyPhyHeaderPer (Ptr<const Event> event, NiCh
                 {
                   psr *= CalculateChunkSuccessRate (CalculateSnr (powerW,
                                                                   noiseInterferenceW,
-                                                                  txVector.GetChannelWidth ()),
+                                                                  channelWidth),
                                                     plcpPayloadStart - plcpHsigHeaderStart,
                                                     mcsHeaderMode, txVector);
                   NS_LOG_DEBUG ("Case 4aiii - previous in L-SIG and current after payload start: mcs mode=" << mcsHeaderMode << ", psr=" << psr);
@@ -796,12 +799,12 @@ InterferenceHelper::CalculateNonLegacyPhyHeaderPer (Ptr<const Event> event, NiCh
                 {
                   psr *= CalculateChunkSuccessRate (CalculateSnr (powerW,
                                                                   noiseInterferenceW,
-                                                                  txVector.GetChannelWidth ()),
+                                                                  channelWidth),
                                                     current - plcpTrainingSymbolsStart,
                                                     mcsHeaderMode, txVector);
                   psr *= CalculateChunkSuccessRate (CalculateSnr (powerW,
                                                                   noiseInterferenceW,
-                                                                  txVector.GetChannelWidth ()),
+                                                                  channelWidth),
                                                     plcpTrainingSymbolsStart - plcpHsigHeaderStart,
                                                     headerMode, txVector);
                   NS_LOG_DEBUG ("Case 4bi - previous is in L-SIG and current in training or in SIG-B: mcs mode=" << mcsHeaderMode << ", legacy mode=" << headerMode << ", psr=" << psr);
@@ -811,7 +814,7 @@ InterferenceHelper::CalculateNonLegacyPhyHeaderPer (Ptr<const Event> event, NiCh
                 {
                   psr *= CalculateChunkSuccessRate (CalculateSnr (powerW,
                                                                   noiseInterferenceW,
-                                                                  txVector.GetChannelWidth ()),
+                                                                  channelWidth),
                                                     current - plcpHsigHeaderStart,
                                                     mcsHeaderMode, txVector);
                   NS_LOG_DEBUG ("Case 4bii - previous in L-SIG and current in HT training: mcs mode=" << mcsHeaderMode << ", psr=" << psr);
@@ -826,7 +829,7 @@ InterferenceHelper::CalculateNonLegacyPhyHeaderPer (Ptr<const Event> event, NiCh
                 {
                   psr *= CalculateChunkSuccessRate (CalculateSnr (powerW,
                                                                   noiseInterferenceW,
-                                                                  txVector.GetChannelWidth ()),
+                                                                  channelWidth),
                                                     current - plcpHsigHeaderStart,
                                                     headerMode, txVector);
                   NS_LOG_DEBUG ("Case 4ci - previous is in L-SIG and current in SIG-A: mode=" << headerMode << ", psr=" << psr);
@@ -836,7 +839,7 @@ InterferenceHelper::CalculateNonLegacyPhyHeaderPer (Ptr<const Event> event, NiCh
                 {
                   psr *= CalculateChunkSuccessRate (CalculateSnr (powerW,
                                                                   noiseInterferenceW,
-                                                                  txVector.GetChannelWidth ()),
+                                                                  channelWidth),
                                                     current - plcpHsigHeaderStart,
                                                     mcsHeaderMode, txVector);
                   NS_LOG_DEBUG ("Case 4cii - previous in L-SIG and current in HT-SIG: mcs mode=" << mcsHeaderMode << ", psr=" << psr);
@@ -866,12 +869,12 @@ InterferenceHelper::CalculateNonLegacyPhyHeaderPer (Ptr<const Event> event, NiCh
                 {
                   psr *= CalculateChunkSuccessRate (CalculateSnr (powerW,
                                                                   noiseInterferenceW,
-                                                                  txVector.GetChannelWidth ()),
+                                                                  channelWidth),
                                                     plcpPayloadStart - plcpTrainingSymbolsStart,
                                                     mcsHeaderMode, txVector);
                   psr *= CalculateChunkSuccessRate (CalculateSnr (powerW,
                                                                   noiseInterferenceW,
-                                                                  txVector.GetChannelWidth ()),
+                                                                  channelWidth),
                                                     plcpTrainingSymbolsStart - plcpHsigHeaderStart,
                                                     headerMode, txVector);
                   NS_LOG_DEBUG ("Case 5aii - previous is in the preamble and current is after payload start: mcs mode=" << mcsHeaderMode << ", legacy mode=" << headerMode << ", psr=" << psr);
@@ -881,7 +884,7 @@ InterferenceHelper::CalculateNonLegacyPhyHeaderPer (Ptr<const Event> event, NiCh
                 {
                   psr *= CalculateChunkSuccessRate (CalculateSnr (powerW,
                                                                   noiseInterferenceW,
-                                                                  txVector.GetChannelWidth ()),
+                                                                  channelWidth),
                                                     plcpPayloadStart - plcpHsigHeaderStart,
                                                     mcsHeaderMode, txVector);
                   NS_LOG_DEBUG ("Case 5aiii - previous is in the preamble and current is after payload start: mcs mode=" << mcsHeaderMode << ", legacy mode=" << headerMode << ", psr=" << psr);
@@ -896,12 +899,12 @@ InterferenceHelper::CalculateNonLegacyPhyHeaderPer (Ptr<const Event> event, NiCh
                 {
                   psr *= CalculateChunkSuccessRate (CalculateSnr (powerW,
                                                                   noiseInterferenceW,
-                                                                  txVector.GetChannelWidth ()),
+                                                                  channelWidth),
                                                     current - plcpTrainingSymbolsStart,
                                                     mcsHeaderMode, txVector);
                   psr *= CalculateChunkSuccessRate (CalculateSnr (powerW,
                                                                   noiseInterferenceW,
-                                                                  txVector.GetChannelWidth ()),
+                                                                  channelWidth),
                                                     plcpTrainingSymbolsStart - plcpHsigHeaderStart,
                                                     headerMode, txVector);
                   NS_LOG_DEBUG ("Case 5bi - previous is in the preamble and current in training or in SIG-B: mcs mode=" << mcsHeaderMode << ", legacy mode=" << headerMode << ", psr=" << psr);
@@ -911,7 +914,7 @@ InterferenceHelper::CalculateNonLegacyPhyHeaderPer (Ptr<const Event> event, NiCh
                 {
                   psr *= CalculateChunkSuccessRate (CalculateSnr (powerW,
                                                                   noiseInterferenceW,
-                                                                  txVector.GetChannelWidth ()),
+                                                                  channelWidth),
                                                     current - plcpHsigHeaderStart,
                                                     mcsHeaderMode, txVector);
                   NS_LOG_DEBUG ("Case 5bii - previous is in the preamble and current in HT training: mcs mode=" << mcsHeaderMode << ", psr=" << psr);
@@ -926,7 +929,7 @@ InterferenceHelper::CalculateNonLegacyPhyHeaderPer (Ptr<const Event> event, NiCh
                 {
                   psr *= CalculateChunkSuccessRate (CalculateSnr (powerW,
                                                                   noiseInterferenceW,
-                                                                  txVector.GetChannelWidth ()),
+                                                                  channelWidth),
                                                     current - plcpHsigHeaderStart,
                                                     headerMode, txVector);
                   NS_LOG_DEBUG ("Case 5ci - previous is in preamble and current in SIG-A: mode=" << headerMode << ", psr=" << psr);
@@ -936,7 +939,7 @@ InterferenceHelper::CalculateNonLegacyPhyHeaderPer (Ptr<const Event> event, NiCh
                 {
                   psr *= CalculateChunkSuccessRate (CalculateSnr (powerW,
                                                                   noiseInterferenceW,
-                                                                  txVector.GetChannelWidth ()),
+                                                                  channelWidth),
                                                     current - plcpHsigHeaderStart,
                                                     mcsHeaderMode, txVector);
                   NS_LOG_DEBUG ("Case 5cii - previous in preamble and current in HT-SIG: mcs mode=" << mcsHeaderMode << ", psr=" << psr);
