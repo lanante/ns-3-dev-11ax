@@ -450,9 +450,9 @@ InterferenceHelper::CalculateLegacyPhyHeaderPer (Ptr<const Event> event, NiChang
 {
   NS_LOG_FUNCTION (this);
   const WifiTxVector txVector = event->GetTxVector ();
-  uint16_t channelWidth = txVector.GetChannelWidth () >= 40 ? 20 : txVector.GetChannelWidth ();
+  uint16_t channelWidth = txVector.GetChannelWidth () >= 40 ? 20 : txVector.GetChannelWidth (); //calculate PER on the 20 MHz primary channel for L-SIG
   double psr = 1.0; /* Packet Success Rate */
-  auto ni = nis->begin()->second; //assume first band is primary channel
+  auto ni = nis->find (band)->second;
   auto j = ni.begin ();
   Time previous = j->first;
   WifiPreamble preamble = txVector.GetPreambleType ();
@@ -596,9 +596,9 @@ InterferenceHelper::CalculateNonLegacyPhyHeaderPer (Ptr<const Event> event, NiCh
 {
   NS_LOG_FUNCTION (this);
   const WifiTxVector txVector = event->GetTxVector ();
-  uint16_t channelWidth = txVector.GetChannelWidth () >= 40 ? 20 : txVector.GetChannelWidth ();
+  uint16_t channelWidth = txVector.GetChannelWidth () >= 40 ? 20 : txVector.GetChannelWidth (); //calculate PER on the 20 MHz primary channel for PHY headers
   double psr = 1.0; /* Packet Success Rate */
-  auto ni = nis->begin()->second; //assume first band is primary channel
+  auto ni = nis->find (band)->second;
   auto j = ni.begin ();
   Time previous = j->first;
   WifiPreamble preamble = txVector.GetPreambleType ();
@@ -967,7 +967,7 @@ InterferenceHelper::CalculatePayloadSnrPer (Ptr<Event> event, uint16_t primaryCh
 {
   NiChangesPerBand ni;
   uint16_t channelWidth = event->GetTxVector ().GetChannelWidth ();
-  auto band = std::make_pair (primaryChannelFrequency, channelWidth == 22 ? 20 : channelWidth);
+  auto band = std::make_pair (primaryChannelFrequency, channelWidth == 22 ? 20 : channelWidth); //22 MHz and 20 MHz signals should be handled similarly
   double noiseInterferenceW = CalculateNoiseInterferenceW (event, &ni, band);
   double snr = CalculateSnr (event->GetRxPowerW (band),
                              noiseInterferenceW,
@@ -1011,7 +1011,7 @@ InterferenceHelper::CalculateLegacyPhyHeaderSnrPer (Ptr<Event> event, uint16_t p
     {
       channelWidth = event->GetTxVector ().GetChannelWidth ();
     }
-  auto band = std::make_pair (primaryChannelFrequency, channelWidth == 22 ? 20 : channelWidth);
+  auto band = std::make_pair (primaryChannelFrequency, channelWidth == 22 ? 20 : channelWidth); //22 MHz and 20 MHz signals should be handled similarly
   double noiseInterferenceW = CalculateNoiseInterferenceW (event, &ni, band);
   double snr = CalculateSnr (event->GetRxPowerW (band),
                              noiseInterferenceW,
@@ -1035,13 +1035,13 @@ InterferenceHelper::CalculateNonLegacyPhyHeaderSnrPer (Ptr<Event> event, uint16_
   uint16_t channelWidth;
   if (event->GetTxVector ().GetChannelWidth () >= 40)
     {
-      channelWidth = 20; //calculate PER on the 20 MHz primary channel for L-SIG
+      channelWidth = 20; //calculate PER on the 20 MHz primary channel for PHY headers
     }
   else
     {
       channelWidth = event->GetTxVector ().GetChannelWidth ();
     }
-  auto band = std::make_pair (primaryChannelFrequency, channelWidth == 22 ? 20 : channelWidth);
+  auto band = std::make_pair (primaryChannelFrequency, channelWidth == 22 ? 20 : channelWidth); //22 MHz and 20 MHz signals should be handled similarly
   double noiseInterferenceW = CalculateNoiseInterferenceW (event, &ni, band);
   double snr = CalculateSnr (event->GetRxPowerW (band),
                              noiseInterferenceW,
@@ -1066,7 +1066,7 @@ InterferenceHelper::EraseEvents (void)
       it.second.clear ();
       // Always have a zero power noise event in the list
       AddNiChangeEvent (Time (0), NiChange (0.0, 0), it.first);
-      m_firstPowerPerBand.at(it.first) = 0.0;
+      m_firstPowerPerBand.at (it.first) = 0.0;
     }
   m_rxing = false;
 }

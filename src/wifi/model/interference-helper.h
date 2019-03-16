@@ -51,7 +51,7 @@ public:
    * \param packet the packet
    * \param txVector TXVECTOR of the packet
    * \param duration duration of the signal
-   * \param rxPower the receive power per 20 MHz channel band (w)
+   * \param rxPower the receive power per channel band (w)
    */
   Event (Ptr<const Packet> packet, WifiTxVector txVector, Time duration, RxPowerWattPerChannelBand rxPower);
   ~Event ();
@@ -113,11 +113,11 @@ public:
 
 
 private:
-  Ptr<const Packet> m_packet; ///< packet
-  WifiTxVector m_txVector; ///< TXVECTOR
-  Time m_startTime; ///< start time
-  Time m_endTime; ///< end time
-  RxPowerWattPerChannelBand m_rxPowerW; ///< receive power in watts per 20MHz channel band
+  Ptr<const Packet> m_packet;           //!< packet
+  WifiTxVector m_txVector;              //!< TXVECTOR
+  Time m_startTime;                     //!< start time
+  Time m_endTime;                       //!< end time
+  RxPowerWattPerChannelBand m_rxPowerW; //!< receive power in watts per channel band
 };
 
 /**
@@ -193,7 +193,7 @@ public:
    * \param packet the packet
    * \param txVector TXVECTOR of the packet
    * \param duration the duration of the signal
-   * \param rxPower receive power per 20MHz channel band (W)
+   * \param rxPower receive power per channel band (W)
    *
    * \return Event
    */
@@ -202,7 +202,7 @@ public:
   /**
    * Add a non-Wifi signal to interference helper.
    * \param duration the duration of the signal
-   * \param rxPower receive power per 20MHz channel band (W)
+   * \param rxPower receive power per channel band (W)
    */
   void AddForeignSignal (Time duration, RxPowerWattPerChannelBand rxPowerW);
   /**
@@ -213,6 +213,7 @@ public:
    * this class.
    *
    * \param event the event corresponding to the first time the corresponding packet arrives
+   * \param primaryChannelFrequency the frequency of the primary channel (in MHz)
    * \param relativeMpduStartStop the time window (pair of start and end times) of PLCP payload to focus on
    *
    * \return struct of SNR and PER (with PER being evaluated over the provided time window)
@@ -231,6 +232,7 @@ public:
    * all SNIR changes in the snir vector.
    *
    * \param event the event corresponding to the first time the corresponding packet arrives
+   * \param primaryChannelFrequency the frequency of the primary channel (in MHz)
    *
    * \return struct of SNR and PER
    */
@@ -240,6 +242,7 @@ public:
    * all SNIR changes in the snir vector.
    *
    * \param event the event corresponding to the first time the corresponding packet arrives
+   * \param primaryChannelFrequency the frequency of the primary channel (in MHz)
    *
    * \return struct of SNR and PER
    */
@@ -317,11 +320,12 @@ private:
    * Calculate noise and interference power in W.
    *
    * \param event
-   * \param ni
+   * \param nis
+   * \param band
    *
    * \return noise and interference power
    */
-  double CalculateNoiseInterferenceW (Ptr<Event> event, NiChangesPerBand *ni, FrequencyWidthPair band) const;
+  double CalculateNoiseInterferenceW (Ptr<Event> event, NiChangesPerBand *nis, FrequencyWidthPair band) const;
   /**
    * Calculate SNR (linear ratio) from the given signal power and noise+interference power.
    *
@@ -350,40 +354,42 @@ private:
    * multiple chunks (e.g. due to interference from other transmissions).
    *
    * \param event
-   * \param ni
+   * \param nis
    * \param band
    * \param window time window (pair of start and end times) of PLCP payload to focus on
    *
    * \return the error rate of the payload
    */
-  double CalculatePayloadPer (Ptr<const Event> event, NiChangesPerBand *ni, FrequencyWidthPair band, std::pair<Time, Time> window) const;
+  double CalculatePayloadPer (Ptr<const Event> event, NiChangesPerBand *nis, FrequencyWidthPair band, std::pair<Time, Time> window) const;
   /**
    * Calculate the error rate of the legacy PHY header. The legacy PHY header
    * can be divided into multiple chunks (e.g. due to interference from other transmissions).
    *
    * \param event
-   * \param ni
+   * \param nis
+   * \param band
    *
    * \return the error rate of the legacy PHY header
    */
-  double CalculateLegacyPhyHeaderPer (Ptr<const Event> event, NiChangesPerBand *ni, FrequencyWidthPair band) const;
+  double CalculateLegacyPhyHeaderPer (Ptr<const Event> event, NiChangesPerBand *nis, FrequencyWidthPair band) const;
   /**
    * Calculate the error rate of the non-legacy PHY header. The non-legacy PHY header
    * can be divided into multiple chunks (e.g. due to interference from other transmissions).
    *
    * \param event
-   * \param ni
+   * \param nis
+   * \param band
    *
    * \return the error rate of the non-legacy PHY header
    */
-  double CalculateNonLegacyPhyHeaderPer (Ptr<const Event> event, NiChangesPerBand *ni, FrequencyWidthPair band) const;
+  double CalculateNonLegacyPhyHeaderPer (Ptr<const Event> event, NiChangesPerBand *nis, FrequencyWidthPair band) const;
 
-  double m_noiseFigure; /**< noise figure (linear) */
-  Ptr<ErrorRateModel> m_errorRateModel; ///< error rate model
-  uint8_t m_numRxAntennas; /**< the number of RX antennas in the corresponding receiver */
-  NiChangesPerBand m_niChangesPerBand; //!< first power of each channel band
+  double m_noiseFigure;                                      //!< noise figure (linear)
+  Ptr<ErrorRateModel> m_errorRateModel;                      //!< error rate model
+  uint8_t m_numRxAntennas;                                   //!< the number of RX antennas in the corresponding receiver
+  NiChangesPerBand m_niChangesPerBand;                       //!< first power of each channel band
   std::map <FrequencyWidthPair, double> m_firstPowerPerBand; //!< first power of each channel band
-  bool m_rxing; ///< flag whether it is in receiving state
+  bool m_rxing;                                              //!< flag whether it is in receiving state
 
   /**
    * Returns an iterator to the first nichange that is later than moment
