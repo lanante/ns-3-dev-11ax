@@ -195,7 +195,7 @@ SpectrumWifiPhy::StartRx (Ptr<SpectrumSignalParameters> rxParams)
   Ptr<SpectrumValue> receivedSignalPsd = rxParams->psd;
   NS_LOG_DEBUG ("Received signal with PSD " << *receivedSignalPsd << " and duration " << rxDuration.As (Time::NS));
   uint32_t senderNodeId = 0;
-  if (rxParams->txPhy)
+  if (rxParams->txPhy && rxParams->txPhy->GetDevice ())
     {
       senderNodeId = rxParams->txPhy->GetDevice ()->GetNode ()->GetId ();
     }

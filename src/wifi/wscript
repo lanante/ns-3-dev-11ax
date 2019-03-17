@@ -124,6 +124,7 @@ def build(bld):
         'test/wifi-phy-thresholds-test.cc',
         'test/wifi-phy-reception-test.cc',
         'test/inter-bss-test-suite.cc',
+        'test/channel-bonding-test.cc',
         ]
 
     headers = bld(features='ns3header')
