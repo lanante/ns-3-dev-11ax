@@ -1134,8 +1134,9 @@ public:
    * Implemented for encapsulation purposes.
    *
    * \param packet the packet being received
+   * \param rxPowersW the receive power per channel band in Watts
    */
-  void NotifyRxBegin (Ptr<const Packet> packet);
+  void NotifyRxBegin (Ptr<const Packet> packet, RxPowerWattPerChannelBand rxPowersW);
   /**
    * Public method used to fire a PhyRxEnd trace.
    * Implemented for encapsulation purposes.
@@ -1795,7 +1796,7 @@ private:
    *
    * \see class CallBackTraceSource
    */
-  TracedCallback<Ptr<const Packet> > m_phyRxBeginTrace;
+  TracedCallback<Ptr<const Packet> , RxPowerWattPerChannelBand > m_phyRxBeginTrace;
 
   /**
    * The trace source fired when a packet ends the reception process from
