@@ -188,6 +188,18 @@ InterferenceHelper::SetFrequencyBands (uint16_t firstCenterFrequency, uint16_t c
     channelWidth = 20;
   }
   NS_LOG_FUNCTION (this << firstCenterFrequency << channelWidth);
+  if (channelWidth < 20)
+    {
+      auto band = std::make_pair (firstCenterFrequency, channelWidth);
+      auto it = m_niChangesPerBand.find (band);
+      if (it == m_niChangesPerBand.end ())
+        {
+          NiChanges NiChanges;
+          m_niChangesPerBand.insert ({band, NiChanges});
+          AddNiChangeEvent (Time (0), NiChange (0.0, 0), band);
+          m_firstPowerPerBand.insert ({band, 0.0});
+        }
+    }
   for (uint8_t i = 0; i < std::max (1, channelWidth / 20); i++)
     {
       uint16_t centerFrequency = firstCenterFrequency + (i * 20);
@@ -963,10 +975,10 @@ InterferenceHelper::CalculateNonLegacyPhyHeaderPer (Ptr<const Event> event, NiCh
 }
 
 struct InterferenceHelper::SnrPer
-InterferenceHelper::CalculatePayloadSnrPer (Ptr<Event> event, uint16_t primaryChannelFrequency, std::pair<Time, Time> relativeMpduStartStop) const
+InterferenceHelper::CalculatePayloadSnrPer (Ptr<Event> event, uint16_t primaryChannelFrequency, uint16_t maxSupportedChannelWidth, std::pair<Time, Time> relativeMpduStartStop) const
 {
   NiChangesPerBand ni;
-  uint16_t channelWidth = event->GetTxVector ().GetChannelWidth ();
+  uint16_t channelWidth = std::min (maxSupportedChannelWidth, event->GetTxVector ().GetChannelWidth ());
   auto band = std::make_pair (primaryChannelFrequency, channelWidth == 22 ? 20 : channelWidth); //22 MHz and 20 MHz signals should be handled similarly
   double noiseInterferenceW = CalculateNoiseInterferenceW (event, &ni, band);
   double snr = CalculateSnr (event->GetRxPowerW (band),
@@ -985,10 +997,10 @@ InterferenceHelper::CalculatePayloadSnrPer (Ptr<Event> event, uint16_t primaryCh
 }
 
 double
-InterferenceHelper::CalculateSnr (Ptr<Event> event, uint16_t primaryChannelFrequency) const
+InterferenceHelper::CalculateSnr (Ptr<Event> event, uint16_t primaryChannelFrequency, uint16_t maxSupportedChannelWidth) const
 {
   NiChangesPerBand ni;
-  uint16_t channelWidth = event->GetTxVector ().GetChannelWidth ();
+  uint16_t channelWidth = std::min (maxSupportedChannelWidth, event->GetTxVector ().GetChannelWidth ());
   auto band = std::make_pair (primaryChannelFrequency, channelWidth == 22 ? 20 : channelWidth);
   double noiseInterferenceW = CalculateNoiseInterferenceW (event, &ni, band);
   double snr = CalculateSnr (event->GetRxPowerW (band),

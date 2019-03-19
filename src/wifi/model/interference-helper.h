@@ -214,19 +214,22 @@ public:
    *
    * \param event the event corresponding to the first time the corresponding packet arrives
    * \param primaryChannelFrequency the frequency of the primary channel (in MHz)
+   * \param maxSupportedChannelWidth the maximum supported channel width (in MHz)
    * \param relativeMpduStartStop the time window (pair of start and end times) of PLCP payload to focus on
    *
    * \return struct of SNR and PER (with PER being evaluated over the provided time window)
    */
-  struct InterferenceHelper::SnrPer CalculatePayloadSnrPer (Ptr<Event> event, uint16_t primaryChannelFrequency, std::pair<Time, Time> relativeMpduStartStop) const;
+  struct InterferenceHelper::SnrPer CalculatePayloadSnrPer (Ptr<Event> event, uint16_t primaryChannelFrequency, uint16_t maxSupportedChannelWidth, std::pair<Time, Time> relativeMpduStartStop) const;
   /**
    * Calculate the SNIR for the event (starting from now until the event end).
    *
    * \param event the event corresponding to the first time the corresponding packet arrives
+   * \param primaryChannelFrequency the frequency of the primary channel (in MHz)
+   * \param maxSupportedChannelWidth the maximum supported channel width (in MHz)
    *
    * \return the SNR for the packet
    */
-  double CalculateSnr (Ptr<Event> event, uint16_t primaryChannelFrequency) const;
+  double CalculateSnr (Ptr<Event> event, uint16_t primaryChannelFrequency, uint16_t maxSupportedChannelWidth) const;
   /**
    * Calculate the SNIR at the start of the legacy PHY header and accumulate
    * all SNIR changes in the snir vector.

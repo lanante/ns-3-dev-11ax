@@ -133,7 +133,12 @@ YansWifiChannel::Receive (Ptr<YansWifiPhy> phy, Ptr<Packet> packet, double rxPow
       return;
     }
   RxPowerWattPerChannelBand rxPowerW;
-  uint8_t nBands = std::max (1, phy->GetChannelWidth () / 20);
+  uint16_t channelWidth = phy->GetChannelWidth ();
+  if (channelWidth < 20)
+    {
+      rxPowerW.insert ({std::make_pair (phy->GetFrequency (), channelWidth), (DbmToW (rxPowerDbm + phy->GetRxGain ()))});
+    }
+  uint8_t nBands = channelWidth / 20;
   for (uint8_t i = 0; i < nBands; i++)
     {
       rxPowerW.insert ({std::make_pair (phy->GetFrequency () + (i * 20), 20), ((DbmToW (rxPowerDbm + phy->GetRxGain ())) / nBands)});

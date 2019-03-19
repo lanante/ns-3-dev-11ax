@@ -3071,7 +3071,7 @@ WifiPhy::EndReceive (Ptr<Event> event)
   NS_LOG_FUNCTION (this << event->GetPacket () << event->GetTxVector () << event << psduDuration);
   NS_ASSERT (event->GetEndTime () == Simulator::Now ());
 
-  double snr = m_interference.CalculateSnr (event, GetFrequency () /* assume for now primary is the first band */);
+  double snr = m_interference.CalculateSnr (event, GetFrequency () /* assume for now primary is the first band */, GetChannelWidth ());
   std::vector<bool> statusPerMpdu;
   SignalNoiseDbm signalNoise;
 
@@ -3136,7 +3136,7 @@ WifiPhy::GetReceptionStatus (Ptr<const Packet> mpdu, Ptr<Event> event, Time rela
 {
   NS_LOG_FUNCTION (this << mpdu << event->GetTxVector () << event << relativeMpduStart << mpduDuration);
   InterferenceHelper::SnrPer snrPer;
-  snrPer = m_interference.CalculatePayloadSnrPer (event, GetFrequency () /* assume for now primary is the first band */, std::make_pair (relativeMpduStart, relativeMpduStart + mpduDuration));
+  snrPer = m_interference.CalculatePayloadSnrPer (event, GetFrequency () /* assume for now primary is the first band */, GetChannelWidth (), std::make_pair (relativeMpduStart, relativeMpduStart + mpduDuration));
 
   NS_LOG_DEBUG ("mode=" << (event->GetTxVector ().GetMode ().GetDataRate (event->GetTxVector ())) <<
                 ", snr(dB)=" << RatioToDb (snrPer.snr) << ", per=" << snrPer.per << ", size=" << mpdu->GetSize () <<

@@ -212,8 +212,10 @@ SpectrumWifiPhy::StartRx (Ptr<SpectrumSignalParameters> rxParams)
       Ptr<SpectrumValue> filter = WifiSpectrumValueHelper::CreateRfFilter (GetFrequency (), channelWidth, GetBandBandwidth (), GetGuardBandwidth (channelWidth), channelWidth, 0);
       SpectrumValue filteredSignal = (*filter) * (*receivedSignalPsd);
       NS_LOG_DEBUG ("Signal power received (watts) before antenna gain: " << Integral (filteredSignal));
-      totalRxPowerW = Integral (filteredSignal) * DbToRatio (GetRxGain ());
-      rxPowerW.insert ({std::make_pair (GetFrequency (), channelWidth), totalRxPowerW});
+      double rxPowerPerBandW = Integral (filteredSignal) * DbToRatio (GetRxGain ());
+      totalRxPowerW += rxPowerPerBandW;
+      rxPowerW.insert ({std::make_pair (GetFrequency (), channelWidth), rxPowerPerBandW});
+      NS_LOG_DEBUG ("Signal power received after antenna gain for " << channelWidth << " MHz channel: " << rxPowerPerBandW << " W (" << WToDbm (rxPowerPerBandW) << " dBm)");
     }
   for (uint8_t i = 0; i < (channelWidth / 20); i++)
     {

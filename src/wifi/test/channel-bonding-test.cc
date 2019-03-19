@@ -131,7 +131,7 @@ TestChannelBonding::SendPacket (uint8_t bss, uint16_t channelWidth, uint32_t pay
       phy = m_txPhyBss3;
     }
 
-  WifiTxVector txVector = WifiTxVector (WifiPhy::GetHtMcs7 (), 0, WIFI_PREAMBLE_HT_MF, 800, 1, 1, 0, 20, false, false);
+  WifiTxVector txVector = WifiTxVector (WifiPhy::GetHtMcs7 (), 0, WIFI_PREAMBLE_HT_MF, 800, 1, 1, 0, channelWidth, false, false);
   MpduType mpdutype = NORMAL_MPDU;
 
   Ptr<Packet> pkt = Create<Packet> (payloadSize);
@@ -182,6 +182,11 @@ TestChannelBonding::RxCallbackBss1 (Ptr<const Packet> p, RxPowerWattPerChannelBa
       double expectedRxPowerMax = 10 /* TX power */ - 20 /* rejection */ - 50 /* loss */;
       NS_TEST_EXPECT_MSG_LT (WToDbm(it->second), expectedRxPowerMax, "Received power for BSS 2 RX PHY is too high");
     }
+  else if (size == 1230) //from BSS 3
+    {
+      double expectedRxPowerMin = 10 /* TX power */ - 3 /* half band */ - 50 /* loss */ - 1 /* precision */;
+      NS_TEST_EXPECT_MSG_GT (WToDbm(it->second), expectedRxPowerMin, "Received power for BSS 1 RX PHY is too low");
+    } 
 }
 
 void
@@ -197,11 +202,16 @@ TestChannelBonding::RxCallbackBss2 (Ptr<const Packet> p, RxPowerWattPerChannelBa
       double expectedRxPowerMax = 10 /* TX power */ - 20 /* rejection */ - 50 /* loss */;
       NS_TEST_EXPECT_MSG_LT (WToDbm(it->second), expectedRxPowerMax, "Received power for BSS 2 RX PHY is too high");
     }
-  else if (size == 1030) //from BSS 2
+  else if (size == 1130) //from BSS 2
     {
       double expectedRxPowerMin = 10 /* TX power */ - 50 /* loss */ - 1 /* precision */;
       NS_TEST_EXPECT_MSG_GT (WToDbm(it->second), expectedRxPowerMin, "Received power for BSS 1 RX PHY is too low");
     }
+  else if (size == 1230) //from BSS 3
+    {
+      double expectedRxPowerMin = 10 /* TX power */ - 3 /* half band */ - 50 /* loss */ - 1 /* precision */;
+      NS_TEST_EXPECT_MSG_GT (WToDbm(it->second), expectedRxPowerMin, "Received power for BSS 1 RX PHY is too low");
+    } 
 }
 
 void
@@ -224,6 +234,11 @@ TestChannelBonding::RxCallbackBss3 (Ptr<const Packet> p, RxPowerWattPerChannelBa
       double expectedRxPowerMax = 10 /* TX power */ - 20 /* rejection */ - 50 /* loss */;
       NS_TEST_EXPECT_MSG_LT (WToDbm(it->second), expectedRxPowerMax, "Received power for BSS 3 RX PHY is too high");
     }
+  else if (size == 1230) //from BSS 3
+    {
+      double expectedRxPowerMin = 10 /* TX power */ - 3 /* half band */ - 50 /* loss */ - 1 /* precision */;
+      NS_TEST_EXPECT_MSG_GT (WToDbm(it->second), expectedRxPowerMin, "Received power for BSS 1 RX PHY is too low");
+    } 
 
   //band = std::make_pair (FREQUENCY_BSS2, 20); //to be fixed
   band = std::make_pair (FREQUENCY_BSS3 + 20, 20);
@@ -240,6 +255,11 @@ TestChannelBonding::RxCallbackBss3 (Ptr<const Packet> p, RxPowerWattPerChannelBa
       double expectedRxPowerMin = 10 /* TX power */ - 50 /* loss */ - 1 /* precision */;
       NS_TEST_EXPECT_MSG_GT (WToDbm(it->second), expectedRxPowerMin, "Received power in primary channel for BSS 3 RX PHY is too low");
     }
+  else if (size == 1230) //from BSS 3
+    {
+      double expectedRxPowerMin = 10 /* TX power */ - 3 /* half band */ - 50 /* loss */ - 1 /* precision */;
+      NS_TEST_EXPECT_MSG_GT (WToDbm(it->second), expectedRxPowerMin, "Received power for BSS 1 RX PHY is too low");
+    } 
   
   band = std::make_pair (FREQUENCY_BSS3, 40);
   it = rxPowersW.find(band);
@@ -386,7 +406,7 @@ TestChannelBonding::DoRun (void)
   //CASE 1: each BSS send a packet on its channel to verify the received power per band for each receiver
   Simulator::Schedule (Seconds (1.0), &TestChannelBonding::SendPacket, this, 1, CHANNEL_WIDTH_BSS1, 1000);
   Simulator::Schedule (Seconds (2.0), &TestChannelBonding::SendPacket, this, 2, CHANNEL_WIDTH_BSS2, 1100);
-  //Simulator::Schedule (Seconds (3.0), &TestChannelBonding::SendPacket, this, 3, CHANNEL_WIDTH_BSS3, 1200); //to be fixed, this causes a crash in InterferenceHelper
+  Simulator::Schedule (Seconds (3.0), &TestChannelBonding::SendPacket, this, 3, CHANNEL_WIDTH_BSS3, 1200);
 
   //TODO: send on channel 40 (BSS 2)
   //TODO: verify successful and failed receptions
