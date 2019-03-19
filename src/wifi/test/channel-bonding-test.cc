@@ -172,10 +172,15 @@ TestChannelBonding::RxCallbackBss1 (Ptr<const Packet> p, RxPowerWattPerChannelBa
   NS_ASSERT (it != rxPowersW.end ());
   uint32_t size = p->GetSize ();
   NS_LOG_INFO ("BSS 1 received packet with size " << size << " and power in 20 MHz band: " << WToDbm(it->second));
-  if (size == 1030) //first packet
+  if (size == 1030) //from BSS 1
     {
       double expectedRxPowerMin = 10 /* TX power */ - 50 /* loss */ - 1 /* precision */;
       NS_TEST_EXPECT_MSG_GT (WToDbm(it->second), expectedRxPowerMin, "Received power for BSS 1 RX PHY is too low");
+    }
+  else if (size == 1130) //from BSS 2
+    {
+      double expectedRxPowerMax = 10 /* TX power */ - 20 /* rejection */ - 50 /* loss */;
+      NS_TEST_EXPECT_MSG_LT (WToDbm(it->second), expectedRxPowerMax, "Received power for BSS 2 RX PHY is too high");
     }
 }
 
@@ -187,10 +192,15 @@ TestChannelBonding::RxCallbackBss2 (Ptr<const Packet> p, RxPowerWattPerChannelBa
   NS_ASSERT (it != rxPowersW.end ());
   uint32_t size = p->GetSize ();
   NS_LOG_INFO ("BSS 2 received packet with size " << size << " and power in 20 MHz band: " << WToDbm(it->second));
-  if (size == 1030) //first packet
+  if (size == 1030) //from BSS 1
     {
       double expectedRxPowerMax = 10 /* TX power */ - 20 /* rejection */ - 50 /* loss */;
       NS_TEST_EXPECT_MSG_LT (WToDbm(it->second), expectedRxPowerMax, "Received power for BSS 2 RX PHY is too high");
+    }
+  else if (size == 1030) //from BSS 2
+    {
+      double expectedRxPowerMin = 10 /* TX power */ - 50 /* loss */ - 1 /* precision */;
+      NS_TEST_EXPECT_MSG_GT (WToDbm(it->second), expectedRxPowerMin, "Received power for BSS 1 RX PHY is too low");
     }
 }
 
@@ -204,10 +214,15 @@ TestChannelBonding::RxCallbackBss3 (Ptr<const Packet> p, RxPowerWattPerChannelBa
   auto it = rxPowersW.find(band);
   NS_ASSERT (it != rxPowersW.end ());
   NS_LOG_INFO ("BSS 3 received packet with size " << size << " and power in primary 20 MHz band: " << WToDbm(it->second));
-  if (size == 1030) //first packet
+  if (size == 1030) //from BSS 1
     {
       double expectedRxPowerMin = 10 /* TX power */ - 50 /* loss */ - 1 /* precision */;
       NS_TEST_EXPECT_MSG_GT (WToDbm(it->second), expectedRxPowerMin, "Received power in primary channel for BSS 3 RX PHY is too low");
+    }
+  else if (size == 1130) //from BSS 2
+    {
+      double expectedRxPowerMax = 10 /* TX power */ - 20 /* rejection */ - 50 /* loss */;
+      NS_TEST_EXPECT_MSG_LT (WToDbm(it->second), expectedRxPowerMax, "Received power for BSS 3 RX PHY is too high");
     }
 
   //band = std::make_pair (FREQUENCY_BSS2, 20); //to be fixed
@@ -215,21 +230,23 @@ TestChannelBonding::RxCallbackBss3 (Ptr<const Packet> p, RxPowerWattPerChannelBa
   it = rxPowersW.find(band);
   NS_ASSERT (it != rxPowersW.end ());
   NS_LOG_INFO ("BSS 3 received packet with size " << size << " and power in secondary 20 MHz band: " << WToDbm(it->second));
-  if (size == 1030) //first packet
+  if (size == 1030) //from BSS 1
     {
       double expectedRxPowerMax = 10 /* TX power */ - 20 /* rejection */ - 50 /* loss */;
       NS_TEST_EXPECT_MSG_LT (WToDbm(it->second), expectedRxPowerMax, "Received power for BSS 3 RX PHY is too high");
+    }
+  else if (size == 1130) //from BSS 2
+    {
+      double expectedRxPowerMin = 10 /* TX power */ - 50 /* loss */ - 1 /* precision */;
+      NS_TEST_EXPECT_MSG_GT (WToDbm(it->second), expectedRxPowerMin, "Received power in primary channel for BSS 3 RX PHY is too low");
     }
   
   band = std::make_pair (FREQUENCY_BSS3, 40);
   it = rxPowersW.find(band);
   NS_ASSERT (it != rxPowersW.end ());
   NS_LOG_INFO ("BSS 3 received packet with size " << size << " and power in 40 MHz band: " << WToDbm(it->second));
-  if (size == 1030) //first packet
-  {
-    double expectedRxPowerMin = 10 /* TX power */ - 50 /* loss */ - 1 /* precision */;
-    NS_TEST_EXPECT_MSG_GT (WToDbm(it->second), expectedRxPowerMin, "Received power for BSS 3 RX PHY is too low");
-  }
+  double expectedRxPowerMin = 10 /* TX power */ - 50 /* loss */ - 1 /* precision */;
+  NS_TEST_EXPECT_MSG_GT (WToDbm(it->second), expectedRxPowerMin, "Received power for BSS 3 RX PHY is too low");
 }
 
 TestChannelBonding::~TestChannelBonding ()
@@ -366,8 +383,11 @@ TestChannelBonding::DoRun (void)
   m_txPhyBss2->AssignStreams (streamNumber);
   m_txPhyBss3->AssignStreams (streamNumber);
 
-  //CASE 1: BSS1 sends one packet on channel 36 at the same time as BSS2 send one packet on channel 40
+  //CASE 1: each BSS send a packet on its channel to verify the received power per band for each receiver
   Simulator::Schedule (Seconds (1.0), &TestChannelBonding::SendPacket, this, 1, CHANNEL_WIDTH_BSS1, 1000);
+  Simulator::Schedule (Seconds (2.0), &TestChannelBonding::SendPacket, this, 2, CHANNEL_WIDTH_BSS2, 1100);
+  //Simulator::Schedule (Seconds (3.0), &TestChannelBonding::SendPacket, this, 3, CHANNEL_WIDTH_BSS3, 1200); //to be fixed, this causes a crash in InterferenceHelper
+
   //TODO: send on channel 40 (BSS 2)
   //TODO: verify successful and failed receptions
 
