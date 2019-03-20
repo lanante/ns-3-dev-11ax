@@ -2760,6 +2760,7 @@ WifiPhy::ContinueReceiveHeader (Ptr<Event> event)
   InterferenceHelper::SnrPer snrPer;
   snrPer = m_interference.CalculateLegacyPhyHeaderSnrPer (event, GetFrequency () /* assume for now primary is the first band */);
 
+  NS_LOG_DEBUG ("snr(dB)=" << RatioToDb (snrPer.snr) << ", per=" << snrPer.per);
   if (m_random->GetValue () > snrPer.per) //legacy PHY header reception succeeded
     {
       NS_LOG_DEBUG ("Received legacy PHY header");
