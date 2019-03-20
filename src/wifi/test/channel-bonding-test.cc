@@ -77,33 +77,30 @@ protected:
   void SendPacket (uint8_t bss);
 
   /**
-   * Callback triggered when a packet is received by the BSS1 RX PHY
+   * Callback triggered when a packet is starting to be processed for reception
+   * \param context the context
    * \param p the received packet
    * \param rxPowersW the received power per channel band in watts
    */
-  void RxCallbackBss1 (Ptr<const Packet> p, RxPowerWattPerChannelBand rxPowersW);
+  void RxCallback (std::string context, Ptr<const Packet> p, RxPowerWattPerChannelBand rxPowersW);
 
   /**
-   * Callback triggered when a packet is received by the BSS2 RX PHY
+   * Callback triggered when a packet has been successfully received
+   * \param context the context
    * \param p the received packet
-   * \param rxPowersW the received power per channel band in watts
+   * \param snr the signal to noise ratio
+   * \param mode the mode used for the transmission
+   * \param preamble the preamble used for the transmission
    */
-  void RxCallbackBss2 (Ptr<const Packet> p, RxPowerWattPerChannelBand rxPowersW);
+  void RxOkCallback (std::string context, Ptr<const Packet> p, double snr, WifiMode mode, WifiPreamble preamble);
 
   /**
-   * Callback triggered when a packet is received by the BSS3 RX PHY
-   * \param p the received packet
-   * \param rxPowersW the received power per channel band in watts
+   * Callback triggered when a packet has been unsuccessfully received
+   * \param context the context
+   * \param p the packet
+   * \param snr the signal to noise ratio
    */
-  void RxCallbackBss3 (Ptr<const Packet> p, RxPowerWattPerChannelBand rxPowersW);
-
-  void RxOkCallbackBss1 (Ptr<const Packet> p, double snr, WifiMode mode, WifiPreamble preamble);
-  void RxOkCallbackBss2 (Ptr<const Packet> p, double snr, WifiMode mode, WifiPreamble preamble);
-  void RxOkCallbackBss3 (Ptr<const Packet> p, double snr, WifiMode mode, WifiPreamble preamble);
-
-  void RxErrorCallbackBss1 (Ptr<const Packet> p, double snr);
-  void RxErrorCallbackBss2 (Ptr<const Packet> p, double snr);
-  void RxErrorCallbackBss3 (Ptr<const Packet> p, double snr);
+  void RxErrorCallback (std::string context, Ptr<const Packet> p, double snr);
 
 private:
   virtual void DoRun (void);
@@ -112,8 +109,8 @@ private:
 TestChannelBonding::TestChannelBonding ()
   : TestCase ("Channel bonding test")
 {
-  //LogLevel logLevel = (LogLevel)(LOG_PREFIX_TIME | LOG_PREFIX_NODE | LOG_LEVEL_ALL);
-  //LogComponentEnable ("WifiChannelBondingTest", logLevel);
+  LogLevel logLevel = (LogLevel)(LOG_PREFIX_TIME | LOG_PREFIX_NODE | LOG_LEVEL_ALL);
+  LogComponentEnable ("WifiChannelBondingTest", logLevel);
   //LogComponentEnable ("WifiSpectrumValueHelper", logLevel);
   //LogComponentEnable ("WifiPhy", logLevel);
   //LogComponentEnable ("SpectrumWifiPhy", logLevel);
@@ -125,8 +122,8 @@ void
 TestChannelBonding::SendPacket (uint8_t bss)
 {
   Ptr<SpectrumWifiPhy> phy;
-  uint16_t channelWidth;
-  uint32_t payloadSize;
+  uint16_t channelWidth = 20;
+  uint32_t payloadSize = 1000;
   if (bss == 1)
     {
       phy = m_txPhyBss1;
@@ -180,144 +177,116 @@ TestChannelBonding::SendPacket (uint8_t bss)
 }
 
 void
-TestChannelBonding::RxCallbackBss1 (Ptr<const Packet> p, RxPowerWattPerChannelBand rxPowersW)
-{
-  auto band = std::make_pair (FREQUENCY_BSS1, 20);
-  auto it = rxPowersW.find(band);
-  NS_ASSERT (it != rxPowersW.end ());
-  uint32_t size = p->GetSize ();
-  NS_LOG_INFO ("BSS 1 received packet with size " << size << " and power in 20 MHz band: " << WToDbm(it->second));
-  if (size == 1031) //from BSS 1
-    {
-      double expectedRxPowerMin = 10 /* TX power */ - 50 /* loss */ - 1 /* precision */;
-      NS_TEST_EXPECT_MSG_GT (WToDbm(it->second), expectedRxPowerMin, "Received power for BSS 1 RX PHY is too low");
-    }
-  else if (size == 1032) //from BSS 2
-    {
-      double expectedRxPowerMax = 10 /* TX power */ - 20 /* rejection */ - 50 /* loss */;
-      NS_TEST_EXPECT_MSG_LT (WToDbm(it->second), expectedRxPowerMax, "Received power for BSS 2 RX PHY is too high");
-    }
-  else if (size == 2130) //from BSS 3
-    {
-      double expectedRxPowerMin = 10 /* TX power */ - 3 /* half band */ - 50 /* loss */ - 1 /* precision */;
-      NS_TEST_EXPECT_MSG_GT (WToDbm(it->second), expectedRxPowerMin, "Received power for BSS 1 RX PHY is too low");
-    } 
-}
-
-void
-TestChannelBonding::RxCallbackBss2 (Ptr<const Packet> p, RxPowerWattPerChannelBand rxPowersW)
-{
-  auto band = std::make_pair (FREQUENCY_BSS2, 20);
-  auto it = rxPowersW.find(band);
-  NS_ASSERT (it != rxPowersW.end ());
-  uint32_t size = p->GetSize ();
-  NS_LOG_INFO ("BSS 2 received packet with size " << size << " and power in 20 MHz band: " << WToDbm(it->second));
-  if (size == 1031) //from BSS 1
-    {
-      double expectedRxPowerMax = 10 /* TX power */ - 20 /* rejection */ - 50 /* loss */;
-      NS_TEST_EXPECT_MSG_LT (WToDbm(it->second), expectedRxPowerMax, "Received power for BSS 2 RX PHY is too high");
-    }
-  else if (size == 1032) //from BSS 2
-    {
-      double expectedRxPowerMin = 10 /* TX power */ - 50 /* loss */ - 1 /* precision */;
-      NS_TEST_EXPECT_MSG_GT (WToDbm(it->second), expectedRxPowerMin, "Received power for BSS 1 RX PHY is too low");
-    }
-  else if (size == 2130) //from BSS 3
-    {
-      double expectedRxPowerMin = 10 /* TX power */ - 3 /* half band */ - 50 /* loss */ - 1 /* precision */;
-      NS_TEST_EXPECT_MSG_GT (WToDbm(it->second), expectedRxPowerMin, "Received power for BSS 1 RX PHY is too low");
-    } 
-}
-
-void
-TestChannelBonding::RxCallbackBss3 (Ptr<const Packet> p, RxPowerWattPerChannelBand rxPowersW)
+TestChannelBonding::RxCallback (std::string context, Ptr<const Packet> p, RxPowerWattPerChannelBand rxPowersW)
 {
   uint32_t size = p->GetSize ();
+  if (context == "BSS1") //RX is in BSS 1
+    {
+      auto band = std::make_pair (FREQUENCY_BSS1, 20);
+      auto it = rxPowersW.find (band);
+      NS_ASSERT (it != rxPowersW.end ());
+      NS_LOG_INFO ("BSS 1 received packet with size " << size << " and power in 20 MHz band: " << WToDbm (it->second));
+      if (size == 1031) //TX is in BSS 1
+        {
+          double expectedRxPowerMin = 10 /* TX power */ - 50 /* loss */ - 1 /* precision */;
+          NS_TEST_EXPECT_MSG_GT (WToDbm (it->second), expectedRxPowerMin, "Received power for BSS 1 RX PHY is too low");
+        }
+      else if (size == 1032) //TX is in BSS 2
+        {
+          double expectedRxPowerMax = 10 /* TX power */ - 20 /* rejection */ - 50 /* loss */;
+          NS_TEST_EXPECT_MSG_LT (WToDbm (it->second), expectedRxPowerMax, "Received power for BSS 2 RX PHY is too high");
+        }
+      else if (size == 2130) //TX is in BSS 3
+        {
+          double expectedRxPowerMin = 10 /* TX power */ - 3 /* half band */ - 50 /* loss */ - 1 /* precision */;
+          NS_TEST_EXPECT_MSG_GT (WToDbm (it->second), expectedRxPowerMin, "Received power for BSS 1 RX PHY is too low");
+        }
+    }
+  else if (context == "BSS2") //RX is in BSS 2
+    {
+      auto band = std::make_pair (FREQUENCY_BSS2, 20);
+      auto it = rxPowersW.find (band);
+      NS_ASSERT (it != rxPowersW.end ());
+      NS_LOG_INFO ("BSS 2 received packet with size " << size << " and power in 20 MHz band: " << WToDbm (it->second));
+      if (size == 1031) //TX is in BSS 1
+        {
+          double expectedRxPowerMax = 10 /* TX power */ - 20 /* rejection */ - 50 /* loss */;
+          NS_TEST_EXPECT_MSG_LT (WToDbm (it->second), expectedRxPowerMax, "Received power for BSS 2 RX PHY is too high");
+        }
+      else if (size == 1032) //TX is in BSS 2
+        {
+          double expectedRxPowerMin = 10 /* TX power */ - 50 /* loss */ - 1 /* precision */;
+          NS_TEST_EXPECT_MSG_GT (WToDbm (it->second), expectedRxPowerMin, "Received power for BSS 1 RX PHY is too low");
+        }
+      else if (size == 2130) //TX is in BSS 3
+        {
+          double expectedRxPowerMin = 10 /* TX power */ - 3 /* half band */ - 50 /* loss */ - 1 /* precision */;
+          NS_TEST_EXPECT_MSG_GT (WToDbm (it->second), expectedRxPowerMin, "Received power for BSS 1 RX PHY is too low");
+        }
+    }
+  else if (context == "BSS3") //RX is in BSS 3
+    {
+      //auto band = std::make_pair (FREQUENCY_BSS1, 20); //to be fixed
+      auto band = std::make_pair (FREQUENCY_BSS3, 20);
+      auto it = rxPowersW.find (band);
+      NS_ASSERT (it != rxPowersW.end ());
+      NS_LOG_INFO ("BSS 3 received packet with size " << size << " and power in primary 20 MHz band: " << WToDbm (it->second));
+      if (size == 1031) //TX is in BSS 1
+        {
+          double expectedRxPowerMin = 10 /* TX power */ - 50 /* loss */ - 1 /* precision */;
+          NS_TEST_EXPECT_MSG_GT (WToDbm (it->second), expectedRxPowerMin, "Received power in primary channel for BSS 3 RX PHY is too low");
+        }
+      else if (size == 1032) //TX is in BSS 2
+        {
+          double expectedRxPowerMax = 10 /* TX power */ - 20 /* rejection */ - 50 /* loss */;
+          NS_TEST_EXPECT_MSG_LT (WToDbm (it->second), expectedRxPowerMax, "Received power for BSS 3 RX PHY is too high");
+        }
+      else if (size == 2130) //TX is in BSS 3
+        {
+          double expectedRxPowerMin = 10 /* TX power */ - 3 /* half band */ - 50 /* loss */ - 1 /* precision */;
+          NS_TEST_EXPECT_MSG_GT (WToDbm (it->second), expectedRxPowerMin, "Received power for BSS 1 RX PHY is too low");
+        }
 
-  //auto band = std::make_pair (FREQUENCY_BSS1, 20); //to be fixed
-  auto band = std::make_pair (FREQUENCY_BSS3, 20);
-  auto it = rxPowersW.find(band);
-  NS_ASSERT (it != rxPowersW.end ());
-  NS_LOG_INFO ("BSS 3 received packet with size " << size << " and power in primary 20 MHz band: " << WToDbm(it->second));
-  if (size == 1031) //from BSS 1
-    {
-      double expectedRxPowerMin = 10 /* TX power */ - 50 /* loss */ - 1 /* precision */;
-      NS_TEST_EXPECT_MSG_GT (WToDbm(it->second), expectedRxPowerMin, "Received power in primary channel for BSS 3 RX PHY is too low");
-    }
-  else if (size == 1032) //from BSS 2
-    {
-      double expectedRxPowerMax = 10 /* TX power */ - 20 /* rejection */ - 50 /* loss */;
-      NS_TEST_EXPECT_MSG_LT (WToDbm(it->second), expectedRxPowerMax, "Received power for BSS 3 RX PHY is too high");
-    }
-  else if (size == 2130) //from BSS 3
-    {
-      double expectedRxPowerMin = 10 /* TX power */ - 3 /* half band */ - 50 /* loss */ - 1 /* precision */;
-      NS_TEST_EXPECT_MSG_GT (WToDbm(it->second), expectedRxPowerMin, "Received power for BSS 1 RX PHY is too low");
-    } 
-
-  //band = std::make_pair (FREQUENCY_BSS2, 20); //to be fixed
-  band = std::make_pair (FREQUENCY_BSS3 + 20, 20);
-  it = rxPowersW.find(band);
-  NS_ASSERT (it != rxPowersW.end ());
-  NS_LOG_INFO ("BSS 3 received packet with size " << size << " and power in secondary 20 MHz band: " << WToDbm(it->second));
-  if (size == 1031) //from BSS 1
-    {
-      double expectedRxPowerMax = 10 /* TX power */ - 20 /* rejection */ - 50 /* loss */;
-      NS_TEST_EXPECT_MSG_LT (WToDbm(it->second), expectedRxPowerMax, "Received power for BSS 3 RX PHY is too high");
-    }
-  else if (size == 1032) //from BSS 2
-    {
-      double expectedRxPowerMin = 10 /* TX power */ - 50 /* loss */ - 1 /* precision */;
-      NS_TEST_EXPECT_MSG_GT (WToDbm(it->second), expectedRxPowerMin, "Received power in primary channel for BSS 3 RX PHY is too low");
-    }
-  else if (size == 2130) //from BSS 3
-    {
-      double expectedRxPowerMin = 10 /* TX power */ - 3 /* half band */ - 50 /* loss */ - 1 /* precision */;
-      NS_TEST_EXPECT_MSG_GT (WToDbm(it->second), expectedRxPowerMin, "Received power for BSS 1 RX PHY is too low");
-    } 
+      //band = std::make_pair (FREQUENCY_BSS2, 20); //to be fixed
+      band = std::make_pair (FREQUENCY_BSS3 + 20, 20);
+      it = rxPowersW.find (band);
+      NS_ASSERT (it != rxPowersW.end ());
+      NS_LOG_INFO ("BSS 3 received packet with size " << size << " and power in secondary 20 MHz band: " << WToDbm (it->second));
+      if (size == 1031) //TX is in BSS 1
+        {
+          double expectedRxPowerMax = 10 /* TX power */ - 20 /* rejection */ - 50 /* loss */;
+          NS_TEST_EXPECT_MSG_LT (WToDbm (it->second), expectedRxPowerMax, "Received power for BSS 3 RX PHY is too high");
+        }
+      else if (size == 1032) //TX is in BSS 2
+        {
+          double expectedRxPowerMin = 10 /* TX power */ - 50 /* loss */ - 1 /* precision */;
+          NS_TEST_EXPECT_MSG_GT (WToDbm (it->second), expectedRxPowerMin, "Received power in primary channel for BSS 3 RX PHY is too low");
+        }
+      else if (size == 2130) //TX is in BSS 3
+        {
+          double expectedRxPowerMin = 10 /* TX power */ - 3 /* half band */ - 50 /* loss */ - 1 /* precision */;
+          NS_TEST_EXPECT_MSG_GT (WToDbm (it->second), expectedRxPowerMin, "Received power for BSS 1 RX PHY is too low");
+        }
   
-  band = std::make_pair (FREQUENCY_BSS3, 40);
-  it = rxPowersW.find(band);
-  NS_ASSERT (it != rxPowersW.end ());
-  NS_LOG_INFO ("BSS 3 received packet with size " << size << " and power in 40 MHz band: " << WToDbm(it->second));
-  double expectedRxPowerMin = 10 /* TX power */ - 50 /* loss */ - 1 /* precision */;
-  NS_TEST_EXPECT_MSG_GT (WToDbm(it->second), expectedRxPowerMin, "Received power for BSS 3 RX PHY is too low");
+      band = std::make_pair (FREQUENCY_BSS3, 40);
+      it = rxPowersW.find (band);
+      NS_ASSERT (it != rxPowersW.end ());
+      NS_LOG_INFO ("BSS 3 received packet with size " << size << " and power in 40 MHz band: " << WToDbm (it->second));
+      double expectedRxPowerMin = 10 /* TX power */ - 50 /* loss */ - 1 /* precision */;
+      NS_TEST_EXPECT_MSG_GT (WToDbm (it->second), expectedRxPowerMin, "Received power for BSS 3 RX PHY is too low");
+    }
 }
 
 void
-TestChannelBonding::RxOkCallbackBss1 (Ptr<const Packet> p, double snr, WifiMode mode, WifiPreamble preamble)
+TestChannelBonding::RxOkCallback (std::string context, Ptr<const Packet> p, double snr, WifiMode mode, WifiPreamble preamble)
 {
-  NS_LOG_INFO ("RxOkCallbackBss1: SNR=" << RatioToDb (snr));
+  NS_LOG_INFO ("RxOkCallback: BSS=" << context << " SNR=" << RatioToDb (snr));
 }
 
 void
-TestChannelBonding::RxOkCallbackBss2 (Ptr<const Packet> p, double snr, WifiMode mode, WifiPreamble preamble)
+TestChannelBonding::RxErrorCallback (std::string context, Ptr<const Packet> p, double snr)
 {
-  NS_LOG_INFO ("RxOkCallbackBss2: SNR=" << RatioToDb (snr));
-}
-
-void
-TestChannelBonding::RxOkCallbackBss3 (Ptr<const Packet> p, double snr, WifiMode mode, WifiPreamble preamble)
-{
-  NS_LOG_INFO ("RxOkCallbackBss3: SNR=" << RatioToDb (snr));
-}
-
-void
-TestChannelBonding::RxErrorCallbackBss1 (Ptr<const Packet> p, double snr)
-{
-  NS_LOG_INFO ("RxErrorCallbackBss1: SNR=" << RatioToDb (snr));
-}
-
-void
-TestChannelBonding::RxErrorCallbackBss2 (Ptr<const Packet> p, double snr)
-{
-  NS_LOG_INFO ("RxErrorCallbackBss2: SNR=" << RatioToDb (snr));
-}
-
-void
-TestChannelBonding::RxErrorCallbackBss3 (Ptr<const Packet> p, double snr)
-{
-  NS_LOG_INFO ("RxErrorCallbackBss3: SNR=" << RatioToDb (snr));
+  NS_LOG_INFO ("RxErrorCallback: BSS=" << context << " SNR=" << RatioToDb (snr));
 }
 
 TestChannelBonding::~TestChannelBonding ()
@@ -435,15 +404,15 @@ TestChannelBonding::DoSetup (void)
   m_txPhyBss3->SetTxPowerEnd(10);
   m_txPhyBss3->Initialize ();
 
-  m_rxPhyBss1->TraceConnectWithoutContext ("PhyRxBegin", MakeCallback (&TestChannelBonding::RxCallbackBss1, this));
-  m_rxPhyBss2->TraceConnectWithoutContext ("PhyRxBegin", MakeCallback (&TestChannelBonding::RxCallbackBss2, this));
-  m_rxPhyBss3->TraceConnectWithoutContext ("PhyRxBegin", MakeCallback (&TestChannelBonding::RxCallbackBss3, this));
-  m_rxPhyBss1->GetState()->TraceConnectWithoutContext ("RxOk", MakeCallback (&TestChannelBonding::RxOkCallbackBss1, this));
-  m_rxPhyBss2->GetState()->TraceConnectWithoutContext ("RxOk", MakeCallback (&TestChannelBonding::RxOkCallbackBss2, this));
-  m_rxPhyBss3->GetState()->TraceConnectWithoutContext ("RxOk", MakeCallback (&TestChannelBonding::RxOkCallbackBss3, this));
-  m_rxPhyBss1->GetState()->TraceConnectWithoutContext ("RxError", MakeCallback (&TestChannelBonding::RxErrorCallbackBss1, this));
-  m_rxPhyBss2->GetState()->TraceConnectWithoutContext ("RxError", MakeCallback (&TestChannelBonding::RxErrorCallbackBss2, this));
-  m_rxPhyBss3->GetState()->TraceConnectWithoutContext ("RxError", MakeCallback (&TestChannelBonding::RxErrorCallbackBss3, this));
+  m_rxPhyBss1->TraceConnect ("PhyRxBegin", "BSS1", MakeCallback (&TestChannelBonding::RxCallback, this));
+  m_rxPhyBss2->TraceConnect ("PhyRxBegin", "BSS2", MakeCallback (&TestChannelBonding::RxCallback, this));
+  m_rxPhyBss3->TraceConnect ("PhyRxBegin", "BSS3", MakeCallback (&TestChannelBonding::RxCallback, this));
+  m_rxPhyBss1->GetState()->TraceConnect ("RxOk", "BSS1", MakeCallback (&TestChannelBonding::RxOkCallback, this));
+  m_rxPhyBss2->GetState()->TraceConnect ("RxOk", "BSS2", MakeCallback (&TestChannelBonding::RxOkCallback, this));
+  m_rxPhyBss3->GetState()->TraceConnect ("RxOk", "BSS3", MakeCallback (&TestChannelBonding::RxOkCallback, this));
+  m_rxPhyBss1->GetState()->TraceConnect ("RxError", "BSS1", MakeCallback (&TestChannelBonding::RxErrorCallback, this));
+  m_rxPhyBss2->GetState()->TraceConnect ("RxError", "BSS2", MakeCallback (&TestChannelBonding::RxErrorCallback, this));
+  m_rxPhyBss3->GetState()->TraceConnect ("RxError", "BSS3", MakeCallback (&TestChannelBonding::RxErrorCallback, this));
 }
 
 void
