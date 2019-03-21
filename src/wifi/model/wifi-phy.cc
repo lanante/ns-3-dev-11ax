@@ -2704,6 +2704,7 @@ WifiPhy::StartReceiveHeader (Ptr<Event> event, Time rxDuration)
   NS_LOG_FUNCTION (this << event->GetPacket () << event->GetTxVector () << event << rxDuration);
   NS_ASSERT (!IsStateRx ());
   NS_ASSERT (m_endPlcpRxEvent.IsExpired ());
+  NS_ASSERT (m_endRxEvent.IsExpired ());
 
   InterferenceHelper::SnrPer snrPer = m_interference.CalculateLegacyPhyHeaderSnrPer (event, GetFrequency () /* assume for now primary is the first band */);
   double snr = snrPer.snr;
