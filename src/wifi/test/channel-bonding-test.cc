@@ -70,6 +70,20 @@ protected:
   Ptr<SpectrumWifiPhy> m_txPhyBss2; ///< TX Phy BSS #2
   Ptr<SpectrumWifiPhy> m_txPhyBss3; ///< TX Phy BSS #3
 
+  double m_expectedSnrBss1;  ///< Expected SNR for RX Phy #1
+  double m_expectedSnrBss2;  ///< Expected SNR for RX Phy #2
+  double m_expectedSnrBss3;  ///< Expected SNR for RX Phy #3
+  bool m_initializedSnrBss1; ///< Flag whether expected SNR for BSS 1 has been set
+  bool m_initializedSnrBss2; ///< Flag whether expected SNR for BSS 2 has been set
+  bool m_initializedSnrBss3; ///< Flag whether expected SNR for BSS 3 has been set
+
+  bool m_payloadReceivedSuccessBss1;
+  bool m_payloadReceivedSuccessBss2;
+  bool m_payloadReceivedSuccessBss3;
+  bool m_payloadReceivedErrorBss1;
+  bool m_payloadReceivedErrorBss2;
+  bool m_payloadReceivedErrorBss3;
+
   /**
    * Send packet function
    * \param bss the BSS of the transmitter belongs to
@@ -102,12 +116,43 @@ protected:
    */
   void RxErrorCallback (std::string context, Ptr<const Packet> p, double snr);
 
+  /**
+   * Set expected SNR ((in dB) for a given BSS before the test case is run
+   * \param snr the expected signal to noise ratio in dB
+   * \param bss the BSS number
+   */
+  void SetExpectedSnrForBss (double snr, uint8_t bss);
+  /**
+   * Verify packet reception once the test case is run
+   * \param expectedPayloadSuccess whether the payload should have been successfully received
+   * \param expectedPayloadError whether the payload should have been unsuccessfully received
+   * \param bss the BSS number
+   */
+  void VerifyResultsForBss (bool expectedPayloadSuccess, bool expectedPayloadError, uint8_t bss);
+
+  /**
+   * Reset the results
+   */
+  void Reset (void);
+
 private:
   virtual void DoRun (void);
 };
 
 TestChannelBonding::TestChannelBonding ()
-  : TestCase ("Channel bonding test")
+  : TestCase ("Channel bonding test"),
+    m_expectedSnrBss1 (0.0),
+    m_expectedSnrBss2 (0.0),
+    m_expectedSnrBss3 (0.0),
+    m_initializedSnrBss1 (false),
+    m_initializedSnrBss2 (false),
+    m_initializedSnrBss3 (false),
+    m_payloadReceivedSuccessBss1 (false),
+    m_payloadReceivedSuccessBss2 (false),
+    m_payloadReceivedSuccessBss3 (false),
+    m_payloadReceivedErrorBss1 (false),
+    m_payloadReceivedErrorBss2 (false),
+    m_payloadReceivedErrorBss3 (false)
 {
   LogLevel logLevel = (LogLevel)(LOG_PREFIX_TIME | LOG_PREFIX_NODE | LOG_LEVEL_ALL);
   LogComponentEnable ("WifiChannelBondingTest", logLevel);
@@ -116,6 +161,63 @@ TestChannelBonding::TestChannelBonding ()
   //LogComponentEnable ("SpectrumWifiPhy", logLevel);
   //LogComponentEnable ("InterferenceHelper", logLevel);
   //LogComponentEnable ("MultiModelSpectrumChannel", logLevel);
+}
+
+void
+TestChannelBonding::Reset (void)
+{
+  m_expectedSnrBss1 = 0.0;
+  m_expectedSnrBss2 = 0.0;
+  m_expectedSnrBss3 = 0.0;
+  m_initializedSnrBss1 = false;
+  m_initializedSnrBss2 = false;
+  m_initializedSnrBss3 = false;
+  m_payloadReceivedSuccessBss1 = false;
+  m_payloadReceivedSuccessBss2 = false;
+  m_payloadReceivedSuccessBss3 = false;
+  m_payloadReceivedErrorBss1 = false;
+  m_payloadReceivedErrorBss2 = false;
+  m_payloadReceivedErrorBss3 = false;
+}
+
+void
+TestChannelBonding::SetExpectedSnrForBss (double snr, uint8_t bss)
+{
+  if (bss == 1)
+    {
+      m_expectedSnrBss1 = snr;
+      m_initializedSnrBss1 = true;
+    }
+  else if (bss == 2)
+    {
+      m_expectedSnrBss2 = snr;
+      m_initializedSnrBss2 = true;
+    }
+  else if (bss == 3)
+    {
+      m_expectedSnrBss3 = snr;
+      m_initializedSnrBss3 = true;
+    }
+}
+
+void
+TestChannelBonding::VerifyResultsForBss (bool expectedPayloadSuccess, bool expectedPayloadError, uint8_t bss)
+{
+  if (bss == 1)
+    {
+      NS_TEST_ASSERT_MSG_EQ (m_payloadReceivedSuccessBss1, expectedPayloadSuccess, "m_payloadReceivedSuccessBss1 is not equal to expectedPayloadSuccess");
+      NS_TEST_ASSERT_MSG_EQ (m_payloadReceivedErrorBss1, expectedPayloadError, "m_payloadReceivedErrorBss1 is not equal to expectedPayloadError");
+    }
+  else if (bss == 2)
+    {
+      NS_TEST_ASSERT_MSG_EQ (m_payloadReceivedSuccessBss2, expectedPayloadSuccess, "m_payloadReceivedSuccessBss2 is not equal to expectedPayloadSuccess");
+      NS_TEST_ASSERT_MSG_EQ (m_payloadReceivedErrorBss2, expectedPayloadError, "m_payloadReceivedErrorBss2 is not equal to expectedPayloadError");
+    }
+  else if (bss == 3)
+    {
+      NS_TEST_ASSERT_MSG_EQ (m_payloadReceivedSuccessBss3, expectedPayloadSuccess, "m_payloadReceivedSuccessBss2 is not equal to expectedPayloadSuccess");
+      NS_TEST_ASSERT_MSG_EQ (m_payloadReceivedErrorBss3, expectedPayloadError, "m_payloadReceivedErrorBss2 is not equal to expectedPayloadError");
+    }
 }
 
 void
@@ -188,17 +290,17 @@ TestChannelBonding::RxCallback (std::string context, Ptr<const Packet> p, RxPowe
       NS_LOG_INFO ("BSS 1 received packet with size " << size << " and power in 20 MHz band: " << WToDbm (it->second));
       if (size == 1031) //TX is in BSS 1
         {
-          double expectedRxPowerMin = 10 /* TX power */ - 50 /* loss */ - 1 /* precision */;
+          double expectedRxPowerMin = - 50 /* loss */ - 1 /* precision */;
           NS_TEST_EXPECT_MSG_GT (WToDbm (it->second), expectedRxPowerMin, "Received power for BSS 1 RX PHY is too low");
         }
       else if (size == 1032) //TX is in BSS 2
         {
-          double expectedRxPowerMax = 10 /* TX power */ - 20 /* rejection */ - 50 /* loss */;
+          double expectedRxPowerMax = - 20 /* rejection */ - 50 /* loss */;
           NS_TEST_EXPECT_MSG_LT (WToDbm (it->second), expectedRxPowerMax, "Received power for BSS 2 RX PHY is too high");
         }
       else if (size == 2130) //TX is in BSS 3
         {
-          double expectedRxPowerMin = 10 /* TX power */ - 3 /* half band */ - 50 /* loss */ - 1 /* precision */;
+          double expectedRxPowerMin = - 3 /* half band */ - 50 /* loss */ - 1 /* precision */;
           NS_TEST_EXPECT_MSG_GT (WToDbm (it->second), expectedRxPowerMin, "Received power for BSS 1 RX PHY is too low");
         }
     }
@@ -210,17 +312,17 @@ TestChannelBonding::RxCallback (std::string context, Ptr<const Packet> p, RxPowe
       NS_LOG_INFO ("BSS 2 received packet with size " << size << " and power in 20 MHz band: " << WToDbm (it->second));
       if (size == 1031) //TX is in BSS 1
         {
-          double expectedRxPowerMax = 10 /* TX power */ - 20 /* rejection */ - 50 /* loss */;
+          double expectedRxPowerMax = - 20 /* rejection */ - 50 /* loss */;
           NS_TEST_EXPECT_MSG_LT (WToDbm (it->second), expectedRxPowerMax, "Received power for BSS 2 RX PHY is too high");
         }
       else if (size == 1032) //TX is in BSS 2
         {
-          double expectedRxPowerMin = 10 /* TX power */ - 50 /* loss */ - 1 /* precision */;
+          double expectedRxPowerMin = - 50 /* loss */ - 1 /* precision */;
           NS_TEST_EXPECT_MSG_GT (WToDbm (it->second), expectedRxPowerMin, "Received power for BSS 1 RX PHY is too low");
         }
       else if (size == 2130) //TX is in BSS 3
         {
-          double expectedRxPowerMin = 10 /* TX power */ - 3 /* half band */ - 50 /* loss */ - 1 /* precision */;
+          double expectedRxPowerMin = - 3 /* half band */ - 50 /* loss */ - 1 /* precision */;
           NS_TEST_EXPECT_MSG_GT (WToDbm (it->second), expectedRxPowerMin, "Received power for BSS 1 RX PHY is too low");
         }
     }
@@ -233,17 +335,17 @@ TestChannelBonding::RxCallback (std::string context, Ptr<const Packet> p, RxPowe
       NS_LOG_INFO ("BSS 3 received packet with size " << size << " and power in primary 20 MHz band: " << WToDbm (it->second));
       if (size == 1031) //TX is in BSS 1
         {
-          double expectedRxPowerMin = 10 /* TX power */ - 50 /* loss */ - 1 /* precision */;
+          double expectedRxPowerMin = - 50 /* loss */ - 1 /* precision */;
           NS_TEST_EXPECT_MSG_GT (WToDbm (it->second), expectedRxPowerMin, "Received power in primary channel for BSS 3 RX PHY is too low");
         }
       else if (size == 1032) //TX is in BSS 2
         {
-          double expectedRxPowerMax = 10 /* TX power */ - 20 /* rejection */ - 50 /* loss */;
+          double expectedRxPowerMax = - 20 /* rejection */ - 50 /* loss */;
           NS_TEST_EXPECT_MSG_LT (WToDbm (it->second), expectedRxPowerMax, "Received power for BSS 3 RX PHY is too high");
         }
       else if (size == 2130) //TX is in BSS 3
         {
-          double expectedRxPowerMin = 10 /* TX power */ - 3 /* half band */ - 50 /* loss */ - 1 /* precision */;
+          double expectedRxPowerMin = - 3 /* half band */ - 50 /* loss */ - 1 /* precision */;
           NS_TEST_EXPECT_MSG_GT (WToDbm (it->second), expectedRxPowerMin, "Received power for BSS 1 RX PHY is too low");
         }
 
@@ -254,17 +356,17 @@ TestChannelBonding::RxCallback (std::string context, Ptr<const Packet> p, RxPowe
       NS_LOG_INFO ("BSS 3 received packet with size " << size << " and power in secondary 20 MHz band: " << WToDbm (it->second));
       if (size == 1031) //TX is in BSS 1
         {
-          double expectedRxPowerMax = 10 /* TX power */ - 20 /* rejection */ - 50 /* loss */;
+          double expectedRxPowerMax = - 20 /* rejection */ - 50 /* loss */;
           NS_TEST_EXPECT_MSG_LT (WToDbm (it->second), expectedRxPowerMax, "Received power for BSS 3 RX PHY is too high");
         }
       else if (size == 1032) //TX is in BSS 2
         {
-          double expectedRxPowerMin = 10 /* TX power */ - 50 /* loss */ - 1 /* precision */;
+          double expectedRxPowerMin = - 50 /* loss */ - 1 /* precision */;
           NS_TEST_EXPECT_MSG_GT (WToDbm (it->second), expectedRxPowerMin, "Received power in primary channel for BSS 3 RX PHY is too low");
         }
       else if (size == 2130) //TX is in BSS 3
         {
-          double expectedRxPowerMin = 10 /* TX power */ - 3 /* half band */ - 50 /* loss */ - 1 /* precision */;
+          double expectedRxPowerMin = - 3 /* half band */ - 50 /* loss */ - 1 /* precision */;
           NS_TEST_EXPECT_MSG_GT (WToDbm (it->second), expectedRxPowerMin, "Received power for BSS 1 RX PHY is too low");
         }
   
@@ -272,7 +374,7 @@ TestChannelBonding::RxCallback (std::string context, Ptr<const Packet> p, RxPowe
       it = rxPowersW.find (band);
       NS_ASSERT (it != rxPowersW.end ());
       NS_LOG_INFO ("BSS 3 received packet with size " << size << " and power in 40 MHz band: " << WToDbm (it->second));
-      double expectedRxPowerMin = 10 /* TX power */ - 50 /* loss */ - 1 /* precision */;
+      double expectedRxPowerMin = - 50 /* loss */ - 1 /* precision */;
       NS_TEST_EXPECT_MSG_GT (WToDbm (it->second), expectedRxPowerMin, "Received power for BSS 3 RX PHY is too low");
     }
 }
@@ -281,12 +383,51 @@ void
 TestChannelBonding::RxOkCallback (std::string context, Ptr<const Packet> p, double snr, WifiMode mode, WifiPreamble preamble)
 {
   NS_LOG_INFO ("RxOkCallback: BSS=" << context << " SNR=" << RatioToDb (snr));
+  if (context == "BSS1")
+    {
+      m_payloadReceivedSuccessBss1 = true;
+      if (m_initializedSnrBss1)
+        {
+          NS_TEST_EXPECT_MSG_EQ_TOL (RatioToDb (snr), m_expectedSnrBss1, 0.2, "Unexpected SNR value");
+        }
+    }
+  else if (context == "BSS2")
+    {
+      m_payloadReceivedSuccessBss2 = true;
+      if (m_initializedSnrBss2)
+        {
+          NS_TEST_EXPECT_MSG_EQ_TOL (RatioToDb (snr), m_expectedSnrBss2, 0.2, "Unexpected SNR value");
+        }
+    }
+  else if (context == "BSS3")
+    {
+      m_payloadReceivedSuccessBss3 = true;
+      if (m_initializedSnrBss3)
+        {
+          NS_TEST_EXPECT_MSG_EQ_TOL (RatioToDb (snr), m_expectedSnrBss3, 0.2, "Unexpected SNR value");
+        }
+    }
 }
 
 void
 TestChannelBonding::RxErrorCallback (std::string context, Ptr<const Packet> p, double snr)
 {
   NS_LOG_INFO ("RxErrorCallback: BSS=" << context << " SNR=" << RatioToDb (snr));
+  if ((context == "BSS1") && m_initializedSnrBss1)
+    {
+      m_payloadReceivedErrorBss1 = true;
+      NS_TEST_EXPECT_MSG_EQ_TOL (RatioToDb (snr), m_expectedSnrBss1, 0.2, "Unexpected SNR value");
+    }
+  else if ((context == "BSS2") && m_initializedSnrBss2)
+    {
+      m_payloadReceivedErrorBss2 = true;
+      NS_TEST_EXPECT_MSG_EQ_TOL (RatioToDb (snr), m_expectedSnrBss2, 0.2, "Unexpected SNR value");
+    }
+  else if ((context == "BSS3") && m_initializedSnrBss3)
+    {
+      m_payloadReceivedErrorBss2 = true;
+      NS_TEST_EXPECT_MSG_EQ_TOL (RatioToDb (snr), m_expectedSnrBss3, 0.2, "Unexpected SNR value");
+    }
 }
 
 TestChannelBonding::~TestChannelBonding ()
@@ -325,8 +466,8 @@ TestChannelBonding::DoSetup (void)
   m_rxPhyBss1->SetChannelNumber (CHANNEL_NUMBER_BSS1);
   m_rxPhyBss1->SetFrequency (FREQUENCY_BSS1);
   m_rxPhyBss1->SetChannelWidth (CHANNEL_WIDTH_BSS1);
-  m_rxPhyBss1->SetTxPowerStart(10);
-  m_rxPhyBss1->SetTxPowerEnd(10);
+  m_rxPhyBss1->SetTxPowerStart(0);
+  m_rxPhyBss1->SetTxPowerEnd(0);
   m_rxPhyBss1->Initialize ();
 
   m_txPhyBss1 = CreateObject<SpectrumWifiPhy> ();
@@ -340,8 +481,8 @@ TestChannelBonding::DoSetup (void)
   m_txPhyBss1->SetChannelNumber (CHANNEL_NUMBER_BSS1);
   m_txPhyBss1->SetFrequency (FREQUENCY_BSS1);
   m_txPhyBss1->SetChannelWidth (CHANNEL_WIDTH_BSS1);
-  m_txPhyBss1->SetTxPowerStart(10);
-  m_txPhyBss1->SetTxPowerEnd(10);
+  m_txPhyBss1->SetTxPowerStart(0);
+  m_txPhyBss1->SetTxPowerEnd(0);
   m_txPhyBss1->Initialize ();
 
   m_rxPhyBss2 = CreateObject<SpectrumWifiPhy> ();
@@ -355,8 +496,8 @@ TestChannelBonding::DoSetup (void)
   m_rxPhyBss2->SetChannelNumber (CHANNEL_NUMBER_BSS2);
   m_rxPhyBss2->SetFrequency (FREQUENCY_BSS2);
   m_rxPhyBss2->SetChannelWidth (CHANNEL_WIDTH_BSS2);
-  m_rxPhyBss2->SetTxPowerStart(10);
-  m_rxPhyBss2->SetTxPowerEnd(10);
+  m_rxPhyBss2->SetTxPowerStart(0);
+  m_rxPhyBss2->SetTxPowerEnd(0);
   m_rxPhyBss2->Initialize ();
 
   m_txPhyBss2 = CreateObject<SpectrumWifiPhy> ();
@@ -370,8 +511,8 @@ TestChannelBonding::DoSetup (void)
   m_txPhyBss2->SetChannelNumber (CHANNEL_NUMBER_BSS2);
   m_txPhyBss2->SetFrequency (FREQUENCY_BSS2);
   m_txPhyBss2->SetChannelWidth (CHANNEL_WIDTH_BSS2);
-  m_txPhyBss2->SetTxPowerStart(10);
-  m_txPhyBss2->SetTxPowerEnd(10);
+  m_txPhyBss2->SetTxPowerStart(0);
+  m_txPhyBss2->SetTxPowerEnd(0);
   m_txPhyBss2->Initialize ();
 
   m_rxPhyBss3 = CreateObject<SpectrumWifiPhy> ();
@@ -385,8 +526,8 @@ TestChannelBonding::DoSetup (void)
   m_rxPhyBss3->SetChannelNumber (CHANNEL_NUMBER_BSS3);
   m_rxPhyBss3->SetFrequency (FREQUENCY_BSS3);
   m_rxPhyBss3->SetChannelWidth (CHANNEL_WIDTH_BSS3);
-  m_rxPhyBss3->SetTxPowerStart(10);
-  m_rxPhyBss3->SetTxPowerEnd(10);
+  m_rxPhyBss3->SetTxPowerStart(0);
+  m_rxPhyBss3->SetTxPowerEnd(0);
   m_rxPhyBss3->Initialize ();
 
   m_txPhyBss3 = CreateObject<SpectrumWifiPhy> ();
@@ -400,8 +541,8 @@ TestChannelBonding::DoSetup (void)
   m_txPhyBss3->SetChannelNumber (CHANNEL_NUMBER_BSS3);
   m_txPhyBss3->SetFrequency (FREQUENCY_BSS3);
   m_txPhyBss3->SetChannelWidth (CHANNEL_WIDTH_BSS3);
-  m_txPhyBss3->SetTxPowerStart(10);
-  m_txPhyBss3->SetTxPowerEnd(10);
+  m_txPhyBss3->SetTxPowerStart(0);
+  m_txPhyBss3->SetTxPowerEnd(0);
   m_txPhyBss3->Initialize ();
 
   m_rxPhyBss1->TraceConnect ("PhyRxBegin", "BSS1", MakeCallback (&TestChannelBonding::RxCallback, this));
@@ -429,34 +570,58 @@ TestChannelBonding::DoRun (void)
   m_txPhyBss3->AssignStreams (streamNumber);
 
   //CASE 1: each BSS send a packet on its channel to verify the received power per band for each receiver
+  //and whether the packet is successfully received or not.*/
+  Simulator::Schedule (Seconds (0.9), &TestChannelBonding::Reset, this);
   Simulator::Schedule (Seconds (1.0), &TestChannelBonding::SendPacket, this, 1);
+  Simulator::Schedule (Seconds (1.5), &TestChannelBonding::VerifyResultsForBss, this, true, false, 1); // successfull reception for BSS 1
+  Simulator::Schedule (Seconds (1.5), &TestChannelBonding::VerifyResultsForBss, this, true, false, 3); // successfull reception for BSS 3
+  //TODO: clarify behavior for BSS 2
+  Simulator::Schedule (Seconds (1.9), &TestChannelBonding::Reset, this);
   Simulator::Schedule (Seconds (2.0), &TestChannelBonding::SendPacket, this, 2);
+  Simulator::Schedule (Seconds (2.5), &TestChannelBonding::VerifyResultsForBss, this, true, false, 2); // successfull reception for BSS 2
+  //TODO: clarify behavior for BSS 1 and BSS 3
+  Simulator::Schedule (Seconds (2.9), &TestChannelBonding::Reset, this);
   Simulator::Schedule (Seconds (3.0), &TestChannelBonding::SendPacket, this, 3);
+  Simulator::Schedule (Seconds (3.5), &TestChannelBonding::VerifyResultsForBss, this, true, false, 3); // successfull reception for BSS 3
+  Simulator::Schedule (Seconds (3.5), &TestChannelBonding::VerifyResultsForBss, this, false, false, 1); // no reception for BSS 1 since channel width is not supported
+  Simulator::Schedule (Seconds (3.5), &TestChannelBonding::VerifyResultsForBss, this, false, false, 2); // sno reception for BSS 2 since channel width is not supported
 
   //CASE 2: verify reception on channel 36 (BSS 1) when channel 40 is used (BSS 2) at the same time
+  Simulator::Schedule (Seconds (3.9), &TestChannelBonding::Reset, this);
   Simulator::Schedule (Seconds (4.0), &TestChannelBonding::SendPacket, this, 1);
   Simulator::Schedule (Seconds (4.0), &TestChannelBonding::SendPacket, this, 2);
-  //TODO: verify SNR is at least 20 dB (rejection)
+  Simulator::Schedule (Seconds (4.0), &TestChannelBonding::SetExpectedSnrForBss, this, 25.0, 1); // BSS 1 expects SNR around 25 dB
+  Simulator::Schedule (Seconds (4.0), &TestChannelBonding::SetExpectedSnrForBss, this, 25.0, 1); // BSS 2 expects SNR around 24 dB
+  Simulator::Schedule (Seconds (4.5), &TestChannelBonding::VerifyResultsForBss, this, true, false, 1); // successfull reception for BSS 1
+  Simulator::Schedule (Seconds (4.5), &TestChannelBonding::VerifyResultsForBss, this, true, false, 2); // successfull reception for BSS 2
 
   //CASE 3: verify reception on channel 38 (BSS 3) when channel 36 is used (BSS 1) at the same time
+  Simulator::Schedule (Seconds (4.9), &TestChannelBonding::Reset, this);
   Simulator::Schedule (Seconds (5.0), &TestChannelBonding::SendPacket, this, 3);
   Simulator::Schedule (Seconds (5.0), &TestChannelBonding::SendPacket, this, 1);
-  //TODO: verify SNR is around 3dB for RX PHY 1 => PHY header passed but payload failed
-  //TODO: verify SNR is around -3dB for RX PHY 3 => PHY header reception failed
+  Simulator::Schedule (Seconds (5.0), &TestChannelBonding::SetExpectedSnrForBss, this, 3.0, 1); // BSS 1 expects SNR around 3 dB
+  Simulator::Schedule (Seconds (5.5), &TestChannelBonding::VerifyResultsForBss, this, false, true, 1); // PHY header passed but payload failed for BSS 1
+  Simulator::Schedule (Seconds (5.5), &TestChannelBonding::VerifyResultsForBss, this, false, false, 3); // PHY header failed for BSS 3
+  //TODO: verify SNR is around -3dB for RX PHY 3
 
   //CASE 4: verify reception on channel 38 (BSS 3) when channel 40 is used (BSS 2) at the same time
+  Simulator::Schedule (Seconds (5.9), &TestChannelBonding::Reset, this);
   Simulator::Schedule (Seconds (6.0), &TestChannelBonding::SendPacket, this, 3);
   Simulator::Schedule (Seconds (6.0), &TestChannelBonding::SendPacket, this, 2);
-  //TODO: verify SNR is around 3dB for RX PHY 2 => PHY header passed but payload failed
-  //TODO: verify SNR is around 20 dB for preamble/header and 0dB for payload for RX PHY 3 => PHY header passed but payload failed
+  Simulator::Schedule (Seconds (6.0), &TestChannelBonding::SetExpectedSnrForBss, this, 3.0, 2); // BSS 2 expects SNR around 3 dB
+  Simulator::Schedule (Seconds (6.5), &TestChannelBonding::VerifyResultsForBss, this, false, true, 2); // PHY header passed but payload failed for BSS 2
+  Simulator::Schedule (Seconds (6.5), &TestChannelBonding::VerifyResultsForBss, this, false, false, 3); // PHY header failed for BSS 3
 
   //CASE 5: verify reception on channel 38 (BSS 3) when channels 36 (BSS 1) and 40 (BSS 2) are used at the same time
+  Simulator::Schedule (Seconds (6.9), &TestChannelBonding::Reset, this);
   Simulator::Schedule (Seconds (7.0), &TestChannelBonding::SendPacket, this, 3);
   Simulator::Schedule (Seconds (7.0), &TestChannelBonding::SendPacket, this, 1);
   Simulator::Schedule (Seconds (7.0), &TestChannelBonding::SendPacket, this, 2);
-  //TODO: verify SNR is around 3dB (2-3) for RX PHY 1 => PHY header passed but payload failed
-  //TODO: verify SNR is around 3dB (2-3) for RX PHY 2 => PHY header passed but payload failed
-  //TODO: verify SNR is around -3 dB (-3 - -4) for preamble/header => PHY header failed
+  Simulator::Schedule (Seconds (7.0), &TestChannelBonding::SetExpectedSnrForBss, this, 3.0, 1); // BSS 1 expects SNR around 3 dB
+  Simulator::Schedule (Seconds (7.0), &TestChannelBonding::SetExpectedSnrForBss, this, 3.0, 2); // BSS 2 expects SNR around 3 dB
+  Simulator::Schedule (Seconds (7.5), &TestChannelBonding::VerifyResultsForBss, this, false, true, 1); // PHY header passed but payload failed for BSS 1
+  Simulator::Schedule (Seconds (7.5), &TestChannelBonding::VerifyResultsForBss, this, false, true, 2); // PHY header passed but payload failed for BSS 2
+  Simulator::Schedule (Seconds (7.5), &TestChannelBonding::VerifyResultsForBss, this, false, false, 3); // PHY header failed for BSS 3
 
   Simulator::Run ();
   Simulator::Destroy ();
