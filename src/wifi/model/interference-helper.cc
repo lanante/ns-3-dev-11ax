@@ -202,7 +202,7 @@ InterferenceHelper::SetFrequencyBands (uint16_t firstCenterFrequency, uint16_t c
     }
   for (uint8_t i = 0; i < std::max (1, channelWidth / 20); i++)
     {
-      uint16_t centerFrequency = firstCenterFrequency + (i * 20);
+      uint16_t centerFrequency = GetCenterFrequency (firstCenterFrequency, channelWidth, 20, i);
       auto band = std::make_pair (centerFrequency, 20);
       auto it = m_niChangesPerBand.find (band);
       if (it == m_niChangesPerBand.end ())
@@ -215,7 +215,7 @@ InterferenceHelper::SetFrequencyBands (uint16_t firstCenterFrequency, uint16_t c
     }
   for (uint8_t i = 0; i < channelWidth / 40; i++)
     {
-      uint16_t centerFrequency = firstCenterFrequency + (i * 40);
+      uint16_t centerFrequency = GetCenterFrequency (firstCenterFrequency, channelWidth, 40, i);
       auto band = std::make_pair (centerFrequency, 40);
       auto it = m_niChangesPerBand.find (band);
       if (it == m_niChangesPerBand.end ())
@@ -228,7 +228,7 @@ InterferenceHelper::SetFrequencyBands (uint16_t firstCenterFrequency, uint16_t c
     }
   for (uint8_t i = 0; i < channelWidth / 80; i++)
     {
-      uint16_t centerFrequency = firstCenterFrequency + (i * 80);
+      uint16_t centerFrequency = GetCenterFrequency (firstCenterFrequency, channelWidth, 80, i);
       auto band = std::make_pair (centerFrequency, 80);
       auto it = m_niChangesPerBand.find (band);
       if (it == m_niChangesPerBand.end ())
@@ -241,7 +241,7 @@ InterferenceHelper::SetFrequencyBands (uint16_t firstCenterFrequency, uint16_t c
     }
   for (uint8_t i = 0; i < channelWidth / 160; i++)
     {
-      uint16_t centerFrequency = firstCenterFrequency + (i * 160);
+      uint16_t centerFrequency = GetCenterFrequency (firstCenterFrequency, channelWidth, 160, i);
       auto band = std::make_pair (centerFrequency, 160);
       auto it = m_niChangesPerBand.find (band);
       if (it == m_niChangesPerBand.end ())
@@ -281,7 +281,7 @@ InterferenceHelper::SetNumberOfReceiveAntennas (uint8_t rx)
 Time
 InterferenceHelper::GetEnergyDuration (double energyW, uint16_t centerFrequency, uint16_t channelWidth) const
 {
-  NS_LOG_FUNCTION (this << centerFrequency);
+  NS_LOG_FUNCTION (this << centerFrequency << channelWidth);
   Time now = Simulator::Now ();
   auto band = std::make_pair (centerFrequency, channelWidth == 22 ? 20 : channelWidth);
   auto i = GetPreviousPosition (now, band);

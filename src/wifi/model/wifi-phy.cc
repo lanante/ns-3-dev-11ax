@@ -2705,8 +2705,9 @@ WifiPhy::StartReceiveHeader (Ptr<Event> event, Time rxDuration)
   NS_ASSERT (!IsStateRx ());
   NS_ASSERT (m_endPlcpRxEvent.IsExpired ());
   NS_ASSERT (m_endRxEvent.IsExpired ());
-
-  InterferenceHelper::SnrPer snrPer = m_interference.CalculateLegacyPhyHeaderSnrPer (event, GetFrequency () /* assume for now primary is the first band */);
+  uint16_t primaryChannelWidth = GetChannelWidth () >= 40 ? 20 : GetChannelWidth ();
+  uint16_t primaryChannelFrequency = GetCenterFrequency (GetFrequency (), GetChannelWidth (), primaryChannelWidth, 0);
+  InterferenceHelper::SnrPer snrPer = m_interference.CalculateLegacyPhyHeaderSnrPer (event, primaryChannelFrequency);
   double snr = snrPer.snr;
   NS_LOG_DEBUG ("snr(dB)=" << RatioToDb (snrPer.snr) << ", per=" << snrPer.per);
 
@@ -2757,10 +2758,9 @@ WifiPhy::ContinueReceiveHeader (Ptr<Event> event)
   NS_LOG_FUNCTION (this << event->GetPacket () << event->GetTxVector () << event);
   NS_ASSERT (IsStateRx ());
   NS_ASSERT (m_endPlcpRxEvent.IsExpired ());
-
-  InterferenceHelper::SnrPer snrPer;
-  snrPer = m_interference.CalculateLegacyPhyHeaderSnrPer (event, GetFrequency () /* assume for now primary is the first band */);
-
+  uint16_t primaryChannelWidth = GetChannelWidth () >= 40 ? 20 : GetChannelWidth ();
+  uint16_t primaryChannelFrequency = GetCenterFrequency (GetFrequency (), GetChannelWidth (), primaryChannelWidth, 0);
+  InterferenceHelper::SnrPer snrPer = m_interference.CalculateLegacyPhyHeaderSnrPer (event, primaryChannelFrequency);
   NS_LOG_DEBUG ("snr(dB)=" << RatioToDb (snrPer.snr) << ", per=" << snrPer.per);
   if (m_random->GetValue () > snrPer.per) //legacy PHY header reception succeeded
     {
@@ -3009,8 +3009,9 @@ WifiPhy::MaybeCcaBusyDuration ()
   //not going to be able to synchronize on it
   //In this model, CCA becomes busy when the aggregation of all signals as
   //tracked by the InterferenceHelper class is higher than the CcaBusyThreshold
-
-  Time delayUntilCcaEnd = m_interference.GetEnergyDuration (m_ccaEdThresholdW, GetFrequency () /* assume for now primary is the first band */, GetChannelWidth () >= 40 ? 20 : GetChannelWidth ());
+  uint16_t primaryChannelWidth = GetChannelWidth () >= 40 ? 20 : GetChannelWidth ();
+  uint16_t primaryChannelFrequency = GetCenterFrequency (GetFrequency (), GetChannelWidth (), primaryChannelWidth, 0);
+  Time delayUntilCcaEnd = m_interference.GetEnergyDuration (m_ccaEdThresholdW, primaryChannelFrequency, primaryChannelWidth);
   if (!delayUntilCcaEnd.IsZero ())
     {
       m_state->SwitchMaybeToCcaBusy (delayUntilCcaEnd);
@@ -3029,8 +3030,9 @@ WifiPhy::StartReceivePayload (Ptr<Event> event)
   bool canReceivePayload;
   if ((txMode.GetModulationClass () == WIFI_MOD_CLASS_HT) || (txMode.GetModulationClass () == WIFI_MOD_CLASS_VHT) || (txMode.GetModulationClass () == WIFI_MOD_CLASS_HE))
     {
-      InterferenceHelper::SnrPer snrPer;
-      snrPer = m_interference.CalculateNonLegacyPhyHeaderSnrPer (event, GetFrequency () /* assume for now primary is the first band */);
+      uint16_t primaryChannelWidth = GetChannelWidth () >= 40 ? 20 : GetChannelWidth ();
+      uint16_t primaryChannelFrequency = GetCenterFrequency (GetFrequency (), GetChannelWidth (), primaryChannelWidth, 0);
+      InterferenceHelper::SnrPer snrPer = m_interference.CalculateNonLegacyPhyHeaderSnrPer (event, primaryChannelFrequency);
       canReceivePayload = (m_random->GetValue () > snrPer.per);
     }
   else
@@ -3073,7 +3075,9 @@ WifiPhy::EndReceive (Ptr<Event> event)
   NS_LOG_FUNCTION (this << event->GetPacket () << event->GetTxVector () << event << psduDuration);
   NS_ASSERT (event->GetEndTime () == Simulator::Now ());
 
-  double snr = m_interference.CalculateSnr (event, GetFrequency () /* assume for now primary is the first band */, GetChannelWidth ());
+  uint16_t channelWidth = std::min (GetChannelWidth (), event->GetTxVector ().GetChannelWidth ());
+  uint16_t centerFrequency = GetCenterFrequency (GetFrequency (), GetChannelWidth (), channelWidth, 0);
+  double snr = m_interference.CalculateSnr (event, centerFrequency, channelWidth);
   std::vector<bool> statusPerMpdu;
   SignalNoiseDbm signalNoise;
 
@@ -3138,7 +3142,9 @@ WifiPhy::GetReceptionStatus (Ptr<const Packet> mpdu, Ptr<Event> event, Time rela
 {
   NS_LOG_FUNCTION (this << mpdu << event->GetTxVector () << event << relativeMpduStart << mpduDuration);
   InterferenceHelper::SnrPer snrPer;
-  snrPer = m_interference.CalculatePayloadSnrPer (event, GetFrequency () /* assume for now primary is the first band */, GetChannelWidth (), std::make_pair (relativeMpduStart, relativeMpduStart + mpduDuration));
+  uint16_t channelWidth = std::min (GetChannelWidth (), event->GetTxVector ().GetChannelWidth ());
+  uint16_t centerFrequency = GetCenterFrequency (GetFrequency (), GetChannelWidth (), channelWidth, 0);
+  snrPer = m_interference.CalculatePayloadSnrPer (event, centerFrequency, channelWidth, std::make_pair (relativeMpduStart, relativeMpduStart + mpduDuration));
 
   NS_LOG_DEBUG ("mode=" << (event->GetTxVector ().GetMode ().GetDataRate (event->GetTxVector ())) <<
                 ", snr(dB)=" << RatioToDb (snrPer.snr) << ", per=" << snrPer.per << ", size=" << mpdu->GetSize () <<

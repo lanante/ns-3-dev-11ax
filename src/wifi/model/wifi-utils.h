@@ -182,17 +182,26 @@ uint32_t GetSize (Ptr<const Packet> packet, const WifiMacHeader *hdr, bool isAmp
  * This method checks if the packet is an A-MPDU by looking for A-MPDU subframe headers.
  */
 bool IsAmpdu (Ptr<const Packet> packet);
-
-  /**
-   * Get the maximum PPDU duration (see Section 10.14 of 802.11-2016) for
-   * the PHY layers defining the aPPDUMaxTime characteristic (HT, VHT and HE).
-   * Return zero otherwise.
-   *
-   * \param preamble the preamble type
-   *
-   * \return the maximum PPDU duration, if defined, and zero otherwise
-   */
-  Time GetPpduMaxTime (WifiPreamble preamble);
+/**
+ * Get the maximum PPDU duration (see Section 10.14 of 802.11-2016) for
+ * the PHY layers defining the aPPDUMaxTime characteristic (HT, VHT and HE).
+ * Return zero otherwise.
+ *
+ * \param preamble the preamble type
+ *
+ * \return the maximum PPDU duration, if defined, and zero otherwise
+ */
+Time GetPpduMaxTime (WifiPreamble preamble);
+/*
+ * Return the center frequency of a given channel band.
+ *
+ * \param operatingFrequency the operating frequency (in MHz)
+ * \param operatingChannelWidth the operating channel width (in MHz)
+ * \param channelWidth the considered channel width in the the operating channel width (in MHz)
+ * \param index the index of the channel band
+ * \return the center frequency of the specified channel band.
+ */
+uint16_t GetCenterFrequency (uint16_t operatingFrequency, uint16_t operatingChannelWidth, uint16_t channelWidth, uint8_t index);
 
   /// Size of the space of sequence numbers
   const uint16_t SEQNO_SPACE_SIZE = 4096;

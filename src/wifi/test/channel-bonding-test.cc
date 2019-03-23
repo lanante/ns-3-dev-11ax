@@ -328,8 +328,7 @@ TestChannelBonding::RxCallback (std::string context, Ptr<const Packet> p, RxPowe
     }
   else if (context == "BSS3") //RX is in BSS 3
     {
-      //auto band = std::make_pair (FREQUENCY_BSS1, 20); //to be fixed
-      auto band = std::make_pair (FREQUENCY_BSS3, 20);
+      auto band = std::make_pair (FREQUENCY_BSS1, 20);
       auto it = rxPowersW.find (band);
       NS_ASSERT (it != rxPowersW.end ());
       NS_LOG_INFO ("BSS 3 received packet with size " << size << " and power in primary 20 MHz band: " << WToDbm (it->second));
@@ -349,8 +348,7 @@ TestChannelBonding::RxCallback (std::string context, Ptr<const Packet> p, RxPowe
           NS_TEST_EXPECT_MSG_GT (WToDbm (it->second), expectedRxPowerMin, "Received power for BSS 1 RX PHY is too low");
         }
 
-      //band = std::make_pair (FREQUENCY_BSS2, 20); //to be fixed
-      band = std::make_pair (FREQUENCY_BSS3 + 20, 20);
+      band = std::make_pair (FREQUENCY_BSS2, 20);
       it = rxPowersW.find (band);
       NS_ASSERT (it != rxPowersW.end ());
       NS_LOG_INFO ("BSS 3 received packet with size " << size << " and power in secondary 20 MHz band: " << WToDbm (it->second));
@@ -602,7 +600,6 @@ TestChannelBonding::DoRun (void)
   Simulator::Schedule (Seconds (5.0), &TestChannelBonding::SetExpectedSnrForBss, this, 3.0, 1); // BSS 1 expects SNR around 3 dB
   Simulator::Schedule (Seconds (5.5), &TestChannelBonding::VerifyResultsForBss, this, false, true, 1); // PHY header passed but payload failed for BSS 1
   Simulator::Schedule (Seconds (5.5), &TestChannelBonding::VerifyResultsForBss, this, false, false, 3); // PHY header failed for BSS 3
-  //TODO: verify SNR is around -3dB for RX PHY 3
 
   //CASE 4: verify reception on channel 38 (BSS 3) when channel 40 is used (BSS 2) at the same time
   Simulator::Schedule (Seconds (5.9), &TestChannelBonding::Reset, this);
