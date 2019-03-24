@@ -603,8 +603,12 @@ TestChannelBonding::DoSetup (void)
   m_rxPhyBss1->SetChannelNumber (CHANNEL_NUMBER_BSS1);
   m_rxPhyBss1->SetFrequency (FREQUENCY_BSS1);
   m_rxPhyBss1->SetChannelWidth (CHANNEL_WIDTH_BSS1);
-  m_rxPhyBss1->SetTxPowerStart(0);
-  m_rxPhyBss1->SetTxPowerEnd(0);
+  m_rxPhyBss1->SetTxPowerStart (0.0);
+  m_rxPhyBss1->SetTxPowerEnd (0.0);
+  m_rxPhyBss1->SetRxSensitivity (-91.0);
+  m_rxPhyBss1->SetAttribute ("TxMaskInnerBandMinimumRejection", DoubleValue (-40.0));
+  m_rxPhyBss1->SetAttribute ("TxMaskOuterBandMinimumRejection", DoubleValue (-56.0));
+  m_rxPhyBss1->SetAttribute ("TxMaskOuterBandMaximumRejection", DoubleValue (-80.0));
   m_rxPhyBss1->Initialize ();
 
   m_txPhyBss1 = CreateObject<SpectrumWifiPhy> ();
@@ -618,8 +622,12 @@ TestChannelBonding::DoSetup (void)
   m_txPhyBss1->SetChannelNumber (CHANNEL_NUMBER_BSS1);
   m_txPhyBss1->SetFrequency (FREQUENCY_BSS1);
   m_txPhyBss1->SetChannelWidth (CHANNEL_WIDTH_BSS1);
-  m_txPhyBss1->SetTxPowerStart(0);
-  m_txPhyBss1->SetTxPowerEnd(0);
+  m_txPhyBss1->SetTxPowerStart (0.0);
+  m_txPhyBss1->SetTxPowerEnd (0.0);
+  m_txPhyBss1->SetRxSensitivity (-91.0);
+  m_txPhyBss1->SetAttribute ("TxMaskInnerBandMinimumRejection", DoubleValue (-40.0));
+  m_txPhyBss1->SetAttribute ("TxMaskOuterBandMinimumRejection", DoubleValue (-56.0));
+  m_txPhyBss1->SetAttribute ("TxMaskOuterBandMaximumRejection", DoubleValue (-80.0));
   m_txPhyBss1->Initialize ();
 
   m_rxPhyBss2 = CreateObject<SpectrumWifiPhy> ();
@@ -633,8 +641,12 @@ TestChannelBonding::DoSetup (void)
   m_rxPhyBss2->SetChannelNumber (CHANNEL_NUMBER_BSS2);
   m_rxPhyBss2->SetFrequency (FREQUENCY_BSS2);
   m_rxPhyBss2->SetChannelWidth (CHANNEL_WIDTH_BSS2);
-  m_rxPhyBss2->SetTxPowerStart(0);
-  m_rxPhyBss2->SetTxPowerEnd(0);
+  m_rxPhyBss2->SetTxPowerStart (0.0);
+  m_rxPhyBss2->SetTxPowerEnd (0.0);
+  m_rxPhyBss2->SetRxSensitivity (-91.0);
+  m_rxPhyBss2->SetAttribute ("TxMaskInnerBandMinimumRejection", DoubleValue (-40.0));
+  m_rxPhyBss2->SetAttribute ("TxMaskOuterBandMinimumRejection", DoubleValue (-56.0));
+  m_rxPhyBss2->SetAttribute ("TxMaskOuterBandMaximumRejection", DoubleValue (-80.0));
   m_rxPhyBss2->Initialize ();
 
   m_txPhyBss2 = CreateObject<SpectrumWifiPhy> ();
@@ -648,8 +660,12 @@ TestChannelBonding::DoSetup (void)
   m_txPhyBss2->SetChannelNumber (CHANNEL_NUMBER_BSS2);
   m_txPhyBss2->SetFrequency (FREQUENCY_BSS2);
   m_txPhyBss2->SetChannelWidth (CHANNEL_WIDTH_BSS2);
-  m_txPhyBss2->SetTxPowerStart(0);
-  m_txPhyBss2->SetTxPowerEnd(0);
+  m_txPhyBss2->SetTxPowerStart (0.0);
+  m_txPhyBss2->SetTxPowerEnd (0.0);
+  m_txPhyBss2->SetRxSensitivity (-91.0);
+  m_txPhyBss2->SetAttribute ("TxMaskInnerBandMinimumRejection", DoubleValue (-40.0));
+  m_txPhyBss2->SetAttribute ("TxMaskOuterBandMinimumRejection", DoubleValue (-56.0));
+  m_txPhyBss2->SetAttribute ("TxMaskOuterBandMaximumRejection", DoubleValue (-80.0));
   m_txPhyBss2->Initialize ();
 
   m_rxPhyBss3 = CreateObject<SpectrumWifiPhy> ();
@@ -664,8 +680,12 @@ TestChannelBonding::DoSetup (void)
   m_rxPhyBss3->SetFrequency (FREQUENCY_BSS3);
   m_rxPhyBss3->SetChannelWidth (CHANNEL_WIDTH_BSS3);
   m_rxPhyBss3->SetSecondaryChannelOffset (SECONDARY_BSS3);
-  m_rxPhyBss3->SetTxPowerStart(0);
-  m_rxPhyBss3->SetTxPowerEnd(0);
+  m_rxPhyBss3->SetTxPowerStart (0.0);
+  m_rxPhyBss3->SetTxPowerEnd (0.0);
+  m_rxPhyBss3->SetRxSensitivity (-91.0);
+  m_rxPhyBss3->SetAttribute ("TxMaskInnerBandMinimumRejection", DoubleValue (-40.0));
+  m_rxPhyBss3->SetAttribute ("TxMaskOuterBandMinimumRejection", DoubleValue (-56.0));
+  m_rxPhyBss3->SetAttribute ("TxMaskOuterBandMaximumRejection", DoubleValue (-80.0));
   m_rxPhyBss3->Initialize ();
 
   m_txPhyBss3 = CreateObject<SpectrumWifiPhy> ();
@@ -680,8 +700,12 @@ TestChannelBonding::DoSetup (void)
   m_txPhyBss3->SetFrequency (FREQUENCY_BSS3);
   m_txPhyBss3->SetChannelWidth (CHANNEL_WIDTH_BSS3);
   m_txPhyBss3->SetSecondaryChannelOffset (SECONDARY_BSS3);
-  m_txPhyBss3->SetTxPowerStart(0);
-  m_txPhyBss3->SetTxPowerEnd(0);
+  m_txPhyBss3->SetTxPowerStart (0.0);
+  m_txPhyBss3->SetTxPowerEnd (0.0);
+  m_txPhyBss3->SetRxSensitivity (-91.0);
+  m_txPhyBss3->SetAttribute ("TxMaskInnerBandMinimumRejection", DoubleValue (-40.0));
+  m_txPhyBss3->SetAttribute ("TxMaskOuterBandMinimumRejection", DoubleValue (-56.0));
+  m_txPhyBss3->SetAttribute ("TxMaskOuterBandMaximumRejection", DoubleValue (-80.0));
   m_txPhyBss3->Initialize ();
 
   m_rxPhyBss4 = CreateObject<SpectrumWifiPhy> ();
@@ -696,8 +720,12 @@ TestChannelBonding::DoSetup (void)
   m_rxPhyBss4->SetFrequency (FREQUENCY_BSS4);
   m_rxPhyBss4->SetChannelWidth (CHANNEL_WIDTH_BSS4);
   m_rxPhyBss4->SetSecondaryChannelOffset (SECONDARY_BSS4);
-  m_rxPhyBss4->SetTxPowerStart(0);
-  m_rxPhyBss4->SetTxPowerEnd(0);
+  m_rxPhyBss4->SetTxPowerStart (0.0);
+  m_rxPhyBss4->SetTxPowerEnd (0.0);
+  m_rxPhyBss4->SetRxSensitivity (-91.0);
+  m_rxPhyBss4->SetAttribute ("TxMaskInnerBandMinimumRejection", DoubleValue (-40.0));
+  m_rxPhyBss4->SetAttribute ("TxMaskOuterBandMinimumRejection", DoubleValue (-56.0));
+  m_rxPhyBss4->SetAttribute ("TxMaskOuterBandMaximumRejection", DoubleValue (-80.0));
   m_rxPhyBss4->Initialize ();
 
   m_txPhyBss4 = CreateObject<SpectrumWifiPhy> ();
@@ -712,8 +740,12 @@ TestChannelBonding::DoSetup (void)
   m_txPhyBss4->SetFrequency (FREQUENCY_BSS4);
   m_txPhyBss4->SetChannelWidth (CHANNEL_WIDTH_BSS4);
   m_txPhyBss4->SetSecondaryChannelOffset (SECONDARY_BSS4);
-  m_txPhyBss4->SetTxPowerStart(0);
-  m_txPhyBss4->SetTxPowerEnd(0);
+  m_txPhyBss4->SetTxPowerStart (0.0);
+  m_txPhyBss4->SetTxPowerEnd (0.0);
+  m_txPhyBss4->SetRxSensitivity (-91.0);
+  m_txPhyBss4->SetAttribute ("TxMaskInnerBandMinimumRejection", DoubleValue (-40.0));
+  m_txPhyBss4->SetAttribute ("TxMaskOuterBandMinimumRejection", DoubleValue (-56.0));
+  m_txPhyBss4->SetAttribute ("TxMaskOuterBandMaximumRejection", DoubleValue (-80.0));
   m_txPhyBss4->Initialize ();
 
   m_rxPhyBss1->TraceConnect ("PhyRxBegin", "BSS1", MakeCallback (&TestChannelBonding::RxCallback, this));
@@ -753,14 +785,16 @@ TestChannelBonding::DoRun (void)
   Simulator::Schedule (Seconds (1.0), &TestChannelBonding::SendPacket, this, 1);
   Simulator::Schedule (Seconds (1.5), &TestChannelBonding::VerifyResultsForBss, this, true, false, 1); // successfull reception for BSS 1
   Simulator::Schedule (Seconds (1.5), &TestChannelBonding::VerifyResultsForBss, this, true, false, 3); // successfull reception for BSS 3
-  //TODO: fix behavior for BSS 2 and BSS 4
+  Simulator::Schedule (Seconds (1.5), &TestChannelBonding::VerifyResultsForBss, this, false, false, 2); // no reception for BSS 2
+  Simulator::Schedule (Seconds (1.5), &TestChannelBonding::VerifyResultsForBss, this, false, false, 4); // no reception for BSS 4
 
   //CASE 1B: BSS 2
   Simulator::Schedule (Seconds (1.9), &TestChannelBonding::Reset, this);
   Simulator::Schedule (Seconds (2.0), &TestChannelBonding::SendPacket, this, 2);
   Simulator::Schedule (Seconds (2.5), &TestChannelBonding::VerifyResultsForBss, this, true, false, 2); // successfull reception for BSS 2
   Simulator::Schedule (Seconds (2.5), &TestChannelBonding::VerifyResultsForBss, this, true, false, 4); // successfull reception for BSS 4
-  //TODO: fix behavior for BSS 1 and BSS 3
+  Simulator::Schedule (Seconds (2.5), &TestChannelBonding::VerifyResultsForBss, this, false, false, 1); // no reception for BSS 1
+  Simulator::Schedule (Seconds (2.5), &TestChannelBonding::VerifyResultsForBss, this, false, false, 3); // no reception for BSS 3
 
   //CASE 1C: BSS 3
   Simulator::Schedule (Seconds (2.9), &TestChannelBonding::Reset, this);
@@ -777,13 +811,13 @@ TestChannelBonding::DoRun (void)
   Simulator::Schedule (Seconds (4.5), &TestChannelBonding::VerifyResultsForBss, this, true, false, 4); // successfull reception for BSS 4
   Simulator::Schedule (Seconds (4.5), &TestChannelBonding::VerifyResultsForBss, this, false, false, 1); // no reception for BSS 1 since channel width is not supported
   Simulator::Schedule (Seconds (4.5), &TestChannelBonding::VerifyResultsForBss, this, false, false, 2); // no reception for BSS 2 since channel width is not supported
-  
+
   //CASE 2: verify reception on channel 36 (BSS 1) when channel 40 is used (BSS 2) at the same time
   Simulator::Schedule (Seconds (4.9), &TestChannelBonding::Reset, this);
   Simulator::Schedule (Seconds (5.0), &TestChannelBonding::SendPacket, this, 1);
   Simulator::Schedule (Seconds (5.0), &TestChannelBonding::SendPacket, this, 2);
-  Simulator::Schedule (Seconds (5.0), &TestChannelBonding::SetExpectedSnrForBss, this, 25.0, 1); // BSS 1 expects SNR around 25 dB
-  Simulator::Schedule (Seconds (5.0), &TestChannelBonding::SetExpectedSnrForBss, this, 25.0, 1); // BSS 2 expects SNR around 24 dB
+  Simulator::Schedule (Seconds (5.0), &TestChannelBonding::SetExpectedSnrForBss, this, 44.0, 1); // BSS 1 expects SNR around 44 dB
+  Simulator::Schedule (Seconds (5.0), &TestChannelBonding::SetExpectedSnrForBss, this, 44.0, 1); // BSS 2 expects SNR around 44 dB
   Simulator::Schedule (Seconds (5.5), &TestChannelBonding::VerifyResultsForBss, this, true, false, 1); // successfull reception for BSS 1
   Simulator::Schedule (Seconds (5.5), &TestChannelBonding::VerifyResultsForBss, this, true, false, 2); // successfull reception for BSS 2
 
