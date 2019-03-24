@@ -59,6 +59,16 @@ static const SecondaryChannelOffset SECONDARY_BSS4 = LOWER;
  * \ingroup tests
  *
  * \brief channel bonding
+ *
+ * In this test, we have four 802.11n transmitters and four 802.11n receivers.
+ * A BSS is composed by one transmitter and one receiver.
+ *
+ * The first BSS occupies channel 36 and a channel width of 20 MHz.
+ * The second BSS operates on channel 40 with a channel width of 20 MHz.
+ * Both BSS 3 and BSS 4 makes uses of channel bonding with a 40 MHz channel width
+ * and operates on channel 38 (= 36 + 40). The only difference between them is that
+ * BSS 3 has channel 36 as primary channel, whereas BSS 4 has channel 40 has primary channel.
+ *
  */
 class TestChannelBonding : public TestCase
 {
@@ -743,14 +753,14 @@ TestChannelBonding::DoRun (void)
   Simulator::Schedule (Seconds (1.0), &TestChannelBonding::SendPacket, this, 1);
   Simulator::Schedule (Seconds (1.5), &TestChannelBonding::VerifyResultsForBss, this, true, false, 1); // successfull reception for BSS 1
   Simulator::Schedule (Seconds (1.5), &TestChannelBonding::VerifyResultsForBss, this, true, false, 3); // successfull reception for BSS 3
-  //TODO: clarify behavior for BSS 2 and BSS 4
+  //TODO: fix behavior for BSS 2 and BSS 4
 
   //CASE 1B: BSS 2
   Simulator::Schedule (Seconds (1.9), &TestChannelBonding::Reset, this);
   Simulator::Schedule (Seconds (2.0), &TestChannelBonding::SendPacket, this, 2);
   Simulator::Schedule (Seconds (2.5), &TestChannelBonding::VerifyResultsForBss, this, true, false, 2); // successfull reception for BSS 2
   Simulator::Schedule (Seconds (2.5), &TestChannelBonding::VerifyResultsForBss, this, true, false, 4); // successfull reception for BSS 4
-  //TODO: clarify behavior for BSS 1 and BSS 3
+  //TODO: fix behavior for BSS 1 and BSS 3
 
   //CASE 1C: BSS 3
   Simulator::Schedule (Seconds (2.9), &TestChannelBonding::Reset, this);
