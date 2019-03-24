@@ -1488,9 +1488,21 @@ public:
   /**
    * Return whether short PLCP preamble is supported.
    *
-   * \returns if short PLCP preamble is supported or not
+   * \returns true if short PLCP preamble is supported, false otherwise
    */
   bool GetShortPlcpPreambleSupported (void) const;
+  /**
+   * Select whether secondary channel is upper or lower.
+   *
+   * \param offset sets whether secondary channel is upper or lower
+   */
+  void SetSecondaryChannelOffset (SecondaryChannelOffset offset);
+  /**
+   * Return whether secondary channel is upper or lower.
+   *
+   * \returns whether the secondary channel is upper or lower
+   */
+  SecondaryChannelOffset GetSecondaryChannelOffset (void) const;
 
   /**
    * Sets the error rate model.

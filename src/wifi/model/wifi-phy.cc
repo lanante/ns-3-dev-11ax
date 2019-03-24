@@ -186,7 +186,8 @@ WifiPhy::GetTypeId (void)
     .AddAttribute ("SecondaryChannelOffset",
                    "Indicates the position of the secondary channel compare to the primary channel",
                    EnumValue (UPPER),
-                   MakeEnumAccessor (&WifiPhy::m_secondaryChannelOffset),
+                   MakeEnumAccessor (&WifiPhy::SetSecondaryChannelOffset,
+                                     &WifiPhy::GetSecondaryChannelOffset),
                    MakeEnumChecker (UPPER, "Upper",
                                     LOWER, "Lower"))
     .AddAttribute ("EnergyDetectionThreshold",
@@ -727,6 +728,19 @@ bool
 WifiPhy::GetShortPlcpPreambleSupported (void) const
 {
   return m_shortPreamble;
+}
+
+void
+WifiPhy::SetSecondaryChannelOffset (SecondaryChannelOffset offset)
+{
+  NS_LOG_FUNCTION (this << offset);
+  m_secondaryChannelOffset = offset;
+}
+
+SecondaryChannelOffset
+WifiPhy::GetSecondaryChannelOffset (void) const
+{
+  return m_secondaryChannelOffset;
 }
 
 void
@@ -1729,7 +1743,9 @@ WifiPhy::ResumeFromSleep (void)
     case WifiPhyState::SLEEP:
       {
         NS_LOG_DEBUG ("resuming from sleep mode");
-        Time delayUntilCcaEnd = m_interference.GetEnergyDuration (m_ccaEdThresholdW, GetFrequency () /* assume for now primary is the first band */, GetChannelWidth () >= 40 ? 20 : GetChannelWidth ());
+        uint16_t primaryChannelWidth = GetChannelWidth () >= 40 ? 20 : GetChannelWidth ();
+        uint16_t primaryChannelFrequency = GetCenterFrequency (GetFrequency (), GetChannelWidth (), primaryChannelWidth, GetSecondaryChannelOffset () == UPPER ? 0 : 1);
+        Time delayUntilCcaEnd = m_interference.GetEnergyDuration (m_ccaEdThresholdW, primaryChannelFrequency, primaryChannelWidth);
         m_state->SwitchFromSleep (delayUntilCcaEnd);
         break;
       }
@@ -1760,7 +1776,9 @@ WifiPhy::ResumeFromOff (void)
     case WifiPhyState::OFF:
       {
         NS_LOG_DEBUG ("resuming from off mode");
-        Time delayUntilCcaEnd = m_interference.GetEnergyDuration (m_ccaEdThresholdW, GetFrequency () /* assume for now primary is the first band */, GetChannelWidth () >= 40 ? 20 : GetChannelWidth ());
+        uint16_t primaryChannelWidth = GetChannelWidth () >= 40 ? 20 : GetChannelWidth ();
+        uint16_t primaryChannelFrequency = GetCenterFrequency (GetFrequency (), GetChannelWidth (), primaryChannelWidth, GetSecondaryChannelOffset () == UPPER ? 0 : 1);
+        Time delayUntilCcaEnd = m_interference.GetEnergyDuration (m_ccaEdThresholdW, primaryChannelFrequency, primaryChannelWidth);
         m_state->SwitchFromOff (delayUntilCcaEnd);
         break;
       }
@@ -2706,7 +2724,7 @@ WifiPhy::StartReceiveHeader (Ptr<Event> event, Time rxDuration)
   NS_ASSERT (m_endPlcpRxEvent.IsExpired ());
   NS_ASSERT (m_endRxEvent.IsExpired ());
   uint16_t primaryChannelWidth = GetChannelWidth () >= 40 ? 20 : GetChannelWidth ();
-  uint16_t primaryChannelFrequency = GetCenterFrequency (GetFrequency (), GetChannelWidth (), primaryChannelWidth, 0);
+  uint16_t primaryChannelFrequency = GetCenterFrequency (GetFrequency (), GetChannelWidth (), primaryChannelWidth, GetSecondaryChannelOffset () == UPPER ? 0 : 1);
   InterferenceHelper::SnrPer snrPer = m_interference.CalculateLegacyPhyHeaderSnrPer (event, primaryChannelFrequency);
   double snr = snrPer.snr;
   NS_LOG_DEBUG ("snr(dB)=" << RatioToDb (snrPer.snr) << ", per=" << snrPer.per);
@@ -2759,7 +2777,7 @@ WifiPhy::ContinueReceiveHeader (Ptr<Event> event)
   NS_ASSERT (IsStateRx ());
   NS_ASSERT (m_endPlcpRxEvent.IsExpired ());
   uint16_t primaryChannelWidth = GetChannelWidth () >= 40 ? 20 : GetChannelWidth ();
-  uint16_t primaryChannelFrequency = GetCenterFrequency (GetFrequency (), GetChannelWidth (), primaryChannelWidth, 0);
+  uint16_t primaryChannelFrequency = GetCenterFrequency (GetFrequency (), GetChannelWidth (), primaryChannelWidth, GetSecondaryChannelOffset () == UPPER ? 0 : 1);
   InterferenceHelper::SnrPer snrPer = m_interference.CalculateLegacyPhyHeaderSnrPer (event, primaryChannelFrequency);
   NS_LOG_DEBUG ("snr(dB)=" << RatioToDb (snrPer.snr) << ", per=" << snrPer.per);
   if (m_random->GetValue () > snrPer.per) //legacy PHY header reception succeeded
@@ -3010,7 +3028,7 @@ WifiPhy::MaybeCcaBusyDuration ()
   //In this model, CCA becomes busy when the aggregation of all signals as
   //tracked by the InterferenceHelper class is higher than the CcaBusyThreshold
   uint16_t primaryChannelWidth = GetChannelWidth () >= 40 ? 20 : GetChannelWidth ();
-  uint16_t primaryChannelFrequency = GetCenterFrequency (GetFrequency (), GetChannelWidth (), primaryChannelWidth, 0);
+  uint16_t primaryChannelFrequency = GetCenterFrequency (GetFrequency (), GetChannelWidth (), primaryChannelWidth, GetSecondaryChannelOffset () == UPPER ? 0 : 1);
   Time delayUntilCcaEnd = m_interference.GetEnergyDuration (m_ccaEdThresholdW, primaryChannelFrequency, primaryChannelWidth);
   if (!delayUntilCcaEnd.IsZero ())
     {
@@ -3031,7 +3049,7 @@ WifiPhy::StartReceivePayload (Ptr<Event> event)
   if ((txMode.GetModulationClass () == WIFI_MOD_CLASS_HT) || (txMode.GetModulationClass () == WIFI_MOD_CLASS_VHT) || (txMode.GetModulationClass () == WIFI_MOD_CLASS_HE))
     {
       uint16_t primaryChannelWidth = GetChannelWidth () >= 40 ? 20 : GetChannelWidth ();
-      uint16_t primaryChannelFrequency = GetCenterFrequency (GetFrequency (), GetChannelWidth (), primaryChannelWidth, 0);
+      uint16_t primaryChannelFrequency = GetCenterFrequency (GetFrequency (), GetChannelWidth (), primaryChannelWidth, GetSecondaryChannelOffset () == UPPER ? 0 : 1);
       InterferenceHelper::SnrPer snrPer = m_interference.CalculateNonLegacyPhyHeaderSnrPer (event, primaryChannelFrequency);
       canReceivePayload = (m_random->GetValue () > snrPer.per);
     }
@@ -3076,7 +3094,12 @@ WifiPhy::EndReceive (Ptr<Event> event)
   NS_ASSERT (event->GetEndTime () == Simulator::Now ());
 
   uint16_t channelWidth = std::min (GetChannelWidth (), event->GetTxVector ().GetChannelWidth ());
-  uint16_t centerFrequency = GetCenterFrequency (GetFrequency (), GetChannelWidth (), channelWidth, 0);
+  uint8_t index = 0;
+  if (channelWidth < GetChannelWidth ())
+    {
+      index = GetSecondaryChannelOffset () == UPPER ? 0 : 1;
+    }
+  uint16_t centerFrequency = GetCenterFrequency (GetFrequency (), GetChannelWidth (), channelWidth, index);
   double snr = m_interference.CalculateSnr (event, centerFrequency, channelWidth);
   std::vector<bool> statusPerMpdu;
   SignalNoiseDbm signalNoise;
@@ -3143,7 +3166,12 @@ WifiPhy::GetReceptionStatus (Ptr<const Packet> mpdu, Ptr<Event> event, Time rela
   NS_LOG_FUNCTION (this << mpdu << event->GetTxVector () << event << relativeMpduStart << mpduDuration);
   InterferenceHelper::SnrPer snrPer;
   uint16_t channelWidth = std::min (GetChannelWidth (), event->GetTxVector ().GetChannelWidth ());
-  uint16_t centerFrequency = GetCenterFrequency (GetFrequency (), GetChannelWidth (), channelWidth, 0);
+  uint8_t index = 0;
+  if (channelWidth < GetChannelWidth ())
+    {
+      index = GetSecondaryChannelOffset () == UPPER ? 0 : 1;
+    }
+  uint16_t centerFrequency = GetCenterFrequency (GetFrequency (), GetChannelWidth (), channelWidth, index);
   snrPer = m_interference.CalculatePayloadSnrPer (event, centerFrequency, channelWidth, std::make_pair (relativeMpduStart, relativeMpduStart + mpduDuration));
 
   NS_LOG_DEBUG ("mode=" << (event->GetTxVector ().GetMode ().GetDataRate (event->GetTxVector ())) <<
@@ -4191,7 +4219,9 @@ WifiPhy::SwitchMaybeToCcaBusy (void)
   //In this model, CCA becomes busy when the aggregation of all signals as
   //tracked by the InterferenceHelper class is higher than the CcaBusyThreshold
 
-  Time delayUntilCcaEnd = m_interference.GetEnergyDuration (m_ccaEdThresholdW, GetFrequency () /* assume for now primary is the first band */, GetChannelWidth () >= 40 ? 20 : GetChannelWidth ());
+  uint16_t primaryChannelWidth = GetChannelWidth () >= 40 ? 20 : GetChannelWidth ();
+  uint16_t primaryChannelFrequency = GetCenterFrequency (GetFrequency (), GetChannelWidth (), primaryChannelWidth, GetSecondaryChannelOffset () == UPPER ? 0 : 1);
+  Time delayUntilCcaEnd = m_interference.GetEnergyDuration (m_ccaEdThresholdW, primaryChannelFrequency, primaryChannelWidth);
   if (!delayUntilCcaEnd.IsZero ())
     {
       NS_LOG_DEBUG ("Calling SwitchMaybeToCcaBusy for " << delayUntilCcaEnd.As (Time::S));
