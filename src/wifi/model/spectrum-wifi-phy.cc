@@ -25,6 +25,7 @@
 
 #include "ns3/wifi-spectrum-value-helper.h"
 #include "ns3/log.h"
+#include "ns3/double.h"
 #include "ns3/boolean.h"
 #include "ns3/net-device.h"
 #include "ns3/node.h"
@@ -46,10 +47,26 @@ SpectrumWifiPhy::GetTypeId (void)
     .SetParent<WifiPhy> ()
     .SetGroupName ("Wifi")
     .AddConstructor<SpectrumWifiPhy> ()
-    .AddAttribute ("DisableWifiReception", "Prevent Wi-Fi frame sync from ever happening",
+    .AddAttribute ("DisableWifiReception",
+                   "Prevent Wi-Fi frame sync from ever happening",
                    BooleanValue (false),
                    MakeBooleanAccessor (&SpectrumWifiPhy::m_disableWifiReception),
                    MakeBooleanChecker ())
+    .AddAttribute ("TxMaskInnerBandMinimumRejection",
+                   "Minimum rejection (dBr) for the inner band of the transmit spectrum mask",
+                   DoubleValue (-20.0),
+                   MakeDoubleAccessor (&SpectrumWifiPhy::m_txMaskInnerBandMinimumRejection),
+                   MakeDoubleChecker<double> ())
+    .AddAttribute ("TxMaskOuterBandMinimumRejection",
+                   "Minimum rejection (dBr) for the outer band of the transmit spectrum mask",
+                   DoubleValue (-28.0),
+                   MakeDoubleAccessor (&SpectrumWifiPhy::m_txMaskOuterBandMinimumRejection),
+                   MakeDoubleChecker<double> ())
+    .AddAttribute ("TxMaskOuterBandMaximumRejection",
+                   "Maximum rejection (dBr) for the outer band of the transmit spectrum mask",
+                   DoubleValue (-40.0),
+                   MakeDoubleAccessor (&SpectrumWifiPhy::m_txMaskOuterBandMaximumRejection),
+                   MakeDoubleChecker<double> ())
     .AddTraceSource ("SignalArrival",
                      "Signal arrival",
                      MakeTraceSourceAccessor (&SpectrumWifiPhy::m_signalCb),
@@ -326,7 +343,7 @@ SpectrumWifiPhy::GetTxPowerSpectralDensity (uint16_t centerFrequency, uint16_t c
     {
     case WIFI_MOD_CLASS_OFDM:
     case WIFI_MOD_CLASS_ERP_OFDM:
-      v = WifiSpectrumValueHelper::CreateOfdmTxPowerSpectralDensity (centerFrequency, channelWidth, txPowerW, GetGuardBandwidth (channelWidth));
+      v = WifiSpectrumValueHelper::CreateOfdmTxPowerSpectralDensity (centerFrequency, channelWidth, txPowerW, GetGuardBandwidth (channelWidth), m_txMaskInnerBandMinimumRejection, m_txMaskOuterBandMinimumRejection, m_txMaskOuterBandMaximumRejection);
       break;
     case WIFI_MOD_CLASS_DSSS:
     case WIFI_MOD_CLASS_HR_DSSS:
@@ -335,10 +352,10 @@ SpectrumWifiPhy::GetTxPowerSpectralDensity (uint16_t centerFrequency, uint16_t c
       break;
     case WIFI_MOD_CLASS_HT:
     case WIFI_MOD_CLASS_VHT:
-      v = WifiSpectrumValueHelper::CreateHtOfdmTxPowerSpectralDensity (centerFrequency, channelWidth, txPowerW, GetGuardBandwidth (channelWidth));
+      v = WifiSpectrumValueHelper::CreateHtOfdmTxPowerSpectralDensity (centerFrequency, channelWidth, txPowerW, GetGuardBandwidth (channelWidth), m_txMaskInnerBandMinimumRejection, m_txMaskOuterBandMinimumRejection, m_txMaskOuterBandMaximumRejection);
       break;
     case WIFI_MOD_CLASS_HE:
-      v = WifiSpectrumValueHelper::CreateHeOfdmTxPowerSpectralDensity (centerFrequency, channelWidth, txPowerW, GetGuardBandwidth (channelWidth));
+      v = WifiSpectrumValueHelper::CreateHeOfdmTxPowerSpectralDensity (centerFrequency, channelWidth, txPowerW, GetGuardBandwidth (channelWidth), m_txMaskInnerBandMinimumRejection, m_txMaskOuterBandMinimumRejection, m_txMaskOuterBandMaximumRejection);
       break;
     default:
       NS_FATAL_ERROR ("modulation class unknown: " << modulationClass);

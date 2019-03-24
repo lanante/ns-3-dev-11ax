@@ -166,6 +166,7 @@ public:
 
   virtual void ConfigureStandard (WifiPhyStandard standard);
 
+
 protected:
   // Inherited
   void DoDispose (void);
@@ -190,14 +191,17 @@ private:
    */
   void ResetSpectrumModel (void);
 
-  Ptr<SpectrumChannel> m_channel;        //!< SpectrumChannel that this SpectrumWifiPhy is connected to
+  Ptr<SpectrumChannel> m_channel; //!< SpectrumChannel that this SpectrumWifiPhy is connected to
 
   Ptr<WifiSpectrumPhyInterface> m_wifiSpectrumPhyInterface; //!< Spectrum phy interface
-  Ptr<AntennaModel> m_antenna; //!< antenna model
-  mutable Ptr<const SpectrumModel> m_rxSpectrumModel; //!< receive spectrum model
-  bool m_disableWifiReception;          //!< forces this Phy to fail to sync on any signal
-  TracedCallback<bool, uint32_t, double, Time> m_signalCb; //!< Signal callback
+  Ptr<AntennaModel> m_antenna;                              //!< antenna model
+  mutable Ptr<const SpectrumModel> m_rxSpectrumModel;       //!< receive spectrum model
+  bool m_disableWifiReception;                              //!< forces this Phy to fail to sync on any signal
+  TracedCallback<bool, uint32_t, double, Time> m_signalCb;  //!< Signal callback
 
+  double m_txMaskInnerBandMinimumRejection; //!< The minimum rejection (in dBr) for the inner band of the transmit spectrum mask
+  double m_txMaskOuterBandMinimumRejection; //!< The minimum rejection (in dBr) for the outer band of the transmit spectrum mask
+  double m_txMaskOuterBandMaximumRejection; //!< The maximum rejection (in dBr) for the outer band of the transmit spectrum mask
 };
 
 } //namespace ns3
