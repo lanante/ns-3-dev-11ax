@@ -3111,6 +3111,17 @@ WifiPhy::StartReceivePreamble (Ptr<WifiPpdu> ppdu, RxPowerWattPerChannelBand rxP
       m_currentPreambleEvents.insert ({ppdu->GetUid (), event});
     }
 
+  if (GetChannelWidth () >= 40)
+    {
+      auto primaryChannelband = GetBand (20, GetSecondaryChannelOffset () == UPPER ? 0 : 1);
+      double rxPowerPrimaryChannelW = event->GetRxPowerW (primaryChannelband);
+      if (WToDbm (rxPowerPrimaryChannelW) < GetRxSensitivity ())
+        {
+          NS_LOG_INFO ("Received signal in primary channel too weak to process: " << WToDbm (rxPowerPrimaryChannelW) << " dBm");
+          return;
+        }
+    }
+
   if (m_state->GetState () == WifiPhyState::OFF)
     {
       NS_LOG_DEBUG ("Cannot start RX because device is OFF");
