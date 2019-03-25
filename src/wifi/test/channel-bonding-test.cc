@@ -897,7 +897,7 @@ TestChannelBonding::DoRun (void)
   Simulator::Schedule (Seconds (6.0), &TestChannelBonding::SetExpectedSnrForBss, this, 3.0, 1); // BSS 1 expects SNR around 3 dB
   Simulator::Schedule (Seconds (6.5), &TestChannelBonding::VerifyResultsForBss, this, false, true, 1); // PHY header passed but payload failed for BSS 1
   Simulator::Schedule (Seconds (6.5), &TestChannelBonding::VerifyResultsForBss, this, false, true, 3); // PHY header failed for BSS 3
-  //Simulator::Schedule (Seconds (6.5), &TestChannelBonding::VerifyResultsForBss, this, false, true, 4); // PHY header failed for BSS 4 //to be fixed
+  Simulator::Schedule (Seconds (6.5), &TestChannelBonding::VerifyResultsForBss, this, false, true, 4); // PHY header failed for BSS 4
 
   //CASE 4: verify reception on channel 38 (BSS 3) when channel 40 is used (BSS 2) at the same time
   Simulator::Schedule (Seconds (6.9), &TestChannelBonding::Reset, this);
@@ -909,7 +909,7 @@ TestChannelBonding::DoRun (void)
   Simulator::Schedule (Seconds (7.0) + MicroSeconds (5.0), &TestChannelBonding::CheckPhyState, this, WifiPhyState::RX, 4);
   Simulator::Schedule (Seconds (7.0), &TestChannelBonding::SetExpectedSnrForBss, this, 3.0, 2); // BSS 2 expects SNR around 3 dB
   Simulator::Schedule (Seconds (7.5), &TestChannelBonding::VerifyResultsForBss, this, false, true, 2); // PHY header passed but payload failed for BSS 2
-  //Simulator::Schedule (Seconds (7.5), &TestChannelBonding::VerifyResultsForBss, this, false, false, 3); // PHY header failed for BSS 3 //to be fixed
+  Simulator::Schedule (Seconds (7.5), &TestChannelBonding::VerifyResultsForBss, this, false, true, 3); // PHY header passed but payload failed for BSS 3
 
   //CASE 5: verify reception on channel 38 (BSS 4) when channel 36 is used (BSS 1) at the same time
   Simulator::Schedule (Seconds (7.9), &TestChannelBonding::Reset, this);
@@ -921,7 +921,7 @@ TestChannelBonding::DoRun (void)
   Simulator::Schedule (Seconds (8.0) + MicroSeconds (5.0), &TestChannelBonding::CheckPhyState, this, WifiPhyState::RX, 4);
   Simulator::Schedule (Seconds (8.0), &TestChannelBonding::SetExpectedSnrForBss, this, 3.0, 1); // BSS 1 expects SNR around 3 dB
   Simulator::Schedule (Seconds (8.5), &TestChannelBonding::VerifyResultsForBss, this, false, true, 1); // PHY header passed but payload failed for BSS 1
-  //Simulator::Schedule (Seconds (8.5), &TestChannelBonding::VerifyResultsForBss, this, false, false, 4); // PHY header failed for BSS 4 //to be fixed
+  Simulator::Schedule (Seconds (8.5), &TestChannelBonding::VerifyResultsForBss, this, false, true, 4); // PHY header passed but payload failed for BSS 4
 
   //CASE 6: verify reception on channel 38 (BSS 4) when channel 40 is used (BSS 2) at the same time
   Simulator::Schedule (Seconds (8.9), &TestChannelBonding::Reset, this);
@@ -933,8 +933,8 @@ TestChannelBonding::DoRun (void)
   Simulator::Schedule (Seconds (9.0) + MicroSeconds (5.0), &TestChannelBonding::CheckPhyState, this, WifiPhyState::RX, 4);
   Simulator::Schedule (Seconds (9.0), &TestChannelBonding::SetExpectedSnrForBss, this, 3.0, 2); // BSS 2 expects SNR around 3 dB
   Simulator::Schedule (Seconds (9.5), &TestChannelBonding::VerifyResultsForBss, this, false, true, 2); // PHY header passed but payload failed for BSS 2
-  //Simulator::Schedule (Seconds (9.5), &TestChannelBonding::VerifyResultsForBss, this, false, false, 3); // PHY header failed for BSS 3 //to be fixed
-  //Simulator::Schedule (Seconds (9.5), &TestChannelBonding::VerifyResultsForBss, this, false, false, 4); // PHY header failed for BSS 4 //to be fixed
+  Simulator::Schedule (Seconds (9.5), &TestChannelBonding::VerifyResultsForBss, this, false, true, 4); // PHY header failed for BSS 4
+  //TODO: we need to retrieve indication about packet is dropped because no preamble successfully received or whether corrupted payload
 
   //CASE 7: verify reception on channel 38 (BSS 3) when channels 36 (BSS 1) and 40 (BSS 2) are used at the same time
   Simulator::Schedule (Seconds (9.9), &TestChannelBonding::Reset, this);
@@ -949,8 +949,8 @@ TestChannelBonding::DoRun (void)
   Simulator::Schedule (Seconds (10.0), &TestChannelBonding::SetExpectedSnrForBss, this, 3.0, 2); // BSS 2 expects SNR around 3 dB
   Simulator::Schedule (Seconds (10.5), &TestChannelBonding::VerifyResultsForBss, this, false, true, 1); // PHY header passed but payload failed for BSS 1
   Simulator::Schedule (Seconds (10.5), &TestChannelBonding::VerifyResultsForBss, this, false, true, 2); // PHY header passed but payload failed for BSS 2
-  //Simulator::Schedule (Seconds (10.5), &TestChannelBonding::VerifyResultsForBss, this, false, false, 3); // PHY header failed for BSS 3 //to be fixed
-  //Simulator::Schedule (Seconds (10.5), &TestChannelBonding::VerifyResultsForBss, this, false, false, 4); // PHY header failed for BSS 4 //to be fixed
+  Simulator::Schedule (Seconds (10.5), &TestChannelBonding::VerifyResultsForBss, this, false, true, 2); // PHY header failed for BSS 3
+  //TODO: we need to retrieve indication about packet is dropped because no preamble successfully received or whether corrupted payload
 
   //CASE 8: verify reception on channel 38 (BSS 4) when channels 36 (BSS 1) and 40 (BSS 2) are used at the same time
   Simulator::Schedule (Seconds (10.9), &TestChannelBonding::Reset, this);
@@ -965,8 +965,8 @@ TestChannelBonding::DoRun (void)
   Simulator::Schedule (Seconds (11.0), &TestChannelBonding::SetExpectedSnrForBss, this, 3.0, 2); // BSS 2 expects SNR around 3 dB
   Simulator::Schedule (Seconds (11.5), &TestChannelBonding::VerifyResultsForBss, this, false, true, 1); // PHY header passed but payload failed for BSS 1
   Simulator::Schedule (Seconds (11.5), &TestChannelBonding::VerifyResultsForBss, this, false, true, 2); // PHY header passed but payload failed for BSS 2
-  //Simulator::Schedule (Seconds (11.5), &TestChannelBonding::VerifyResultsForBss, this, false, false, 3); // PHY header failed for BSS 3 //to be fixed
-  //Simulator::Schedule (Seconds (11.5), &TestChannelBonding::VerifyResultsForBss, this, false, false, 4); // PHY header failed for BSS 4 //to be fixed
+  Simulator::Schedule (Seconds (11.5), &TestChannelBonding::VerifyResultsForBss, this, false, true, 4); // PHY header failed for BSS 4
+  //TODO: we need to retrieve indication about packet is dropped because no preamble successfully received or whether corrupted payload
 
   Simulator::Run ();
   Simulator::Destroy ();
