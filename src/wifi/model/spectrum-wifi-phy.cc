@@ -287,13 +287,7 @@ SpectrumWifiPhy::StartRx (Ptr<SpectrumSignalParameters> rxParams)
 
   // Do no further processing if signal is too weak
   // Current implementation assumes constant rx power over the packet duration
-  uint16_t primaryChannelWidth = GetChannelWidth () >= 40 ? 20 : GetChannelWidth ();
-  uint16_t primaryChannelFrequency = GetCenterFrequency (GetFrequency (), GetChannelWidth (), primaryChannelWidth, GetSecondaryChannelOffset () == UPPER ? 0 : 1);
-  auto band = std::make_pair (primaryChannelFrequency, 20);
-  auto it = rxPowerW.find (band);
-  NS_ASSERT (it != rxPowerW.end ());
-  double rxPowerPrimaryChannelW = it->second;
-  if (WToDbm (rxPowerPrimaryChannelW) < GetRxSensitivity ())
+  if (WToDbm (totalRxPowerW) < GetRxSensitivity ())
     {
       NS_LOG_INFO ("Received signal too weak to process: " << WToDbm (totalRxPowerW) << " dBm");
       return;

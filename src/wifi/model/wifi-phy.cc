@@ -2933,6 +2933,18 @@ WifiPhy::StartReceivePreamble (Ptr<Packet> packet, RxPowerWattPerChannelBand rxP
 
   Ptr<Event> event = m_interference.Add (packet, txVector, rxDuration, rxPowersW);
 
+  if (GetChannelWidth () >= 40)
+    {
+      uint16_t primaryChannelFrequency = GetCenterFrequency (GetFrequency (), GetChannelWidth (), 20, GetSecondaryChannelOffset () == UPPER ? 0 : 1);
+      auto band = std::make_pair (primaryChannelFrequency, 20);
+      double rxPowerPrimaryChannelW = event->GetRxPowerW (band);
+      if (WToDbm (rxPowerPrimaryChannelW) < GetRxSensitivity ())
+        {
+          NS_LOG_INFO ("Received signal in primary channel too weak to process: " << WToDbm (rxPowerPrimaryChannelW) << " dBm");
+          return;
+        }
+    }
+
   if (m_state->GetState () == WifiPhyState::OFF)
     {
       NS_LOG_DEBUG ("Cannot start RX because device is OFF");
