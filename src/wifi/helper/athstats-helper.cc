@@ -218,7 +218,7 @@ AthstatsWifiTraceSink::PhyRxOkTrace (std::string context, Ptr<const Packet> pack
 }
 
 void
-AthstatsWifiTraceSink::PhyRxErrorTrace (std::string context, Ptr<const Packet> packet, double snr)
+AthstatsWifiTraceSink::PhyRxErrorTrace (std::string context, Ptr<const Packet> packet, double snr, bool phyHeaderSuccess)
 {
   NS_LOG_FUNCTION (this << context << packet << " snr=" << snr );
   ++m_phyRxErrorCount;

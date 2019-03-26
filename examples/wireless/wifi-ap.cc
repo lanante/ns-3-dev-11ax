@@ -61,7 +61,7 @@ PhyRxOkTrace (std::string context, Ptr<const Packet> packet, double snr, WifiMod
     }
 }
 void
-PhyRxErrorTrace (std::string context, Ptr<const Packet> packet, double snr)
+PhyRxErrorTrace (std::string context, Ptr<const Packet> packet, double snr, bool phyHeaderSuccess)
 {
   if (g_verbose)
     {
