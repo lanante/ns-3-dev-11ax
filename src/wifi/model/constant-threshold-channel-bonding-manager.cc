@@ -45,10 +45,12 @@ ConstantThresholdChannelBondingManager::GetUsableChannelWidth (void)
     {
       if (m_phy->GetDelaySinceIdle (true) >= m_phy->GetPifs ())
         {
+          NS_LOG_DEBUG ("Secondary channel is idle for at least PIFS: transmission on 40 MHz allowed");
           return 40;
         }
       else
         {
+          NS_LOG_DEBUG ("Secondary channel is idle for less than PIFS: transmission on 40 MHz not allowed");
           return 20;
         }
     }
