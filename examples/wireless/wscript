@@ -121,3 +121,6 @@ def build(bld):
 
     obj = bld.create_ns3_program('wifi-spatial-reuse', ['wifi', 'applications'])
     obj.source = 'wifi-spatial-reuse.cc'
+
+    obj = bld.create_ns3_program('wifi-channel-bonding', ['wifi', 'applications'])
+    obj.source = 'wifi-channel-bonding.cc'
