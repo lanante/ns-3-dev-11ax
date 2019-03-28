@@ -27,12 +27,19 @@ namespace ns3 {
 NS_LOG_COMPONENT_DEFINE ("ConstantThresholdChannelBondingManager");
 NS_OBJECT_ENSURE_REGISTERED (ConstantThresholdChannelBondingManager);
 
+ConstantThresholdChannelBondingManager::ConstantThresholdChannelBondingManager ()
+  : ChannelBondingManager ()
+{
+  NS_LOG_FUNCTION (this);
+}
+
 TypeId
 ConstantThresholdChannelBondingManager::GetTypeId (void)
 {
   static ns3::TypeId tid = ns3::TypeId ("ns3::ConstantThresholdChannelBondingManager")
     .SetParent<ChannelBondingManager> ()
     .SetGroupName ("Wifi")
+    .AddConstructor<ConstantThresholdChannelBondingManager> ()
   ;
   return tid;
 }

@@ -35,6 +35,8 @@ namespace ns3 {
 class ConstantThresholdChannelBondingManager : public ChannelBondingManager
 {
 public:
+  ConstantThresholdChannelBondingManager ();
+
   static TypeId GetTypeId (void);
 
   /**
