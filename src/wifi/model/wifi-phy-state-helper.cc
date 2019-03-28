@@ -185,13 +185,52 @@ WifiPhyStateHelper::GetDelayUntilIdle (void) const
 }
 
 Time
+WifiPhyStateHelper::GetDelaySinceIdle (bool secondaryChannel) const
+{
+  Time retval;
+
+  switch (GetState ())
+    {
+    case WifiPhyState::RX:
+      retval = Seconds (0);
+      break;
+    case WifiPhyState::TX:
+      retval = Seconds (0);
+      break;
+    case WifiPhyState::CCA_BUSY:
+      retval = Seconds (0);
+      break;
+    case WifiPhyState::SWITCHING:
+      retval = Seconds (0);
+      break;
+    case WifiPhyState::IDLE:
+      retval = Simulator::Now () - m_endCcaBusySecondary;
+      break;
+    case WifiPhyState::SLEEP:
+      NS_FATAL_ERROR ("Cannot determine when the device will wake up.");
+      retval = Seconds (0);
+      break;
+    case WifiPhyState::OFF:
+      NS_FATAL_ERROR ("Cannot determine when the device will be switched on.");
+      retval = Seconds (0);
+      break;
+    default:
+      NS_FATAL_ERROR ("Invalid WifiPhy state.");
+      retval = Seconds (0);
+      break;
+    }
+  retval = Max (retval, Seconds (0));
+  return retval;
+}
+
+Time
 WifiPhyStateHelper::GetLastRxStartTime (void) const
 {
   return m_startRx;
 }
 
 WifiPhyState
-WifiPhyStateHelper::GetState (void) const
+WifiPhyStateHelper::GetState (bool secondaryChannel) const
 {
   if (m_isOff)
     {
@@ -213,7 +252,7 @@ WifiPhyStateHelper::GetState (void) const
     {
       return WifiPhyState::SWITCHING;
     }
-  else if (m_endCcaBusy > Simulator::Now ())
+  else if ((m_endCcaBusy > Simulator::Now ()) || (secondaryChannel && (m_endCcaBusySecondary > Simulator::Now ())))
     {
       return WifiPhyState::CCA_BUSY;
     }
@@ -495,30 +534,34 @@ WifiPhyStateHelper::DoSwitchFromRx (void)
 }
 
 void
-WifiPhyStateHelper::SwitchMaybeToCcaBusy (Time duration)
+WifiPhyStateHelper::SwitchMaybeToCcaBusy (Time duration, bool secondaryChannel)
 {
-  NS_LOG_FUNCTION (this << duration);
-  if (GetState () != WifiPhyState::RX)
-    {
-      NotifyMaybeCcaBusyStart (duration);
-    }
+  NS_LOG_FUNCTION (this << duration << secondaryChannel);
   Time now = Simulator::Now ();
-  m_endCcaBusy = std::max (m_endCcaBusy, now + duration);
-  switch (GetState ())
+  if (!secondaryChannel)
     {
-    case WifiPhyState::IDLE:
-      LogPreviousIdleAndCcaBusyStates ();
-      break;
-    case WifiPhyState::RX:
-      return;
-    default:
-      break;
+      if (GetState () != WifiPhyState::RX)
+        {
+          NotifyMaybeCcaBusyStart (duration);
+        }
+      m_endCcaBusy = std::max (m_endCcaBusy, now + duration);
+      switch (GetState ())
+        {
+        case WifiPhyState::IDLE:
+          LogPreviousIdleAndCcaBusyStates ();
+          break;
+        case WifiPhyState::RX:
+          return;
+        default:
+          break;
+        }
+      if (GetState () != WifiPhyState::CCA_BUSY)
+        {
+          m_startCcaBusy = now;
+        }
+      m_stateLogger (now, duration, WifiPhyState::CCA_BUSY);
     }
-  if (GetState () != WifiPhyState::CCA_BUSY)
-    {
-      m_startCcaBusy = now;
-    }
-  m_stateLogger (now, duration, WifiPhyState::CCA_BUSY);
+  m_endCcaBusySecondary = std::max (m_endCcaBusySecondary, now + duration);
 }
 
 void

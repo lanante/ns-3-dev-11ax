@@ -41,6 +41,18 @@ uint16_t
 ConstantThresholdChannelBondingManager::GetUsableChannelWidth (void)
 {
   NS_LOG_FUNCTION (this);
+  if (m_phy->GetChannelWidth () == 40)
+    {
+      if (m_phy->GetDelaySinceIdle (true) >= m_phy->GetPifs ())
+        {
+          return 40;
+        }
+      else
+        {
+          return 20;
+        }
+    }
+  //TODO: handle 80 and 160 MHZ
   return m_phy->GetChannelWidth ();
 }
 

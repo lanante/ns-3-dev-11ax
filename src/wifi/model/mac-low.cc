@@ -271,6 +271,7 @@ MacLow::SetPhy (const Ptr<WifiPhy> phy)
   m_phy->SetReceiveOkCallback (MakeCallback (&MacLow::DeaggregateAmpduAndReceive, this));
   m_phy->SetReceiveErrorCallback (MakeCallback (&MacLow::ReceiveError, this));
   SetupPhyMacLowListener (phy);
+  m_phy->SetPifs (m_pifs);
 }
 
 Ptr<WifiPhy>
@@ -384,6 +385,10 @@ void
 MacLow::SetPifs (Time pifs)
 {
   m_pifs = pifs;
+  if (m_phy)
+    {
+      m_phy->SetPifs (pifs);
+    }
 }
 
 void

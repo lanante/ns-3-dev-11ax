@@ -98,9 +98,10 @@ public:
   /**
    * Return the current state of WifiPhy.
    *
+   * \param secondaryChannel whether this is requested for the secondary channel
    * \return the current state of WifiPhy
    */
-  WifiPhyState GetState (void) const;
+  WifiPhyState GetState (bool secondaryChannel = false) const;
   /**
    * Check whether the current state is CCA busy.
    *
@@ -150,6 +151,12 @@ public:
    */
   Time GetDelayUntilIdle (void) const;
   /**
+   * Return the time since the state is back to IDLE.
+   * \param secondaryChannel whether this is requested for the secondary channel
+   * \return the delay since the state is back to IDLE
+   */
+  Time GetDelaySinceIdle (bool secondaryChannel) const;
+  /**
    * Return the time the last RX start.
    *
    * \return the time the last RX start.
@@ -198,8 +205,9 @@ public:
    * Switch to CCA busy.
    *
    * \param duration the duration of CCA busy state
+   * \param secondaryChannel whether only the secondary channel is switching to CCA busy state
    */
-  void SwitchMaybeToCcaBusy (Time duration);
+  void SwitchMaybeToCcaBusy (Time duration, bool secondaryChannel = false);
   /**
    * Switch to sleep mode.
    */
@@ -346,7 +354,8 @@ private:
   bool m_isOff; ///< switched off
   Time m_endTx; ///< end transmit
   Time m_endRx; ///< end receive
-  Time m_endCcaBusy; ///< endn CCA busy
+  Time m_endCcaBusy; ///< end CCA busy
+  Time m_endCcaBusySecondary; ///< end CCA busy for secondary channel
   Time m_endSwitching; ///< end switching
   Time m_startTx; ///< start transmit
   Time m_startRx; ///< start receive

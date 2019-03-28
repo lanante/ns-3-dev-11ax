@@ -813,16 +813,28 @@ WifiPhy::SetPreambleDetectionModel (const Ptr<PreambleDetectionModel> model)
 }
 
 void
-WifiPhy::SetChannelBondingManager (const Ptr<ChannelBondingManager> manager)
-{
-  m_channelBondingManager = manager;
-  manager->SetPhy (this);
-}
-
-void
 WifiPhy::SetWifiRadioEnergyModel (const Ptr<WifiRadioEnergyModel> wifiRadioEnergyModel)
 {
   m_wifiRadioEnergyModel = wifiRadioEnergyModel;
+}
+
+void
+WifiPhy::SetChannelBondingManager (const Ptr<ChannelBondingManager> manager)
+{
+  m_channelBondingManager = manager;
+  m_channelBondingManager->SetPhy (this);
+}
+
+void
+WifiPhy::SetPifs (Time pifs)
+{
+  m_pifs = pifs;
+}
+
+Time
+WifiPhy::GetPifs (void) const
+{
+  return m_pifs;
 }
 
 double
@@ -2941,6 +2953,7 @@ WifiPhy::StartReceivePreamble (Ptr<Packet> packet, RxPowerWattPerChannelBand rxP
       if (WToDbm (rxPowerPrimaryChannelW) < GetRxSensitivity ())
         {
           NS_LOG_INFO ("Received signal in primary channel too weak to process: " << WToDbm (rxPowerPrimaryChannelW) << " dBm");
+          MaybeCcaBusyDuration (); //secondary channel shall maybe sitch to CCA_BUSY
           return;
         }
     }
@@ -3044,7 +3057,17 @@ WifiPhy::MaybeCcaBusyDuration ()
   Time delayUntilCcaEnd = m_interference.GetEnergyDuration (m_ccaEdThresholdW, primaryChannelFrequency, primaryChannelWidth);
   if (!delayUntilCcaEnd.IsZero ())
     {
-      m_state->SwitchMaybeToCcaBusy (delayUntilCcaEnd);
+      m_state->SwitchMaybeToCcaBusy (delayUntilCcaEnd, false);
+    }
+  if (GetChannelWidth () >= 40)
+    {
+      uint16_t secondaryChannelWidth = primaryChannelWidth;
+      uint16_t secondaryChannelFrequency = GetCenterFrequency (GetFrequency (), GetChannelWidth (), secondaryChannelWidth, GetSecondaryChannelOffset () == UPPER ? 1 : 0);
+      delayUntilCcaEnd = m_interference.GetEnergyDuration (m_ccaEdThresholdSecondaryW, secondaryChannelFrequency, secondaryChannelWidth);
+      if (!delayUntilCcaEnd.IsZero ())
+        {
+          m_state->SwitchMaybeToCcaBusy (delayUntilCcaEnd, true);
+        }
     }
 }
 
@@ -4211,7 +4234,7 @@ WifiPhy::IsStateOff (void) const
 }
 
 Time
-WifiPhy::GetDelayUntilIdle (void)
+WifiPhy::GetDelayUntilIdle (void) const
 {
   return m_state->GetDelayUntilIdle ();
 }
@@ -4220,6 +4243,12 @@ Time
 WifiPhy::GetLastRxStartTime (void) const
 {
   return m_state->GetLastRxStartTime ();
+}
+
+Time
+WifiPhy::GetDelaySinceIdle (bool secondaryChannel) const
+{
+  return m_state->GetDelaySinceIdle (secondaryChannel);
 }
 
 void
