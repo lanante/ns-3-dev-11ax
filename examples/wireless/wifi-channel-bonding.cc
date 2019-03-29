@@ -24,6 +24,7 @@
 #include "ns3/boolean.h"
 #include "ns3/string.h"
 #include "ns3/double.h"
+#include "ns3/enum.h"
 #include "ns3/log.h"
 #include "ns3/ssid.h"
 #include "ns3/spectrum-wifi-helper.h"
@@ -40,7 +41,7 @@
 
 using namespace ns3;
 
-NS_LOG_COMPONENT_DEFINE ("SimpleMpduAggregation");
+NS_LOG_COMPONENT_DEFINE ("ChannelBonding");
 
 int main (int argc, char *argv[])
 {
@@ -48,40 +49,55 @@ int main (int argc, char *argv[])
   double simulationTime = 5; //seconds
   double distance = 10; //meters
   double interBssDistance = 50; //meters
-  bool verifyResults = 0; //used for regression
   double txMaskInnerBandMinimumRejection = -40.0; //dBr
   double txMaskOuterBandMinimumRejection = -56.0; //dBr
   double txMaskOuterBandMaximumRejection = -80.0; //dBr
   double loadBssA = 0.00002; //packets/s
   double loadBssB = 0.00002; //packets/s
   bool useDynamicChannelBonding = true;
-  uint16_t supportChannelWidthBssA = 40;
-  uint16_t supportChannelWidthBssB = 20;
+  uint16_t maxSupportedChannelWidthBssA = 40;
+  uint16_t maxSupportedChannelWidthBssB = 20;
   uint16_t channelBssA = 38;
   uint16_t channelBssB = 40;
   std::string secondaryChannelBssA = "UPPER";
   std::string secondaryChannelBssB = "";
+  double ccaEdThresholdPrimaryBssA = -62.0;
+  double ccaEdThresholdSecondaryBssA = -62.0;
+  double ccaEdThresholdPrimaryBssB = -62.0;
+  double ccaEdThresholdSecondaryBssB = -62.0;
+  bool verifyResults = 0; //used for regression
+  double minExpectedThroughputBssA = 0; //Mbit/s
+  double maxExpectedThroughputBssA = 0; //Mbit/s
+  double minExpectedThroughputBssB = 0; //Mbit/s
+  double maxExpectedThroughputBssB = 0; //Mbit/s
 
   CommandLine cmd;
   cmd.AddValue ("payloadSize", "Payload size in bytes", payloadSize);
   cmd.AddValue ("simulationTime", "Simulation time in seconds", simulationTime);
   cmd.AddValue ("distance", "Distance in meters between the station and the access point", distance);
+  cmd.AddValue ("interBssDistance", "Distance in meters between BSS A and BSS B", interBssDistance);
+  cmd.AddValue ("txMaskInnerBandMinimumRejection", "Minimum rejection in dBr for the inner band of the transmit spectrum masks", txMaskInnerBandMinimumRejection);
+  cmd.AddValue ("txMaskOuterBandMinimumRejection", "Minimum rejection in dBr for the outer band of the transmit spectrum mask", txMaskOuterBandMinimumRejection);
+  cmd.AddValue ("txMaskOuterBandMaximumRejection", "Maximum rejection in dBr for the outer band of the transmit spectrum mask", txMaskOuterBandMaximumRejection);
+  cmd.AddValue ("channelBssA", "The selected channel for BSS A", channelBssA);
+  cmd.AddValue ("channelBssB", "The selected channel for BSS B", channelBssB);
+  cmd.AddValue ("secondaryChannelBssA", "The secondary channel position for BSS A: UPPER or LOWER", secondaryChannelBssA);
+  cmd.AddValue ("secondaryChannelBssB", "The secondary channel position for BSS B: UPPER or LOWER", secondaryChannelBssB);
+  cmd.AddValue ("useDynamicChannelBonding", "Enable/disable use of dynamic channel bonding", useDynamicChannelBonding);
+  cmd.AddValue ("maxSupportedChannelWidthBssA", "The maximum support channel width in MHz for BSS A", maxSupportedChannelWidthBssA);
+  cmd.AddValue ("maxSupportedChannelWidthBssB", "The maximum support channel width in MHz for BSS B", maxSupportedChannelWidthBssB);
+  cmd.AddValue ("ccaEdThresholdPrimaryBssA", "The energy detection threshold on the primary channel for BSS A", ccaEdThresholdPrimaryBssA);
+  cmd.AddValue ("ccaEdThresholdSecondaryBssA", "The energy detection threshold on the secondary channel for BSS A", ccaEdThresholdSecondaryBssA);
+  cmd.AddValue ("ccaEdThresholdPrimaryBssB", "The energy detection threshold on the primary channel for BSS B", ccaEdThresholdPrimaryBssB);
+  cmd.AddValue ("ccaEdThresholdSecondaryBssB", "The energy detection threshold on the secondary channel for BSS B", ccaEdThresholdSecondaryBssB);
+  cmd.AddValue ("loadBssA", "The number of packets per second for BSS A", loadBssA);
+  cmd.AddValue ("loadBssB", "The number of packets per second for BSS B", loadBssB);
   cmd.AddValue ("verifyResults", "Enable/disable results verification at the end of the simulation", verifyResults);
-  //select inter BSS distance
-  //select channel (primary, secondary) with per BSS
-  //select primary channel per BSS
-  //select traffic per BSS
-  //params for regression
-  //select fixed or dynamic channel bonding
-  //configure TX masks
-  //configure CCA thresholds (secondary and primary) per BSS
+  cmd.AddValue ("minExpectedThroughputBssA", "Minimum expected throughput for BSS A", minExpectedThroughputBssA);
+  cmd.AddValue ("maxExpectedThroughputBssA", "Maximum expected throughput for BSS A", maxExpectedThroughputBssA);
+  cmd.AddValue ("minExpectedThroughputBssB", "Minimum expected throughput for BSS B", minExpectedThroughputBssB);
+  cmd.AddValue ("maxExpectedThroughputBssB", "Maximum expected throughput for BSS B", maxExpectedThroughputBssB);
   cmd.Parse (argc, argv);
-
-  LogComponentEnableAll (LOG_PREFIX_TIME);
-  LogComponentEnableAll (LOG_PREFIX_NODE);
-
-  //LogComponentEnable ("MacLow", LOG_LEVEL_ALL);
-  //LogComponentEnable ("WifiPhy", LOG_LEVEL_ALL);
 
   Config::SetDefault ("ns3::SpectrumWifiPhy::TxMaskInnerBandMinimumRejection", DoubleValue (txMaskInnerBandMinimumRejection));
   Config::SetDefault ("ns3::SpectrumWifiPhy::TxMaskOuterBandMinimumRejection", DoubleValue (txMaskOuterBandMinimumRejection));
@@ -117,7 +133,17 @@ int main (int argc, char *argv[])
   ssid = Ssid ("network-A");
 
   phy.Set ("ChannelNumber", UintegerValue (channelBssA));
-  phy.Set ("ChannelWidth", UintegerValue (supportChannelWidthBssA));
+  phy.Set ("ChannelWidth", UintegerValue (maxSupportedChannelWidthBssA));
+  phy.Set ("CcaEdThreshold", DoubleValue (ccaEdThresholdPrimaryBssA));
+  phy.Set ("CcaEdThresholdSecondary", DoubleValue (ccaEdThresholdSecondaryBssA));
+  if (secondaryChannelBssA == "LOWER")
+    {
+      phy.Set ("SecondaryChannelOffset", EnumValue (LOWER));
+    }
+  else
+    {
+      phy.Set ("SecondaryChannelOffset", EnumValue (UPPER));
+    }
 
   mac.SetType ("ns3::StaWifiMac",
                "Ssid", SsidValue (ssid));
@@ -132,7 +158,17 @@ int main (int argc, char *argv[])
   ssid = Ssid ("network-B");
 
   phy.Set ("ChannelNumber", UintegerValue (channelBssB));
-  phy.Set ("ChannelWidth", UintegerValue (supportChannelWidthBssB));
+  phy.Set ("ChannelWidth", UintegerValue (maxSupportedChannelWidthBssB));
+  phy.Set ("CcaEdThreshold", DoubleValue (ccaEdThresholdPrimaryBssB));
+  phy.Set ("CcaEdThresholdSecondary", DoubleValue (ccaEdThresholdSecondaryBssB));
+  if (secondaryChannelBssB == "LOWER")
+    {
+      phy.Set ("SecondaryChannelOffset", EnumValue (LOWER));
+    }
+  else
+    {
+      phy.Set ("SecondaryChannelOffset", EnumValue (UPPER));
+    }
 
   mac.SetType ("ns3::StaWifiMac",
                "Ssid", SsidValue (ssid));
@@ -219,19 +255,19 @@ int main (int argc, char *argv[])
 
   double throughput = totalPacketsThroughA * payloadSize * 8 / (simulationTime * 1000000.0);
   std::cout << "Throughput for BSS A: " << throughput << " Mbit/s" << '\n';
-  /*if (verifyResults && (throughput < 59 || throughput > 60))
+  if (verifyResults && (throughput < minExpectedThroughputBssA || throughput > maxExpectedThroughputBssA))
     {
-      NS_LOG_ERROR ("Obtained throughput " << throughput << " is not in the expected boundaries!");
+      NS_LOG_ERROR ("Obtained throughput for BSS A is not in the expected boundaries!");
       exit (1);
-    }*/
+    }
 
   throughput = totalPacketsThroughB * payloadSize * 8 / (simulationTime * 1000000.0);
   std::cout << "Throughput for BSS B: " << throughput << " Mbit/s" << '\n';
-  /*if (verifyResults && (throughput < 30 || throughput > 30.5))
+  if (verifyResults && (throughput < minExpectedThroughputBssB || throughput > maxExpectedThroughputBssB))
     {
-      NS_LOG_ERROR ("Obtained throughput " << throughput << " is not in the expected boundaries!");
+      NS_LOG_ERROR ("Obtained throughput for BSS B is not in the expected boundaries!");
       exit (1);
-    }*/
+    }
 
   return 0;
 }
