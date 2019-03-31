@@ -2953,7 +2953,7 @@ WifiPhy::StartReceivePreamble (Ptr<Packet> packet, RxPowerWattPerChannelBand rxP
       if (WToDbm (rxPowerPrimaryChannelW) < GetRxSensitivity ())
         {
           NS_LOG_INFO ("Received signal in primary channel too weak to process: " << WToDbm (rxPowerPrimaryChannelW) << " dBm");
-          MaybeCcaBusyDuration (); //secondary channel shall maybe sitch to CCA_BUSY
+          MaybeCcaBusyDuration (); //secondary channel shall maybe switch to CCA_BUSY
           return;
         }
     }
