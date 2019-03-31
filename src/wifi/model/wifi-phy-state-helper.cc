@@ -445,6 +445,7 @@ WifiPhyStateHelper::SwitchToRx (Time rxDuration)
   m_previousStateChangeTime = now;
   m_startRx = now;
   m_endRx = now + rxDuration;
+  m_endCcaBusySecondary = std::max (m_endCcaBusySecondary, now + rxDuration);
   NotifyRxStart (rxDuration);
   NS_ASSERT (IsStateRx ());
 }
