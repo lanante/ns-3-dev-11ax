@@ -36,8 +36,66 @@
 #include "ns3/multi-model-spectrum-channel.h"
 #include "ns3/propagation-loss-model.h"
 
-// TODO: add doc here, and comment on expected results
-// TODO: add some cases to regression
+// This is an example to evaluate 802.11n channel bonding performance.
+// It defines 2 independent Wi-Fi networks, made each of one access
+// point (AP) and one station (STA). Each station continuously transmits
+// data packets to its respective AP.
+//
+// The parameters that can be configured are:
+//   - the channel number the network is operating on;
+//   - the maximum supported channel width per network;
+//   - whether the secondary channel is upper or lower than the primary channel;
+//   - transmit mask points used for the simulation;
+//   - whether dynamic channel bonding is used;
+//   - the distance between AP and STA and the distance between the two networks;
+//   - CCA-ED per network for both primary and secondary channels;
+//   - the packet size and the number of packets generated per second;
+//   - the time the simulation will run.
+//
+// One can run a scenario where each network occupies its 20 MHz band, i.e. network A
+// uses channel 36 whereas network B is configured to use channel 40:
+//     ./waf --run "wifi-channel-bonding --channelBssA=36 --channelBssB=40 --maxSupportedChannelWidthBssA=20
+//                                       --maxSupportedChannelWidthBssB=20 --useDynamicChannelBonding=false"
+// The output gives:
+//     Throughput for BSS A: 59.5442 Mbit/s
+//     Throughput for BSS B: 59.4735 Mbit/s
+// The throughput per network is maximum and not affected by the presence of the other network,
+// since they are operating on different channels.
+//
+// One can run the same scenario but with a less stict transmit mask:
+//     ./waf --run "wifi-channel-bonding --channelBssA=36 --channelBssB=40 --maxSupportedChannelWidthBssA=20
+//                                       --maxSupportedChannelWidthBssB=20 --useDynamicChannelBonding=false
+//     --txMaskInnerBandMinimumRejection=-20 --txMaskOuterBandMinimumRejection=-28 --txMaskOuterBandMaximumRejection=-40"
+// The output gives:
+//     Throughput for BSS A: 29.4918 Mbit/s
+//     Throughput for BSS B: 29.8828 Mbit/s
+// The throughput per network is lower since a part of the signal is leaking in the other band, causing one network to
+// declare CCA_BUSY when the other network is transmitting. As a result, the throughput is shared by the two networks.
+//
+// One can run a scenario where a 40 MHz channel is used for network A, while keeping network B as previously:
+//     ./waf --run "wifi-channel-bonding --channelBssA=38 --channelBssB=40 --maxSupportedChannelWidthBssA=40
+//                                       --maxSupportedChannelWidthBssB=20 --useDynamicChannelBonding=false"
+// The output gives:
+//     Throughput for BSS A: 28.9784 Mbit/s
+//     Throughput for BSS B: 1.20115 Mbit/s
+// TO BE FIXED: ACKs should be duplicated on the secondary channel!
+//
+// One can run the previous scenario with dynamic channel bonding enabled:
+//     ./waf --run "wifi-channel-bonding --channelBssA=38 --channelBssB=40 --maxSupportedChannelWidthBssA=40
+//                                       --maxSupportedChannelWidthBssB=20 --useDynamicChannelBonding=true"
+// The output gives:
+//     Throughput for BSS A: 59.5206 Mbit/s
+//     Throughput for BSS B: 59.4029 Mbit/s
+// We can see the benefit of using a dynamic channel bonding. Since activity is detected on the secondary channel,
+// network A limits its channel width to 20 MHz and this gives similar results as in the first scenario presented above.
+//
+// One can run a scenario where both networks make use of channel bonding:
+//     ./waf --run "wifi-channel-bonding --channelBssA=38 --channelBssB=38 --maxSupportedChannelWidthBssA=40
+//                                       --maxSupportedChannelWidthBssB=40 --useDynamicChannelBonding=false"
+//     Throughput for BSS A: 58.1923 Mbit/s
+//     Throughput for BSS B: 50.5355 Mbit/s
+// The channel is shared with the two networks as they operate on the same channel, but since they can use both
+// a 40 Mhz channel, the maximum throughput is almost doubled.
 
 using namespace ns3;
 
