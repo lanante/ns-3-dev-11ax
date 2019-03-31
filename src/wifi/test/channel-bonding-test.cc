@@ -44,7 +44,7 @@ NS_LOG_COMPONENT_DEFINE ("WifiChannelBondingTest");
  * \ingroup wifi-test
  * \ingroup tests
  *
- * \brief channel bonding
+ * \brief static channel bonding
  *
  * In this test, we have four 802.11n transmitters and four 802.11n receivers.
  * A BSS is composed by one transmitter and one receiver.
@@ -379,7 +379,7 @@ TestStaticChannelBonding::RxCallback (std::string context, Ptr<const Packet> p, 
         }
       else if (size == 1032) //TX is in BSS 2
         {
-          double expectedRxPowerMax = - 20 /* rejection */ - 50 /* loss */;
+          double expectedRxPowerMax = - 40 /* rejection */ - 50 /* loss */;
           NS_TEST_EXPECT_MSG_LT (WToDbm (it->second), expectedRxPowerMax, "Received power for BSS 2 RX PHY is too high");
         }
       else if (size == 2130) //TX is in BSS 3
@@ -401,7 +401,7 @@ TestStaticChannelBonding::RxCallback (std::string context, Ptr<const Packet> p, 
       NS_LOG_INFO ("BSS 2 received packet with size " << size << " and power in 20 MHz band: " << WToDbm (it->second));
       if (size == 1031) //TX is in BSS 1
         {
-          double expectedRxPowerMax = - 20 /* rejection */ - 50 /* loss */;
+          double expectedRxPowerMax = - 40 /* rejection */ - 50 /* loss */;
           NS_TEST_EXPECT_MSG_LT (WToDbm (it->second), expectedRxPowerMax, "Received power for BSS 2 RX PHY is too high");
         }
       else if (size == 1032) //TX is in BSS 2
@@ -433,7 +433,7 @@ TestStaticChannelBonding::RxCallback (std::string context, Ptr<const Packet> p, 
         }
       else if (size == 1032) //TX is in BSS 2
         {
-          double expectedRxPowerMax = - 20 /* rejection */ - 50 /* loss */;
+          double expectedRxPowerMax = - 40 /* rejection */ - 50 /* loss */;
           NS_TEST_EXPECT_MSG_LT (WToDbm (it->second), expectedRxPowerMax, "Received power for BSS 3 RX PHY is too high");
         }
       else if (size == 2130) //TX is in BSS 3
@@ -453,7 +453,7 @@ TestStaticChannelBonding::RxCallback (std::string context, Ptr<const Packet> p, 
       NS_LOG_INFO ("BSS 3 received packet with size " << size << " and power in secondary 20 MHz band: " << WToDbm (it->second));
       if (size == 1031) //TX is in BSS 1
         {
-          double expectedRxPowerMax = - 20 /* rejection */ - 50 /* loss */;
+          double expectedRxPowerMax = - 40 /* rejection */ - 50 /* loss */;
           NS_TEST_EXPECT_MSG_LT (WToDbm (it->second), expectedRxPowerMax, "Received power for BSS 3 RX PHY is too high");
         }
       else if (size == 1032) //TX is in BSS 2
@@ -487,7 +487,7 @@ TestStaticChannelBonding::RxCallback (std::string context, Ptr<const Packet> p, 
       NS_LOG_INFO ("BSS 4 received packet with size " << size << " and power in primary 20 MHz band: " << WToDbm (it->second));
       if (size == 1031) //TX is in BSS 1
         {
-          double expectedRxPowerMax = - 20 /* rejection */ - 50 /* loss */;
+          double expectedRxPowerMax = - 40 /* rejection */ - 50 /* loss */;
           NS_TEST_EXPECT_MSG_LT (WToDbm (it->second), expectedRxPowerMax, "Received power for BSS 4 RX PHY is too high");
         }
       else if (size == 1032) //TX is in BSS 2
@@ -517,7 +517,7 @@ TestStaticChannelBonding::RxCallback (std::string context, Ptr<const Packet> p, 
         }
       else if (size == 1032) //TX is in BSS 2
         {
-          double expectedRxPowerMax = - 20 /* rejection */ - 50 /* loss */;
+          double expectedRxPowerMax = - 40 /* rejection */ - 50 /* loss */;
           NS_TEST_EXPECT_MSG_LT (WToDbm (it->second), expectedRxPowerMax, "Received power for BSS 4 RX PHY is too high");
         }
       else if (size == 2130) //TX is in BSS 3
@@ -998,6 +998,15 @@ TestStaticChannelBonding::DoRun (void)
  *
  * \brief dynamic channel bonding
  *
+ * In this test, we have three 802.11n transmitters and three 802.11n receivers.
+ * A BSS is composed by one transmitter and one receiver.
+ *
+ * The first BSS 1 makes uses of channel bonding on channel 38 (= 36 + 40),
+ * with its secondary channel upper than its primary channel.
+ * The second BSS operates on channel 40 with a channel width of 20 MHz.
+ * Both BSS 3 is configured similarly as BSS 1 but has its secondary channel
+ * lower than its primary channel.
+ *
  */
 class TestDynamicChannelBonding : public TestCase
 {
@@ -1009,8 +1018,10 @@ protected:
   virtual void DoSetup (void);
   Ptr<SpectrumWifiPhy> m_rxPhyBss1; ///< RX Phy BSS #1
   Ptr<SpectrumWifiPhy> m_rxPhyBss2; ///< RX Phy BSS #2
+  Ptr<SpectrumWifiPhy> m_rxPhyBss3; ///< RX Phy BSS #3
   Ptr<SpectrumWifiPhy> m_txPhyBss1; ///< TX Phy BSS #1
   Ptr<SpectrumWifiPhy> m_txPhyBss2; ///< TX Phy BSS #2
+  Ptr<SpectrumWifiPhy> m_txPhyBss3; ///< TX Phy BSS #3
 
   /**
    * Send packet function
@@ -1036,8 +1047,10 @@ TestDynamicChannelBonding::~TestDynamicChannelBonding ()
 {
   m_rxPhyBss1 = 0;
   m_rxPhyBss2 = 0;
+  m_rxPhyBss3 = 0;
   m_txPhyBss1 = 0;
   m_txPhyBss2 = 0;
+  m_txPhyBss3 = 0;
 }
 
 void
@@ -1054,6 +1067,11 @@ TestDynamicChannelBonding::SendPacket (uint8_t bss, uint16_t expectedChannelWidt
     {
       phy = m_txPhyBss2;
       payloadSize = 1002;
+    }
+  else if (bss == 3)
+    {
+      phy = m_txPhyBss3;
+      payloadSize = 1003;
     }
   uint16_t channelWidth = phy->GetUsableChannelWidth ();
   NS_TEST_ASSERT_MSG_EQ (channelWidth, expectedChannelWidth, "selected channel width is not as expected");
@@ -1191,6 +1209,50 @@ TestDynamicChannelBonding::DoSetup (void)
   Ptr<ConstantThresholdChannelBondingManager> channelBondingManagerTx2 = CreateObject<ConstantThresholdChannelBondingManager> ();
   m_txPhyBss2->SetChannelBondingManager (channelBondingManagerTx2);
   m_txPhyBss2->SetPifs (MicroSeconds (25));
+
+  m_rxPhyBss3 = CreateObject<SpectrumWifiPhy> ();
+  Ptr<ConstantPositionMobilityModel> rxMobilityBss3 = CreateObject<ConstantPositionMobilityModel> ();
+  rxMobilityBss3->SetPosition (Vector (1.0, 20.0, 0.0));
+  m_rxPhyBss3->SetMobility (rxMobilityBss3);
+  m_rxPhyBss3->ConfigureStandard (WIFI_PHY_STANDARD_80211n_5GHZ);
+  m_rxPhyBss3->CreateWifiSpectrumPhyInterface (nullptr);
+  m_rxPhyBss3->SetChannel (channel);
+  m_rxPhyBss3->SetErrorRateModel (error);
+  m_rxPhyBss3->SetChannelNumber (38);
+  m_rxPhyBss3->SetFrequency (5190);
+  m_rxPhyBss3->SetChannelWidth (40);
+  m_rxPhyBss3->SetSecondaryChannelOffset (LOWER);
+  m_rxPhyBss3->SetTxPowerStart (0.0);
+  m_rxPhyBss3->SetTxPowerEnd (0.0);
+  m_rxPhyBss3->SetRxSensitivity (-91.0);
+  m_rxPhyBss3->SetAttribute ("TxMaskInnerBandMinimumRejection", DoubleValue (-40.0));
+  m_rxPhyBss3->SetAttribute ("TxMaskOuterBandMinimumRejection", DoubleValue (-56.0));
+  m_rxPhyBss3->SetAttribute ("TxMaskOuterBandMaximumRejection", DoubleValue (-80.0));
+  m_rxPhyBss3->Initialize ();
+
+  m_txPhyBss3 = CreateObject<SpectrumWifiPhy> ();
+  Ptr<ConstantPositionMobilityModel> txMobilityBss3 = CreateObject<ConstantPositionMobilityModel> ();
+  txMobilityBss3->SetPosition (Vector (0.0, 20.0, 0.0));
+  m_txPhyBss3->SetMobility (txMobilityBss3);
+  m_txPhyBss3->ConfigureStandard (WIFI_PHY_STANDARD_80211n_5GHZ);
+  m_txPhyBss3->CreateWifiSpectrumPhyInterface (nullptr);
+  m_txPhyBss3->SetChannel (channel);
+  m_txPhyBss3->SetErrorRateModel (error);
+  m_txPhyBss3->SetChannelNumber (38);
+  m_txPhyBss3->SetFrequency (5190);
+  m_txPhyBss3->SetChannelWidth (40);
+  m_txPhyBss3->SetSecondaryChannelOffset (LOWER);
+  m_txPhyBss3->SetTxPowerStart (0.0);
+  m_txPhyBss3->SetTxPowerEnd (0.0);
+  m_txPhyBss3->SetRxSensitivity (-91.0);
+  m_txPhyBss3->SetAttribute ("TxMaskInnerBandMinimumRejection", DoubleValue (-40.0));
+  m_txPhyBss3->SetAttribute ("TxMaskOuterBandMinimumRejection", DoubleValue (-56.0));
+  m_txPhyBss3->SetAttribute ("TxMaskOuterBandMaximumRejection", DoubleValue (-80.0));
+  m_txPhyBss3->Initialize ();
+
+  Ptr<ConstantThresholdChannelBondingManager> channelBondingManagerTx3 = CreateObject<ConstantThresholdChannelBondingManager> ();
+  m_txPhyBss3->SetChannelBondingManager (channelBondingManagerTx3);
+  m_txPhyBss3->SetPifs (MicroSeconds (25));
 }
 
 void
@@ -1218,7 +1280,23 @@ TestDynamicChannelBonding::DoRun (void)
   //Case 4: both transmitters sends at the same time when channel was previously idle, BSS 1 shall anyway transmits at 40 MHz since it shall already indicate the selected channel width in its PHY header
   Simulator::Schedule (Seconds (4.0), &TestDynamicChannelBonding::SendPacket, this, 2, 20);
   Simulator::Schedule (Seconds (4.0), &TestDynamicChannelBonding::SendPacket, this, 1, 40);
-  
+
+  //Case 5: send when secondardy channel is free for more than PIFS, so BSS 1 PHY shall select the full supported channel width of 40 MHz
+  Simulator::Schedule (Seconds (5.0), &TestDynamicChannelBonding::SendPacket, this, 3, 40);
+  Simulator::Schedule (Seconds (5.0) + MicroSeconds (100) /* transmission time of previous packet send by BSS 2 */ + MicroSeconds (50) /* > PIFS */, &TestDynamicChannelBonding::SendPacket, this, 1, 40);
+
+  //Case 6: send when secondardy channel is free for more than PIFS, so BSS 3 PHY shall select the full supported channel width of 40 MHz
+  Simulator::Schedule (Seconds (6.0), &TestDynamicChannelBonding::SendPacket, this, 1, 40);
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (100) /* transmission time of previous packet send by BSS 2 */ + MicroSeconds (50) /* > PIFS */, &TestDynamicChannelBonding::SendPacket, this, 3, 40);
+
+  //CASE 7: send when secondary channel is free for less than PIFS, so BSS 1 PHY shall limit its channel width to 20 MHz
+  Simulator::Schedule (Seconds (7.0), &TestDynamicChannelBonding::SendPacket, this, 3, 40);
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (100) /* transmission time of previous packet send by BSS 2 */ + MicroSeconds (20) /* < PIFS */, &TestDynamicChannelBonding::SendPacket, this, 1, 20);
+
+  //CASE 8: send when secondary channel is free for less than PIFS, so BSS 3 PHY shall limit its channel width to 20 MHz
+  Simulator::Schedule (Seconds (8.0), &TestDynamicChannelBonding::SendPacket, this, 1, 40);
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (100) /* transmission time of previous packet send by BSS 2 */ + MicroSeconds (20) /* < PIFS */, &TestDynamicChannelBonding::SendPacket, this, 3, 20);
+
   Simulator::Run ();
   Simulator::Destroy ();
 }
