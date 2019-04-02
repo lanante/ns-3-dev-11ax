@@ -223,6 +223,39 @@ WifiPsdu::SetAckPolicyForTid (uint8_t tid, WifiMacHeader::QosAckPolicy policy)
     }
 }
 
+uint16_t
+WifiPsdu::GetMaxDistFromStartingSeq (uint16_t startingSeq) const
+{
+  NS_LOG_FUNCTION (this << startingSeq);
+
+  uint16_t maxDistFromStartingSeq;
+  bool foundFirst = false;
+
+  for (auto& mpdu : m_mpduList)
+    {
+      uint16_t currSeqNum = mpdu->GetHeader ().GetSequenceNumber ();
+
+      if (mpdu->GetHeader ().IsQosData () && !QosUtilsIsOldPacket (startingSeq, currSeqNum))
+        {
+          uint16_t currDistToStartingSeq = (currSeqNum - startingSeq + SEQNO_SPACE_SIZE) % SEQNO_SPACE_SIZE;
+
+          if (!foundFirst || currDistToStartingSeq > maxDistFromStartingSeq)
+            {
+              foundFirst = true;
+              maxDistFromStartingSeq = currDistToStartingSeq;
+            }
+        }
+    }
+
+  if (!foundFirst)
+    {
+      NS_LOG_DEBUG ("No QoS Data frame that is not old found");
+      return SEQNO_SPACE_SIZE;
+    }
+  NS_LOG_DEBUG ("Returning " << maxDistFromStartingSeq);
+  return maxDistFromStartingSeq;
+}
+
 uint32_t
 WifiPsdu::GetSize (void) const
 {
