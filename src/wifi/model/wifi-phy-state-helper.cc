@@ -204,7 +204,14 @@ WifiPhyStateHelper::GetDelaySinceIdle (bool secondaryChannel) const
       retval = Seconds (0);
       break;
     case WifiPhyState::IDLE:
-      retval = Simulator::Now () - m_endCcaBusySecondary;
+      if (secondaryChannel)
+        {
+          retval = Simulator::Now () - m_endCcaBusySecondary;
+        }
+      else
+        {
+          retval = Simulator::Now () - m_endCcaBusy;
+        }
       break;
     case WifiPhyState::SLEEP:
       NS_FATAL_ERROR ("Cannot determine when the device will wake up.");

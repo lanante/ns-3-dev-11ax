@@ -47,7 +47,7 @@ NS_LOG_COMPONENT_DEFINE ("WifiChannelBondingTest");
  * \brief static channel bonding
  *
  * In this test, we have four 802.11n transmitters and four 802.11n receivers.
- * A BSS is composed by one transmitter and one receiver.
+ * A BSS is composed of one transmitter and one receiver.
  *
  * The first BSS occupies channel 36 and a channel width of 20 MHz.
  * The second BSS operates on channel 40 with a channel width of 20 MHz.
@@ -999,7 +999,7 @@ TestStaticChannelBonding::DoRun (void)
  * \brief dynamic channel bonding
  *
  * In this test, we have three 802.11n transmitters and three 802.11n receivers.
- * A BSS is composed by one transmitter and one receiver.
+ * A BSS is composed of one transmitter and one receiver.
  *
  * The first BSS 1 makes uses of channel bonding on channel 38 (= 36 + 40),
  * with its secondary channel upper than its primary channel.
@@ -1271,31 +1271,31 @@ TestDynamicChannelBonding::DoRun (void)
 
   //CASE 2: send when secondardy channel is free for more than PIFS, so BSS 1 PHY shall select the full supported channel width of 40 MHz
   Simulator::Schedule (Seconds (2.0), &TestDynamicChannelBonding::SendPacket, this, 2, 20);
-  Simulator::Schedule (Seconds (2.0) + MicroSeconds (164) /* transmission time of previous packet send by BSS 2 */ + MicroSeconds (50) /* > PIFS */, &TestDynamicChannelBonding::SendPacket, this, 1, 40);
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (164) /* transmission time of previous packet sent by BSS 2 */ + MicroSeconds (50) /* > PIFS */, &TestDynamicChannelBonding::SendPacket, this, 1, 40);
 
   //CASE 3: send when secondary channel is free for less than PIFS, so BSS 1 PHY shall limit its channel width to 20 MHz
   Simulator::Schedule (Seconds (3.0), &TestDynamicChannelBonding::SendPacket, this, 2, 20);
-  Simulator::Schedule (Seconds (3.0) + MicroSeconds (164) /* transmission time of previous packet send by BSS 2 */ + MicroSeconds (20) /* < PIFS */, &TestDynamicChannelBonding::SendPacket, this, 1, 20);
+  Simulator::Schedule (Seconds (3.0) + MicroSeconds (164) /* transmission time of previous packet sent by BSS 2 */ + MicroSeconds (20) /* < PIFS */, &TestDynamicChannelBonding::SendPacket, this, 1, 20);
 
-  //Case 4: both transmitters sends at the same time when channel was previously idle, BSS 1 shall anyway transmits at 40 MHz since it shall already indicate the selected channel width in its PHY header
+  //Case 4: both transmitters send at the same time when channel was previously idle, BSS 1 shall anyway transmit at 40 MHz since it shall already indicate the selected channel width in its PHY header
   Simulator::Schedule (Seconds (4.0), &TestDynamicChannelBonding::SendPacket, this, 2, 20);
   Simulator::Schedule (Seconds (4.0), &TestDynamicChannelBonding::SendPacket, this, 1, 40);
 
   //Case 5: send when secondardy channel is free for more than PIFS, so BSS 1 PHY shall select the full supported channel width of 40 MHz
   Simulator::Schedule (Seconds (5.0), &TestDynamicChannelBonding::SendPacket, this, 3, 40);
-  Simulator::Schedule (Seconds (5.0) + MicroSeconds (100) /* transmission time of previous packet send by BSS 2 */ + MicroSeconds (50) /* > PIFS */, &TestDynamicChannelBonding::SendPacket, this, 1, 40);
+  Simulator::Schedule (Seconds (5.0) + MicroSeconds (100) /* transmission time of previous packet sent by BSS 2 */ + MicroSeconds (50) /* > PIFS */, &TestDynamicChannelBonding::SendPacket, this, 1, 40);
 
   //Case 6: send when secondardy channel is free for more than PIFS, so BSS 3 PHY shall select the full supported channel width of 40 MHz
   Simulator::Schedule (Seconds (6.0), &TestDynamicChannelBonding::SendPacket, this, 1, 40);
-  Simulator::Schedule (Seconds (6.0) + MicroSeconds (100) /* transmission time of previous packet send by BSS 2 */ + MicroSeconds (50) /* > PIFS */, &TestDynamicChannelBonding::SendPacket, this, 3, 40);
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (100) /* transmission time of previous packet sent by BSS 2 */ + MicroSeconds (50) /* > PIFS */, &TestDynamicChannelBonding::SendPacket, this, 3, 40);
 
   //CASE 7: send when secondary channel is free for less than PIFS, so BSS 1 PHY shall limit its channel width to 20 MHz
   Simulator::Schedule (Seconds (7.0), &TestDynamicChannelBonding::SendPacket, this, 3, 40);
-  Simulator::Schedule (Seconds (7.0) + MicroSeconds (100) /* transmission time of previous packet send by BSS 2 */ + MicroSeconds (20) /* < PIFS */, &TestDynamicChannelBonding::SendPacket, this, 1, 20);
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (100) /* transmission time of previous packet sent by BSS 2 */ + MicroSeconds (20) /* < PIFS */, &TestDynamicChannelBonding::SendPacket, this, 1, 20);
 
   //CASE 8: send when secondary channel is free for less than PIFS, so BSS 3 PHY shall limit its channel width to 20 MHz
   Simulator::Schedule (Seconds (8.0), &TestDynamicChannelBonding::SendPacket, this, 1, 40);
-  Simulator::Schedule (Seconds (8.0) + MicroSeconds (100) /* transmission time of previous packet send by BSS 2 */ + MicroSeconds (20) /* < PIFS */, &TestDynamicChannelBonding::SendPacket, this, 3, 20);
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (100) /* transmission time of previous packet sent by BSS 2 */ + MicroSeconds (20) /* < PIFS */, &TestDynamicChannelBonding::SendPacket, this, 3, 20);
 
   Simulator::Run ();
   Simulator::Destroy ();
@@ -1308,7 +1308,7 @@ TestDynamicChannelBonding::DoRun (void)
  * \brief wifi channel bonding test suite
  *
  * In this test, we have two 802.11n transmitters and two 802.11n receivers.
- * A BSS is composed by one transmitter and one receiver.
+ * A BSS is composed of one transmitter and one receiver.
  *
  * The first BSS supports channel bonding of two 20 MHz channels (36 Primary + 40 Secondary).
  * The second BSS operates on channel 40 with a channel width of 20 MHz.
