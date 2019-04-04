@@ -2709,9 +2709,8 @@ WifiPhy::ContinueReceiveHeader (Ptr<Packet> packet, WifiTxVector txVector, MpduT
     }
   else //legacy PHY header reception failed
     {
-      NS_LOG_DEBUG ("Drop packet because legacy PHY header reception failed");
-      NotifyRxDrop (packet);
-      m_plcpSuccess = false;
+      NS_LOG_DEBUG ("Abort reception because legacy PHY header reception failed");
+      AbortCurrentReception ();
     }
 }
 
