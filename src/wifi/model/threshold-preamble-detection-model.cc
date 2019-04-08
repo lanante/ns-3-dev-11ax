@@ -56,9 +56,9 @@ ThresholdPreambleDetectionModel::~ThresholdPreambleDetectionModel ()
 }
 
 bool
-ThresholdPreambleDetectionModel::IsPreambleDetected (double snr, double channelWidth) const
+ThresholdPreambleDetectionModel::IsPreambleDetected (double rssi, double snr, double channelWidth) const
 {
-  NS_LOG_FUNCTION (this);
+  NS_LOG_FUNCTION (this << rssi << snr << channelWidth);
   return (RatioToDb (snr) >= m_threshold);
 }
 

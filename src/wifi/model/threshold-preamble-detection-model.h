@@ -45,13 +45,14 @@ public:
   /**
    * This method returns whether the preamble detection was successful.
    *
+   * \param rssi the RSSI of the received signal (in Watts).
    * \param snr the SNR ratio (not dB) of the received signal.
    * \param channelWidth the channel width of the received signal in MHz.
    *
    * \return true if the preamble has been detected,
    *         false otherwise
    */
-  bool IsPreambleDetected (double snr, double channelWidth) const;
+  bool IsPreambleDetected (double rssi, double snr, double channelWidth) const;
 
 
 private:
