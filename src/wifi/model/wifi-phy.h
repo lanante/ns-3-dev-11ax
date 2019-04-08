@@ -168,10 +168,12 @@ public:
    *
    * \param packet the arriving packet
    * \param txVector the TXVECTOR of the arriving packet
+   * \param mpdutype the type of the MPDU as defined in WifiPhy::MpduType.
    * \param event the corresponding event of the first time the packet arrives
    */
   void StartReceivePayload (Ptr<Packet> packet,
                             WifiTxVector txVector,
+                            MpduType mpdutype,
                             Ptr<Event> event);
 
   /**

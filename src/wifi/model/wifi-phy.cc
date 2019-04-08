@@ -2665,7 +2665,7 @@ WifiPhy::StartReceiveHeader (Ptr<Packet> packet, WifiTxVector txVector, Ptr<Even
         //No legacy PHY header for HT GF
         Time remainingPreambleHeaderDuration = CalculatePlcpPreambleAndHeaderDuration (txVector) - GetPreambleDetectionDuration ();
         m_endPlcpRxEvent = Simulator::Schedule (remainingPreambleHeaderDuration, &WifiPhy::StartReceivePayload, this,
-                                                packet, txVector, event);
+                                                packet, txVector, mpdutype, event);
       }
     else
       {
@@ -2674,10 +2674,6 @@ WifiPhy::StartReceiveHeader (Ptr<Packet> packet, WifiTxVector txVector, Ptr<Even
         m_endPlcpRxEvent = Simulator::Schedule (remainingPreambleAndLegacyHeaderDuration, &WifiPhy::ContinueReceiveHeader, this,
                                                 packet, txVector, mpdutype, event);
       }
-
-    NS_ASSERT (m_endRxEvent.IsExpired ());
-    m_endRxEvent = Simulator::Schedule (rxDuration, &WifiPhy::EndReceive, this,
-                                        packet, txVector.GetPreambleType (), mpdutype, event);
   }
   else
   {
@@ -2705,7 +2701,7 @@ WifiPhy::ContinueReceiveHeader (Ptr<Packet> packet, WifiTxVector txVector, MpduT
       m_plcpSuccess = true;
       Time remainingPreambleHeaderDuration = CalculatePlcpPreambleAndHeaderDuration (txVector) - GetPlcpPreambleDuration (txVector) - GetPlcpHeaderDuration (txVector);
       m_endPlcpRxEvent = Simulator::Schedule (remainingPreambleHeaderDuration, &WifiPhy::StartReceivePayload, this,
-                                              packet, txVector, event);
+                                              packet, txVector, mpdutype, event);
     }
   else //legacy PHY header reception failed
     {
@@ -3004,11 +3000,12 @@ WifiPhy::MaybeCcaBusyDuration ()
 }
 
 void
-WifiPhy::StartReceivePayload (Ptr<Packet> packet, WifiTxVector txVector, Ptr<Event> event)
+WifiPhy::StartReceivePayload (Ptr<Packet> packet, WifiTxVector txVector, MpduType mpdutype, Ptr<Event> event)
 {
   NS_LOG_FUNCTION (this << packet << txVector.GetMode () << txVector.GetPreambleType ());
   NS_ASSERT (IsStateRx ());
   NS_ASSERT (m_endPlcpRxEvent.IsExpired ());
+  NS_ASSERT (m_endRxEvent.IsExpired ());
   WifiMode txMode = txVector.GetMode ();
   bool canReceivePayload;
   if ((txMode.GetModulationClass () == WIFI_MOD_CLASS_HT) || (txMode.GetModulationClass () == WIFI_MOD_CLASS_VHT) || (txMode.GetModulationClass () == WIFI_MOD_CLASS_HE))
@@ -3026,7 +3023,10 @@ WifiPhy::StartReceivePayload (Ptr<Packet> packet, WifiTxVector txVector, Ptr<Eve
     {
       if (IsModeSupported (txMode) || IsMcsSupported (txMode))
         {
-          NS_LOG_DEBUG ("Receiving payload"); //endReceive is already scheduled
+          Time payloadDuration = event->GetEndTime () - event->GetStartTime () - CalculatePlcpPreambleAndHeaderDuration (txVector);
+          m_endRxEvent = Simulator::Schedule (payloadDuration, &WifiPhy::EndReceive, this,
+                                              packet, txVector.GetPreambleType (), mpdutype, event);
+          NS_LOG_DEBUG ("Receiving payload");
           m_plcpSuccess = true;
           if (txMode.GetModulationClass () == WIFI_MOD_CLASS_HE)
             {
@@ -3038,14 +3038,14 @@ WifiPhy::StartReceivePayload (Ptr<Packet> packet, WifiTxVector txVector, Ptr<Eve
         }
       else //mode is not allowed
         {
-          NS_LOG_DEBUG ("Drop packet because it was sent using an unsupported mode (" << txMode << ")");
-          NotifyRxDrop (packet);
+          NS_LOG_DEBUG ("Abort reception because mode (" << txMode << ") is not supported");
+          AbortCurrentReception ();
         }
     }
   else //plcp reception failed
     {
-      NS_LOG_DEBUG ("Drop packet because non-legacy PHY header reception failed");
-      NotifyRxDrop (packet);
+      NS_LOG_DEBUG ("Abort reception because non-legacy PHY header reception failed");
+      AbortCurrentReception ();
     }
 }
 
@@ -3094,6 +3094,8 @@ WifiPhy::EndReceive (Ptr<Packet> packet, WifiPreamble preamble, MpduType mpdutyp
     }
   else
     {
+      /* failure. */
+      //NotifyRxDrop (packet);
       m_state->SwitchFromRxEndError (packet, snrPer.snr);
     }
 

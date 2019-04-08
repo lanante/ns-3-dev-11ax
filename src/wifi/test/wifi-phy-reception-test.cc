@@ -1073,6 +1073,9 @@ TestAmpduReception::DoSetup (void)
 void
 TestAmpduReception::DoRun (void)
 {
+  LogComponentEnableAll (LOG_PREFIX_TIME);
+  LogComponentEnable ("WifiPhy", LOG_LEVEL_ALL);
+
   RngSeedManager::SetSeed (1);
   RngSeedManager::SetRun (1);
   int64_t streamNumber = 3;
@@ -1267,7 +1270,7 @@ TestAmpduReception::DoRun (void)
   Simulator::Schedule (Seconds (7.1), &TestAmpduReception::CheckRxDroppedBitmapAmpdu2, this, 0b00000000);
 
   Simulator::Schedule (Seconds (7.2), &TestAmpduReception::ResetBitmaps, this);
-  
+
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // CASE 8: receive two A-MPDUs (containing each 3 MPDUs) where the second A-MPDU is received with power under RX sensitivity.
   // The second A-MPDU is received during the payload of MPDU #2.
@@ -1526,9 +1529,9 @@ TestAmpduReception::DoRun (void)
   Simulator::Schedule (Seconds (17.0) + MicroSeconds (25) + NanoSeconds (1283343), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm + 6, 1400, WIFI_PREAMBLE_NONE, MPDU_IN_AGGREGATE, 1, 1300 + 1400 + 1500);
   Simulator::Schedule (Seconds (17.0) + MicroSeconds (25) + NanoSeconds (2613120), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm + 6, 1500, WIFI_PREAMBLE_NONE, LAST_MPDU_IN_AGGREGATE, 0, 1300 + 1400 + 1500);
 
-  // All MPDUs of A-MPDU 1 should have been received with errors.
+  // All MPDUs of A-MPDU 1 should have been dropped (L-SIG reception failed).
   Simulator::Schedule (Seconds (17.1), &TestAmpduReception::CheckRxSuccessBitmapAmpdu1, this, 0b00000000);
-  Simulator::Schedule (Seconds (17.1), &TestAmpduReception::CheckRxFailureBitmapAmpdu1, this, 0b00000111);
+  Simulator::Schedule (Seconds (17.1), &TestAmpduReception::CheckRxFailureBitmapAmpdu1, this, 0b00000000);
   Simulator::Schedule (Seconds (17.1), &TestAmpduReception::CheckRxDroppedBitmapAmpdu1, this, 0b00000111);
 
   // All MPDUs of A-MPDU 2 should have been dropped (no reception switch, MPDUs dropped because PHY is already in RX state).
@@ -1582,7 +1585,7 @@ TestAmpduReception::DoRun (void)
 
   // All MPDUs of A-MPDU 1 should have been received with errors.
   Simulator::Schedule (Seconds (19.1), &TestAmpduReception::CheckRxSuccessBitmapAmpdu1, this, 0b00000000);
-  Simulator::Schedule (Seconds (19.1), &TestAmpduReception::CheckRxFailureBitmapAmpdu1, this, 0b00000111);
+  Simulator::Schedule (Seconds (19.1), &TestAmpduReception::CheckRxFailureBitmapAmpdu1, this, 0b00000000);
   Simulator::Schedule (Seconds (19.1), &TestAmpduReception::CheckRxDroppedBitmapAmpdu1, this, 0b00000111);
 
   // All MPDUs of A-MPDU 2 should have been dropped.
