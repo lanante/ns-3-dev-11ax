@@ -152,6 +152,11 @@ public:
    */
   int64_t AssignStreams (int64_t stream);
 
+  /**
+   * \param addr the address of the associated station
+   * \return the Association ID allocated by the AP to the station, 2045 if unallocated
+   */
+  uint16_t GetAssociationId (Mac48Address addr) const;
 
 private:
   void Receive (Ptr<Packet> packet, const WifiMacHeader *hdr);
