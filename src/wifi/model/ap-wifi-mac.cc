@@ -1637,4 +1637,17 @@ ApWifiMac::IncrementPollingListIterator (void)
     }
 }
 
+uint16_t
+ApWifiMac::GetAssociationId (Mac48Address addr) const
+{
+  for (auto & it : m_staList)
+    {
+      if (it.second == addr)
+        {
+          return it.first;
+        }
+    }
+  return SU_STA_ID;
+}
+
 } //namespace ns3
