@@ -28,7 +28,7 @@ namespace ns3 {
  * \ingroup wifi
  *
  * A threshold-based model for detecting PHY preamble.
- * This model assumes that a preamble is successfully detected if SNR is at or above a given threshold (set to 2 dB by default).
+ * This model assumes that a preamble is successfully detected if SNR is at or above a given threshold (set to 4 dB by default).
  * However, if RSSI is below a minimum RSSI (set to -82 dBm by default), the PHY preamble is not detected.
  */
 class ThresholdPreambleDetectionModel : public PreambleDetectionModel
