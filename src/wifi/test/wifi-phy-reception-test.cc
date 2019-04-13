@@ -198,6 +198,7 @@ TestThresholdPreambleDetectionWithoutFrameCapture::DoSetup (void)
 
   Ptr<ThresholdPreambleDetectionModel> preambleDetectionModel = CreateObject<ThresholdPreambleDetectionModel> ();
   preambleDetectionModel->SetAttribute ("Threshold", DoubleValue (2));
+  preambleDetectionModel->SetAttribute ("MinimumRssi", DoubleValue (-82));
   m_phy->SetPreambleDetectionModel (preambleDetectionModel);
 }
 
@@ -253,6 +254,24 @@ TestThresholdPreambleDetectionWithoutFrameCapture::DoRun (void)
   Simulator::Schedule (Seconds (5.0) + MicroSeconds (4.0), &TestThresholdPreambleDetectionWithoutFrameCapture::CheckPhyState, this, WifiPhyState::IDLE);
   Simulator::Schedule (Seconds (5.0) + MicroSeconds (5.0), &TestThresholdPreambleDetectionWithoutFrameCapture::CheckPhyState, this, WifiPhyState::RX);
   Simulator::Schedule (Seconds (5.1), &TestThresholdPreambleDetectionWithoutFrameCapture::CheckRxPacketCount, this, 1, 1);
+
+  //CASE 6: send one packet with a power slightly above the minimum RSSI needed for the preamble detection (-82 dBm) and check PHY state:
+  //preamble detection should fail and PHY should be kept in IDLE state
+  txPowerDbm = -81;
+  Simulator::Schedule (Seconds (6.0), &TestThresholdPreambleDetectionWithoutFrameCapture::SendPacket, this, txPowerDbm);
+  // At 4us, STA PHY state should be IDLE
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (4.0), &TestThresholdPreambleDetectionWithoutFrameCapture::CheckPhyState, this, WifiPhyState::IDLE);
+  // At 5us, preamble shall have been detected and thus STA PHY state should be CCA_BUSY
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (5.0), &TestThresholdPreambleDetectionWithoutFrameCapture::CheckPhyState, this, WifiPhyState::CCA_BUSY);
+
+  //CASE 7: send one packet with a power slightly below the minimum RSSI needed for the preamble detection (-82 dBm) and check PHY state:
+  //preamble detection should fail and PHY should be kept in IDLE state
+  txPowerDbm = -83;
+  Simulator::Schedule (Seconds (7.0), &TestThresholdPreambleDetectionWithoutFrameCapture::SendPacket, this, txPowerDbm);
+  // At 4us, STA PHY state should be IDLE
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (4.0), &TestThresholdPreambleDetectionWithoutFrameCapture::CheckPhyState, this, WifiPhyState::IDLE);
+  // At 5us and 50 us, preamble shall have failed and thus STA PHY state should be unchanged
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (5.0), &TestThresholdPreambleDetectionWithoutFrameCapture::CheckPhyState, this, WifiPhyState::IDLE);
 
   Simulator::Run ();
   Simulator::Destroy ();
@@ -411,6 +430,7 @@ TestThresholdPreambleDetectionWithFrameCapture::DoSetup (void)
 
   Ptr<ThresholdPreambleDetectionModel> preambleDetectionModel = CreateObject<ThresholdPreambleDetectionModel> ();
   preambleDetectionModel->SetAttribute ("Threshold", DoubleValue (2));
+  preambleDetectionModel->SetAttribute ("MinimumRssi", DoubleValue (-82));
   m_phy->SetPreambleDetectionModel (preambleDetectionModel);
 
   Ptr<SimpleFrameCaptureModel> frameCaptureModel = CreateObject<SimpleFrameCaptureModel> ();

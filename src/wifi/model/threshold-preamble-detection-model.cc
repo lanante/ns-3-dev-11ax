@@ -41,6 +41,11 @@ ThresholdPreambleDetectionModel::GetTypeId (void)
                    DoubleValue (2),
                    MakeDoubleAccessor (&ThresholdPreambleDetectionModel::m_threshold),
                    MakeDoubleChecker<double> ())
+    .AddAttribute ("MinimumRssi",
+                   "Preamble is dropped if the RSSI is below this value (expressed in dBm).",
+                   DoubleValue (-82),
+                   MakeDoubleAccessor (&ThresholdPreambleDetectionModel::m_rssiMin),
+                   MakeDoubleChecker<double> ())
   ;
   return tid;
 }
@@ -58,8 +63,25 @@ ThresholdPreambleDetectionModel::~ThresholdPreambleDetectionModel ()
 bool
 ThresholdPreambleDetectionModel::IsPreambleDetected (double rssi, double snr, double channelWidth) const
 {
-  NS_LOG_FUNCTION (this << rssi << snr << channelWidth);
-  return (RatioToDb (snr) >= m_threshold);
+  NS_LOG_FUNCTION (this << WToDbm (rssi) << RatioToDb (snr) << channelWidth);
+  if (WToDbm (rssi) >= m_rssiMin)
+    {
+      if (RatioToDb (snr) >= m_threshold)
+        {
+          return true;
+        }
+      else
+        {
+          NS_LOG_DEBUG ("Received RSSI is above the target RSSI but SNR is too low");
+          return false;
+        }
+    }
+  else
+    {
+      NS_LOG_DEBUG ("Received RSSI is below the target RSSI");
+      return false;
+    }
+  
 }
 
 } //namespace ns3
