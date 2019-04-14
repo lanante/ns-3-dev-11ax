@@ -337,7 +337,6 @@ private:
    */
   TracedCallback<Time, Time, WifiPhyState> m_stateLogger;
 
-  bool m_rxing; ///< receiving
   bool m_sleeping; ///< sleeping
   bool m_isOff; ///< switched off
   Time m_endTx; ///< end transmit

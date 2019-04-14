@@ -113,7 +113,6 @@ ChannelAccessManager::ChannelAccessManager ()
     m_lastBusyDuration (MicroSeconds (0)),
     m_lastSwitchingStart (MicroSeconds (0)),
     m_lastSwitchingDuration (MicroSeconds (0)),
-    m_rxing (false),
     m_sleeping (false),
     m_off (false),
     m_slot (Seconds (0.0)),
@@ -240,7 +239,7 @@ ChannelAccessManager::IsBusy (void) const
 {
   NS_LOG_FUNCTION (this);
   // PHY busy
-  if (m_rxing)
+  if (m_lastRxEnd > Simulator::Now ())
     {
       return true;
     }
@@ -413,7 +412,7 @@ ChannelAccessManager::GetAccessGrantStart (bool ignoreNav) const
 {
   NS_LOG_FUNCTION (this);
   Time rxAccessStart;
-  if (!m_rxing)
+  if (m_lastRxEnd <= Simulator::Now ())
     {
       rxAccessStart = m_lastRxEnd + m_sifs;
       if (!m_lastRxReceivedOk)
@@ -565,7 +564,7 @@ ChannelAccessManager::NotifyRxStartNow (Time duration)
   UpdateBackoff ();
   m_lastRxStart = Simulator::Now ();
   m_lastRxDuration = duration;
-  m_rxing = true;
+  m_lastRxEnd = m_lastRxStart + m_lastRxDuration;
 }
 
 void
@@ -575,7 +574,6 @@ ChannelAccessManager::NotifyRxEndOkNow (void)
   NS_LOG_DEBUG ("rx end ok");
   m_lastRxEnd = Simulator::Now ();
   m_lastRxReceivedOk = true;
-  m_rxing = false;
 }
 
 void
@@ -585,14 +583,13 @@ ChannelAccessManager::NotifyRxEndErrorNow (void)
   NS_LOG_DEBUG ("rx end error");
   m_lastRxEnd = Simulator::Now ();
   m_lastRxReceivedOk = false;
-  m_rxing = false;
 }
 
 void
 ChannelAccessManager::NotifyTxStartNow (Time duration)
 {
   NS_LOG_FUNCTION (this << duration);
-  if (m_rxing)
+  if (m_lastRxEnd > Simulator::Now ())
     {
       //this may be caused only if PHY has started to receive a packet
       //inside SIFS, so, we check that lastRxStart was maximum a SIFS ago
@@ -600,7 +597,6 @@ ChannelAccessManager::NotifyTxStartNow (Time duration)
       m_lastRxEnd = Simulator::Now ();
       m_lastRxDuration = m_lastRxEnd - m_lastRxStart;
       m_lastRxReceivedOk = true;
-      m_rxing = false;
     }
   NS_LOG_DEBUG ("tx start for " << duration);
   UpdateBackoff ();
@@ -626,13 +622,12 @@ ChannelAccessManager::NotifySwitchingStartNow (Time duration)
   NS_ASSERT (m_lastTxStart + m_lastTxDuration <= now);
   NS_ASSERT (m_lastSwitchingStart + m_lastSwitchingDuration <= now);
 
-  if (m_rxing)
+  if (m_lastRxEnd > Simulator::Now ())
     {
       //channel switching during packet reception
       m_lastRxEnd = Simulator::Now ();
       m_lastRxDuration = m_lastRxEnd - m_lastRxStart;
       m_lastRxReceivedOk = true;
-      m_rxing = false;
     }
   if (m_lastNavStart + m_lastNavDuration > now)
     {

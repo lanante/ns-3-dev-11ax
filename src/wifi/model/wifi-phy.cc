@@ -2683,6 +2683,9 @@ WifiPhy::StartReceiveHeader (Ptr<Packet> packet, WifiTxVector txVector, Ptr<Even
     m_plcpSuccess = false;
     m_interference.NotifyRxEnd ();
   }
+  // Like CCA-SD, CCA-ED is governed by the 4μs CCA window to flag CCA-BUSY
+  // for any received signal greater than the CCA-ED threshold.
+  MaybeCcaBusyDuration ();
 }
 
 void
@@ -2697,7 +2700,7 @@ WifiPhy::ContinueReceiveHeader (Ptr<Packet> packet, WifiTxVector txVector, MpduT
 
   if (m_random->GetValue () > snrPer.per) //legacy PHY header reception succeeded
     {
-      NS_LOG_DEBUG ("Received legacy PHY header"); //endReceive is already scheduled
+      NS_LOG_DEBUG ("Received legacy PHY header");
       m_plcpSuccess = true;
       Time remainingPreambleHeaderDuration = CalculatePlcpPreambleAndHeaderDuration (txVector) - GetPlcpPreambleDuration (txVector) - GetPlcpHeaderDuration (txVector);
       m_endPlcpRxEvent = Simulator::Schedule (remainingPreambleHeaderDuration, &WifiPhy::StartReceivePayload, this,
@@ -2910,8 +2913,7 @@ WifiPhy::StartReceivePreamble (Ptr<Packet> packet, double rxPowerW, Time rxDurat
        */
       if (endRx > Simulator::Now () + m_state->GetDelayUntilIdle ())
         {
-          //that packet will be noise _after_ the completion of the
-          //channel switching.
+          //that packet will be noise _after_ the completion of the channel switching.
           MaybeCcaBusyDuration ();
           return;
         }
@@ -2942,8 +2944,7 @@ WifiPhy::StartReceivePreamble (Ptr<Packet> packet, double rxPowerW, Time rxDurat
           NotifyRxDrop (packet);
           if (endRx > Simulator::Now () + m_state->GetDelayUntilIdle ())
             {
-              //that packet will be noise _after_ the reception of the
-              //currently-received packet.
+              //that packet will be noise _after_ the reception of the currently-received packet.
               MaybeCcaBusyDuration ();
               return;
             }
@@ -2955,8 +2956,7 @@ WifiPhy::StartReceivePreamble (Ptr<Packet> packet, double rxPowerW, Time rxDurat
       NotifyRxDrop (packet);
       if (endRx > Simulator::Now () + m_state->GetDelayUntilIdle ())
         {
-          //that packet will be noise _after_ the transmission of the
-          //currently-transmitted packet.
+          //that packet will be noise _after_ the transmission of the currently-transmitted packet.
           MaybeCcaBusyDuration ();
           return;
         }
@@ -3038,14 +3038,22 @@ WifiPhy::StartReceivePayload (Ptr<Packet> packet, WifiTxVector txVector, MpduTyp
         }
       else //mode is not allowed
         {
-          NS_LOG_DEBUG ("Abort reception because mode (" << txMode << ") is not supported");
-          AbortCurrentReception ();
+          NS_LOG_DEBUG ("Drop packet because it was sent using an unsupported mode (" << txMode << ")");
+          NotifyRxDrop (packet);
+          m_currentRemainingPpduDuration = Seconds (0);
+          m_plcpSuccess = false;
+          m_mpdusNum = 0;
+          m_currentTxId = 0;
         }
     }
   else //plcp reception failed
     {
-      NS_LOG_DEBUG ("Abort reception because non-legacy PHY header reception failed");
-      AbortCurrentReception ();
+      NS_LOG_DEBUG ("Drop packet because non-legacy PHY header reception failed");
+      NotifyRxDrop (packet);
+      m_currentRemainingPpduDuration = Seconds (0);
+      m_plcpSuccess = false;
+      m_mpdusNum = 0;
+      m_currentTxId = 0;
     }
 }
 
@@ -3053,7 +3061,6 @@ void
 WifiPhy::EndReceive (Ptr<Packet> packet, WifiPreamble preamble, MpduType mpdutype, Ptr<Event> event)
 {
   NS_LOG_FUNCTION (this << packet << event);
-  NS_ASSERT (IsStateRx ());
   NS_ASSERT (event->GetEndTime () == Simulator::Now ());
 
   InterferenceHelper::SnrPer snrPer;
