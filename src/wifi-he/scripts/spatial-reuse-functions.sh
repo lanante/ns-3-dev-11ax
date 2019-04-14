@@ -93,7 +93,7 @@ function run_one () {
   fi
 
   if [ -z "$enableThresholdPreambleDetection" ]; then
-    export enableThresholdPreambleDetection=0
+    export enableThresholdPreambleDetection=1
   fi
 
   if [ -z "$disableArp" ]; then

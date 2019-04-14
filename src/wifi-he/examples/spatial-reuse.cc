@@ -1138,7 +1138,7 @@ main (int argc, char *argv[])
   bool useExplicitBarAfterMissedBlockAck = true;
   uint64_t maxQueueDelay = 500; // milliSeconds
   bool enableFrameCapture = false;
-  bool enableThresholdPreambleDetection = false;
+  bool enableThresholdPreambleDetection = true;
   bool disableArp = true;
   uint16_t colorBss1 = 1;
   uint16_t colorBss2 = 2;
