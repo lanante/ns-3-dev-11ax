@@ -573,6 +573,7 @@ ChannelAccessManager::NotifyRxEndOkNow (void)
   NS_LOG_FUNCTION (this);
   NS_LOG_DEBUG ("rx end ok");
   m_lastRxEnd = Simulator::Now ();
+  m_lastRxDuration = m_lastRxEnd - m_lastRxStart;
   m_lastRxReceivedOk = true;
 }
 
@@ -582,6 +583,7 @@ ChannelAccessManager::NotifyRxEndErrorNow (void)
   NS_LOG_FUNCTION (this);
   NS_LOG_DEBUG ("rx end error");
   m_lastRxEnd = Simulator::Now ();
+  m_lastRxDuration = m_lastRxEnd - m_lastRxStart;
   m_lastRxReceivedOk = false;
 }
 

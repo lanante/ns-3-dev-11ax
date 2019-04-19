@@ -563,11 +563,18 @@ WifiPhyStateHelper::SwitchFromSleep (Time duration)
 }
 
 void
-WifiPhyStateHelper::SwitchFromRxAbort (void)
+WifiPhyStateHelper::SwitchFromRxAbort (bool failure)
 {
   NS_LOG_FUNCTION (this);
   NS_ASSERT (IsStateRx ());
-  NotifyRxEndError ();
+  if (failure)
+    {
+      NotifyRxEndError ();
+    }
+  else
+    {
+      NotifyRxEndOk ();
+    }
   DoSwitchFromRx ();
   NS_ASSERT (!IsStateRx ());
 }

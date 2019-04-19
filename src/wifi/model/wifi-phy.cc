@@ -4161,7 +4161,8 @@ WifiPhy::AbortCurrentReception (WifiPhyRxfailureReason reason)
     }
   NotifyRxDrop (m_currentEvent->GetPacket (), reason);
   m_interference.NotifyRxEnd ();
-  m_state->SwitchFromRxAbort ();
+  bool is_failure = (reason != OBSS_PD_CCA_RESET);
+  m_state->SwitchFromRxAbort (is_failure);
   m_currentEvent = 0;
   m_currentRemainingPpduDuration = Seconds (0);
   m_plcpSuccess = false;

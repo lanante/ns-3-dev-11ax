@@ -27,6 +27,7 @@
 #include "ns3/pointer.h"
 #include "ns3/config.h"
 #include "ns3/ssid.h"
+#include "ns3/rng-seed-manager.h"
 #include "ns3/mobility-helper.h"
 #include "ns3/wifi-net-device.h"
 #include "ns3/spectrum-wifi-helper.h"
@@ -263,9 +264,9 @@ TestInterBssConstantObssPdAlgo::SetupSimulation ()
   Simulator::Schedule (Seconds (1.6) + MicroSeconds (100), &TestInterBssConstantObssPdAlgo::SendOnePacket, this, sta_device1, ap_device1, m_payloadSize1);
   if (expectPhyReset)
     {
-      // In this case, we check the TX power is restricted
+      // In this case, we check the TX power is restricted (and set the expected value slightly before transmission should occur)
       double expectedTxPower = std::min (m_txPowerDbm, 21 - (m_obssPdLevelDbm + 82));
-      Simulator::Schedule (Seconds (1.6) + MicroSeconds (100), &TestInterBssConstantObssPdAlgo::SetExpectedTxPower, this, expectedTxPower);
+      Simulator::Schedule (Seconds (1.6) + MicroSeconds (99), &TestInterBssConstantObssPdAlgo::SetExpectedTxPower, this, expectedTxPower);
     }
   // Check simultaneous transmissions
   Simulator::Schedule (Seconds (1.6) + MicroSeconds (350), &TestInterBssConstantObssPdAlgo::CheckPhyState, this, sta_device1, expectPhyReset ? WifiPhyState::TX : WifiPhyState::RX);
@@ -388,6 +389,10 @@ TestInterBssConstantObssPdAlgo::CheckPhyState (Ptr<WifiNetDevice> device, WifiPh
 void
 TestInterBssConstantObssPdAlgo::RunOne (void)
 {
+  RngSeedManager::SetSeed (1);
+  RngSeedManager::SetRun (1);
+  int64_t streamNumber = 100;
+
   ResetResults ();
 
   NodeContainer wifiStaNodes;
@@ -422,9 +427,15 @@ TestInterBssConstantObssPdAlgo::RunOne (void)
                "Ssid", SsidValue (ssid));
   m_staDevices = wifi.Install (phy, mac, wifiStaNodes);
 
+  // Assign fixed streams to random variables in use
+  wifi.AssignStreams (m_staDevices, streamNumber);
+
   mac.SetType ("ns3::ApWifiMac",
                "Ssid", SsidValue (ssid));
   m_apDevices = wifi.Install (phy, mac, wifiApNodes);
+
+  // Assign fixed streams to random variables in use
+  wifi.AssignStreams (m_apDevices, streamNumber);
 
   for (uint32_t i = 0; i < m_apDevices.GetN (); i++)
     {
