@@ -46,6 +46,21 @@ class PreambleDetectionModel;
 class WifiRadioEnergyModel;
 class UniformRandomVariable;
 
+typedef enum
+{
+  UNKNOWN = 0,
+  UNSUPPORTED_SETTINGS,
+  NOT_ALLOWED,
+  ERRONEOUS_FRAME,
+  MPDU_WITHOUT_PHY_HEADER,
+  PREAMBLE_DETECT_FAILURE,
+  L_SIG_FAILURE,
+  SIG_A_FAILURE,
+  PREAMBLE_DETECTION_PACKET_SWITCH,
+  FRAME_CAPTURE_PACKET_SWITCH,
+  OBSS_PD_CCA_RESET
+} WifiPhyRxfailureReason;
+
 /// SignalNoiseDbm structure
 struct SignalNoiseDbm
 {
@@ -1159,8 +1174,9 @@ public:
    * Implemented for encapsulation purposes.
    *
    * \param packet the packet that was not successfully received
+   * \param reason the reason the packet was not successfully received
    */
-  void NotifyRxDrop (Ptr<const Packet> packet);
+  void NotifyRxDrop (Ptr<const Packet> packet, WifiPhyRxfailureReason reason);
 
   /**
    * Public method used to fire a MonitorSniffer trace for a wifi packet being received.
@@ -1732,9 +1748,10 @@ private:
 
   /**
    * Due to newly arrived signal, the current reception cannot be continued and has to be aborted
+   * \param reason the reason the reception is aborted
    *
    */
-  void AbortCurrentReception (void);
+  void AbortCurrentReception (WifiPhyRxfailureReason reason);
 
   /**
    * Eventually switch to CCA busy
@@ -1805,7 +1822,7 @@ private:
    *
    * \see class CallBackTraceSource
    */
-  TracedCallback<Ptr<const Packet> > m_phyRxDropTrace;
+  TracedCallback<Ptr<const Packet>, WifiPhyRxfailureReason > m_phyRxDropTrace;
 
   /**
    * A trace source that emulates a wifi device in monitor mode

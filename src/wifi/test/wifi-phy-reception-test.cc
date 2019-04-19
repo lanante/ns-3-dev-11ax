@@ -803,10 +803,11 @@ private:
    */
   void RxSuccess (Ptr<Packet> p, double snr, double rxPower, WifiTxVector txVector);
   /**
-   * RX packet dropped function
+   * RX dropped function
    * \param p the packet
+   * \param reason the reason
    */
-  void RxDropped (Ptr<const Packet> p);
+  void RxDropped (Ptr<const Packet> p, WifiPhyRxfailureReason reason);
 
   void Expect1000BPacketReceived ();
   void Expect1500BPacketReceived ();
@@ -887,9 +888,9 @@ TestSimpleFrameCaptureModel::RxSuccess (Ptr<Packet> p, double snr, double rxPowe
 }
 
 void
-TestSimpleFrameCaptureModel::RxDropped (Ptr<const Packet> p)
+TestSimpleFrameCaptureModel::RxDropped (Ptr<const Packet> p, WifiPhyRxfailureReason reason)
 {
-  NS_LOG_FUNCTION (this << p);
+  NS_LOG_FUNCTION (this << p << reason);
   if (p->GetSize () == 1030)
     {
       m_rxDropped1000B = true;
@@ -1279,8 +1280,9 @@ private:
   /**
    * RX dropped function
    * \param p the packet
+   * \param reason the reason
    */
-  void RxDropped (Ptr<const Packet> p);
+  void RxDropped (Ptr<const Packet> p, WifiPhyRxfailureReason reason);
 
   /**
    * Reset bitmaps function
@@ -1445,9 +1447,9 @@ TestAmpduReception::RxFailure (Ptr<Packet> p, double snr)
 }
 
 void
-TestAmpduReception::RxDropped (Ptr<const Packet> p)
+TestAmpduReception::RxDropped (Ptr<const Packet> p, WifiPhyRxfailureReason reason)
 {
-  NS_LOG_FUNCTION (this << p);
+  NS_LOG_FUNCTION (this << p << reason);
   if (p->GetSize () == 1030) //A-MPDU 1 - MPDU #1
     {
       m_rxDroppedBitmapAmpdu1 |= 1;
