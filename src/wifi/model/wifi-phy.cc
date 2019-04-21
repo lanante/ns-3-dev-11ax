@@ -1516,6 +1516,7 @@ bool
 WifiPhy::DoChannelSwitch (uint8_t nch)
 {
   m_powerRestricted = false;
+  m_channelAccessRequested = false;
   if (!IsInitialized ())
     {
       //this is not channel switch, this is initialization
@@ -1575,6 +1576,7 @@ bool
 WifiPhy::DoFrequencySwitch (uint16_t frequency)
 {
   m_powerRestricted = false;
+  m_channelAccessRequested = false;
   if (!IsInitialized ())
     {
       //this is not channel switch, this is initialization
@@ -1635,6 +1637,7 @@ WifiPhy::SetSleepMode (void)
 {
   NS_LOG_FUNCTION (this);
   m_powerRestricted = false;
+  m_channelAccessRequested = false;
   switch (m_state->GetState ())
     {
     case WifiPhyState::TX:
@@ -1668,6 +1671,7 @@ WifiPhy::SetOffMode (void)
 {
   NS_LOG_FUNCTION (this);
   m_powerRestricted = false;
+  m_channelAccessRequested = false;
   m_endPlcpRxEvent.Cancel ();
   m_endRxEvent.Cancel ();
   m_endPreambleDetectionEvent.Cancel ();
@@ -2464,7 +2468,17 @@ WifiPhy::SendPacket (Ptr<const Packet> packet, WifiTxVector txVector, MpduType m
       m_interference.NotifyRxEnd ();
     }
 
+  if (m_powerRestricted)
+    {
+      NS_LOG_DEBUG ("Transmitting with power restriction");
+    }
+  else
+    {
+      NS_LOG_DEBUG ("Transmitting without power restriction");
+    }
+
   NotifyTxBegin (packet, DbmToW (GetTxPowerForTransmission (txVector) + GetTxGain ()));
+
   if ((mpdutype == MPDU_IN_AGGREGATE) && (txVector.GetPreambleType () != WIFI_PREAMBLE_NONE))
     {
       //send the first MPDU in an MPDU
@@ -2563,17 +2577,9 @@ WifiPhy::SendPacket (Ptr<const Packet> packet, WifiTxVector txVector, MpduType m
   WifiPhyTag tag (txVector.GetPreambleType (), txVector.GetMode ().GetModulationClass (), isFrameComplete, m_device ? m_device->GetNode ()->GetId () : 0);
   newPacket->AddPacketTag (tag);
 
-  if (m_powerRestricted)
-    {
-      NS_LOG_DEBUG("Transmitting with power restriction");
-    }
-  else
-    {
-      NS_LOG_DEBUG("Transmitting without power restriction");
-    }
-
   StartTx (newPacket, txVector, txDuration);
 
+  m_channelAccessRequested = false;
   m_powerRestricted = false;
 }
 
@@ -3123,7 +3129,6 @@ WifiPhy::EndReceiveInterBss ()
     {
       m_powerRestricted = false;
     }
-  m_channelAccessRequested = false;
 }
 
 void
