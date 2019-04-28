@@ -139,6 +139,7 @@ ChannelAccessManager::DoDispose (void)
       i->Dispose ();
       i = 0;
     }
+  m_phy = 0;
 }
 
 void
@@ -148,6 +149,7 @@ ChannelAccessManager::SetupPhyListener (Ptr<WifiPhy> phy)
   NS_ASSERT (m_phyListener == 0);
   m_phyListener = new PhyListener (this);
   phy->RegisterListener (m_phyListener);
+  m_phy = phy;
 }
 
 void
@@ -205,32 +207,10 @@ ChannelAccessManager::Add (Ptr<Txop> dcf)
 }
 
 Time
-ChannelAccessManager::MostRecent (Time a, Time b) const
+ChannelAccessManager::MostRecent (std::initializer_list<Time> list) const
 {
-  return Max (a, b);
-}
-
-Time
-ChannelAccessManager::MostRecent (Time a, Time b, Time c, Time d, Time e, Time f) const
-{
-  Time g = MostRecent (a, b);
-  Time h = MostRecent (c, d);
-  Time i = MostRecent (e, f);
-  Time k = MostRecent (g, h);
-  Time retval = MostRecent (k, i);
-  return retval;
-}
-
-Time
-ChannelAccessManager::MostRecent (Time a, Time b, Time c, Time d, Time e, Time f, Time g) const
-{
-  Time h = MostRecent (a, b);
-  Time i = MostRecent (c, d);
-  Time j = MostRecent (e, f);
-  Time k = MostRecent (h, i);
-  Time l = MostRecent (j, g);
-  Time retval = MostRecent (k, l);
-  return retval;
+  NS_ASSERT (list.size () > 0);
+  return *std::max_element (list.begin (), list.end ());
 }
 
 bool
@@ -281,6 +261,10 @@ void
 ChannelAccessManager::RequestAccess (Ptr<Txop> state, bool isCfPeriod)
 {
   NS_LOG_FUNCTION (this << state);
+  if (m_phy)
+    {
+      m_phy->NotifyChannelAccessRequested ();
+    }
   //Deny access if in sleep mode or off
   if (m_sleeping || m_off)
     {
@@ -289,7 +273,7 @@ ChannelAccessManager::RequestAccess (Ptr<Txop> state, bool isCfPeriod)
   if (isCfPeriod)
     {
       state->NotifyAccessRequested ();
-      Time delay = (MostRecent (GetAccessGrantStart (true), Simulator::Now ()) - Simulator::Now ());
+      Time delay = (MostRecent ({GetAccessGrantStart (true), Simulator::Now ()}) - Simulator::Now ());
       m_accessTimeout = Simulator::Schedule (delay, &ChannelAccessManager::DoGrantPcfAccess, this, state);
       return;
     }
@@ -428,23 +412,23 @@ ChannelAccessManager::GetAccessGrantStart (bool ignoreNav) const
   Time accessGrantedStart;
   if (ignoreNav)
     {
-      accessGrantedStart = MostRecent (rxAccessStart,
-                                       busyAccessStart,
-                                       txAccessStart,
-                                       ackTimeoutAccessStart,
-                                       ctsTimeoutAccessStart,
-                                       switchingAccessStart
+      accessGrantedStart = MostRecent ({rxAccessStart,
+                                        busyAccessStart,
+                                        txAccessStart,
+                                        ackTimeoutAccessStart,
+                                        ctsTimeoutAccessStart,
+                                        switchingAccessStart}
                                        );
     }
   else
     {
-      accessGrantedStart = MostRecent (rxAccessStart,
-                                       busyAccessStart,
-                                       txAccessStart,
-                                       navAccessStart,
-                                       ackTimeoutAccessStart,
-                                       ctsTimeoutAccessStart,
-                                       switchingAccessStart
+      accessGrantedStart = MostRecent ({rxAccessStart,
+                                        busyAccessStart,
+                                        txAccessStart,
+                                        navAccessStart,
+                                        ackTimeoutAccessStart,
+                                        ctsTimeoutAccessStart,
+                                        switchingAccessStart}
                                        );
     }
   NS_LOG_INFO ("access grant start=" << accessGrantedStart <<
@@ -459,8 +443,8 @@ Time
 ChannelAccessManager::GetBackoffStartFor (Ptr<Txop> state)
 {
   NS_LOG_FUNCTION (this << state);
-  Time mostRecentEvent = MostRecent (state->GetBackoffStart (),
-                                     GetAccessGrantStart () + (state->GetAifsn () * m_slot));
+  Time mostRecentEvent = MostRecent ({state->GetBackoffStart (),
+                                     GetAccessGrantStart () + (state->GetAifsn () * m_slot)});
 
   return mostRecentEvent;
 }

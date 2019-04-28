@@ -175,6 +175,24 @@ void AddWifiMacTrailer (Ptr<Packet> packet);
  * \return the total packet size
  */
 uint32_t GetSize (Ptr<const Packet> packet, const WifiMacHeader *hdr, bool isAmpdu);
+/**
+ * \param packet the packet to check
+ * \returns true if packet is an A-MPDU
+ *
+ * This method checks if the packet is an A-MPDU by looking for A-MPDU subframe headers.
+ */
+bool IsAmpdu (Ptr<const Packet> packet);
+
+  /**
+   * Get the maximum PPDU duration (see Section 10.14 of 802.11-2016) for
+   * the PHY layers defining the aPPDUMaxTime characteristic (HT, VHT and HE).
+   * Return zero otherwise.
+   *
+   * \param preamble the preamble type
+   *
+   * \return the maximum PPDU duration, if defined, and zero otherwise
+   */
+  Time GetPpduMaxTime (WifiPreamble preamble);
 
 } // namespace ns3
 

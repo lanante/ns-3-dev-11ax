@@ -47,11 +47,14 @@ class Txop;
 class QosTxop;
 class WifiMacQueueItem;
 class WifiMacQueue;
+class WifiPsdu;
 class BlockAckAgreement;
 class MgtAddBaResponseHeader;
 class WifiRemoteStationManager;
 class CtrlBAckRequestHeader;
 class CtrlBAckResponseHeader;
+class MsduAggregator;
+class MpduAggregator;
 
 /**
  * \ingroup wifi
@@ -396,23 +399,16 @@ public:
    */
   void RegisterEdcaForAc (AcIndex ac, Ptr<QosTxop> edca);
   /**
-   * \param packet the packet to be aggregated. If the aggregation is successful, it corresponds either to the first data packet that will be aggregated or to the BAR that will be piggybacked at the end of the A-MPDU.
-   * \param hdr the WifiMacHeader for the packet.
-   * \return the A-MPDU packet if aggregation is successful, the input packet otherwise
-   *
-   * This function adds the packets that will be added to an A-MPDU to an aggregate queue
-   *
-   */
-  Ptr<Packet> AggregateToAmpdu (Ptr<const Packet> packet, const WifiMacHeader hdr);
-  /**
    * \param aggregatedPacket which is the current A-MPDU
    * \param rxSnr snr of packet received
    * \param txVector TXVECTOR of packet received
+   * \param statusPerMpdu reception status per MPDU
    *
    * This function de-aggregates an A-MPDU and decide if each MPDU is received correctly or not
    *
    */
-  void DeaggregateAmpduAndReceive (Ptr<Packet> aggregatedPacket, double rxSnr, WifiTxVector txVector);
+  void DeaggregateAmpduAndReceive (Ptr<Packet> aggregatedPacket, double rxSnr, WifiTxVector txVector,
+                                   std::vector<bool> statusPerMpdu);
   /**
    *
    * This function is called to flush the aggregate queue, which is used for A-MPDU
@@ -446,21 +442,32 @@ public:
    * This function decides if a CF frame can be transmitted in the current CFP.
    */
   bool CanTransmitNextCfFrame (void) const;
-  /**
-   * Return the maximum A-MSDU size in bytes for a given AC.
-   *
-   * \param ac the AC index
-   * \return the maximum A-MSDU size (in bytes)
-   */
-  uint16_t GetMaxAmsduSize (AcIndex ac) const;
-  /**
-   * Return the maximum A-MPDU size in bytes for a given AC.
-   *
-   * \param ac the AC index
-   * \return the maximum A-MPDU size (in bytes)
-   */
-  uint32_t GetMaxAmpduSize (AcIndex ac) const;
 
+  /**
+   * Returns the aggregator used to construct A-MSDU subframes.
+   *
+   * \return the aggregator used to construct A-MSDU subframes.
+   */
+  Ptr<MsduAggregator> GetMsduAggregator (void) const;
+  /**
+   * Returns the aggregator used to construct A-MPDU subframes.
+   *
+   * \return the aggregator used to construct A-MPDU subframes.
+   */
+  Ptr<MpduAggregator> GetMpduAggregator (void) const;
+
+  /**
+   * Set the aggregator used to construct A-MSDU subframes.
+   *
+   * \param aggr pointer to the MSDU aggregator.
+   */
+  void SetMsduAggregator (const Ptr<MsduAggregator> aggr);
+  /**
+   * Set the aggregator used to construct A-MPDU subframes.
+   *
+   * \param aggr pointer to the MPDU aggregator.
+   */
+  void SetMpduAggregator (const Ptr<MpduAggregator> aggr);
 
 private:
   /**
@@ -475,32 +482,12 @@ private:
    */
   uint32_t GetCfEndSize (void) const;
   /**
-   * Forward the packet down to WifiPhy for transmission. This is called for the entire A-MPDu when MPDU aggregation is used.
+   * Forward a PSDU down to WifiPhy for transmission.
    *
-   * \param packet the packet
-   * \param hdr the header
+   * \param psdu the PSDU
    * \param txVector the transmit vector
    */
-  void ForwardDown (Ptr<const Packet> packet, const WifiMacHeader *hdr, WifiTxVector txVector);
-  /**
-   * Forward the MPDU down to WifiPhy for transmission. This is called for each MPDU when MPDU aggregation is used.
-   *
-   * \param packet the packet
-   * \param txVector the transmit vector
-   * \param mpdutype the MPDU type
-   */
-  void SendMpdu (Ptr<const Packet> packet, WifiTxVector txVector, MpduType mpdutype);
-  /**
-   * \param peekedPacket the packet to be aggregated
-   * \param peekedHdr the WifiMacHeader for the packet.
-   * \param aggregatedPacket the current A-MPDU
-   * \param blockAckSize the size of a piggybacked block ack request
-   * \return false if the given packet can be added to an A-MPDU, true otherwise
-   *
-   * This function decides if a given packet can be added to an A-MPDU or not
-   *
-   */
-  bool StopMpduAggregation (Ptr<const Packet> peekedPacket, WifiMacHeader peekedHdr, Ptr<Packet> aggregatedPacket, uint8_t blockAckSize) const;
+  void ForwardDown (Ptr<const WifiPsdu> psdu, WifiTxVector txVector);
   /**
    * Return a TXVECTOR for the RTS frame given the destination.
    * The function consults WifiRemoteStationManager, which controls the rate
@@ -859,50 +846,18 @@ private:
    */
   void RemovePhyMacLowListener (Ptr<WifiPhy> phy);
   /**
-   * Checks if the given packet will be aggregated to an A-MPDU or not
-   *
-   * \param packet packet to check whether it can be aggregated in an A-MPDU
-   * \param hdr 802.11 header for packet to check whether it can be aggregated in an A-MPDU
-   * \returns true if is A-MPDU
-   */
-  bool IsAmpdu (Ptr<const Packet> packet, const WifiMacHeader hdr);
-  /**
    * Insert in a temporary queue.
    * It is only used with a RTS/CTS exchange for an A-MPDU transmission.
    *
-   * \param packet packet to be inserted in the A-MPDU tx queue
-   * \param hdr 802.11 header for the packet to be inserted in the A-MPDU tx queue
-   * \param tStamp timestamp of the packet to be inserted in the A-MPDU tx queue
-   * \param tid the Traffic ID of the packet to be inserted in the A-MPDU tx queue
+   * \param mpdu MPDU to be inserted in the A-MPDU tx queue
+   * \param tid the Traffic ID of the MPDU to be inserted in the A-MPDU tx queue
    */
-  void InsertInTxQueue (Ptr<const Packet> packet, const WifiMacHeader &hdr, Time tStamp, uint8_t tid);
-  /**
-   * Perform MSDU aggregation for a given MPDU in an A-MPDU
-   *
-   * \param packet packet picked for aggregation
-   * \param hdr 802.11 header for packet picked for aggregation
-   * \param tstamp timestamp
-   * \param currentAmpduPacket current A-MPDU packet
-   * \param blockAckSize size of the piggybacked block ack request
-   *
-   * \return the aggregate if MSDU aggregation succeeded, 0 otherwise
-   */
-  Ptr<Packet> PerformMsduAggregation (Ptr<const Packet> packet, WifiMacHeader *hdr, Time *tstamp, Ptr<Packet> currentAmpduPacket, uint8_t blockAckSize);
+  void InsertInTxQueue (Ptr<const WifiMacQueueItem> mpdu, uint8_t tid);
 
   Ptr<WifiPhy> m_phy; //!< Pointer to WifiPhy (actually send/receives frames)
   Ptr<WifiMac> m_mac; //!< Pointer to WifiMac (to fetch configuration)
   Ptr<WifiRemoteStationManager> m_stationManager; //!< Pointer to WifiRemoteStationManager (rate control)
   MacLowRxCallback m_rxCallback; //!< Callback to pass packet up
-
-  /**
-   * A struct for packet, Wifi header, and timestamp.
-   */
-  struct Item
-  {
-    Ptr<const Packet> packet; //!< the packet
-    WifiMacHeader hdr; //!< the header
-    Time timestamp; //!< the timestamp
-  }; //!< item structure
 
   /**
    * A struct that holds information about ACK piggybacking (CF-ACK).
@@ -924,6 +879,9 @@ private:
   typedef std::vector<Ptr<ChannelAccessManager> > ChannelAccessManagers;
   ChannelAccessManagers m_channelAccessManagers; //!< List of ChannelAccessManager
 
+  Ptr<MsduAggregator> m_msduAggregator;             //!< A-MSDU aggregator
+  Ptr<MpduAggregator> m_mpduAggregator;             //!< A-MPDU aggregator
+
   EventId m_normalAckTimeoutEvent;      //!< Normal ACK timeout event
   EventId m_blockAckTimeoutEvent;       //!< Block ACK timeout event
   EventId m_ctsTimeoutEvent;            //!< CTS timeout event
@@ -934,8 +892,7 @@ private:
   EventId m_endTxNoAckEvent;            //!< Event for finishing transmission that does not require ACK
   EventId m_navCounterResetCtsMissed;   //!< Event to reset NAV when CTS is not received
 
-  Ptr<Packet> m_currentPacket;              //!< Current packet transmitted/to be transmitted
-  WifiMacHeader m_currentHdr;               //!< Header of the current transmitted packet
+  Ptr<WifiPsdu> m_currentPacket;            //!< Current packet transmitted/to be transmitted
   Ptr<Txop> m_currentTxop;                  //!< Current TXOP
   MacLowTransmissionParameters m_txParams;  //!< Transmission parameters of the current packet
   Mac48Address m_self;                      //!< Address of this MacLow (Mac48Address)
@@ -987,7 +944,7 @@ private:
 
   bool m_ctsToSelfSupported;             //!< Flag whether CTS-to-self is supported
   Ptr<WifiMacQueue> m_aggregateQueue[8]; //!< Queues per TID used for MPDU aggregation
-  std::vector<Item> m_txPackets[8];      //!< Contain temporary items to be sent with the next A-MPDU transmission for a given TID, once RTS/CTS exchange has succeeded.
+  std::vector<Ptr<const WifiMacQueueItem>> m_txPackets[8];      //!< Contain temporary items to be sent with the next A-MPDU transmission for a given TID, once RTS/CTS exchange has succeeded.
   WifiTxVector m_currentTxVector;        //!< TXVECTOR used for the current packet transmission
 
   CfAckInfo m_cfAckInfo; //!< Info about piggyback ACKs used in PCF

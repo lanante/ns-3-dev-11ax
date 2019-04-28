@@ -35,6 +35,9 @@
 #include "ns3/wifi-utils.h"
 #include "ns3/threshold-preamble-detection-model.h"
 #include "ns3/simple-frame-capture-model.h"
+#include "ns3/wifi-psdu.h"
+#include "ns3/wifi-mac-queue-item.h"
+#include "ns3/mpdu-aggregator.h"
 
 using namespace ns3;
 
@@ -70,8 +73,9 @@ protected:
    * \param p the packet
    * \param snr the SNR
    * \param txVector the transmit vector
+   * \param statusPerMpdu reception status per MPDU
    */
-  void RxSuccess (Ptr<Packet> p, double snr, WifiTxVector txVector);
+  void RxSuccess (Ptr<Packet> p, double snr, WifiTxVector txVector, std::vector<bool> statusPerMpdu);
   /**
    * Spectrum wifi receive failure function
    * \param p the packet
@@ -107,7 +111,6 @@ void
 TestThresholdPreambleDetectionWithoutFrameCapture::SendPacket (double txPowerDbm)
 {
   WifiTxVector txVector = WifiTxVector (WifiPhy::GetHeMcs11 (), 0, WIFI_PREAMBLE_HE_SU, 800, 1, 1, 0, 20, false, false);
-  MpduType mpdutype = NORMAL_MPDU;
 
   Ptr<Packet> pkt = Create<Packet> (1000);
   WifiMacHeader hdr;
@@ -116,12 +119,12 @@ TestThresholdPreambleDetectionWithoutFrameCapture::SendPacket (double txPowerDbm
   hdr.SetType (WIFI_MAC_QOSDATA);
   hdr.SetQosTid (0);
   uint32_t size = pkt->GetSize () + hdr.GetSize () + trailer.GetSerializedSize ();
-  Time txDuration = m_phy->CalculateTxDuration (size, txVector, m_phy->GetFrequency (), mpdutype, 0);
+  Time txDuration = m_phy->CalculateTxDuration (size, txVector, m_phy->GetFrequency ());
   hdr.SetDuration (txDuration);
 
   pkt->AddHeader (hdr);
   pkt->AddTrailer (trailer);
-  WifiPhyTag tag (txVector, mpdutype, 1);
+  WifiPhyTag tag (txVector, 1);
   pkt->AddPacketTag (tag);
   Ptr<SpectrumValue> txPowerSpectrum = WifiSpectrumValueHelper::CreateHeOfdmTxPowerSpectralDensity (FREQUENCY, CHANNEL_WIDTH, DbmToW (txPowerDbm), GUARD_WIDTH);
   Ptr<WifiSpectrumSignalParameters> txParams = Create<WifiSpectrumSignalParameters> ();
@@ -152,7 +155,7 @@ TestThresholdPreambleDetectionWithoutFrameCapture::CheckRxPacketCount (uint32_t 
 }
 
 void
-TestThresholdPreambleDetectionWithoutFrameCapture::RxSuccess (Ptr<Packet> p, double snr, WifiTxVector txVector)
+TestThresholdPreambleDetectionWithoutFrameCapture::RxSuccess (Ptr<Packet> p, double snr, WifiTxVector txVector, std::vector<bool> statusPerMpdu)
 {
   NS_LOG_FUNCTION (this << p << snr << txVector);
   m_countRxSuccess++;
@@ -269,8 +272,9 @@ protected:
    * \param p the packet
    * \param snr the SNR
    * \param txVector the transmit vector
+   * \param statusPerMpdu reception status per MPDU
    */
-  void RxSuccess (Ptr<Packet> p, double snr, WifiTxVector txVector);
+  void RxSuccess (Ptr<Packet> p, double snr, WifiTxVector txVector, std::vector<bool> statusPerMpdu);
   /**
    * Spectrum wifi receive failure function
    * \param p the packet
@@ -306,7 +310,6 @@ void
 TestThresholdPreambleDetectionWithFrameCapture::SendPacket (double txPowerDbm)
 {
   WifiTxVector txVector = WifiTxVector (WifiPhy::GetHeMcs11 (), 0, WIFI_PREAMBLE_HE_SU, 800, 1, 1, 0, 20, false, false);
-  MpduType mpdutype = NORMAL_MPDU;
   
   Ptr<Packet> pkt = Create<Packet> (1000);
   WifiMacHeader hdr;
@@ -315,12 +318,12 @@ TestThresholdPreambleDetectionWithFrameCapture::SendPacket (double txPowerDbm)
   hdr.SetType (WIFI_MAC_QOSDATA);
   hdr.SetQosTid (0);
   uint32_t size = pkt->GetSize () + hdr.GetSize () + trailer.GetSerializedSize ();
-  Time txDuration = m_phy->CalculateTxDuration (size, txVector, m_phy->GetFrequency (), mpdutype, 0);
+  Time txDuration = m_phy->CalculateTxDuration (size, txVector, m_phy->GetFrequency ());
   hdr.SetDuration (txDuration);
   
   pkt->AddHeader (hdr);
   pkt->AddTrailer (trailer);
-  WifiPhyTag tag (txVector, mpdutype, 1);
+  WifiPhyTag tag (txVector, 1);
   pkt->AddPacketTag (tag);
   Ptr<SpectrumValue> txPowerSpectrum = WifiSpectrumValueHelper::CreateHeOfdmTxPowerSpectralDensity (FREQUENCY, CHANNEL_WIDTH, DbmToW (txPowerDbm), GUARD_WIDTH);
   Ptr<WifiSpectrumSignalParameters> txParams = Create<WifiSpectrumSignalParameters> ();
@@ -351,7 +354,7 @@ TestThresholdPreambleDetectionWithFrameCapture::CheckRxPacketCount (uint32_t exp
 }
 
 void
-TestThresholdPreambleDetectionWithFrameCapture::RxSuccess (Ptr<Packet> p, double snr, WifiTxVector txVector)
+TestThresholdPreambleDetectionWithFrameCapture::RxSuccess (Ptr<Packet> p, double snr, WifiTxVector txVector, std::vector<bool> statusPerMpdu)
 {
   NS_LOG_FUNCTION (this << p << txVector);
   m_countRxSuccess++;
@@ -481,8 +484,9 @@ private:
    * \param p the packet
    * \param snr the SNR
    * \param txVector the transmit vector
+   * \param statusPerMpdu reception status per MPDU
    */
-  void RxSuccess (Ptr<Packet> p, double snr, WifiTxVector txVector);
+  void RxSuccess (Ptr<Packet> p, double snr, WifiTxVector txVector, std::vector<bool> statusPerMpdu);
   /**
    * RX packet dropped function
    * \param p the packet
@@ -515,7 +519,6 @@ void
 TestSimpleFrameCaptureModel::SendPacket (double txPowerDbm, uint32_t packetSize)
 {
   WifiTxVector txVector = WifiTxVector (WifiPhy::GetHeMcs0 (), 0, WIFI_PREAMBLE_HE_SU, 800, 1, 1, 0, 20, false, false);
-  MpduType mpdutype = NORMAL_MPDU;
   
   Ptr<Packet> pkt = Create<Packet> (packetSize);
   WifiMacHeader hdr;
@@ -524,12 +527,12 @@ TestSimpleFrameCaptureModel::SendPacket (double txPowerDbm, uint32_t packetSize)
   hdr.SetType (WIFI_MAC_QOSDATA);
   hdr.SetQosTid (0);
   uint32_t size = pkt->GetSize () + hdr.GetSize () + trailer.GetSerializedSize ();
-  Time txDuration = m_phy->CalculateTxDuration (size, txVector, m_phy->GetFrequency (), mpdutype, 0);
+  Time txDuration = m_phy->CalculateTxDuration (size, txVector, m_phy->GetFrequency ());
   hdr.SetDuration (txDuration);
   
   pkt->AddHeader (hdr);
   pkt->AddTrailer (trailer);
-  WifiPhyTag tag (txVector, mpdutype, 1);
+  WifiPhyTag tag (txVector, 1);
   pkt->AddPacketTag (tag);
   Ptr<SpectrumValue> txPowerSpectrum = WifiSpectrumValueHelper::CreateHeOfdmTxPowerSpectralDensity (FREQUENCY, CHANNEL_WIDTH, DbmToW (txPowerDbm), GUARD_WIDTH);
   Ptr<WifiSpectrumSignalParameters> txParams = Create<WifiSpectrumSignalParameters> ();
@@ -542,7 +545,7 @@ TestSimpleFrameCaptureModel::SendPacket (double txPowerDbm, uint32_t packetSize)
 }
 
 void
-TestSimpleFrameCaptureModel::RxSuccess (Ptr<Packet> p, double snr, WifiTxVector txVector)
+TestSimpleFrameCaptureModel::RxSuccess (Ptr<Packet> p, double snr, WifiTxVector txVector, std::vector<bool> statusPerMpdu)
 {
   NS_LOG_FUNCTION (this << p << snr << txVector);
   if (p->GetSize () == 1030)
@@ -692,8 +695,9 @@ private:
    * \param p the packet
    * \param snr the SNR
    * \param txVector the transmit vector
+   * \param statusPerMpdu reception status per MPDU
    */
-  void RxSuccess (Ptr<Packet> p, double snr, WifiTxVector txVector);
+  void RxSuccess (Ptr<Packet> p, double snr, WifiTxVector txVector, std::vector<bool> statusPerMpdu);
   /**
    * RX failure function
    * \param p the packet
@@ -704,6 +708,16 @@ private:
    * \param p the packet
    */
   void RxDropped (Ptr<const Packet> p);
+  /**
+   * Increment reception success bitmap.
+   * \param size the size of the received packet
+   */
+  void IncrementSuccessBitmap (uint32_t size);
+  /**
+   * Increment reception failure bitmap.
+   * \param size the size of the received packet
+   */
+  void IncrementFailureBitmap (uint32_t size);
 
   /**
    * Reset bitmaps function
@@ -711,23 +725,11 @@ private:
   void ResetBitmaps();
 
   /**
-   * schedule send MPDU function
+   * Send A-MPDU with 3 MPDUs of different size (i-th MSDU will have 100 bytes more than (i-1)-th).
    * \param txPowerDbm the transmit power in dBm
-   * \param packetSize the size of the packet in bytes
-   * \param preamble the preamble
-   * \param mpdutype the MPDU type
-   * \param remainingNbOfMpdus the remaining number of MPDUs to send after this MPDU
+   * \param referencePacketSize the reference size of the packets in bytes (i-th MSDU will have 100 bytes more than (i-1)-th)
    */
-  void ScheduleSendMpdu (double txPowerDbm, uint32_t packetSize, WifiPreamble preamble, MpduType mpdutype, uint8_t remainingNbOfMpdus);
-  /**
-   * Send MPDU function
-   * \param txPowerDbm the transmit power in dBm
-   * \param packetSize the size of the packet in bytes
-   * \param preamble the preamble
-   * \param mpdutype the MPDU type
-   * \param remainingNbOfMpdus the remaining number of MPDUs to send after this MPDU
-   */
-  void SendMpdu (double txPowerDbm, uint32_t packetSize, WifiPreamble preamble, MpduType mpdutype, uint8_t remainingNbOfMpdus);
+  void SendAmpduWithThreeMpdus (double txPowerDbm, uint32_t referencePacketSize);
 
   /**
    * Check the RX success bitmap for A-MPDU 1
@@ -806,30 +808,57 @@ TestAmpduReception::ResetBitmaps()
 }
 
 void
-TestAmpduReception::RxSuccess (Ptr<Packet> p, double snr, WifiTxVector txVector)
+TestAmpduReception::RxSuccess (Ptr<Packet> p, double snr, WifiTxVector txVector, std::vector<bool> statusPerMpdu)
 {
   NS_LOG_FUNCTION (this << p << snr << txVector);
-  if (p->GetSize () == 1030) //A-MPDU 1 - MPDU #1
+  if (IsAmpdu (p))
+    {
+      std::list<Ptr<const Packet>> mpdus = MpduAggregator::PeekMpdus (p);
+      NS_ABORT_MSG_IF (mpdus.size () != statusPerMpdu.size (), "Should have one receive status per MPDU");
+      auto rxOkForMpdu = statusPerMpdu.begin ();
+      for (const auto & mpdu : mpdus)
+        {
+          if (*rxOkForMpdu)
+            {
+              IncrementSuccessBitmap (mpdu->GetSize ());
+            }
+          else
+            {
+              IncrementFailureBitmap (mpdu->GetSize ());
+            }
+          ++rxOkForMpdu;
+        }
+    }
+  else
+    {
+      IncrementSuccessBitmap (p->GetSize ());
+    }
+}
+
+void
+TestAmpduReception::IncrementSuccessBitmap (uint32_t size)
+{
+  if (size == 1030) //A-MPDU 1 - MPDU #1
     {
       m_rxSuccessBitmapAmpdu1 |= 1;
     }
-  else if (p->GetSize () == 1130) //A-MPDU 1 - MPDU #2
+  else if (size == 1130) //A-MPDU 1 - MPDU #2
     {
       m_rxSuccessBitmapAmpdu1 |= (1 << 1);
     }
-  else if (p->GetSize () == 1230) //A-MPDU 1 - MPDU #3
+  else if (size == 1230) //A-MPDU 1 - MPDU #3
     {
       m_rxSuccessBitmapAmpdu1 |= (1 << 2);
     }
-  else if (p->GetSize () == 1330) //A-MPDU 2 - MPDU #1
+  else if (size == 1330) //A-MPDU 2 - MPDU #1
     {
       m_rxSuccessBitmapAmpdu2 |= 1;
     }
-  else if (p->GetSize () == 1430) //A-MPDU 2 - MPDU #2
+  else if (size == 1430) //A-MPDU 2 - MPDU #2
     {
       m_rxSuccessBitmapAmpdu2 |= (1 << 1);
     }
-  else if (p->GetSize () == 1530) //A-MPDU 2 - MPDU #3
+  else if (size == 1530) //A-MPDU 2 - MPDU #3
     {
       m_rxSuccessBitmapAmpdu2 |= (1 << 2);
     }
@@ -839,27 +868,44 @@ void
 TestAmpduReception::RxFailure (Ptr<Packet> p)
 {
   NS_LOG_FUNCTION (this << p);
-  if (p->GetSize () == 1030) //A-MPDU 1 - MPDU #1
+  if (IsAmpdu (p))
+    {
+      std::list<Ptr<const Packet>> mpdus = MpduAggregator::PeekMpdus (p);
+      for (const auto & mpdu : mpdus)
+        {
+          IncrementFailureBitmap (mpdu->GetSize ());
+        }
+    }
+  else
+    {
+      IncrementFailureBitmap (p->GetSize ());
+    }
+}
+
+void
+TestAmpduReception::IncrementFailureBitmap (uint32_t size)
+{
+  if (size == 1030) //A-MPDU 1 - MPDU #1
     {
       m_rxFailureBitmapAmpdu1 |= 1;
     }
-  else if (p->GetSize () == 1130) //A-MPDU 1 - MPDU #2
+  else if (size == 1130) //A-MPDU 1 - MPDU #2
     {
       m_rxFailureBitmapAmpdu1 |= (1 << 1);
     }
-  else if (p->GetSize () == 1230) //A-MPDU 1 - MPDU #3
+  else if (size == 1230) //A-MPDU 1 - MPDU #3
     {
       m_rxFailureBitmapAmpdu1 |= (1 << 2);
     }
-  else if (p->GetSize () == 1330) //A-MPDU 2 - MPDU #1
+  else if (size == 1330) //A-MPDU 2 - MPDU #1
     {
       m_rxFailureBitmapAmpdu2 |= 1;
     }
-  else if (p->GetSize () == 1430) //A-MPDU 2 - MPDU #2
+  else if (size == 1430) //A-MPDU 2 - MPDU #2
     {
       m_rxFailureBitmapAmpdu2 |= (1 << 1);
     }
-  else if (p->GetSize () == 1530) //A-MPDU 2 - MPDU #3
+  else if (size == 1530) //A-MPDU 2 - MPDU #3
     {
       m_rxFailureBitmapAmpdu2 |= (1 << 2);
     }
@@ -943,33 +989,27 @@ TestAmpduReception::CheckPhyState (WifiPhyState expectedState)
 }
 
 void
-TestAmpduReception::ScheduleSendMpdu (double txPowerDbm, uint32_t packetSize, WifiPreamble preamble, MpduType mpdutype, uint8_t remainingNbOfMpdus)
+TestAmpduReception::SendAmpduWithThreeMpdus (double txPowerDbm, uint32_t referencePacketSize)
 {
-  //This is needed to make sure this is the last scheduled event and to avoid the start of an MPDU is triggered before the end of the previous MPDU.
-  Simulator::ScheduleNow (&TestAmpduReception::SendMpdu, this, txPowerDbm, packetSize, preamble, mpdutype, remainingNbOfMpdus);
-}
+  WifiTxVector txVector = WifiTxVector (WifiPhy::GetHeMcs0 (), 0, WIFI_PREAMBLE_HE_SU, 800, 1, 1, 0, 20, true, false);
 
-void
-TestAmpduReception::SendMpdu (double txPowerDbm, uint32_t packetSize, WifiPreamble preamble, MpduType mpdutype, uint8_t remainingNbOfMpdus)
-{
-  WifiTxVector txVector = WifiTxVector (WifiPhy::GetHeMcs0 (), 0, preamble, 800, 1, 1, 0, 20, false, false);
-  
-  Ptr<Packet> pkt = Create<Packet> (packetSize);
   WifiMacHeader hdr;
-  WifiMacTrailer trailer;
-  
   hdr.SetType (WIFI_MAC_QOSDATA);
   hdr.SetQosTid (0);
-  uint32_t size = pkt->GetSize () + hdr.GetSize () + trailer.GetSerializedSize ();
-  Time txDuration = m_phy->CalculateTxDuration (size, txVector, m_phy->GetFrequency (), mpdutype, 0);
-  hdr.SetDuration (txDuration);
+
+  std::vector<Ptr<WifiMacQueueItem>> mpduList;
+  for (size_t i = 0; i < 3; ++i)
+    {
+      Ptr<Packet> p = Create<Packet> (referencePacketSize + i * 100);
+      mpduList.push_back (Create<WifiMacQueueItem> (p, hdr));
+    }
+  Ptr<WifiPsdu> psdu = Create<WifiPsdu> (mpduList);
   
-  pkt->AddHeader (hdr);
-  pkt->AddTrailer (trailer);
-  AmpduTag ampdutag;
-  ampdutag.SetRemainingNbOfMpdus (remainingNbOfMpdus);
-  pkt->AddPacketTag (ampdutag);
-  WifiPhyTag tag (txVector, mpdutype, 1);
+  Time txDuration = m_phy->CalculateTxDuration (psdu->GetSize (), txVector, m_phy->GetFrequency ());
+  psdu->SetDuration (txDuration);
+  Ptr<Packet> pkt = psdu->GetPacket ()->Copy ();
+
+  WifiPhyTag tag (txVector, 1);
   pkt->AddPacketTag (tag);
   Ptr<SpectrumValue> txPowerSpectrum = WifiSpectrumValueHelper::CreateHeOfdmTxPowerSpectralDensity (FREQUENCY, CHANNEL_WIDTH, DbmToW (txPowerDbm), GUARD_WIDTH);
   Ptr<WifiSpectrumSignalParameters> txParams = Create<WifiSpectrumSignalParameters> ();
@@ -1021,14 +1061,10 @@ TestAmpduReception::DoRun (void)
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
   // A-MPDU 1
-  Simulator::Schedule (Seconds (1.0), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm - 100, 1000, WIFI_PREAMBLE_HE_SU, MPDU_IN_AGGREGATE, 2);
-  Simulator::Schedule (Seconds (1.0) + NanoSeconds (1004369), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm - 100, 1100, WIFI_PREAMBLE_NONE, MPDU_IN_AGGREGATE, 1);
-  Simulator::Schedule (Seconds (1.0) + NanoSeconds (2055172), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm - 100, 1200, WIFI_PREAMBLE_NONE, LAST_MPDU_IN_AGGREGATE, 0);
+  Simulator::Schedule (Seconds (1.0), &TestAmpduReception::SendAmpduWithThreeMpdus, this, txPowerDbm - 100, 1000);
   
   // A-MPDU 2
-  Simulator::Schedule (Seconds (1.0) + MicroSeconds (2), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1300, WIFI_PREAMBLE_HE_SU, MPDU_IN_AGGREGATE, 2);
-  Simulator::Schedule (Seconds (1.0) + MicroSeconds (2) + NanoSeconds (1283343), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1400, WIFI_PREAMBLE_NONE, MPDU_IN_AGGREGATE, 1);
-  Simulator::Schedule (Seconds (1.0) + MicroSeconds (2) + NanoSeconds (2613120), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1500, WIFI_PREAMBLE_NONE, LAST_MPDU_IN_AGGREGATE, 0);
+  Simulator::Schedule (Seconds (1.0) + MicroSeconds (2), &TestAmpduReception::SendAmpduWithThreeMpdus, this, txPowerDbm, 1300);
   
   // All MPDUs of A-MPDU 1 should have been ignored.
   Simulator::Schedule (Seconds (1.1), &TestAmpduReception::CheckRxSuccessBitmapAmpdu1, this, 0b00000000);
@@ -1048,14 +1084,10 @@ TestAmpduReception::DoRun (void)
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
   // A-MPDU 1
-  Simulator::Schedule (Seconds (2.0), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1000, WIFI_PREAMBLE_HE_SU, MPDU_IN_AGGREGATE, 2);
-  Simulator::Schedule (Seconds (2.0) + NanoSeconds (1004369), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1100, WIFI_PREAMBLE_NONE, MPDU_IN_AGGREGATE, 1);
-  Simulator::Schedule (Seconds (2.0) + NanoSeconds (2055172), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1200, WIFI_PREAMBLE_NONE, LAST_MPDU_IN_AGGREGATE, 0);
+  Simulator::Schedule (Seconds (2.0), &TestAmpduReception::SendAmpduWithThreeMpdus, this, txPowerDbm, 1000);
   
   // A-MPDU 2
-  Simulator::Schedule (Seconds (2.0) + MicroSeconds (2), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm - 100, 1300, WIFI_PREAMBLE_HE_SU, MPDU_IN_AGGREGATE, 2);
-  Simulator::Schedule (Seconds (2.0) + MicroSeconds (2) + NanoSeconds (1283343), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm - 100, 1400, WIFI_PREAMBLE_NONE, MPDU_IN_AGGREGATE, 1);
-  Simulator::Schedule (Seconds (2.0) + MicroSeconds (2) + NanoSeconds (2613120), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm - 100, 1500, WIFI_PREAMBLE_NONE, LAST_MPDU_IN_AGGREGATE, 0);
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (2), &TestAmpduReception::SendAmpduWithThreeMpdus, this, txPowerDbm - 100, 1300);
   
   // All MPDUs of A-MPDU 1 should have been received.
   Simulator::Schedule (Seconds (2.1), &TestAmpduReception::CheckRxSuccessBitmapAmpdu1, this, 0b00000111);
@@ -1075,14 +1107,10 @@ TestAmpduReception::DoRun (void)
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
   // A-MPDU 1
-  Simulator::Schedule (Seconds (3.0), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm - 100, 1000, WIFI_PREAMBLE_HE_SU, MPDU_IN_AGGREGATE, 2);
-  Simulator::Schedule (Seconds (3.0) + NanoSeconds (1004369), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm - 100, 1100, WIFI_PREAMBLE_NONE, MPDU_IN_AGGREGATE, 1);
-  Simulator::Schedule (Seconds (3.0) + NanoSeconds (2055172), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm - 100, 1200, WIFI_PREAMBLE_NONE, LAST_MPDU_IN_AGGREGATE, 0);
+  Simulator::Schedule (Seconds (3.0), &TestAmpduReception::SendAmpduWithThreeMpdus, this, txPowerDbm - 100, 1000);
   
   // A-MPDU 2
-  Simulator::Schedule (Seconds (3.0) + MicroSeconds (10), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1300, WIFI_PREAMBLE_HE_SU, MPDU_IN_AGGREGATE, 2);
-  Simulator::Schedule (Seconds (3.0) + MicroSeconds (10) + NanoSeconds (1283343), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1400, WIFI_PREAMBLE_NONE, MPDU_IN_AGGREGATE, 1);
-  Simulator::Schedule (Seconds (3.0) + MicroSeconds (10) + NanoSeconds (2613120), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1500, WIFI_PREAMBLE_NONE, LAST_MPDU_IN_AGGREGATE, 0);
+  Simulator::Schedule (Seconds (3.0) + MicroSeconds (10), &TestAmpduReception::SendAmpduWithThreeMpdus, this, txPowerDbm, 1300);
   
   // All MPDUs of A-MPDU 1 should have been ignored.
   Simulator::Schedule (Seconds (3.1), &TestAmpduReception::CheckRxSuccessBitmapAmpdu1, this, 0b00000000);
@@ -1102,14 +1130,10 @@ TestAmpduReception::DoRun (void)
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
   // A-MPDU 1
-  Simulator::Schedule (Seconds (4.0), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1000, WIFI_PREAMBLE_HE_SU, MPDU_IN_AGGREGATE, 2);
-  Simulator::Schedule (Seconds (4.0) + NanoSeconds (1004369), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1100, WIFI_PREAMBLE_NONE, MPDU_IN_AGGREGATE, 1);
-  Simulator::Schedule (Seconds (4.0) + NanoSeconds (2055172), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1200, WIFI_PREAMBLE_NONE, LAST_MPDU_IN_AGGREGATE, 0);
+  Simulator::Schedule (Seconds (4.0), &TestAmpduReception::SendAmpduWithThreeMpdus, this, txPowerDbm, 1000);
   
   // A-MPDU 2
-  Simulator::Schedule (Seconds (4.0) + MicroSeconds (10), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm - 100, 1300, WIFI_PREAMBLE_HE_SU, MPDU_IN_AGGREGATE, 2);
-  Simulator::Schedule (Seconds (4.0) + MicroSeconds (10) + NanoSeconds (1283343), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm - 100, 1400, WIFI_PREAMBLE_NONE, MPDU_IN_AGGREGATE, 1);
-  Simulator::Schedule (Seconds (4.0) + MicroSeconds (10) + NanoSeconds (2613120), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm - 100, 1500, WIFI_PREAMBLE_NONE, LAST_MPDU_IN_AGGREGATE, 0);
+  Simulator::Schedule (Seconds (4.0) + MicroSeconds (10), &TestAmpduReception::SendAmpduWithThreeMpdus, this, txPowerDbm - 100, 1300);
   
   // All MPDUs of A-MPDU 1 should have been received.
   Simulator::Schedule (Seconds (4.1), &TestAmpduReception::CheckRxSuccessBitmapAmpdu1, this, 0b00000111);
@@ -1129,14 +1153,10 @@ TestAmpduReception::DoRun (void)
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   // A-MPDU 1
-  Simulator::Schedule (Seconds (5.0), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm - 100, 1000, WIFI_PREAMBLE_HE_SU, MPDU_IN_AGGREGATE, 2);
-  Simulator::Schedule (Seconds (5.0) + NanoSeconds (1004369), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm - 100, 1100, WIFI_PREAMBLE_NONE, MPDU_IN_AGGREGATE, 1);
-  Simulator::Schedule (Seconds (5.0) + NanoSeconds (2055172), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm - 100, 1200, WIFI_PREAMBLE_NONE, LAST_MPDU_IN_AGGREGATE, 0);
+  Simulator::Schedule (Seconds (5.0), &TestAmpduReception::SendAmpduWithThreeMpdus, this, txPowerDbm - 100, 1000);
   
   // A-MPDU 2
-  Simulator::Schedule (Seconds (5.0) + MicroSeconds (100), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1300, WIFI_PREAMBLE_HE_SU, MPDU_IN_AGGREGATE, 2);
-  Simulator::Schedule (Seconds (5.0) + MicroSeconds (100) + NanoSeconds (1283343), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1400, WIFI_PREAMBLE_NONE, MPDU_IN_AGGREGATE, 1);
-  Simulator::Schedule (Seconds (5.0) + MicroSeconds (100) + NanoSeconds (2613120), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1500, WIFI_PREAMBLE_NONE, LAST_MPDU_IN_AGGREGATE, 0);
+  Simulator::Schedule (Seconds (5.0) + MicroSeconds (100), &TestAmpduReception::SendAmpduWithThreeMpdus, this, txPowerDbm, 1300);
   
   // All MPDUs of A-MPDU 1 should have been ignored.
   Simulator::Schedule (Seconds (5.1), &TestAmpduReception::CheckRxSuccessBitmapAmpdu1, this, 0b00000000);
@@ -1156,14 +1176,10 @@ TestAmpduReception::DoRun (void)
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   // A-MPDU 1
-  Simulator::Schedule (Seconds (6.0), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1000, WIFI_PREAMBLE_HE_SU, MPDU_IN_AGGREGATE, 2);
-  Simulator::Schedule (Seconds (6.0) + NanoSeconds (1004369), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1100, WIFI_PREAMBLE_NONE, MPDU_IN_AGGREGATE, 1);
-  Simulator::Schedule (Seconds (6.0) + NanoSeconds (2055172), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1200, WIFI_PREAMBLE_NONE, LAST_MPDU_IN_AGGREGATE, 0);
+  Simulator::Schedule (Seconds (6.0), &TestAmpduReception::SendAmpduWithThreeMpdus, this, txPowerDbm, 1000);
   
   // A-MPDU 2
-  Simulator::Schedule (Seconds (6.0) + MicroSeconds (100), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm - 100, 1300, WIFI_PREAMBLE_HE_SU, MPDU_IN_AGGREGATE, 2);
-  Simulator::Schedule (Seconds (6.0) + MicroSeconds (100) + NanoSeconds (1283343), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm - 100, 1400, WIFI_PREAMBLE_NONE, MPDU_IN_AGGREGATE, 1);
-  Simulator::Schedule (Seconds (6.0) + MicroSeconds (100) + NanoSeconds (2613120), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm - 100, 1500, WIFI_PREAMBLE_NONE, LAST_MPDU_IN_AGGREGATE, 0);
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (100), &TestAmpduReception::SendAmpduWithThreeMpdus, this, txPowerDbm - 100, 1300);
   
   // All MPDUs of A-MPDU 1 should have been received.
   Simulator::Schedule (Seconds (6.1), &TestAmpduReception::CheckRxSuccessBitmapAmpdu1, this, 0b00000111);
@@ -1183,14 +1199,10 @@ TestAmpduReception::DoRun (void)
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
   // A-MPDU 1
-  Simulator::Schedule (Seconds (7.0), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm - 100, 1000, WIFI_PREAMBLE_HE_SU, MPDU_IN_AGGREGATE, 2);
-  Simulator::Schedule (Seconds (7.0) + NanoSeconds (1004369), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm - 100, 1100, WIFI_PREAMBLE_NONE, MPDU_IN_AGGREGATE, 1);
-  Simulator::Schedule (Seconds (7.0) + NanoSeconds (2055172), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm - 100, 1200, WIFI_PREAMBLE_NONE, LAST_MPDU_IN_AGGREGATE, 0);
+  Simulator::Schedule (Seconds (7.0), &TestAmpduReception::SendAmpduWithThreeMpdus, this, txPowerDbm - 100, 1000);
   
   // A-MPDU 2
-  Simulator::Schedule (Seconds (7.0) + NanoSeconds (1100000), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1300, WIFI_PREAMBLE_HE_SU, MPDU_IN_AGGREGATE, 2);
-  Simulator::Schedule (Seconds (7.0) + NanoSeconds (1100000) + NanoSeconds (1283343), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1400, WIFI_PREAMBLE_NONE, MPDU_IN_AGGREGATE, 1);
-  Simulator::Schedule (Seconds (7.0) + NanoSeconds (1100000) + NanoSeconds (2613120), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1500, WIFI_PREAMBLE_NONE, LAST_MPDU_IN_AGGREGATE, 0);
+  Simulator::Schedule (Seconds (7.0) + NanoSeconds (1100000), &TestAmpduReception::SendAmpduWithThreeMpdus, this, txPowerDbm, 1300);
   
   // All MPDUs of A-MPDU 1 should have been ignored.
   Simulator::Schedule (Seconds (7.1), &TestAmpduReception::CheckRxSuccessBitmapAmpdu1, this, 0b00000000);
@@ -1210,14 +1222,10 @@ TestAmpduReception::DoRun (void)
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   // A-MPDU 1
-  Simulator::Schedule (Seconds (8.0), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1000, WIFI_PREAMBLE_HE_SU, MPDU_IN_AGGREGATE, 2);
-  Simulator::Schedule (Seconds (8.0) + NanoSeconds (1004369), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1100, WIFI_PREAMBLE_NONE, MPDU_IN_AGGREGATE, 1);
-  Simulator::Schedule (Seconds (8.0) + NanoSeconds (2055172), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1200, WIFI_PREAMBLE_NONE, LAST_MPDU_IN_AGGREGATE, 0);
+  Simulator::Schedule (Seconds (8.0), &TestAmpduReception::SendAmpduWithThreeMpdus, this, txPowerDbm, 1000);
   
   // A-MPDU 2
-  Simulator::Schedule (Seconds (8.0) + NanoSeconds (1100000), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm - 100, 1300, WIFI_PREAMBLE_HE_SU, MPDU_IN_AGGREGATE, 2);
-  Simulator::Schedule (Seconds (8.0) + NanoSeconds (1100000) + NanoSeconds (1283343), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm - 100, 1400, WIFI_PREAMBLE_NONE, MPDU_IN_AGGREGATE, 1);
-  Simulator::Schedule (Seconds (8.0) + NanoSeconds (1100000) + NanoSeconds (2613120), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm - 100, 1500, WIFI_PREAMBLE_NONE, LAST_MPDU_IN_AGGREGATE, 0);
+  Simulator::Schedule (Seconds (8.0) + NanoSeconds (1100000), &TestAmpduReception::SendAmpduWithThreeMpdus, this, txPowerDbm - 100, 1300);
   
   // All MPDUs of A-MPDU 1 should have been received.
   Simulator::Schedule (Seconds (8.1), &TestAmpduReception::CheckRxSuccessBitmapAmpdu1, this, 0b00000111);
@@ -1237,24 +1245,20 @@ TestAmpduReception::DoRun (void)
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   // A-MPDU 1
-  Simulator::Schedule (Seconds (9.0), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1000, WIFI_PREAMBLE_HE_SU, MPDU_IN_AGGREGATE, 2);
-  Simulator::Schedule (Seconds (9.0) + NanoSeconds (1004369), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1100, WIFI_PREAMBLE_NONE, MPDU_IN_AGGREGATE, 1);
-  Simulator::Schedule (Seconds (9.0) + NanoSeconds (2055172), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1200, WIFI_PREAMBLE_NONE, LAST_MPDU_IN_AGGREGATE, 0);
+  Simulator::Schedule (Seconds (9.0), &TestAmpduReception::SendAmpduWithThreeMpdus, this, txPowerDbm, 1000);
   
   // A-MPDU 2
-  Simulator::Schedule (Seconds (9.0) + MicroSeconds (2), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm + 3, 1300, WIFI_PREAMBLE_HE_SU, MPDU_IN_AGGREGATE, 2);
-  Simulator::Schedule (Seconds (9.0) + MicroSeconds (2) + NanoSeconds (1283343), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm + 3, 1400, WIFI_PREAMBLE_NONE, MPDU_IN_AGGREGATE, 1);
-  Simulator::Schedule (Seconds (9.0) + MicroSeconds (2) + NanoSeconds (2613120), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm + 3, 1500, WIFI_PREAMBLE_NONE, LAST_MPDU_IN_AGGREGATE, 0);
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (2), &TestAmpduReception::SendAmpduWithThreeMpdus, this, txPowerDbm + 3, 1300);
 
   // All MPDUs of A-MPDU 1 should have been dropped.
   Simulator::Schedule (Seconds (9.1), &TestAmpduReception::CheckRxSuccessBitmapAmpdu1, this, 0b00000000);
   Simulator::Schedule (Seconds (9.1), &TestAmpduReception::CheckRxFailureBitmapAmpdu1, this, 0b00000000);
   Simulator::Schedule (Seconds (9.1), &TestAmpduReception::CheckRxDroppedBitmapAmpdu1, this, 0b00000111);
   
-  // MPDUs #1 and #2 of A-MPDU 2 should have been received with errors. M/PDU #3 should have been successfully received (it depends on random stream!)
-  Simulator::Schedule (Seconds (9.1), &TestAmpduReception::CheckRxSuccessBitmapAmpdu2, this, 0b00000100);
-  Simulator::Schedule (Seconds (9.1), &TestAmpduReception::CheckRxFailureBitmapAmpdu2, this, 0b00000011);
-  Simulator::Schedule (Seconds (9.1), &TestAmpduReception::CheckRxDroppedBitmapAmpdu2, this, 0b00000011);
+  // All MPDUs of A-MPDU 2 should have been received with errors.
+  Simulator::Schedule (Seconds (9.1), &TestAmpduReception::CheckRxSuccessBitmapAmpdu2, this, 0b00000000);
+  Simulator::Schedule (Seconds (9.1), &TestAmpduReception::CheckRxFailureBitmapAmpdu2, this, 0b00000111);
+  Simulator::Schedule (Seconds (9.1), &TestAmpduReception::CheckRxDroppedBitmapAmpdu2, this, 0b00000111);
   
   Simulator::Schedule (Seconds (9.2), &TestAmpduReception::ResetBitmaps, this);
 
@@ -1264,14 +1268,10 @@ TestAmpduReception::DoRun (void)
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   // A-MPDU 1
-  Simulator::Schedule (Seconds (10.0), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1000, WIFI_PREAMBLE_HE_SU, MPDU_IN_AGGREGATE, 2);
-  Simulator::Schedule (Seconds (10.0) + NanoSeconds (1004369), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1100, WIFI_PREAMBLE_NONE, MPDU_IN_AGGREGATE, 1);
-  Simulator::Schedule (Seconds (10.0) + NanoSeconds (2055172), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1200, WIFI_PREAMBLE_NONE, LAST_MPDU_IN_AGGREGATE, 0);
+  Simulator::Schedule (Seconds (10.0), &TestAmpduReception::SendAmpduWithThreeMpdus, this, txPowerDbm, 1000);
   
   // A-MPDU 2
-  Simulator::Schedule (Seconds (10.0) + MicroSeconds (2), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1300, WIFI_PREAMBLE_HE_SU, MPDU_IN_AGGREGATE, 2);
-  Simulator::Schedule (Seconds (10.0) + MicroSeconds (2) + NanoSeconds (1283343), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1400, WIFI_PREAMBLE_NONE, MPDU_IN_AGGREGATE, 1);
-  Simulator::Schedule (Seconds (10.0) + MicroSeconds (2) + NanoSeconds (2613120), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1500, WIFI_PREAMBLE_NONE, LAST_MPDU_IN_AGGREGATE, 0);
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (2), &TestAmpduReception::SendAmpduWithThreeMpdus, this, txPowerDbm, 1300);
   
   // All MPDUs of A-MPDU 1 should have been dropped (preamble detection failed).
   Simulator::Schedule (Seconds (10.1), &TestAmpduReception::CheckRxSuccessBitmapAmpdu1, this, 0b00000000);
@@ -1291,14 +1291,10 @@ TestAmpduReception::DoRun (void)
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   // A-MPDU 1
-  Simulator::Schedule (Seconds (11.0), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm + 3, 1000, WIFI_PREAMBLE_HE_SU, MPDU_IN_AGGREGATE, 2);
-  Simulator::Schedule (Seconds (11.0) + NanoSeconds (1004369), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm + 3, 1100, WIFI_PREAMBLE_NONE, MPDU_IN_AGGREGATE, 1);
-  Simulator::Schedule (Seconds (11.0) + NanoSeconds (2055172), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm + 3, 1200, WIFI_PREAMBLE_NONE, LAST_MPDU_IN_AGGREGATE, 0);
+  Simulator::Schedule (Seconds (11.0), &TestAmpduReception::SendAmpduWithThreeMpdus, this, txPowerDbm + 3, 1000);
   
   // A-MPDU 2
-  Simulator::Schedule (Seconds (11.0) + MicroSeconds (2), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1300, WIFI_PREAMBLE_HE_SU, MPDU_IN_AGGREGATE, 2);
-  Simulator::Schedule (Seconds (11.0) + MicroSeconds (2) + NanoSeconds (1283343), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1400, WIFI_PREAMBLE_NONE, MPDU_IN_AGGREGATE, 1);
-  Simulator::Schedule (Seconds (11.0) + MicroSeconds (2) + NanoSeconds (2613120), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1500, WIFI_PREAMBLE_NONE, LAST_MPDU_IN_AGGREGATE, 0);
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (2), &TestAmpduReception::SendAmpduWithThreeMpdus, this, txPowerDbm, 1300);
   
   // All MPDUs of A-MPDU 1 should have been received with errors.
   Simulator::Schedule (Seconds (11.1), &TestAmpduReception::CheckRxSuccessBitmapAmpdu1, this, 0b00000000);
@@ -1318,18 +1314,14 @@ TestAmpduReception::DoRun (void)
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   // A-MPDU 1
-  Simulator::Schedule (Seconds (12.0), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1000, WIFI_PREAMBLE_HE_SU, MPDU_IN_AGGREGATE, 2);
-  Simulator::Schedule (Seconds (12.0) + NanoSeconds (1004369), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1100, WIFI_PREAMBLE_NONE, MPDU_IN_AGGREGATE, 1);
-  Simulator::Schedule (Seconds (12.0) + NanoSeconds (2055172), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1200, WIFI_PREAMBLE_NONE, LAST_MPDU_IN_AGGREGATE, 0);
+  Simulator::Schedule (Seconds (12.0), &TestAmpduReception::SendAmpduWithThreeMpdus, this, txPowerDbm, 1000);
   
   // A-MPDU 2
-  Simulator::Schedule (Seconds (12.0) + MicroSeconds (10), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm + 3, 1300, WIFI_PREAMBLE_HE_SU, MPDU_IN_AGGREGATE, 2);
-  Simulator::Schedule (Seconds (12.0) + MicroSeconds (10) + NanoSeconds (1283343), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm + 3, 1400, WIFI_PREAMBLE_NONE, MPDU_IN_AGGREGATE, 1);
-  Simulator::Schedule (Seconds (12.0) + MicroSeconds (10) + NanoSeconds (2613120), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm + 3, 1500, WIFI_PREAMBLE_NONE, LAST_MPDU_IN_AGGREGATE, 0);
+  Simulator::Schedule (Seconds (12.0) + MicroSeconds (10), &TestAmpduReception::SendAmpduWithThreeMpdus, this, txPowerDbm + 3, 1300);
 
- // All MPDUs of A-MPDU 1 should have been dropped (PHY header reception failed).
+ // All MPDUs of A-MPDU 1 should have been received with errors (PHY header reception failed and thus incorrect decoding of payload).
   Simulator::Schedule (Seconds (12.1), &TestAmpduReception::CheckRxSuccessBitmapAmpdu1, this, 0b00000000);
-  Simulator::Schedule (Seconds (12.1), &TestAmpduReception::CheckRxFailureBitmapAmpdu1, this, 0b00000001);
+  Simulator::Schedule (Seconds (12.1), &TestAmpduReception::CheckRxFailureBitmapAmpdu1, this, 0b00000111);
   Simulator::Schedule (Seconds (12.1), &TestAmpduReception::CheckRxDroppedBitmapAmpdu1, this, 0b00000111);
   
   // All MPDUs of A-MPDU 2 should have been dropped (even though TX power is higher, it is not high enough to get the PHY reception switched)
@@ -1345,18 +1337,14 @@ TestAmpduReception::DoRun (void)
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   // A-MPDU 1
-  Simulator::Schedule (Seconds (13.0), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1000, WIFI_PREAMBLE_HE_SU, MPDU_IN_AGGREGATE, 2);
-  Simulator::Schedule (Seconds (13.0) + NanoSeconds (1004369), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1100, WIFI_PREAMBLE_NONE, MPDU_IN_AGGREGATE, 1);
-  Simulator::Schedule (Seconds (13.0) + NanoSeconds (2055172), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1200, WIFI_PREAMBLE_NONE, LAST_MPDU_IN_AGGREGATE, 0);
+  Simulator::Schedule (Seconds (13.0), &TestAmpduReception::SendAmpduWithThreeMpdus, this, txPowerDbm, 1000);
   
   // A-MPDU 2
-  Simulator::Schedule (Seconds (13.0) + MicroSeconds (10), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1300, WIFI_PREAMBLE_HE_SU, MPDU_IN_AGGREGATE, 2);
-  Simulator::Schedule (Seconds (13.0) + MicroSeconds (10) + NanoSeconds (1283343), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1400, WIFI_PREAMBLE_NONE, MPDU_IN_AGGREGATE, 1);
-  Simulator::Schedule (Seconds (13.0) + MicroSeconds (10) + NanoSeconds (2613120), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1500, WIFI_PREAMBLE_NONE, LAST_MPDU_IN_AGGREGATE, 0);
+  Simulator::Schedule (Seconds (13.0) + MicroSeconds (10), &TestAmpduReception::SendAmpduWithThreeMpdus, this, txPowerDbm, 1300);
   
-  // All MPDUs of A-MPDU 1 should have been dropped (PHY header reception failed).
+  // All MPDUs of A-MPDU 1 should have been received with errors (PHY header reception failed and thus incorrect decoding of payload).
   Simulator::Schedule (Seconds (13.1), &TestAmpduReception::CheckRxSuccessBitmapAmpdu1, this, 0b00000000);
-  Simulator::Schedule (Seconds (13.1), &TestAmpduReception::CheckRxFailureBitmapAmpdu1, this, 0b00000001);
+  Simulator::Schedule (Seconds (13.1), &TestAmpduReception::CheckRxFailureBitmapAmpdu1, this, 0b00000111);
   Simulator::Schedule (Seconds (13.1), &TestAmpduReception::CheckRxDroppedBitmapAmpdu1, this, 0b00000111);
 
   // All MPDUs of A-MPDU 2 should have been dropped as well.
@@ -1372,14 +1360,10 @@ TestAmpduReception::DoRun (void)
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   // A-MPDU 1
-  Simulator::Schedule (Seconds (14.0), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm + 3, 1000, WIFI_PREAMBLE_HE_SU, MPDU_IN_AGGREGATE, 2);
-  Simulator::Schedule (Seconds (14.0) + NanoSeconds (1004369), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm + 3, 1100, WIFI_PREAMBLE_NONE, MPDU_IN_AGGREGATE, 1);
-  Simulator::Schedule (Seconds (14.0) + NanoSeconds (2055172), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm + 3, 1200, WIFI_PREAMBLE_NONE, LAST_MPDU_IN_AGGREGATE, 0);
+  Simulator::Schedule (Seconds (14.0), &TestAmpduReception::SendAmpduWithThreeMpdus, this, txPowerDbm + 3, 1000);
   
   // A-MPDU 2
-  Simulator::Schedule (Seconds (14.0) + MicroSeconds (10), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1300, WIFI_PREAMBLE_HE_SU, MPDU_IN_AGGREGATE, 2);
-  Simulator::Schedule (Seconds (14.0) + MicroSeconds (10) + NanoSeconds (1283343), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1400, WIFI_PREAMBLE_NONE, MPDU_IN_AGGREGATE, 1);
-  Simulator::Schedule (Seconds (14.0) + MicroSeconds (10) + NanoSeconds (2613120), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1500, WIFI_PREAMBLE_NONE, LAST_MPDU_IN_AGGREGATE, 0);
+  Simulator::Schedule (Seconds (14.0) + MicroSeconds (10), &TestAmpduReception::SendAmpduWithThreeMpdus, this, txPowerDbm, 1300);
   
   // All MPDUs of A-MPDU 1 should have been received with errors.
   Simulator::Schedule (Seconds (14.1), &TestAmpduReception::CheckRxSuccessBitmapAmpdu1, this, 0b00000000);
@@ -1399,14 +1383,10 @@ TestAmpduReception::DoRun (void)
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   // A-MPDU 1
-  Simulator::Schedule (Seconds (15.0), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1000, WIFI_PREAMBLE_HE_SU, MPDU_IN_AGGREGATE, 2);
-  Simulator::Schedule (Seconds (15.0) + NanoSeconds (1004369), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1100, WIFI_PREAMBLE_NONE, MPDU_IN_AGGREGATE, 1);
-  Simulator::Schedule (Seconds (15.0) + NanoSeconds (2055172), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1200, WIFI_PREAMBLE_NONE, LAST_MPDU_IN_AGGREGATE, 0);
+  Simulator::Schedule (Seconds (15.0), &TestAmpduReception::SendAmpduWithThreeMpdus, this, txPowerDbm, 1000);
   
   // A-MPDU 2
-  Simulator::Schedule (Seconds (15.0) + MicroSeconds (10), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm + 6, 1300, WIFI_PREAMBLE_HE_SU, MPDU_IN_AGGREGATE, 2);
-  Simulator::Schedule (Seconds (15.0) + MicroSeconds (10) + NanoSeconds (1283343), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm + 6, 1400, WIFI_PREAMBLE_NONE, MPDU_IN_AGGREGATE, 1);
-  Simulator::Schedule (Seconds (15.0) + MicroSeconds (10) + NanoSeconds (2613120), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm + 6, 1500, WIFI_PREAMBLE_NONE, LAST_MPDU_IN_AGGREGATE, 0);
+  Simulator::Schedule (Seconds (15.0) + MicroSeconds (10), &TestAmpduReception::SendAmpduWithThreeMpdus, this, txPowerDbm + 6, 1300);
   
   // All MPDUs of A-MPDU 1 should have been dropped because PHY reception switched to A-MPDU 2.
   Simulator::Schedule (Seconds (15.1), &TestAmpduReception::CheckRxSuccessBitmapAmpdu1, this, 0b00000000);
@@ -1426,14 +1406,10 @@ TestAmpduReception::DoRun (void)
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   // A-MPDU 1
-  Simulator::Schedule (Seconds (16.0), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm + 6, 1000, WIFI_PREAMBLE_HE_SU, MPDU_IN_AGGREGATE, 2);
-  Simulator::Schedule (Seconds (16.0) + NanoSeconds (1004369), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm + 6, 1100, WIFI_PREAMBLE_NONE, MPDU_IN_AGGREGATE, 1);
-  Simulator::Schedule (Seconds (16.0) + NanoSeconds (2055172), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm + 6, 1200, WIFI_PREAMBLE_NONE, LAST_MPDU_IN_AGGREGATE, 0);
+  Simulator::Schedule (Seconds (16.0), &TestAmpduReception::SendAmpduWithThreeMpdus, this, txPowerDbm + 6, 1000);
   
   // A-MPDU 2
-  Simulator::Schedule (Seconds (16.0) + MicroSeconds (10), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1300, WIFI_PREAMBLE_HE_SU, MPDU_IN_AGGREGATE, 2);
-  Simulator::Schedule (Seconds (16.0) + MicroSeconds (10) + NanoSeconds (1283343), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1400, WIFI_PREAMBLE_NONE, MPDU_IN_AGGREGATE, 1);
-  Simulator::Schedule (Seconds (16.0) + MicroSeconds (10) + NanoSeconds (2613120), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1500, WIFI_PREAMBLE_NONE, LAST_MPDU_IN_AGGREGATE, 0);
+  Simulator::Schedule (Seconds (16.0) + MicroSeconds (10), &TestAmpduReception::SendAmpduWithThreeMpdus, this, txPowerDbm, 1300);
   
   // All MPDUs of A-MPDU 1 should have been successfully received.
   Simulator::Schedule (Seconds (16.1), &TestAmpduReception::CheckRxSuccessBitmapAmpdu1, this, 0b00000111);
@@ -1453,14 +1429,10 @@ TestAmpduReception::DoRun (void)
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
   // A-MPDU 1
-  Simulator::Schedule (Seconds (17.0), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1000, WIFI_PREAMBLE_HE_SU, MPDU_IN_AGGREGATE, 2);
-  Simulator::Schedule (Seconds (17.0) + NanoSeconds (1004369), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1100, WIFI_PREAMBLE_NONE, MPDU_IN_AGGREGATE, 1);
-  Simulator::Schedule (Seconds (17.0) + NanoSeconds (2055172), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1200, WIFI_PREAMBLE_NONE, LAST_MPDU_IN_AGGREGATE, 0);
+  Simulator::Schedule (Seconds (17.0), &TestAmpduReception::SendAmpduWithThreeMpdus, this, txPowerDbm, 1000);
   
   // A-MPDU 2
-  Simulator::Schedule (Seconds (17.0) + MicroSeconds (25), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm + 6, 1300, WIFI_PREAMBLE_HE_SU, MPDU_IN_AGGREGATE, 2);
-  Simulator::Schedule (Seconds (17.0) + MicroSeconds (25) + NanoSeconds (1283343), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm + 6, 1400, WIFI_PREAMBLE_NONE, MPDU_IN_AGGREGATE, 1);
-  Simulator::Schedule (Seconds (17.0) + MicroSeconds (25) + NanoSeconds (2613120), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm + 6, 1500, WIFI_PREAMBLE_NONE, LAST_MPDU_IN_AGGREGATE, 0);
+  Simulator::Schedule (Seconds (17.0) + MicroSeconds (25), &TestAmpduReception::SendAmpduWithThreeMpdus, this, txPowerDbm + 6, 1300);
   
   // All MPDUs of A-MPDU 1 should have been received with errors.
   Simulator::Schedule (Seconds (17.1), &TestAmpduReception::CheckRxSuccessBitmapAmpdu1, this, 0b00000000);
@@ -1480,14 +1452,10 @@ TestAmpduReception::DoRun (void)
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
   // A-MPDU 1
-  Simulator::Schedule (Seconds (18.0), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm + 6, 1000, WIFI_PREAMBLE_HE_SU, MPDU_IN_AGGREGATE, 2);
-  Simulator::Schedule (Seconds (18.0) + NanoSeconds (1004369), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm + 6, 1100, WIFI_PREAMBLE_NONE, MPDU_IN_AGGREGATE, 1);
-  Simulator::Schedule (Seconds (18.0) + NanoSeconds (2055172), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm + 6, 1200, WIFI_PREAMBLE_NONE, LAST_MPDU_IN_AGGREGATE, 0);
+  Simulator::Schedule (Seconds (18.0), &TestAmpduReception::SendAmpduWithThreeMpdus, this, txPowerDbm + 6, 1000);
   
   // A-MPDU 2
-  Simulator::Schedule (Seconds (18.0) + MicroSeconds (25), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1300, WIFI_PREAMBLE_HE_SU, MPDU_IN_AGGREGATE, 2);
-  Simulator::Schedule (Seconds (18.0) + MicroSeconds (25) + NanoSeconds (1283343), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1400, WIFI_PREAMBLE_NONE, MPDU_IN_AGGREGATE, 1);
-  Simulator::Schedule (Seconds (18.0) + MicroSeconds (25) + NanoSeconds (2613120), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1500, WIFI_PREAMBLE_NONE, LAST_MPDU_IN_AGGREGATE, 0);
+  Simulator::Schedule (Seconds (18.0) + MicroSeconds (25), &TestAmpduReception::SendAmpduWithThreeMpdus, this, txPowerDbm, 1300);
   
   // All MPDUs of A-MPDU 1 should have been successfully received.
   Simulator::Schedule (Seconds (18.1), &TestAmpduReception::CheckRxSuccessBitmapAmpdu1, this, 0b00000111);
@@ -1507,14 +1475,10 @@ TestAmpduReception::DoRun (void)
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
   // A-MPDU 1
-  Simulator::Schedule (Seconds (19.0), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1000, WIFI_PREAMBLE_HE_SU, MPDU_IN_AGGREGATE, 2);
-  Simulator::Schedule (Seconds (19.0) + NanoSeconds (1004369), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1100, WIFI_PREAMBLE_NONE, MPDU_IN_AGGREGATE, 1);
-  Simulator::Schedule (Seconds (19.0) + NanoSeconds (2055172), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1200, WIFI_PREAMBLE_NONE, LAST_MPDU_IN_AGGREGATE, 0);
+  Simulator::Schedule (Seconds (19.0), &TestAmpduReception::SendAmpduWithThreeMpdus, this, txPowerDbm, 1000);
   
   // A-MPDU 2
-  Simulator::Schedule (Seconds (19.0) + MicroSeconds (25), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1300, WIFI_PREAMBLE_HE_SU, MPDU_IN_AGGREGATE, 2);
-  Simulator::Schedule (Seconds (19.0) + MicroSeconds (25) + NanoSeconds (1283343), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1400, WIFI_PREAMBLE_NONE, MPDU_IN_AGGREGATE, 1);
-  Simulator::Schedule (Seconds (19.0) + MicroSeconds (25) + NanoSeconds (2613120), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1500, WIFI_PREAMBLE_NONE, LAST_MPDU_IN_AGGREGATE, 0);
+  Simulator::Schedule (Seconds (19.0) + MicroSeconds (25), &TestAmpduReception::SendAmpduWithThreeMpdus, this, txPowerDbm, 1300);
   
   // All MPDUs of A-MPDU 1 should have been received with errors.
   Simulator::Schedule (Seconds (19.1), &TestAmpduReception::CheckRxSuccessBitmapAmpdu1, this, 0b00000000);
@@ -1534,14 +1498,10 @@ TestAmpduReception::DoRun (void)
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   // A-MPDU 1
-  Simulator::Schedule (Seconds (20.0), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1000, WIFI_PREAMBLE_HE_SU, MPDU_IN_AGGREGATE, 2);
-  Simulator::Schedule (Seconds (20.0) + NanoSeconds (1004369), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1100, WIFI_PREAMBLE_NONE, MPDU_IN_AGGREGATE, 1);
-  Simulator::Schedule (Seconds (20.0) + NanoSeconds (2055172), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1200, WIFI_PREAMBLE_NONE, LAST_MPDU_IN_AGGREGATE, 0);
+  Simulator::Schedule (Seconds (20.0), &TestAmpduReception::SendAmpduWithThreeMpdus, this, txPowerDbm, 1000);
   
   // A-MPDU 2
-  Simulator::Schedule (Seconds (20.0) + MicroSeconds (100), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm + 6, 1300, WIFI_PREAMBLE_HE_SU, MPDU_IN_AGGREGATE, 2);
-  Simulator::Schedule (Seconds (20.0) + MicroSeconds (100) + NanoSeconds (1283343), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm + 6, 1400, WIFI_PREAMBLE_NONE, MPDU_IN_AGGREGATE, 1);
-  Simulator::Schedule (Seconds (20.0) + MicroSeconds (100) + NanoSeconds (2613120), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm + 6, 1500, WIFI_PREAMBLE_NONE, LAST_MPDU_IN_AGGREGATE, 0);
+  Simulator::Schedule (Seconds (20.0) + MicroSeconds (100), &TestAmpduReception::SendAmpduWithThreeMpdus, this, txPowerDbm + 6, 1300);
   
   // All MPDUs of A-MPDU 1 should have been received with errors.
   Simulator::Schedule (Seconds (20.1), &TestAmpduReception::CheckRxSuccessBitmapAmpdu1, this, 0b00000000);
@@ -1561,14 +1521,10 @@ TestAmpduReception::DoRun (void)
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   // A-MPDU 1
-  Simulator::Schedule (Seconds (21.0), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm + 6, 1000, WIFI_PREAMBLE_HE_SU, MPDU_IN_AGGREGATE, 2);
-  Simulator::Schedule (Seconds (21.0) + NanoSeconds (1004369), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm + 6, 1100, WIFI_PREAMBLE_NONE, MPDU_IN_AGGREGATE, 1);
-  Simulator::Schedule (Seconds (21.0) + NanoSeconds (2055172), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm + 6, 1200, WIFI_PREAMBLE_NONE, LAST_MPDU_IN_AGGREGATE, 0);
+  Simulator::Schedule (Seconds (21.0), &TestAmpduReception::SendAmpduWithThreeMpdus, this, txPowerDbm + 6, 1000);
   
   // A-MPDU 2
-  Simulator::Schedule (Seconds (21.0) + MicroSeconds (100), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1300, WIFI_PREAMBLE_HE_SU, MPDU_IN_AGGREGATE, 2);
-  Simulator::Schedule (Seconds (21.0) + MicroSeconds (100) + NanoSeconds (1283343), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1400, WIFI_PREAMBLE_NONE, MPDU_IN_AGGREGATE, 1);
-  Simulator::Schedule (Seconds (21.0) + MicroSeconds (100) + NanoSeconds (2613120), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1500, WIFI_PREAMBLE_NONE, LAST_MPDU_IN_AGGREGATE, 0);
+  Simulator::Schedule (Seconds (21.0) + MicroSeconds (100), &TestAmpduReception::SendAmpduWithThreeMpdus, this, txPowerDbm, 1300);
   
   // All MPDUs of A-MPDU 1 should have been successfully received.
   Simulator::Schedule (Seconds (21.1), &TestAmpduReception::CheckRxSuccessBitmapAmpdu1, this, 0b00000111);
@@ -1588,14 +1544,10 @@ TestAmpduReception::DoRun (void)
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   // A-MPDU 1
-  Simulator::Schedule (Seconds (22.0), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1000, WIFI_PREAMBLE_HE_SU, MPDU_IN_AGGREGATE, 2);
-  Simulator::Schedule (Seconds (22.0) + NanoSeconds (1004369), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1100, WIFI_PREAMBLE_NONE, MPDU_IN_AGGREGATE, 1);
-  Simulator::Schedule (Seconds (22.0) + NanoSeconds (2055172), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1200, WIFI_PREAMBLE_NONE, LAST_MPDU_IN_AGGREGATE, 0);
+  Simulator::Schedule (Seconds (22.0), &TestAmpduReception::SendAmpduWithThreeMpdus, this, txPowerDbm, 1000);
   
   // A-MPDU 2
-  Simulator::Schedule (Seconds (22.0) + MicroSeconds (100), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1300, WIFI_PREAMBLE_HE_SU, MPDU_IN_AGGREGATE, 2);
-  Simulator::Schedule (Seconds (22.0) + MicroSeconds (100) + NanoSeconds (1283343), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1400, WIFI_PREAMBLE_NONE, MPDU_IN_AGGREGATE, 1);
-  Simulator::Schedule (Seconds (22.0) + MicroSeconds (100) + NanoSeconds (2613120), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1500, WIFI_PREAMBLE_NONE, LAST_MPDU_IN_AGGREGATE, 0);
+  Simulator::Schedule (Seconds (22.0) + MicroSeconds (100), &TestAmpduReception::SendAmpduWithThreeMpdus, this, txPowerDbm, 1300);
   
   // All MPDUs of A-MPDU 1 should have been received with errors.
   Simulator::Schedule (Seconds (22.1), &TestAmpduReception::CheckRxSuccessBitmapAmpdu1, this, 0b00000000);
@@ -1615,14 +1567,10 @@ TestAmpduReception::DoRun (void)
   ///////////////////////////////////////////////////////////////////////////////
 
   // A-MPDU 1
-  Simulator::Schedule (Seconds (23.0), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1000, WIFI_PREAMBLE_HE_SU, MPDU_IN_AGGREGATE, 2);
-  Simulator::Schedule (Seconds (23.0) + NanoSeconds (1004369), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1100, WIFI_PREAMBLE_NONE, MPDU_IN_AGGREGATE, 1);
-  Simulator::Schedule (Seconds (23.0) + NanoSeconds (2055172), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1200, WIFI_PREAMBLE_NONE, LAST_MPDU_IN_AGGREGATE, 0);
+  Simulator::Schedule (Seconds (23.0), &TestAmpduReception::SendAmpduWithThreeMpdus, this, txPowerDbm, 1000);
   
   // A-MPDU 2
-  Simulator::Schedule (Seconds (23.0) + NanoSeconds (1100000), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1300, WIFI_PREAMBLE_HE_SU, MPDU_IN_AGGREGATE, 2);
-  Simulator::Schedule (Seconds (23.0) + NanoSeconds (1100000) + NanoSeconds (1283343), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1400, WIFI_PREAMBLE_NONE, MPDU_IN_AGGREGATE, 1);
-  Simulator::Schedule (Seconds (23.0) + NanoSeconds (1100000) + NanoSeconds (2613120), &TestAmpduReception::ScheduleSendMpdu, this, txPowerDbm, 1500, WIFI_PREAMBLE_NONE, LAST_MPDU_IN_AGGREGATE, 0);
+  Simulator::Schedule (Seconds (23.0) + NanoSeconds (1100000), &TestAmpduReception::SendAmpduWithThreeMpdus, this, txPowerDbm, 1300);
   
   // The first MPDU of A-MPDU 1 should have been successfully received (no interference).
   // The two other MPDUs failed due to interference and are marked as failure (and dropped).
