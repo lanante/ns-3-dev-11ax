@@ -398,8 +398,7 @@ WifiPhy::WifiPhy ()
     m_totalAmpduNumSymbols (0),
     m_currentEvent (0),
     m_wifiRadioEnergyModel (0),
-    m_timeLastPreambleDetected (Seconds (0)),
-    m_currentTxId (0)
+    m_timeLastPreambleDetected (Seconds (0))
 {
   NS_LOG_FUNCTION (this);
   m_random = CreateObject<UniformRandomVariable> ();
@@ -2539,7 +2538,6 @@ WifiPhy::SendPacket (Ptr<const Packet> packet, WifiTxVector txVector)
 
   m_currentRemainingPpduDuration = Seconds (0);
   m_plcpSuccess = false;
-  m_currentTxId = 0;
 
   Time txDuration = CalculateTxDuration (packet->GetSize (), txVector, GetFrequency ());
   NS_ASSERT (txDuration.IsStrictlyPositive ());
@@ -2655,7 +2653,7 @@ WifiPhy::SendPacket (Ptr<const Packet> packet, WifiTxVector txVector)
     {
       isFrameComplete = 0;
     }
-  WifiPhyTag tag (txVector.GetPreambleType (), txVector.GetMode ().GetModulationClass (), isFrameComplete, m_device ? m_device->GetNode ()->GetId () : 0);
+  WifiPhyTag tag (txVector.GetPreambleType (), txVector.GetMode ().GetModulationClass (), isFrameComplete);
   newPacket->AddPacketTag (tag);
 
   StartTx (newPacket, txVector, txDuration);
@@ -2665,7 +2663,7 @@ WifiPhy::SendPacket (Ptr<const Packet> packet, WifiTxVector txVector)
 }
 
 void
-WifiPhy::StartReceiveHeader (Ptr<Event> event, Time rxDuration, uint16_t length, uint32_t txNodeId)
+WifiPhy::StartReceiveHeader (Ptr<Event> event, Time rxDuration, uint16_t length)
 {
   NS_LOG_FUNCTION (this << event->GetPacket () << event->GetTxVector () << event << rxDuration);
   NS_ASSERT (!IsStateRx ());
@@ -2690,13 +2688,11 @@ WifiPhy::StartReceiveHeader (Ptr<Event> event, Time rxDuration, uint16_t length,
         NS_LOG_DEBUG ("Packet reception could not be started because not enough RX antennas");
         m_plcpSuccess = false;
         m_currentRemainingPpduDuration = Seconds (0);
-        m_currentTxId = 0;
         NotifyRxDrop (event->GetPacket (), UNSUPPORTED_SETTINGS);
         MaybeCcaBusyDuration ();
         return;
       }
 
-    m_currentTxId = txNodeId;
     WifiModulationClass modulation = m_currentTxVector.GetMode ().GetModulationClass ();
     if (modulation == WIFI_MOD_CLASS_HT)
       {
@@ -2998,7 +2994,7 @@ WifiPhy::StartReceivePreamble (Ptr<Packet> packet, double rxPowerW, Time rxDurat
               m_currentHeSigHdr = heSigHdr;
               m_currentRemainingPpduDuration = remainingPpduDuration;
             }
-          StartRx (event, rxPowerW, rxDuration, length, tag.GetTxNodeId ());
+          StartRx (event, rxPowerW, rxDuration, length);
         }
       else
         {
@@ -3026,7 +3022,7 @@ WifiPhy::StartReceivePreamble (Ptr<Packet> packet, double rxPowerW, Time rxDurat
       break;
     case WifiPhyState::CCA_BUSY:
     case WifiPhyState::IDLE:
-      StartRx (event, rxPowerW, rxDuration, length, tag.GetTxNodeId ());
+      StartRx (event, rxPowerW, rxDuration, length);
       break;
     case WifiPhyState::SLEEP:
       NS_LOG_DEBUG ("Drop packet because in sleep mode");
@@ -3096,7 +3092,6 @@ WifiPhy::StartReceivePayload (Ptr<Event> event)
           NotifyRxDrop (event->GetPacket (), UNSUPPORTED_SETTINGS);
           m_currentRemainingPpduDuration = Seconds (0);
           m_plcpSuccess = false;
-          m_currentTxId = 0;
         }
     }
   else //plcp reception failed
@@ -3105,7 +3100,6 @@ WifiPhy::StartReceivePayload (Ptr<Event> event)
       NotifyRxDrop (event->GetPacket (), SIG_A_FAILURE);
       m_currentRemainingPpduDuration = Seconds (0);
       m_plcpSuccess = false;
-      m_currentTxId = 0;
     }
 }
 
@@ -4271,7 +4265,6 @@ WifiPhy::AbortCurrentReception (WifiPhyRxfailureReason reason)
   m_currentEvent = 0;
   m_currentRemainingPpduDuration = Seconds (0);
   m_plcpSuccess = false;
-  m_currentTxId = 0;
 }
 
 void
@@ -4308,9 +4301,9 @@ WifiPhy::GetTxPowerForTransmission (WifiTxVector txVector) const
 }
 
 void
-WifiPhy::StartRx (Ptr<Event> event, double rxPowerW, Time rxDuration, uint16_t length, uint32_t txNodeId)
+WifiPhy::StartRx (Ptr<Event> event, double rxPowerW, Time rxDuration, uint16_t length)
 {
-  NS_LOG_FUNCTION (this << event->GetPacket () << event->GetTxVector () << event << rxPowerW << rxDuration << length << txNodeId);
+  NS_LOG_FUNCTION (this << event->GetPacket () << event->GetTxVector () << event << rxPowerW << rxDuration << length);
 
   NS_LOG_DEBUG ("sync to signal (power=" << rxPowerW << "W)");
   m_interference.NotifyRxStart (); //We need to notify it now so that it starts recording events
@@ -4319,11 +4312,10 @@ WifiPhy::StartRx (Ptr<Event> event, double rxPowerW, Time rxDuration, uint16_t l
     {
       m_plcpSuccess = false;
       m_currentRemainingPpduDuration = Seconds (0);
-      m_currentTxId = 0;
       Time startOfPreambleDuration = GetPreambleDetectionDuration ();
       Time remainingRxDuration = rxDuration - startOfPreambleDuration;
       m_endPreambleDetectionEvent = Simulator::Schedule (startOfPreambleDuration, &WifiPhy::StartReceiveHeader, this,
-                                                         event, remainingRxDuration, length, txNodeId);
+                                                         event, remainingRxDuration, length);
     }
   else if ((m_frameCaptureModel != 0) && (rxPowerW > m_currentEvent->GetRxPowerW ()))
     {
@@ -4333,12 +4325,11 @@ WifiPhy::StartRx (Ptr<Event> event, double rxPowerW, Time rxDuration, uint16_t l
       m_endPreambleDetectionEvent.Cancel ();
       m_plcpSuccess = false;
       m_currentRemainingPpduDuration = Seconds (0);
-      m_currentTxId = 0;
       m_interference.NotifyRxStart ();
       Time startOfPreambleDuration = GetPreambleDetectionDuration ();
       Time remainingRxDuration = rxDuration - startOfPreambleDuration;
       m_endPreambleDetectionEvent = Simulator::Schedule (startOfPreambleDuration, &WifiPhy::StartReceiveHeader, this,
-                                                         event, remainingRxDuration, length, txNodeId);
+                                                         event, remainingRxDuration, length);
     }
   else
     {

@@ -152,9 +152,8 @@ public:
    * \param event the corresponding event of the first time the packet arrives (also storing packet and TxVector information)
    * \param rxDuration the duration needed for the reception of the header and payload of the packet
    * \param length the length value indicated in the received PHY header
-   * \param txNodeId the node ID of the transmitter
    */
-  void StartReceiveHeader (Ptr<Event> event, Time rxDuration, uint16_t length, uint32_t txNodeId);
+  void StartReceiveHeader (Ptr<Event> event, Time rxDuration, uint16_t length);
 
   /**
    * Continue receiving the PHY header of a packet (i.e. after the end of receiving the legacy header part).
@@ -1738,10 +1737,8 @@ private:
    * \param rxPowerW the receive power in W
    * \param rxDuration the duration needed for the reception of the packet
    * \param length the length value indicated in the received PHY header
-   * \param txNodeId the node ID of the transmitter
    */
-  void StartRx (Ptr<Event> event, double rxPowerW, Time rxDuration, uint16_t length,
-                uint32_t txNodeId);
+  void StartRx (Ptr<Event> event, double rxPowerW, Time rxDuration, uint16_t length);
   /**
    * Get the reception status for the provided MPDU and notify.
    *
@@ -1933,7 +1930,6 @@ private:
 
   WifiTxVector m_currentTxVector;      //!< Store the TxVector to process packets that are part of an A-MPDU
   Time m_currentRemainingPpduDuration; //!< Store the remaining duration of the PPDU that is being received (used for A-MPDU reception)
-  uint32_t m_currentTxId;              //!< Store the node ID of the transmitter the PHY is locked onto (used for A-MPDU reception)
 
   DsssSigHeader m_currentDsssSigHdr; //!< DSSS header of the currently received packet (if present)
   LSigHeader m_currentLSigHdr;       //!< L-SIG header of the currently received packet (if present)
