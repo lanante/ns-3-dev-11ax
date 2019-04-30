@@ -2680,10 +2680,9 @@ WifiPhy::StartReceiveHeader (Ptr<Event> event, Time rxDuration, uint16_t length)
 
     m_timeLastPreambleDetected = Simulator::Now ();
 
-    m_currentTxVector = event->GetTxVector ();
-    event->SetTxVector (m_currentTxVector);
+    WifiTxVector txVector = event->GetTxVector ();
 
-    if (m_currentTxVector.GetNss () > GetMaxSupportedRxSpatialStreams ())
+    if (txVector.GetNss () > GetMaxSupportedRxSpatialStreams ())
       {
         NS_LOG_DEBUG ("Packet reception could not be started because not enough RX antennas");
         m_plcpSuccess = false;
@@ -2693,15 +2692,15 @@ WifiPhy::StartReceiveHeader (Ptr<Event> event, Time rxDuration, uint16_t length)
         return;
       }
 
-    WifiModulationClass modulation = m_currentTxVector.GetMode ().GetModulationClass ();
+    WifiModulationClass modulation = txVector.GetMode ().GetModulationClass ();
     if (modulation == WIFI_MOD_CLASS_HT)
       {
-        m_currentRemainingPpduDuration = CalculateTxDuration (m_currentHtSigHdr.GetLength (), m_currentTxVector, GetFrequency ());
+        m_currentRemainingPpduDuration = CalculateTxDuration (m_currentHtSigHdr.GetLength (), txVector, GetFrequency ());
       }
     else if (modulation == WIFI_MOD_CLASS_VHT)
       {
-        Time tSymbol = NanoSeconds (3200 + m_currentTxVector.GetGuardInterval ());
-        Time preambleDuration = CalculatePlcpPreambleAndHeaderDuration (m_currentTxVector);
+        Time tSymbol = NanoSeconds (3200 + txVector.GetGuardInterval ());
+        Time preambleDuration = CalculatePlcpPreambleAndHeaderDuration (txVector);
         Time calculatedRxDuration = MicroSeconds (((ceil (static_cast<double> (length + 3) / 3)) * 4) + 20);
         uint32_t nSymbols = floor (static_cast<double> ((calculatedRxDuration - preambleDuration).GetNanoSeconds ()) / tSymbol.GetNanoSeconds ());
         if (m_currentVhtSigHdr.GetShortGuardIntervalDisambiguation ())
@@ -2713,8 +2712,8 @@ WifiPhy::StartReceiveHeader (Ptr<Event> event, Time rxDuration, uint16_t length)
     else if (modulation == WIFI_MOD_CLASS_HE)
       {
         uint8_t m = 1; //HE_SU supported only
-        Time tSymbol = NanoSeconds (12800 + m_currentTxVector.GetGuardInterval ());
-        Time preambleDuration = CalculatePlcpPreambleAndHeaderDuration (m_currentTxVector);
+        Time tSymbol = NanoSeconds (12800 + txVector.GetGuardInterval ());
+        Time preambleDuration = CalculatePlcpPreambleAndHeaderDuration (txVector);
         uint8_t sigExtention = 0;
         if (Is2_4Ghz (GetFrequency ()))
         {
@@ -2725,16 +2724,16 @@ WifiPhy::StartReceiveHeader (Ptr<Event> event, Time rxDuration, uint16_t length)
         m_currentRemainingPpduDuration = preambleDuration + (nSymbols * tSymbol);
       }
     
-    if ((m_currentTxVector.GetMode ().GetModulationClass () == WIFI_MOD_CLASS_HT) && (m_currentTxVector.GetPreambleType () == WIFI_PREAMBLE_HT_GF))
+    if ((txVector.GetMode ().GetModulationClass () == WIFI_MOD_CLASS_HT) && (txVector.GetPreambleType () == WIFI_PREAMBLE_HT_GF))
       {
         //No legacy PHY header for HT GF
-        Time remainingPreambleHeaderDuration = CalculatePlcpPreambleAndHeaderDuration (m_currentTxVector) - GetPreambleDetectionDuration ();
+        Time remainingPreambleHeaderDuration = CalculatePlcpPreambleAndHeaderDuration (txVector) - GetPreambleDetectionDuration ();
         m_endPlcpRxEvent = Simulator::Schedule (remainingPreambleHeaderDuration, &WifiPhy::StartReceivePayload, this, event);
       }
     else
       {
         //Schedule end of legacy PHY header
-        Time remainingPreambleAndLegacyHeaderDuration = GetPlcpPreambleDuration (m_currentTxVector) + GetPlcpHeaderDuration (m_currentTxVector) - GetPreambleDetectionDuration ();
+        Time remainingPreambleAndLegacyHeaderDuration = GetPlcpPreambleDuration (txVector) + GetPlcpHeaderDuration (txVector) - GetPreambleDetectionDuration ();
         m_endPlcpRxEvent = Simulator::Schedule (remainingPreambleAndLegacyHeaderDuration, &WifiPhy::ContinueReceiveHeader, this, event);
       }
   }

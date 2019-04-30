@@ -1928,7 +1928,6 @@ private:
   Ptr<ErrorModel> m_postReceptionErrorModel; //!< Error model for receive packet events
   Time m_timeLastPreambleDetected; //!< Record the time the last preamble was detected
 
-  WifiTxVector m_currentTxVector;      //!< Store the TxVector to process packets that are part of an A-MPDU
   Time m_currentRemainingPpduDuration; //!< Store the remaining duration of the PPDU that is being received (used for A-MPDU reception)
 
   DsssSigHeader m_currentDsssSigHdr; //!< DSSS header of the currently received packet (if present)
