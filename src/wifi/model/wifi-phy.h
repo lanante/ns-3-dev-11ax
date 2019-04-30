@@ -151,9 +151,8 @@ public:
    *
    * \param event the corresponding event of the first time the packet arrives (also storing packet and TxVector information)
    * \param rxDuration the duration needed for the reception of the header and payload of the packet
-   * \param length the length value indicated in the received PHY header
    */
-  void StartReceiveHeader (Ptr<Event> event, Time rxDuration, uint16_t length);
+  void StartReceiveHeader (Ptr<Event> event, Time rxDuration);
 
   /**
    * Continue receiving the PHY header of a packet (i.e. after the end of receiving the legacy header part).
@@ -1736,9 +1735,8 @@ private:
    * \param event the corresponding event of the first time the packet arrives (also storing packet and TxVector information)
    * \param rxPowerW the receive power in W
    * \param rxDuration the duration needed for the reception of the packet
-   * \param length the length value indicated in the received PHY header
    */
-  void StartRx (Ptr<Event> event, double rxPowerW, Time rxDuration, uint16_t length);
+  void StartRx (Ptr<Event> event, double rxPowerW, Time rxDuration);
   /**
    * Get the reception status for the provided MPDU and notify.
    *
@@ -1927,8 +1925,6 @@ private:
   Ptr<WifiRadioEnergyModel> m_wifiRadioEnergyModel; //!< Wifi radio energy model
   Ptr<ErrorModel> m_postReceptionErrorModel; //!< Error model for receive packet events
   Time m_timeLastPreambleDetected; //!< Record the time the last preamble was detected
-
-  Time m_currentRemainingPpduDuration; //!< Store the remaining duration of the PPDU that is being received (used for A-MPDU reception)
 
   DsssSigHeader m_currentDsssSigHdr; //!< DSSS header of the currently received packet (if present)
   LSigHeader m_currentLSigHdr;       //!< L-SIG header of the currently received packet (if present)
