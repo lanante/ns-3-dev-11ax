@@ -74,8 +74,9 @@ protected:
    * \param p the packet
    * \param snr the SNR
    * \param txVector the transmit vector
+   * \param statusPerMpdu reception status per MPDU
    */
-  virtual void RxSuccess (Ptr<Packet> p, double snr, double rxPower, WifiTxVector txVector);
+  virtual void RxSuccess (Ptr<Packet> p, double snr, double rxPower, WifiTxVector txVector, std::vector<bool> statusPerMpdu);
   /**
    * PHY receive failure callback function
    * \param p the packet
@@ -129,7 +130,6 @@ Ptr<SpectrumSignalParameters>
 WifiPhyThresholdsTest::MakeWifiSignal (double txPowerWatts)
 {
   WifiTxVector txVector = WifiTxVector (WifiPhy::GetOfdmRate6Mbps (), 0, WIFI_PREAMBLE_LONG, false, 1, 1, 0, 20, false, false);
-  MpduType mpdutype = NORMAL_MPDU;
 
   Ptr<Packet> pkt = Create<Packet> (1000);
   WifiMacHeader hdr;
@@ -138,13 +138,18 @@ WifiPhyThresholdsTest::MakeWifiSignal (double txPowerWatts)
   hdr.SetType (WIFI_MAC_QOSDATA);
   hdr.SetQosTid (0);
   uint32_t size = pkt->GetSize () + hdr.GetSize () + trailer.GetSerializedSize ();
-  Time txDuration = m_phy->CalculateTxDuration (size, txVector, m_phy->GetFrequency (), mpdutype, 0);
+  Time txDuration = m_phy->CalculateTxDuration (size, txVector, m_phy->GetFrequency ());
   hdr.SetDuration (txDuration);
 
   pkt->AddHeader (hdr);
   pkt->AddTrailer (trailer);
+
+  LSigHeader sig;
+  pkt->AddHeader (sig);
+
   WifiPhyTag tag (txVector.GetPreambleType (), txVector.GetMode ().GetModulationClass (), 1);
   pkt->AddPacketTag (tag);
+
   Ptr<SpectrumValue> txPowerSpectrum = WifiSpectrumValueHelper::CreateHeOfdmTxPowerSpectralDensity (FREQUENCY, CHANNEL_WIDTH, txPowerWatts, CHANNEL_WIDTH);
   Ptr<WifiSpectrumSignalParameters> txParams = Create<WifiSpectrumSignalParameters> ();
   txParams->psd = txPowerSpectrum;
@@ -179,7 +184,7 @@ WifiPhyThresholdsTest::SendSignal (double txPowerWatts, bool wifiSignal)
 }
 
 void
-WifiPhyThresholdsTest::RxSuccess (Ptr<Packet> p, double snr, double rxPower, WifiTxVector txVector)
+WifiPhyThresholdsTest::RxSuccess (Ptr<Packet> p, double snr, double rxPower, WifiTxVector txVector, std::vector<bool> statusPerMpdu)
 {
   NS_LOG_FUNCTION (this << p << snr << rxPower << txVector);
   m_rxSuccess++;

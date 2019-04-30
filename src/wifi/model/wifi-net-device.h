@@ -32,7 +32,6 @@ class WifiMac;
 class HtConfiguration;
 class VhtConfiguration;
 class HeConfiguration;
-class ObssPdAlgorithm;
 
 /// This value conforms to the 802.11 specification
 static const uint16_t MAX_MSDU_SIZE = 2304;
@@ -76,10 +75,6 @@ public:
    */
   void SetRemoteStationManager (const Ptr<WifiRemoteStationManager> manager);
   /**
-   * \param algorithm the algorithm to use.
-   */
-  void SetObssPdAlgorithm (const Ptr<ObssPdAlgorithm> algorithm);
-  /**
    * \returns the mac we are currently using.
    */
   Ptr<WifiMac> GetMac (void) const;
@@ -91,10 +86,6 @@ public:
    * \returns the remote station manager we are currently using.
    */
   Ptr<WifiRemoteStationManager> GetRemoteStationManager (void) const;
-  /**
-   * \returns the OBSS PD algorithm we are currently using.
-   */
-  Ptr<ObssPdAlgorithm> GetObssPdAlgorithm (void) const;
 
   /**
    * \param htConfiguration pointer to HtConfiguration
@@ -199,7 +190,6 @@ private:
   Ptr<WifiPhy> m_phy; //!< the phy
   Ptr<WifiMac> m_mac; //!< the MAC
   Ptr<WifiRemoteStationManager> m_stationManager; //!< the station manager
-  Ptr<ObssPdAlgorithm> m_obssPdAlgorithm; //!< the OBSS PD algorithm
   Ptr<HtConfiguration> m_htConfiguration; //!< the HtConfiguration
   Ptr<VhtConfiguration> m_vhtConfiguration; //!< the VhtConfiguration
   Ptr<HeConfiguration> m_heConfiguration; //!< the HeConfiguration

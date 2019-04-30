@@ -453,16 +453,18 @@ WifiPhyStateHelper::SwitchToChannelSwitching (Time switchingDuration)
 }
 
 void
-WifiPhyStateHelper::SwitchFromRxEndOk (Ptr<Packet> packet, double snr, double rxPowerDbm, WifiTxVector txVector)
+WifiPhyStateHelper::SwitchFromRxEndOk (Ptr<Packet> packet, double snr, double rxPowerDbm, WifiTxVector txVector, std::vector<bool> statusPerMpdu)
 {
-  NS_LOG_FUNCTION (this << packet << snr << rxPowerDbm << txVector);
+  NS_LOG_FUNCTION (this << packet << snr << rxPowerDbm << txVector << statusPerMpdu.size () <<
+                   std::all_of(statusPerMpdu.begin(), statusPerMpdu.end(), [](bool v) { return v; })); //returns true if all true
+  NS_ASSERT (statusPerMpdu.size () != 0);
   NS_ASSERT (m_endRx == Simulator::Now ());
   m_rxOkTrace (packet, snr, txVector.GetMode (), txVector.GetPreambleType ());
   NotifyRxEndOk ();
   DoSwitchFromRx ();
   if (!m_rxOkCallback.IsNull ())
     {
-      m_rxOkCallback (packet, snr, rxPowerDbm, txVector);
+      m_rxOkCallback (packet, snr, rxPowerDbm, txVector, statusPerMpdu);
     }
 
 }
@@ -496,7 +498,10 @@ void
 WifiPhyStateHelper::SwitchMaybeToCcaBusy (Time duration)
 {
   NS_LOG_FUNCTION (this << duration);
-  NotifyMaybeCcaBusyStart (duration);
+  if (GetState () != WifiPhyState::RX)
+    {
+      NotifyMaybeCcaBusyStart (duration);
+    }
   Time now = Simulator::Now ();
   m_endCcaBusy = std::max (m_endCcaBusy, now + duration);
   switch (GetState ())

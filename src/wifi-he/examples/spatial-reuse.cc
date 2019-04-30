@@ -2786,143 +2786,45 @@ main (int argc, char *argv[])
     {
       if (i < (n + 1)) // BSS 1
         {
-          {
-            std::stringstream stmp;
-            stmp << "/NodeList/" << i << "/DeviceList/*/$ns3::WifiNetDevice/HtConfiguration/BeMaxAmpduSize";
-            Config::Set (stmp.str(), UintegerValue (std::min(maxAmpduSizeBss1, 65535u)));
-          }
-
-          {
-            std::stringstream stmp;
-            stmp << "/NodeList/" << i << "/DeviceList/*/$ns3::WifiNetDevice/VhtConfiguration/BeMaxAmpduSize";
-            Config::Set (stmp.str(), UintegerValue (std::min(maxAmpduSizeBss1, 1048575u)));
-          }
-
-          {
-            std::stringstream stmp;
-            stmp << "/NodeList/" << i << "/DeviceList/*/$ns3::WifiNetDevice/HeConfiguration/BeMaxAmpduSize";
-            Config::Set (stmp.str(), UintegerValue (std::min(maxAmpduSizeBss1, 4194303u)));
-          }
+          std::stringstream stmp;
+          stmp << "/NodeList/" << i << "/DeviceList/*/$ns3::WifiNetDevice/Mac/BE_MaxAmpduSize";
+          Config::Set (stmp.str(), UintegerValue (std::min(maxAmpduSizeBss1, 4194303u)));
         }
       else if (i < (2 * (n + 1))) // BSS 2
         {
-          {
-            std::stringstream stmp;
-            stmp << "/NodeList/" << i << "/DeviceList/*/$ns3::WifiNetDevice/HtConfiguration/BeMaxAmpduSize";
-            Config::Set (stmp.str(), UintegerValue (std::min(maxAmpduSizeBss2, 65535u)));
-          }
-
-          {
-            std::stringstream stmp;
-            stmp << "/NodeList/" << i << "/DeviceList/*/$ns3::WifiNetDevice/VhtConfiguration/BeMaxAmpduSize";
-            Config::Set (stmp.str(), UintegerValue (std::min(maxAmpduSizeBss2, 1048575u)));
-          }
-
-          {
-            std::stringstream stmp;
-            stmp << "/NodeList/" << i << "/DeviceList/*/$ns3::WifiNetDevice/HeConfiguration/BeMaxAmpduSize";
-            Config::Set (stmp.str(), UintegerValue (std::min(maxAmpduSizeBss2, 4194303u)));
-          }
+          std::stringstream stmp;
+          stmp << "/NodeList/" << i << "/DeviceList/*/$ns3::WifiNetDevice/Mac/BE_MaxAmpduSize";
+          Config::Set (stmp.str(), UintegerValue (std::min(maxAmpduSizeBss2, 4194303u)));
         }
       else if (i < (3 * (n + 1))) // BSS 3
         {
-          {
-            std::stringstream stmp;
-            stmp << "/NodeList/" << i << "/DeviceList/*/$ns3::WifiNetDevice/HtConfiguration/BeMaxAmpduSize";
-            Config::Set (stmp.str(), UintegerValue (std::min(maxAmpduSizeBss3, 65535u)));
-          }
-
-          {
-            std::stringstream stmp;
-            stmp << "/NodeList/" << i << "/DeviceList/*/$ns3::WifiNetDevice/VhtConfiguration/BeMaxAmpduSize";
-            Config::Set (stmp.str(), UintegerValue (std::min(maxAmpduSizeBss3, 1048575u)));
-          }
-
-          {
-            std::stringstream stmp;
-            stmp << "/NodeList/" << i << "/DeviceList/*/$ns3::WifiNetDevice/HeConfiguration/BeMaxAmpduSize";
-            Config::Set (stmp.str(), UintegerValue (std::min(maxAmpduSizeBss3, 4194303u)));
-          }
+          std::stringstream stmp;
+          stmp << "/NodeList/" << i << "/DeviceList/*/$ns3::WifiNetDevice/Mac/BE_MaxAmpduSize";
+          Config::Set (stmp.str(), UintegerValue (std::min(maxAmpduSizeBss3, 4194303u)));
         }
       else if (i < (4 * (n + 1))) // BSS 4
         {
-          {
-            std::stringstream stmp;
-            stmp << "/NodeList/" << i << "/DeviceList/*/$ns3::WifiNetDevice/HtConfiguration/BeMaxAmpduSize";
-            Config::Set (stmp.str(), UintegerValue (std::min(maxAmpduSizeBss4, 65535u)));
-          }
-
-          {
-            std::stringstream stmp;
-            stmp << "/NodeList/" << i << "/DeviceList/*/$ns3::WifiNetDevice/VhtConfiguration/BeMaxAmpduSize";
-            Config::Set (stmp.str(), UintegerValue (std::min(maxAmpduSizeBss4, 1048575u)));
-          }
-
-          {
-            std::stringstream stmp;
-            stmp << "/NodeList/" << i << "/DeviceList/*/$ns3::WifiNetDevice/HeConfiguration/BeMaxAmpduSize";
-            Config::Set (stmp.str(), UintegerValue (std::min(maxAmpduSizeBss4, 4194303u)));
-          }
+          std::stringstream stmp;
+          stmp << "/NodeList/" << i << "/DeviceList/*/$ns3::WifiNetDevice/Mac/BE_MaxAmpduSize";
+          Config::Set (stmp.str(), UintegerValue (std::min(maxAmpduSizeBss4, 4194303u)));
         }
       else if (i < (5 * (n + 1))) // BSS 5
         {
-          {
-            std::stringstream stmp;
-            stmp << "/NodeList/" << i << "/DeviceList/*/$ns3::WifiNetDevice/HtConfiguration/BeMaxAmpduSize";
-            Config::Set (stmp.str(), UintegerValue (std::min(maxAmpduSizeBss5, 65535u)));
-          }
-
-          {
-            std::stringstream stmp;
-            stmp << "/NodeList/" << i << "/DeviceList/*/$ns3::WifiNetDevice/VhtConfiguration/BeMaxAmpduSize";
-            Config::Set (stmp.str(), UintegerValue (std::min(maxAmpduSizeBss5, 1048575u)));
-          }
-
-          {
-            std::stringstream stmp;
-            stmp << "/NodeList/" << i << "/DeviceList/*/$ns3::WifiNetDevice/HeConfiguration/BeMaxAmpduSize";
-            Config::Set (stmp.str(), UintegerValue (std::min(maxAmpduSizeBss5, 4194303u)));
-          }
+          std::stringstream stmp;
+          stmp << "/NodeList/" << i << "/DeviceList/*/$ns3::WifiNetDevice/Mac/BE_MaxAmpduSize";
+          Config::Set (stmp.str(), UintegerValue (std::min(maxAmpduSizeBss5, 4194303u)));
         }
       else if (i < (6 * (n + 1))) // BSS 6
         {
-          {
-            std::stringstream stmp;
-            stmp << "/NodeList/" << i << "/DeviceList/*/$ns3::WifiNetDevice/HtConfiguration/BeMaxAmpduSize";
-            Config::Set (stmp.str(), UintegerValue (std::min(maxAmpduSizeBss6, 65535u)));
-          }
-
-          {
-            std::stringstream stmp;
-            stmp << "/NodeList/" << i << "/DeviceList/*/$ns3::WifiNetDevice/VhtConfiguration/BeMaxAmpduSize";
-            Config::Set (stmp.str(), UintegerValue (std::min(maxAmpduSizeBss6, 1048575u)));
-          }
-
-          {
-            std::stringstream stmp;
-            stmp << "/NodeList/" << i << "/DeviceList/*/$ns3::WifiNetDevice/HeConfiguration/BeMaxAmpduSize";
-            Config::Set (stmp.str(), UintegerValue (std::min(maxAmpduSizeBss6, 4194303u)));
-          }
+          std::stringstream stmp;
+          stmp << "/NodeList/" << i << "/DeviceList/*/$ns3::WifiNetDevice/Mac/BE_MaxAmpduSize";
+          Config::Set (stmp.str(), UintegerValue (std::min(maxAmpduSizeBss6, 4194303u)));
         }
       else if (i < (7 * (n + 1))) // BSS 7
         {
-          {
-            std::stringstream stmp;
-            stmp << "/NodeList/" << i << "/DeviceList/*/$ns3::WifiNetDevice/HtConfiguration/BeMaxAmpduSize";
-            Config::Set (stmp.str(), UintegerValue (std::min(maxAmpduSizeBss7, 65535u)));
-          }
-
-          {
-            std::stringstream stmp;
-            stmp << "/NodeList/" << i << "/DeviceList/*/$ns3::WifiNetDevice/VhtConfiguration/BeMaxAmpduSize";
-            Config::Set (stmp.str(), UintegerValue (std::min(maxAmpduSizeBss7, 1048575u)));
-          }
-
-          {
-            std::stringstream stmp;
-            stmp << "/NodeList/" << i << "/DeviceList/*/$ns3::WifiNetDevice/HeConfiguration/BeMaxAmpduSize";
-            Config::Set (stmp.str(), UintegerValue (std::min(maxAmpduSizeBss7, 4194303u)));
-          }
+          std::stringstream stmp;
+          stmp << "/NodeList/" << i << "/DeviceList/*/$ns3::WifiNetDevice/Mac/BE_MaxAmpduSize";
+          Config::Set (stmp.str(), UintegerValue (std::min(maxAmpduSizeBss7, 4194303u)));
         }
     }
   

@@ -36,9 +36,12 @@ class WifiNetDevice;
  * \brief OBSS PD algorithm interface
  * \ingroup wifi-he
  *
- * This object provides the interface for all OBSS_PD adjustment algorithms
+ * This object provides the interface for all OBSS_PD algorithms
  * and is designed to be subclassed.
  *
+ * OBSS_PD stands for Overlapping Basic Service Set Preamble-Detection.
+ * OBSS_PD is an 802.11ax feature that allows a STA, under specific
+ * conditions, to ignore an inter-BSS PPDU.
  */
 class ObssPdAlgorithm : public Object
 {
@@ -46,65 +49,11 @@ public:
   static TypeId GetTypeId (void);
 
   /**
-   * Sets the WifiNetDevice this PHY is associated with.
+   * Connect the WifiNetDevice and setup eventual callbacks.
    *
-   * \param device the WifiNetDevice this PHY is associated with
+   * \param device the WifiNetDevice
    */
-  void SetWifiNetDevice (const Ptr<WifiNetDevice> device);
-  /**
-   * Returns the WifiNetDevice this PHY is associated with.
-   *
-   * \return the WifiNetDevice this PHY is associated with
-   */
-  Ptr<WifiNetDevice> GetWifiNetDevice (void) const;
-
-  /**
-   * Setup callbacks.
-   */
-  virtual void SetupCallbacks () = 0;
-
-  /**
-   * Sets the OBSS PD level (in dBm).
-   *
-   * \param level the OBSS PD level in dBm
-   */
-  void SetObssPdLevel (double level);
-  /**
-   * Returns the OBSS PD level (in dBm).
-   *
-   * \return the OBSS PD level in dBm
-   */
-  double GetObssPdLevel (void) const;
-  /**
-   * Sets the minimum OBSS PD level (in dBm).
-   *
-   * \param level the minimum OBSS PD level in dBm
-   */
-  void SetObssPdLevelMin (double level);
-  /**
-   * Returns the minimum OBSS PD level (in dBm).
-   *
-   * \return the minimum OBSS PD level in dBm
-   */
-  double GetObssPdLevelMin (void) const;
-  /**
-   * Sets the maximum OBSS PD level (in dBm).
-   *
-   * \param level the maximum OBSS PD level in dBm
-   */
-  void SetObssPdLevelMax (double level);
-  /**
-   * Returns the maximum OBSS PD level (in dBm).
-   *
-   * \return the maximum OBSS PD level in dBm
-   */
-  double GetObssPdLevelMax (void) const;
-  /**
-   * Returns the SISO reference TX power level (in dBm).
-   *
-   * \return the SISO reference TX power level in dBm
-   */
-  double GetTxPowerRefSiso (void) const;
+  virtual void ConnectWifiNetDevice (const Ptr<WifiNetDevice> device);
 
   /**
    * Reset PHY to IDLE.
@@ -137,17 +86,18 @@ public:
    */
   typedef void (* ResetTracedCallback)(uint8_t bssColor, double rssiDbm, bool powerRestricted, double txPowerMaxDbmSiso, double txPowerMaxDbmMimo);
 
+
 protected:
   virtual void DoDispose (void);
 
+  Ptr<WifiNetDevice> m_device; ///< Pointer to the WifiNetDevice
+  double m_obssPdLevel;        ///< Current OBSS PD level
+  double m_obssPdLevelMin;     ///< Minimum OBSS PD level
+  double m_obssPdLevelMax;     ///< Maximum OBSS PD level
+  double m_txPowerRefSiso; ///< SISO reference TX power level
+
 
 private:
-  Ptr<WifiNetDevice> m_device; //!< Pointer to the WifiNetDevice
-
-  double m_obssPdLevelMin; ///< Minimum OBSS PD level
-  double m_obssPdLevelMax; ///< Maximum OBSS PD level
-  double m_obssPdLevel;    ///< Current OBSS PD level
-  double m_txPowerRefSiso; ///< SISO reference TX power level
   double m_txPowerRefMimo; ///< MIMO reference TX power level
 
   TracedCallback<uint8_t, double, bool, double, double>  m_resetEvent;

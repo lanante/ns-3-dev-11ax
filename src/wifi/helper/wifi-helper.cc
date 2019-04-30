@@ -744,11 +744,11 @@ WifiHelper::Install (const WifiPhyHelper &phyHelper,
       device->SetPhy (phy);
       device->SetRemoteStationManager (manager);
       node->AddDevice (device);
-      if ((m_standard >= WIFI_PHY_STANDARD_80211ax_2_4GHZ) && (m_obssPdAlgorithm.GetTypeId ().GetUid ()))
-
+      if ((m_standard >= WIFI_PHY_STANDARD_80211ax_2_4GHZ) && (m_obssPdAlgorithm.IsTypeIdSet ()))
         {
           Ptr<ObssPdAlgorithm> obssPdAlgorithm = m_obssPdAlgorithm.Create<ObssPdAlgorithm> ();
-          device->SetObssPdAlgorithm (obssPdAlgorithm);
+          device->AggregateObject (obssPdAlgorithm);
+          obssPdAlgorithm->ConnectWifiNetDevice (device);
         }
       devices.Add (device);
       NS_LOG_DEBUG ("node=" << node << ", mob=" << node->GetObject<MobilityModel> ());

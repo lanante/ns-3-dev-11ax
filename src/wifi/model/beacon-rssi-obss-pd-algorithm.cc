@@ -54,16 +54,14 @@ BeaconRssiObssPdAlgorithm::GetTypeId (void)
 }
 
 void
-BeaconRssiObssPdAlgorithm::SetupCallbacks ()
+BeaconRssiObssPdAlgorithm::ConnectWifiNetDevice (const Ptr<WifiNetDevice> device)
 {
-  uint32_t nodeid = GetWifiNetDevice ()->GetNode ()->GetId ();
-        
-  std::ostringstream oss;
-  oss.str ("");
-  oss << "/NodeList/" << nodeid << "/DeviceList/*/";
-  std::string devicepath = oss.str ();
-        
-  Config::ConnectWithoutContext (devicepath + "$ns3::WifiNetDevice/Mac/$ns3::StaWifiMac/BeaconReception", MakeCallback (&BeaconRssiObssPdAlgorithm::ReceiveBeacon, this));
+  Ptr<StaWifiMac> mac = device->GetMac ()->GetObject<StaWifiMac>();
+  if (mac)
+    {
+      mac->TraceConnectWithoutContext ("BeaconReception", MakeCallback (&BeaconRssiObssPdAlgorithm::ReceiveBeacon, this));
+    }
+  ObssPdAlgorithm::ConnectWifiNetDevice (device);
 }
 
 void
@@ -76,7 +74,7 @@ void
 BeaconRssiObssPdAlgorithm::ReceiveBeacon (HeBeaconReceptionParameters params)
 {
   NS_LOG_FUNCTION (this);
-  Ptr<HeConfiguration> heConfiguration = GetWifiNetDevice ()->GetHeConfiguration ();
+  Ptr<HeConfiguration> heConfiguration = m_device->GetHeConfiguration ();
   NS_ASSERT (heConfiguration);
   UintegerValue myBssColor;
   heConfiguration->GetAttribute ("BssColor", myBssColor);
@@ -105,13 +103,13 @@ BeaconRssiObssPdAlgorithm::ReceiveBeacon (HeBeaconReceptionParameters params)
         }
       if (m_beaconCount == 0)
         {
-          m_txPower = GetWifiNetDevice ()->GetPhy()->GetTxPowerEnd ();
+          m_txPower = m_device->GetPhy()->GetTxPowerEnd ();
         }
       m_beaconCount++;
       if (Abs (m_rssiAve - (aveRxPower - 5)) > 2)
         {
           m_rssiAve = aveRxPower-5;
-          SetObssPdLevel (m_rssiAve);
+          m_obssPdLevel = m_rssiAve;
           UpdateObssPdLevel ();
         }
     }
@@ -121,11 +119,11 @@ void
 BeaconRssiObssPdAlgorithm::UpdateObssPdLevel (void)
 {
   NS_LOG_FUNCTION (this);
-  double tmpMax = std::max (GetObssPdLevelMin (), std::min(GetObssPdLevelMax (), GetObssPdLevelMin () + GetTxPowerRefSiso () - m_txPower));
-  if (GetObssPdLevel () > tmpMax)
+  double tmpMax = std::max (m_obssPdLevelMin, std::min(m_obssPdLevelMax, m_obssPdLevelMin + m_txPowerRefSiso - m_txPower));
+  if (m_obssPdLevel > tmpMax)
     {
       NS_LOG_DEBUG ("Updating ObssPdLevel value to " << tmpMax);
-      SetObssPdLevel (tmpMax);
+      m_obssPdLevel = tmpMax;
     }
 }
 

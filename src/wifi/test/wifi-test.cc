@@ -1238,21 +1238,19 @@ Bug2843TestCase::StoreDistinctTuple (std::string context,  Ptr<SpectrumSignalPar
 
   WifiModulationClass modulationClass = tag.GetModulation ();
   WifiPreamble preamble = tag.GetPreambleType ();
-  if (preamble != WIFI_PREAMBLE_NONE)
+  if ((modulationClass != WIFI_MOD_CLASS_HT) || (preamble != WIFI_PREAMBLE_HT_GF))
     {
-      if ((modulationClass != WIFI_MOD_CLASS_HT) || (preamble != WIFI_PREAMBLE_HT_GF))
-        {
-          LSigHeader sig;
-          packet->RemoveHeader (sig);
-          m_channelWidth = 20;
-        }
-      if (modulationClass == WIFI_MOD_CLASS_VHT)
-        {
-          VhtSigHeader vhtSig;
-          packet->RemoveHeader (vhtSig);
-          m_channelWidth = vhtSig.GetChannelWidth ();
-        }
+      LSigHeader sig;
+      packet->RemoveHeader (sig);
+      m_channelWidth = 20;
     }
+  if (modulationClass == WIFI_MOD_CLASS_VHT)
+    {
+      VhtSigHeader vhtSig;
+      packet->RemoveHeader (vhtSig);
+      m_channelWidth = vhtSig.GetChannelWidth ();
+    }
+
   // Build a tuple and check if seen before (if so store it)
   FreqWidthSubbandModulationTuple tupleForCurrentTx = std::make_tuple (startingFreq, m_channelWidth, numBands, modulationClass);
   bool found = false;
@@ -1616,7 +1614,7 @@ StaWifiMacScanningTestCase::TurnApOff (Ptr<Node> apNode)
 {
   Ptr<WifiNetDevice> netDevice = DynamicCast<WifiNetDevice> (apNode->GetDevice (0));
   Ptr<WifiPhy> phy = netDevice->GetPhy ();
-  phy->SetOffMode();
+  phy->SetOffMode ();
 }
 
 NodeContainer
@@ -1675,7 +1673,7 @@ StaWifiMacScanningTestCase::DoRun (void)
   {
     RngSeedManager::SetSeed (1);
     RngSeedManager::SetRun (1);
-  
+
     NodeContainer nodes = Setup (false, false);
     Ptr<Node> nearestAp = nodes.Get (2);
     Mac48Address nearestApAddr = DynamicCast<WifiNetDevice> (nearestAp->GetDevice (0))->GetMac ()->GetAddress ();
@@ -1827,24 +1825,24 @@ Bug2470TestCase::AddbaStateChangedCallback (std::string context, Time t, Mac48Ad
 {
   switch (state)
     {
-      case OriginatorBlockAckAgreement::INACTIVE:
-        m_addbaInactiveCount++;
-        break;
-      case OriginatorBlockAckAgreement::ESTABLISHED:
-        m_addbaEstablishedCount++;
-        break;
-      case OriginatorBlockAckAgreement::PENDING:
-        m_addbaPendingCount++;
-        break;
-      case OriginatorBlockAckAgreement::REJECTED:
-        m_addbaRejectedCount++;
-        break;
-      case OriginatorBlockAckAgreement::NO_REPLY:
-        m_addbaNoReplyCount++;
-        break;
-      case OriginatorBlockAckAgreement::RESET:
-        m_addbaResetCount++;
-        break;
+    case OriginatorBlockAckAgreement::INACTIVE:
+      m_addbaInactiveCount++;
+      break;
+    case OriginatorBlockAckAgreement::ESTABLISHED:
+      m_addbaEstablishedCount++;
+      break;
+    case OriginatorBlockAckAgreement::PENDING:
+      m_addbaPendingCount++;
+      break;
+    case OriginatorBlockAckAgreement::REJECTED:
+      m_addbaRejectedCount++;
+      break;
+    case OriginatorBlockAckAgreement::NO_REPLY:
+      m_addbaNoReplyCount++;
+      break;
+    case OriginatorBlockAckAgreement::RESET:
+      m_addbaResetCount++;
+      break;
     }
 }
 

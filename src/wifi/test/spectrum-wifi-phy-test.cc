@@ -76,8 +76,9 @@ protected:
    * \param snr the SNR
    * \param rxPower the rx power (W)
    * \param txVector the transmit vector
+   * \param statusPerMpdu reception status per MPDU
    */
-  void SpectrumWifiPhyRxSuccess (Ptr<Packet> p, double snr, double rxPower, WifiTxVector txVector);
+  void SpectrumWifiPhyRxSuccess (Ptr<Packet> p, double snr, double rxPower, WifiTxVector txVector, std::vector<bool> statusPerMpdu);
   /**
    * Spectrum wifi receive failure function
    * \param p the packet
@@ -107,7 +108,6 @@ Ptr<SpectrumSignalParameters>
 SpectrumWifiPhyBasicTest::MakeSignal (double txPowerWatts)
 {
   WifiTxVector txVector = WifiTxVector (WifiPhy::GetOfdmRate6Mbps (), 0, WIFI_PREAMBLE_LONG, false, 1, 1, 0, 20, false, false);
-  MpduType mpdutype = NORMAL_MPDU;
 
   Ptr<Packet> pkt = Create<Packet> (1000);
   WifiMacHeader hdr;
@@ -116,13 +116,18 @@ SpectrumWifiPhyBasicTest::MakeSignal (double txPowerWatts)
   hdr.SetType (WIFI_MAC_QOSDATA);
   hdr.SetQosTid (0);
   uint32_t size = pkt->GetSize () + hdr.GetSize () + trailer.GetSerializedSize ();
-  Time txDuration = m_phy->CalculateTxDuration (size, txVector, m_phy->GetFrequency (), mpdutype, 0);
+  Time txDuration = m_phy->CalculateTxDuration (size, txVector, m_phy->GetFrequency ());
   hdr.SetDuration (txDuration);
 
   pkt->AddHeader (hdr);
   pkt->AddTrailer (trailer);
+
+  LSigHeader sig;
+  pkt->AddHeader (sig);
+
   WifiPhyTag tag (txVector.GetPreambleType (), txVector.GetMode ().GetModulationClass (), 1);
   pkt->AddPacketTag (tag);
+
   Ptr<SpectrumValue> txPowerSpectrum = WifiSpectrumValueHelper::CreateOfdmTxPowerSpectralDensity (FREQUENCY, CHANNEL_WIDTH, txPowerWatts, GUARD_WIDTH);
   Ptr<WifiSpectrumSignalParameters> txParams = Create<WifiSpectrumSignalParameters> ();
   txParams->psd = txPowerSpectrum;
@@ -140,7 +145,7 @@ SpectrumWifiPhyBasicTest::SendSignal (double txPowerWatts)
 }
 
 void
-SpectrumWifiPhyBasicTest::SpectrumWifiPhyRxSuccess (Ptr<Packet> p, double snr, double rxPower, WifiTxVector txVector)
+SpectrumWifiPhyBasicTest::SpectrumWifiPhyRxSuccess (Ptr<Packet> p, double snr, double rxPower, WifiTxVector txVector, std::vector<bool> statusPerMpdu)
 {
   NS_LOG_FUNCTION (this << p << snr << rxPower << txVector);
   m_count++;
@@ -325,7 +330,7 @@ SpectrumWifiPhyTestSuite::SpectrumWifiPhyTestSuite ()
   : TestSuite ("spectrum-wifi-phy", UNIT)
 {
   AddTestCase (new SpectrumWifiPhyBasicTest, TestCase::QUICK);
-  //AddTestCase (new SpectrumWifiPhyListenerTest, TestCase::QUICK);
+  AddTestCase (new SpectrumWifiPhyListenerTest, TestCase::QUICK);
 }
 
 static SpectrumWifiPhyTestSuite spectrumWifiPhyTestSuite; ///< the test suite

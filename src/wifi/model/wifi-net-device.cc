@@ -32,7 +32,6 @@
 #include "ht-configuration.h"
 #include "vht-configuration.h"
 #include "he-configuration.h"
-#include "ns3/obss-pd-algorithm.h"
 
 namespace ns3 {
 
@@ -86,11 +85,6 @@ WifiNetDevice::GetTypeId (void)
                    PointerValue (),
                    MakePointerAccessor (&WifiNetDevice::GetHeConfiguration),
                    MakePointerChecker<HeConfiguration> ())
-    .AddAttribute ("ObssPdAlgorithm",
-                   "The ObssPdAlgorithm object.",
-                   PointerValue (),
-                   MakePointerAccessor (&WifiNetDevice::m_obssPdAlgorithm),
-                   MakePointerChecker<ObssPdAlgorithm> ())
   ;
   return tid;
 }
@@ -125,11 +119,6 @@ WifiNetDevice::DoDispose (void)
     {
       m_stationManager->Dispose ();
       m_stationManager = 0;
-    }
-  if (m_obssPdAlgorithm)
-    {
-      m_obssPdAlgorithm->Dispose ();
-      m_obssPdAlgorithm = 0;
     }
   if (m_htConfiguration)
     {
@@ -201,14 +190,6 @@ WifiNetDevice::SetRemoteStationManager (const Ptr<WifiRemoteStationManager> mana
   CompleteConfig ();
 }
 
-void
-WifiNetDevice::SetObssPdAlgorithm (const Ptr<ObssPdAlgorithm> algorithm)
-{
-  m_obssPdAlgorithm = algorithm;
-  m_obssPdAlgorithm->SetWifiNetDevice (this);
-  m_obssPdAlgorithm->SetupCallbacks ();
-}
-
 Ptr<WifiMac>
 WifiNetDevice::GetMac (void) const
 {
@@ -225,12 +206,6 @@ Ptr<WifiRemoteStationManager>
 WifiNetDevice::GetRemoteStationManager (void) const
 {
   return m_stationManager;
-}
-
-Ptr<ObssPdAlgorithm>
-WifiNetDevice::GetObssPdAlgorithm (void) const
-{
-  return m_obssPdAlgorithm;
 }
 
 void

@@ -62,7 +62,7 @@ protected:
   Ptr<SpectrumWifiPhy> m_phy;
   Ptr<LbtAccessManager> m_lbt;
   Ptr<SpectrumSignalParameters> MakeSignal (double txPowerWatts);
-  void SpectrumWifiPhyRxSuccess (Ptr<Packet> p, double snr, double rxPower, WifiTxVector txVector);
+  void SpectrumWifiPhyRxSuccess (Ptr<Packet> p, double snr, double rxPower, WifiTxVector txVector, std::vector<bool> statusPerMpdu);
   void SpectrumWifiPhyRxFailure (Ptr<Packet> p, double snr);
   uint32_t m_count;
   std::vector<Time> m_accessGrantedTimes;
@@ -105,8 +105,13 @@ LbtAccessManagerBaseTestCase::MakeSignal (double txPowerWatts)
 
   pkt->AddHeader (hdr);
   pkt->AddTrailer (trailer);
+
+  LSigHeader sig;
+  pkt->AddHeader (sig);
+
   WifiPhyTag tag (txVector.GetPreambleType (), txVector.GetMode ().GetModulationClass (), 1);
   pkt->AddPacketTag (tag);
+
   Ptr<SpectrumValue> txPowerSpectrum = WifiSpectrumValueHelper::CreateOfdmTxPowerSpectralDensity (FREQUENCY, CHANNEL_WIDTH, txPowerWatts, GUARD_WIDTH);
   Ptr<WifiSpectrumSignalParameters> txParams = Create<WifiSpectrumSignalParameters> ();
   txParams->psd = txPowerSpectrum;
@@ -124,7 +129,7 @@ LbtAccessManagerBaseTestCase::SendSignal (double txPowerWatts)
 }
 
 void
-LbtAccessManagerBaseTestCase::SpectrumWifiPhyRxSuccess (Ptr<Packet> p, double snr, double rxPower, WifiTxVector txVector)
+LbtAccessManagerBaseTestCase::SpectrumWifiPhyRxSuccess (Ptr<Packet> p, double snr, double rxPower, WifiTxVector txVector, std::vector<bool> statusPerMpdu)
 {
   NS_LOG_FUNCTION (this << p << snr << rxPower << txVector);
   m_count++;

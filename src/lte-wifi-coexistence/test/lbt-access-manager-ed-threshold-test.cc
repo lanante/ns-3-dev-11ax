@@ -57,7 +57,7 @@ protected:
   Ptr<LbtAccessManager> m_lbt;
   Ptr<SpectrumSignalParameters> MakeSignal (double txPowerWatts);
   void SendSignal (double txPowerWatts);
-  void SpectrumWifiPhyRxSuccess (Ptr<Packet> p, double snr, double rxPower, WifiTxVector txVector);
+  void SpectrumWifiPhyRxSuccess (Ptr<Packet> p, double snr, double rxPower, WifiTxVector txVector, std::vector<bool> statusPerMpdu);
   void SpectrumWifiPhyRxFailure (Ptr<Packet> p, double snr);
 private:
   virtual void DoRun (void);
@@ -116,7 +116,7 @@ LbtAccessManagerEdThresholdTest::SendSignal (double txPowerWatts)
 }
 
 void
-LbtAccessManagerEdThresholdTest::SpectrumWifiPhyRxSuccess (Ptr<Packet> p, double snr, double rxPower, WifiTxVector txVector)
+LbtAccessManagerEdThresholdTest::SpectrumWifiPhyRxSuccess (Ptr<Packet> p, double snr, double rxPower, WifiTxVector txVector, std::vector<bool> statusPerMpdu)
 {
   NS_FATAL_ERROR ("Should be unreachable; Wi-Fi rx reception disabled");
 }

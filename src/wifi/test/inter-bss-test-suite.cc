@@ -325,7 +325,7 @@ void
 TestInterBssConstantObssPdAlgo::NotifyPhyTxBegin (std::string context, Ptr<const Packet> p, double txPowerW)
 {
   uint32_t idx = ConvertContextToNodeId (context);
-  uint32_t pktSize = p->GetSize () - 42;
+  uint32_t pktSize = p->GetSize () - 38;
   if ((idx == 0) && ((pktSize == m_payloadSize1) || (pktSize == (m_payloadSize1 / 10))))
     {
       m_numSta1PacketsSent++;
@@ -352,7 +352,7 @@ void
 TestInterBssConstantObssPdAlgo::NotifyPhyRxEnd (std::string context, Ptr<const Packet> p, double rxPowerW)
 {
   uint32_t idx = ConvertContextToNodeId (context);
-  uint32_t pktSize = p->GetSize () - 42;
+  uint32_t pktSize = p->GetSize () - 38;
   if ((idx == 0) && ((pktSize == m_payloadSize1) || (pktSize == (m_payloadSize1 / 10))))
     {
       m_numSta1PacketsReceived++;
@@ -402,6 +402,8 @@ TestInterBssConstantObssPdAlgo::RunOne (void)
   RngSeedManager::SetSeed (1);
   RngSeedManager::SetRun (1);
   int64_t streamNumber = 2;
+  
+  Config::Set ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Mac/BE_MaxAmpduSize", UintegerValue (0));
 
   ResetResults ();
 
@@ -451,7 +453,6 @@ TestInterBssConstantObssPdAlgo::RunOne (void)
     {
       Ptr<WifiNetDevice> device = DynamicCast<WifiNetDevice> (m_apDevices.Get (i));
       Ptr<HeConfiguration> heConfiguration = device->GetHeConfiguration ();
-      heConfiguration->SetAttribute ("BeMaxAmpduSize", UintegerValue (0));
       if (i == 0)
         {
           heConfiguration->SetAttribute ("BssColor", UintegerValue (m_bssColor1));
@@ -464,12 +465,6 @@ TestInterBssConstantObssPdAlgo::RunOne (void)
         {
           heConfiguration->SetAttribute ("BssColor", UintegerValue (m_bssColor3));
         }
-    }
-  for (uint32_t i = 0; i < m_staDevices.GetN (); i++)
-    {
-      Ptr<WifiNetDevice> device = DynamicCast<WifiNetDevice> (m_staDevices.Get (i));
-      Ptr<HeConfiguration> heConfiguration = device->GetHeConfiguration ();
-      heConfiguration->SetAttribute ("BeMaxAmpduSize", UintegerValue (0));
     }
 
   MobilityHelper mobility;

@@ -214,7 +214,7 @@ public:
    *
    * \return true if the WifiTxVector parameters are allowed by the standard
    */
-   bool IsValid (void) const;
+  bool IsValid (void) const;
 
   enum HeSigA_UlDl
   {

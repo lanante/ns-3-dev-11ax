@@ -41,9 +41,11 @@ public:
   static TypeId GetTypeId (void);
 
   /**
-   * Setup callbacks.
+   * Connect the WifiNetDevice and setup eventual callbacks.
+   *
+   * \param device the WifiNetDevice
    */
-  void SetupCallbacks (void);
+  void ConnectWifiNetDevice (const Ptr<WifiNetDevice> device);
 
   /**
    * \param params the HE SIG parameters

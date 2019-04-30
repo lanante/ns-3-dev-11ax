@@ -51,26 +51,21 @@ ConstantObssPdAlgorithm::GetTypeId (void)
   ;
   return tid;
 }
-    
+
 void
-ConstantObssPdAlgorithm::SetupCallbacks (void)
+ConstantObssPdAlgorithm::ConnectWifiNetDevice (const Ptr<WifiNetDevice> device)
 {
-  uint32_t nodeid = GetWifiNetDevice ()->GetNode ()->GetId ();
-        
-  std::ostringstream oss;
-  oss.str ("");
-  oss << "/NodeList/" << nodeid << "/DeviceList/*/";
-  std::string devicepath = oss.str ();
-        
-  Config::ConnectWithoutContext (devicepath + "$ns3::WifiNetDevice/Phy/EndOfHePreamble", MakeCallback (&ConstantObssPdAlgorithm::ReceiveHeSig, this));
+  Ptr<WifiPhy> phy = device->GetPhy ();
+  phy->TraceConnectWithoutContext ("EndOfHePreamble", MakeCallback (&ConstantObssPdAlgorithm::ReceiveHeSig, this));
+  ObssPdAlgorithm::ConnectWifiNetDevice (device);
 }
 
 void
 ConstantObssPdAlgorithm::ReceiveHeSig (HePreambleParameters params)
 {
-  NS_LOG_FUNCTION (this);
+  NS_LOG_FUNCTION (this << +params.bssColor << WToDbm (params.rssiW));
 
-  Ptr<StaWifiMac> mac = GetWifiNetDevice ()->GetMac ()->GetObject<StaWifiMac>();
+  Ptr<StaWifiMac> mac = m_device->GetMac ()->GetObject<StaWifiMac>();
   if (mac && !mac->IsAssociated ())
     {
       NS_LOG_DEBUG ("This is not an associated STA: skip OBSS PD algorithm");
@@ -79,7 +74,7 @@ ConstantObssPdAlgorithm::ReceiveHeSig (HePreambleParameters params)
 
   NS_LOG_DEBUG ("RSSI=" << WToDbm (params.rssiW) << " dBm , BSS color=" << +params.bssColor);
 
-  Ptr<HeConfiguration> heConfiguration = GetWifiNetDevice ()->GetHeConfiguration ();
+  Ptr<HeConfiguration> heConfiguration = m_device->GetHeConfiguration ();
   NS_ASSERT (heConfiguration);
   UintegerValue bssColorAttribute;
   heConfiguration->GetAttribute ("BssColor", bssColorAttribute);
@@ -100,19 +95,15 @@ ConstantObssPdAlgorithm::ReceiveHeSig (HePreambleParameters params)
   bool isObss = (bssColor != params.bssColor);
   if (isObss)
     {
-      if (WToDbm (params.rssiW) < GetObssPdLevel ())
+      if (WToDbm (params.rssiW) < m_obssPdLevel)
         {
-          NS_LOG_DEBUG ("Frame is OBSS and RSSI is below OBSS-PD level: reset PHY to IDLE");
+          NS_LOG_DEBUG ("Frame is OBSS and RSSI " << WToDbm(params.rssiW) << " is below OBSS-PD level of " << m_obssPdLevel << "; reset PHY to IDLE");
           ResetPhy (params);
         }
       else
         {
           NS_LOG_DEBUG ("Frame is OBSS and RSSI is above OBSS-PD level");
         }
-    }
-  else
-    {
-      NS_LOG_DEBUG ("Frame is not OBSS");
     }
 }
 

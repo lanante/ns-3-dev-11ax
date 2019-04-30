@@ -19,10 +19,12 @@
  */
 
 #include "ns3/log.h"
+#include "ns3/double.h"
+#include "ns3/uinteger.h"
 #include "obss-pd-algorithm.h"
 #include "wifi-net-device.h"
-#include "sta-wifi-mac.h"
 #include "wifi-phy.h"
+#include "wifi-utils.h"
 
 namespace ns3 {
 
@@ -38,21 +40,18 @@ ObssPdAlgorithm::GetTypeId (void)
     .AddAttribute ("ObssPdLevel",
                    "The current OBSS PD level.",
                    DoubleValue (-82.0),
-                   MakeDoubleAccessor (&ObssPdAlgorithm::SetObssPdLevel,
-                                       &ObssPdAlgorithm::GetObssPdLevel),
-                   MakeDoubleChecker<double> ())
+                   MakeDoubleAccessor (&ObssPdAlgorithm::m_obssPdLevel),
+                   MakeDoubleChecker<double> (-101, -62))
     .AddAttribute ("ObssPdLevelMin",
                    "Minimum value (dBm) of OBSS PD level.",
                    DoubleValue (-82.0),
-                   MakeDoubleAccessor (&ObssPdAlgorithm::SetObssPdLevelMin,
-                                       &ObssPdAlgorithm::GetObssPdLevelMin),
-                   MakeDoubleChecker<double> ())
+                   MakeDoubleAccessor (&ObssPdAlgorithm::m_obssPdLevelMin),
+                   MakeDoubleChecker<double> (-101, -62))
     .AddAttribute ("ObssPdLevelMax",
                    "Maximum value (dBm) of OBSS PD level.",
                    DoubleValue (-62.0),
-                   MakeDoubleAccessor (&ObssPdAlgorithm::SetObssPdLevelMax,
-                                       &ObssPdAlgorithm::GetObssPdLevelMax),
-                   MakeDoubleChecker<double> ())
+                   MakeDoubleAccessor (&ObssPdAlgorithm::m_obssPdLevelMax),
+                   MakeDoubleChecker<double> (-101, -62))
     .AddAttribute ("TxPowerRefSiso",
                    "The SISO reference TX power level (dBm).",
                    DoubleValue (21),
@@ -71,51 +70,6 @@ ObssPdAlgorithm::GetTypeId (void)
 }
 
 void
-ObssPdAlgorithm::SetObssPdLevel (double level)
-{
-  NS_LOG_FUNCTION (this << level);
-  m_obssPdLevel = level;
-}
-
-double
-ObssPdAlgorithm::GetObssPdLevel (void) const
-{
-  return m_obssPdLevel;
-}
-
-void
-ObssPdAlgorithm::SetObssPdLevelMin (double level)
-{
-  NS_LOG_FUNCTION (this << level);
-  m_obssPdLevelMin = level;
-}
-
-double
-ObssPdAlgorithm::GetObssPdLevelMin (void) const
-{
-  return m_obssPdLevelMin;
-}
-
-void
-ObssPdAlgorithm::SetObssPdLevelMax (double level)
-{
-  NS_LOG_FUNCTION (this << level);
-  m_obssPdLevelMax = level;
-}
-
-double
-ObssPdAlgorithm::GetObssPdLevelMax (void) const
-{
-  return m_obssPdLevelMax;
-}
-
-double
-ObssPdAlgorithm::GetTxPowerRefSiso (void) const
-{
-  return m_txPowerRefSiso;
-}
-
-void
 ObssPdAlgorithm::DoDispose (void)
 {
   NS_LOG_FUNCTION (this);
@@ -123,16 +77,10 @@ ObssPdAlgorithm::DoDispose (void)
 }
 
 void
-ObssPdAlgorithm::SetWifiNetDevice (const Ptr<WifiNetDevice> device)
+ObssPdAlgorithm::ConnectWifiNetDevice (const Ptr<WifiNetDevice> device)
 {
   NS_LOG_FUNCTION (this << device);
   m_device = device;
-}
-
-Ptr<WifiNetDevice>
-ObssPdAlgorithm::GetWifiNetDevice (void) const
-{
-  return m_device;
 }
 
 void
@@ -142,14 +90,14 @@ ObssPdAlgorithm::ResetPhy (HePreambleParameters params)
   double txPowerMaxMimo = 0;
   bool powerRestricted = false;
   // Fetch my BSS color
-  Ptr<HeConfiguration> heConfiguration = GetWifiNetDevice ()->GetHeConfiguration ();
+  Ptr<HeConfiguration> heConfiguration = m_device->GetHeConfiguration ();
   NS_ASSERT (heConfiguration);
   UintegerValue bssColorAttribute;
   heConfiguration->GetAttribute ("BssColor", bssColorAttribute);
   uint8_t bssColor = bssColorAttribute.Get ();
   NS_LOG_DEBUG ("My BSS color " << (uint16_t) bssColor << " received frame " << (uint16_t) params.bssColor);
 
-  Ptr<WifiPhy> phy = GetWifiNetDevice ()->GetPhy();
+  Ptr<WifiPhy> phy = m_device->GetPhy ();
   if ((m_obssPdLevel > m_obssPdLevelMin) && (m_obssPdLevel <= m_obssPdLevelMax))
     {
       txPowerMaxSiso = m_txPowerRefSiso - (m_obssPdLevel - m_obssPdLevelMin);

@@ -98,7 +98,7 @@ public:
 
   WifiPhy ();
   virtual ~WifiPhy ();
-  
+
   /**
    * Return the WifiPhyStateHelper of this PHY
    *
@@ -144,81 +144,52 @@ public:
    * \param rxPowerW the receive power in W
    * \param rxDuration the duration needed for the reception of the packet
    */
-  void StartReceivePreamble (Ptr<Packet> packet,
-                             double rxPowerW,
-                             Time rxDuration);
+  void StartReceivePreamble (Ptr<Packet> packet, double rxPowerW, Time rxDuration);
 
   /**
    * Start receiving the PHY header of a packet (i.e. after the end of receiving the preamble).
    *
-   * \param packet the arriving packet
-   * \param txVector the TXVECTOR of the arriving packet
-   * \param event the corresponding event of the first time the packet arrives
-   * \param rxDuration the duration needed for the reception of the packet
+   * \param event the corresponding event of the first time the packet arrives (also storing packet and TxVector information)
+   * \param rxDuration the duration needed for the reception of the header and payload of the packet
    * \param length the length value indicated in the received PHY header
    * \param txNodeId the node ID of the transmitter
    */
-  void StartReceiveHeader (Ptr<Packet> packet,
-                           WifiTxVector txVector,
-                           Ptr<Event> event,
-                           Time rxDuration,
-                           uint16_t length,
-                           uint32_t txNodeId);
+  void StartReceiveHeader (Ptr<Event> event, Time rxDuration, uint16_t length, uint32_t txNodeId);
 
   /**
    * Continue receiving the PHY header of a packet (i.e. after the end of receiving the legacy header part).
    *
-   * \param packet the arriving packet
-   * \param txVector the TXVECTOR of the arriving packet
-   * \param mpdutype the type of the MPDU as defined in WifiPhy::MpduType.
-   * \param event the corresponding event of the first time the packet arrives
+   * \param event the corresponding event of the first time the packet arrives (also storing packet and TxVector information)
    */
-  void ContinueReceiveHeader (Ptr<Packet> packet,
-                              WifiTxVector txVector,
-                              MpduType mpdutype,
-                              Ptr<Event> event);
+  void ContinueReceiveHeader (Ptr<Event> event);
 
   /**
    * Start receiving the payload of a packet (i.e. the first bit of the packet has arrived).
    *
-   * \param packet the arriving packet
-   * \param txVector the TXVECTOR of the arriving packet
-   * \param mpdutype the type of the MPDU as defined in WifiPhy::MpduType.
-   * \param event the corresponding event of the first time the packet arrives
+   * \param event the corresponding event of the first time the packet arrives (also storing packet and TxVector information)
    */
-  void StartReceivePayload (Ptr<Packet> packet,
-                            WifiTxVector txVector,
-                            MpduType mpdutype,
-                            Ptr<Event> event);
+  void StartReceivePayload (Ptr<Event> event);
 
   /**
    * The last bit of the packet has arrived.
    *
-   * \param packet the packet that the last bit has arrived
-   * \param preamble the preamble of the arriving packet
-   * \param mpdutype the type of the MPDU as defined in WifiPhy::MpduType.
-   * \param event the corresponding event of the first time the packet arrives
+   * \param event the corresponding event of the first time the packet arrives (also storing packet and TxVector information)
    */
-  void EndReceive (Ptr<Packet> packet, WifiPreamble preamble, MpduType mpdutype, Ptr<Event> event);
+  void EndReceive (Ptr<Event> event);
 
   /**
-   * Identify the moment an ignored inter-BSS transmission finished.
-   * This is used to decide whether to keep or cancel power restriction imposed by OBSS_PD SR.
+   * For HE receptions only, check and possibly modify the transmit power restriction state at
+   * the end of PPDU reception.
    */
-  void EndReceiveInterBss ();
+  void EndReceiveInterBss (void);
 
   /**
    * \param packet the packet to send
    * \param txVector the TXVECTOR that has tx parameters such as mode, the transmission mode to use to send
    *        this packet, and txPowerLevel, a power level to use to send this packet. The real transmission
    *        power is calculated as txPowerMin + txPowerLevel * (txPowerMax - txPowerMin) / nTxLevels
-   * \param mpdutype the type of the MPDU as defined in WifiPhy::MpduType.
-   * \param psduSize the total number of bytes in the whole PSDU.
-   *        In case of A-MPDU, this is larger than the size of the packet for which this function is called.
-   * \param psduDuration the duration to transmit the whole PSDU.
-   *        In case of A-MPDU, this is larger than the duration of the packet for which this function is called.
    */
-  void SendPacket (Ptr<const Packet> packet, WifiTxVector txVector, MpduType mpdutype = NORMAL_MPDU, uint32_t psduSize = 0, Time psduDuration = Seconds (0));
+  void SendPacket (Ptr<const Packet> packet, WifiTxVector txVector);
 
   /**
    * \param packet the packet to send
@@ -307,7 +278,8 @@ public:
    *
    * \return the total amount of time this PHY will stay busy for the transmission of these bytes.
    */
-  Time CalculateTxDuration (uint32_t size, WifiTxVector txVector, uint16_t frequency, MpduType mpdutype, uint8_t incFlag);
+  Time CalculateTxDuration (uint32_t size, WifiTxVector txVector, uint16_t frequency,
+                            MpduType mpdutype, uint8_t incFlag);
 
   /**
    * \param txVector the transmission parameters used for this packet
@@ -1181,6 +1153,9 @@ public:
   /**
    * Public method used to fire a MonitorSniffer trace for a wifi packet being received.
    * Implemented for encapsulation purposes.
+   * This method will extract all MPDUs if packet is an A-MPDU and will fire tracedCallback.
+   * The A-MPDU reference number (RX side) is set within the method. It must be a different value
+   * for each A-MPDU but the same for each subframe within one A-MPDU.
    *
    * \param packet the packet being received
    * \param channelFreqMhz the frequency in MHz at which the packet is
@@ -1191,15 +1166,14 @@ public:
    *        tuned on a given channel and still to be able to receive packets
    *        on a nearby channel.
    * \param txVector the TXVECTOR that holds rx parameters
-   * \param aMpdu the type of the packet (0 is not A-MPDU, 1 is a MPDU that is part of an A-MPDU and 2 is the last MPDU in an A-MPDU)
-   *        and the A-MPDU reference number (must be a different value for each A-MPDU but the same for each subframe within one A-MPDU)
    * \param signalNoise signal power and noise power in dBm (noise power includes the noise figure)
+   * \param statusPerMpdu reception status per MPDU
    */
   void NotifyMonitorSniffRx (Ptr<const Packet> packet,
                              uint16_t channelFreqMhz,
                              WifiTxVector txVector,
-                             MpduInfo aMpdu,
-                             SignalNoiseDbm signalNoise);
+                             SignalNoiseDbm signalNoise,
+                             std::vector<bool> statusPerMpdu);
 
   /**
    * TracedCallback signature for monitor mode receive events.
@@ -1229,18 +1203,18 @@ public:
   /**
    * Public method used to fire a MonitorSniffer trace for a wifi packet being transmitted.
    * Implemented for encapsulation purposes.
+   * This method will extract all MPDUs if packet is an A-MPDU and will fire tracedCallback.
+   * The A-MPDU reference number (RX side) is set within the method. It must be a different value
+   * for each A-MPDU but the same for each subframe within one A-MPDU.
    *
    * \param packet the packet being transmitted
    * \param channelFreqMhz the frequency in MHz at which the packet is
    *        transmitted.
    * \param txVector the TXVECTOR that holds tx parameters
-   * \param aMpdu the type of the packet (0 is not A-MPDU, 1 is a MPDU that is part of an A-MPDU and 2 is the last MPDU in an A-MPDU)
-   *        and the A-MPDU reference number (must be a different value for each A-MPDU but the same for each subframe within one A-MPDU)
    */
   void NotifyMonitorSniffTx (Ptr<const Packet> packet,
                              uint16_t channelFreqMhz,
-                             WifiTxVector txVector,
-                             MpduInfo aMpdu);
+                             WifiTxVector txVector);
 
   /**
    * TracedCallback signature for monitor mode transmit events.
@@ -1600,7 +1574,7 @@ public:
    * The PHY will use this information to determine whether
    * it should use power restriction as imposed by OBSS_PD SR.
    */
-  void NotifyChannelAccessRequested ();
+  void NotifyChannelAccessRequested (void);
 
 
 protected:
@@ -1641,8 +1615,7 @@ protected:
   Ptr<UniformRandomVariable> m_random; //!< Provides uniform random variables.
   Ptr<WifiPhyStateHelper> m_state;     //!< Pointer to WifiPhyStateHelper
 
-  uint16_t m_mpdusNum;                 //!< carries the number of expected mpdus that are part of an A-MPDU
-  bool m_plcpSuccess;                  //!< Flag if the PLCP of the packet or the first MPDU in an A-MPDU has been received
+  bool m_plcpSuccess;                  //!< Flag if the PLCP of the packet has been received
   uint32_t m_txMpduReferenceNumber;    //!< A-MPDU reference number to identify all transmitted subframes belonging to the same received A-MPDU
   uint32_t m_rxMpduReferenceNumber;    //!< A-MPDU reference number to identify all received subframes belonging to the same received A-MPDU
 
@@ -1761,21 +1734,28 @@ private:
   /**
    * Starting receiving the packet after having detected the medium is idle or after a reception switch.
    *
-   * \param packet the arriving packet
-   * \param txVector the TXVECTOR of the arriving packet
+   * \param event the corresponding event of the first time the packet arrives (also storing packet and TxVector information)
    * \param rxPowerW the receive power in W
    * \param rxDuration the duration needed for the reception of the packet
-   * \param event the corresponding event of the first time the packet arrives
    * \param length the length value indicated in the received PHY header
    * \param txNodeId the node ID of the transmitter
    */
-  void StartRx (Ptr<Packet> packet,
-                WifiTxVector txVector,
-                double rxPowerW,
-                Time rxDuration,
-                Ptr<Event> event,
-                uint16_t length,
+  void StartRx (Ptr<Event> event, double rxPowerW, Time rxDuration, uint16_t length,
                 uint32_t txNodeId);
+  /**
+   * Get the reception status for the provided MPDU and notify.
+   *
+   * \param mpdu the arriving MPDU
+   * \param event the corresponding event of the first time the packet arrives (also storing packet and TxVector information)
+   * \param relativeMpduStart the relative start time of the MPDU within the A-MPDU. 0 for normal MPDUs
+   * \param mpduDuration the duration of the MPDU
+   *
+   * \return information on MPDU reception: status, signal power (dBm), and noise power (in dBm)
+   */
+  std::pair<bool, SignalNoiseDbm> GetReceptionStatus (Ptr<const Packet> mpdu,
+                                                      Ptr<Event> event,
+                                                      Time relativeMpduStart,
+                                                      Time mpduDuration);
 
   /**
    * The trace source fired when a packet begins the transmission process on
