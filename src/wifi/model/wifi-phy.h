@@ -1613,7 +1613,6 @@ protected:
   Ptr<UniformRandomVariable> m_random; //!< Provides uniform random variables.
   Ptr<WifiPhyStateHelper> m_state;     //!< Pointer to WifiPhyStateHelper
 
-  bool m_plcpSuccess;                  //!< Flag if the PLCP of the packet has been received
   uint32_t m_txMpduReferenceNumber;    //!< A-MPDU reference number to identify all transmitted subframes belonging to the same received A-MPDU
   uint32_t m_rxMpduReferenceNumber;    //!< A-MPDU reference number to identify all received subframes belonging to the same received A-MPDU
 
