@@ -1688,6 +1688,10 @@ MacLow::ForwardDown (Ptr<const WifiPsdu> psdu, WifiTxVector txVector)
         {
           NS_LOG_DEBUG ("Sending S-MPDU");
         }
+      else
+        {
+          NS_LOG_DEBUG ("Sending A-MPDU");
+        }
     }
   m_phy->SendPacket (psdu->GetPacket (), txVector);
 }

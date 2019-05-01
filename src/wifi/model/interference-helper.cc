@@ -72,12 +72,6 @@ Event::GetRxPowerW (void) const
   return m_rxPowerW;
 }
 
-void
-Event::SetTxVector (WifiTxVector txVector)
-{
-  m_txVector = txVector;
-}
-
 WifiTxVector
 Event::GetTxVector (void) const
 {
