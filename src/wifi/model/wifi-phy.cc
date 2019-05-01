@@ -2749,15 +2749,10 @@ WifiPhy::StartReceivePreamble (Ptr<Packet> packet, double rxPowerW, Time rxDurat
   WifiPreamble preamble = tag.GetPreambleType ();
   WifiModulationClass modulation = tag.GetModulation ();
   WifiTxVector txVector;
-  DsssSigHeader dsssSigHdr;
-  LSigHeader lSigHdr;
-  HtSigHeader htSigHdr;
-  VhtSigHeader vhtSigHdr;
-  HeSigHeader heSigHdr;
-
   txVector.SetPreambleType (preamble);
   if ((modulation == WIFI_MOD_CLASS_DSSS) || (modulation == WIFI_MOD_CLASS_HR_DSSS))
     {
+      DsssSigHeader dsssSigHdr;
       found = packet->RemoveHeader (dsssSigHdr);
       if (!found)
         {
@@ -2777,6 +2772,7 @@ WifiPhy::StartReceivePreamble (Ptr<Packet> packet, double rxPowerW, Time rxDurat
     }
   else if ((modulation != WIFI_MOD_CLASS_HT) || (preamble != WIFI_PREAMBLE_HT_GF))
     {
+      LSigHeader lSigHdr;
       found = packet->RemoveHeader (lSigHdr);
       if (!found)
         {
@@ -2796,6 +2792,7 @@ WifiPhy::StartReceivePreamble (Ptr<Packet> packet, double rxPowerW, Time rxDurat
     }
   if (modulation == WIFI_MOD_CLASS_HT)
     {
+      HtSigHeader htSigHdr;
       found = packet->RemoveHeader (htSigHdr);
       if (!found)
         {
@@ -2818,6 +2815,7 @@ WifiPhy::StartReceivePreamble (Ptr<Packet> packet, double rxPowerW, Time rxDurat
     }
   else if (modulation == WIFI_MOD_CLASS_VHT)
     {
+      VhtSigHeader vhtSigHdr;
       vhtSigHdr.SetMuFlag (preamble == WIFI_PREAMBLE_VHT_MU);
       found = packet->RemoveHeader (vhtSigHdr);
       if (!found)
@@ -2844,6 +2842,7 @@ WifiPhy::StartReceivePreamble (Ptr<Packet> packet, double rxPowerW, Time rxDurat
     }
   else if (modulation == WIFI_MOD_CLASS_HE)
     {
+      HeSigHeader heSigHdr;
       heSigHdr.SetMuFlag (preamble == WIFI_PREAMBLE_HE_MU);
       found = packet->RemoveHeader (heSigHdr);
       if (!found)
@@ -2925,14 +2924,6 @@ WifiPhy::StartReceivePreamble (Ptr<Packet> packet, double rxPowerW, Time rxDurat
         {
           AbortCurrentReception (FRAME_CAPTURE_PACKET_SWITCH);
           NS_LOG_DEBUG ("Switch to new packet");
-          if (!m_endPreambleDetectionEvent.IsRunning () || ((m_frameCaptureModel != 0) && (rxPowerW > m_currentEvent->GetRxPowerW ())))
-            {
-              m_currentDsssSigHdr = dsssSigHdr;
-              m_currentLSigHdr = lSigHdr;
-              m_currentHtSigHdr = htSigHdr;
-              m_currentVhtSigHdr = vhtSigHdr;
-              m_currentHeSigHdr = heSigHdr;
-            }
           StartRx (event, rxPowerW, rxDuration);
         }
       else

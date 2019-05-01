@@ -1925,12 +1925,6 @@ private:
   Ptr<ErrorModel> m_postReceptionErrorModel; //!< Error model for receive packet events
   Time m_timeLastPreambleDetected; //!< Record the time the last preamble was detected
 
-  DsssSigHeader m_currentDsssSigHdr; //!< DSSS header of the currently received packet (if present)
-  LSigHeader m_currentLSigHdr;       //!< L-SIG header of the currently received packet (if present)
-  HtSigHeader m_currentHtSigHdr;     //!< HT-SIG header of the currently received packet (if present)
-  VhtSigHeader m_currentVhtSigHdr;   //!< VHT-SIG header of the currently received packet (if present)
-  HeSigHeader m_currentHeSigHdr;     //!< HE-SIG header of the currently received packet (if present)
-
   Callback<void> m_capabilitiesChangedCallback; //!< Callback when PHY capabilities changed
 };
 
