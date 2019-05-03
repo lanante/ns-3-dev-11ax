@@ -175,9 +175,8 @@ public:
    * @param context
    * @param packet
    * @param snr
-   * @param phyHeaderSuccess
    */
-  void PhyRxErrorTrace (std::string context, Ptr<const Packet> packet, double snr, bool phyHeaderSuccess);
+  void PhyRxErrorTrace (std::string context, Ptr<const Packet> packet, double snr);
 
   /**
    * Function to be called when a frame is being transmitted by the

@@ -46,7 +46,7 @@ import ns.wifi
 #   std::cout << "PHYRXOK mode=" << mode << " snr=" << snr << " " << *packet << std::endl;
 # }
 # void
-# PhyRxErrorTrace(std::string context, Ptr<const Packet> packet, double snr, bool phyHeaderSuccess)
+# PhyRxErrorTrace(std::string context, Ptr<const Packet> packet, double snr)
 # {
 #   std::cout << "PHYRXERROR snr=" << snr << " " << *packet << std::endl;
 # }

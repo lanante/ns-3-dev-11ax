@@ -2758,6 +2758,14 @@ WifiPhy::StartReceiveHeader (Ptr<Event> event, Time rxDuration)
           return;
         }
 
+      if ((txVector.GetChannelWidth () >= 40) && (txVector.GetChannelWidth () > GetChannelWidth ()))
+        {
+          NS_LOG_DEBUG ("Packet reception could not be started because not enough channel width");
+          NotifyRxDrop (event->GetPacket (), UNSUPPORTED_SETTINGS);
+          MaybeCcaBusyDuration ();
+          return;
+        }
+
       if ((txVector.GetMode ().GetModulationClass () == WIFI_MOD_CLASS_HT) && (txVector.GetPreambleType () == WIFI_PREAMBLE_HT_GF))
         {
           //No legacy PHY header for HT GF
@@ -3086,6 +3094,7 @@ WifiPhy::StartReceivePayload (Ptr<Event> event)
       uint16_t primaryChannelWidth = GetChannelWidth () >= 40 ? 20 : GetChannelWidth ();
       uint16_t primaryChannelFrequency = GetCenterFrequency (GetFrequency (), GetChannelWidth (), primaryChannelWidth, GetSecondaryChannelOffset () == UPPER ? 0 : 1);
       InterferenceHelper::SnrPer snrPer = m_interference.CalculateNonLegacyPhyHeaderSnrPer (event, primaryChannelFrequency);
+      NS_LOG_DEBUG ("snr(dB)=" << RatioToDb (snrPer.snr) << ", per=" << snrPer.per);
       canReceivePayload = (m_random->GetValue () > snrPer.per);
     }
   else

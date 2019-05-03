@@ -87,10 +87,6 @@ protected:
   bool m_receptionBss3; ///< Flag whether a reception occured for BSS 3
   bool m_receptionBss4; ///< Flag whether a reception occured for BSS 4
 
-  bool m_phyHeaderReceivedSuccessBss1;  ///< Flag whether the PHY header has been successfully received by BSS 1
-  bool m_phyHeaderReceivedSuccessBss2;  ///< Flag whether the PHY header has been successfully received by BSS 2
-  bool m_phyHeaderReceivedSuccessBss3;  ///< Flag whether the PHY header has been successfully received by BSS 3
-  bool m_phyHeaderReceivedSuccessBss4;  ///< Flag whether the PHY header has been successfully received by BSS 4
   bool m_phyPayloadReceivedSuccessBss1; ///< Flag whether the PHY payload has been successfully received by BSS 1
   bool m_phyPayloadReceivedSuccessBss2; ///< Flag whether the PHY payload has been successfully received by BSS 2
   bool m_phyPayloadReceivedSuccessBss3; ///< Flag whether the PHY payload has been successfully received by BSS 3
@@ -125,9 +121,8 @@ protected:
    * \param context the context
    * \param p the packet
    * \param snr the signal to noise ratio
-   * \param phyHeaderSuccess whether the PHY header was successfully received
    */
-  void RxErrorCallback (std::string context, Ptr<const Packet> p, double snr, bool phyHeaderSuccess);
+  void RxErrorCallback (std::string context, Ptr<const Packet> p, double snr);
 
   /**
    * Set expected SNR ((in dB) for a given BSS before the test case is run
@@ -138,11 +133,9 @@ protected:
   /**
    * Verify packet reception once the test case is run
    * \param expectedReception whether the reception should have occured
-   * \param expectedPhyHeaderSuccess whether the PHY header should have been successfully received
-   * \param expectedPhyPayloadSuccess whether the PHY payload should have been successfully received
    * \param bss the BSS number
    */
-  void VerifyResultsForBss (bool expectedReception, bool expectedPhyHeaderSuccess, bool expectedPhyPayloadSuccess, uint8_t bss);
+  void VerifyResultsForBss (bool expectedReception, bool expectedPhyPayloadSuccess, uint8_t bss);
 
   /**
    * Reset the results
@@ -175,10 +168,6 @@ TestStaticChannelBonding::TestStaticChannelBonding ()
     m_receptionBss2 (false),
     m_receptionBss3 (false),
     m_receptionBss4 (false),
-    m_phyHeaderReceivedSuccessBss1 (false),
-    m_phyHeaderReceivedSuccessBss2 (false),
-    m_phyHeaderReceivedSuccessBss3 (false),
-    m_phyHeaderReceivedSuccessBss4 (false),
     m_phyPayloadReceivedSuccessBss1 (false),
     m_phyPayloadReceivedSuccessBss2 (false),
     m_phyPayloadReceivedSuccessBss3 (false),
@@ -208,10 +197,6 @@ TestStaticChannelBonding::Reset (void)
   m_receptionBss2 = false;
   m_receptionBss3 = false;
   m_receptionBss4 = false;
-  m_phyHeaderReceivedSuccessBss1 = false;
-  m_phyHeaderReceivedSuccessBss2 = false;
-  m_phyHeaderReceivedSuccessBss3 = false;
-  m_phyHeaderReceivedSuccessBss4 = false;
   m_phyPayloadReceivedSuccessBss1 = false;
   m_phyPayloadReceivedSuccessBss2 = false;
   m_phyPayloadReceivedSuccessBss3 = false;
@@ -244,30 +229,26 @@ TestStaticChannelBonding::SetExpectedSnrForBss (double snr, uint8_t bss)
 }
 
 void
-TestStaticChannelBonding::VerifyResultsForBss (bool expectedReception, bool expectedPhyHeaderSuccess, bool expectedPhyPayloadSuccess, uint8_t bss)
+TestStaticChannelBonding::VerifyResultsForBss (bool expectedReception, bool expectedPhyPayloadSuccess, uint8_t bss)
 {
   if (bss == 1)
     {
       NS_TEST_ASSERT_MSG_EQ (m_receptionBss1, expectedReception, "m_receptionBss1 is not equal to expectedReception");
-      NS_TEST_ASSERT_MSG_EQ (m_phyHeaderReceivedSuccessBss1, expectedPhyHeaderSuccess, "m_phyHeaderReceivedSuccessBss1 is not equal to expectedPhyHeaderSuccess");
       NS_TEST_ASSERT_MSG_EQ (m_phyPayloadReceivedSuccessBss1, expectedPhyPayloadSuccess, "m_phyPayloadReceivedSuccessBss1 is not equal to expectedPhyPayloadSuccess");
     }
   else if (bss == 2)
     {
       NS_TEST_ASSERT_MSG_EQ (m_receptionBss2, expectedReception, "m_receptionBss2 is not equal to expectedReception");
-      NS_TEST_ASSERT_MSG_EQ (m_phyHeaderReceivedSuccessBss2, expectedPhyHeaderSuccess, "m_phyHeaderReceivedSuccessBss2 is not equal to expectedPhyHeaderSuccess");
       NS_TEST_ASSERT_MSG_EQ (m_phyPayloadReceivedSuccessBss2, expectedPhyPayloadSuccess, "m_phyPayloadReceivedSuccessBss2 is not equal to expectedPhyPayloadSuccess");
     }
   else if (bss == 3)
     {
       NS_TEST_ASSERT_MSG_EQ (m_receptionBss3, expectedReception, "m_receptionBss3 is not equal to expectedReception");
-      NS_TEST_ASSERT_MSG_EQ (m_phyHeaderReceivedSuccessBss3, expectedPhyHeaderSuccess, "m_phyHeaderReceivedSuccessBss3 is not equal to expectedPhyHeaderSuccess");
       NS_TEST_ASSERT_MSG_EQ (m_phyPayloadReceivedSuccessBss3, expectedPhyPayloadSuccess, "m_phyPayloadReceivedSuccessBss3 is not equal to expectedPhyPayloadSuccess");
     }
   else if (bss == 4)
     {
       NS_TEST_ASSERT_MSG_EQ (m_receptionBss4, expectedReception, "m_receptionBss4 is not equal to expectedReception");
-      NS_TEST_ASSERT_MSG_EQ (m_phyHeaderReceivedSuccessBss4, expectedPhyHeaderSuccess, "m_phyHeaderReceivedSuccessBss4 is not equal to expectedPhyHeaderSuccess");
       NS_TEST_ASSERT_MSG_EQ (m_phyPayloadReceivedSuccessBss4, expectedPhyPayloadSuccess, "m_phyPayloadReceivedSuccessBss4 is not equal to expectedPhyPayloadSuccess");
     }
 }
@@ -366,6 +347,7 @@ void
 TestStaticChannelBonding::RxCallback (std::string context, Ptr<const Packet> p, RxPowerWattPerChannelBand rxPowersW)
 {
   uint32_t size = p->GetSize ();
+  NS_LOG_INFO (context << " received packet with size " << size);
   if (context == "BSS1") //RX is in BSS 1
     {
       auto band = std::make_pair (5180, 20);
@@ -547,7 +529,6 @@ TestStaticChannelBonding::RxOkCallback (std::string context, Ptr<const Packet> p
   if (context == "BSS1")
     {
       m_receptionBss1 = true;
-      m_phyHeaderReceivedSuccessBss1 = true;
       m_phyPayloadReceivedSuccessBss1 = true;
       if (m_initializedSnrBss1)
         {
@@ -557,7 +538,6 @@ TestStaticChannelBonding::RxOkCallback (std::string context, Ptr<const Packet> p
   else if (context == "BSS2")
     {
       m_receptionBss2 = true;
-      m_phyHeaderReceivedSuccessBss2 = true;
       m_phyPayloadReceivedSuccessBss2 = true;
       if (m_initializedSnrBss2)
         {
@@ -567,7 +547,6 @@ TestStaticChannelBonding::RxOkCallback (std::string context, Ptr<const Packet> p
   else if (context == "BSS3")
     {
       m_receptionBss3 = true;
-      m_phyHeaderReceivedSuccessBss3 = true;
       m_phyPayloadReceivedSuccessBss3 = true;
       if (m_initializedSnrBss3)
         {
@@ -577,7 +556,6 @@ TestStaticChannelBonding::RxOkCallback (std::string context, Ptr<const Packet> p
   else if (context == "BSS4")
     {
       m_receptionBss4 = true;
-      m_phyHeaderReceivedSuccessBss4 = true;
       m_phyPayloadReceivedSuccessBss4 = true;
       if (m_initializedSnrBss4)
         {
@@ -587,13 +565,12 @@ TestStaticChannelBonding::RxOkCallback (std::string context, Ptr<const Packet> p
 }
 
 void
-TestStaticChannelBonding::RxErrorCallback (std::string context, Ptr<const Packet> p, double snr, bool phyHeaderSuccess)
+TestStaticChannelBonding::RxErrorCallback (std::string context, Ptr<const Packet> p, double snr)
 {
-  NS_LOG_INFO ("RxErrorCallback: BSS=" << context << " SNR=" << RatioToDb (snr) << " PHY_HDR=" << phyHeaderSuccess);
+  NS_LOG_INFO ("RxErrorCallback: BSS=" << context << " SNR=" << RatioToDb (snr));
   if (context == "BSS1")
     {
       m_receptionBss1 = true;
-      m_phyHeaderReceivedSuccessBss1 = phyHeaderSuccess;
       m_phyPayloadReceivedSuccessBss1 = false;
       if (m_initializedSnrBss1)
         {
@@ -603,7 +580,6 @@ TestStaticChannelBonding::RxErrorCallback (std::string context, Ptr<const Packet
   else if (context == "BSS2")
     {
       m_receptionBss2 = true;
-      m_phyHeaderReceivedSuccessBss2 = phyHeaderSuccess;
       m_phyPayloadReceivedSuccessBss2 = false;
       if (m_initializedSnrBss2)
         {
@@ -613,7 +589,6 @@ TestStaticChannelBonding::RxErrorCallback (std::string context, Ptr<const Packet
   else if (context == "BSS3")
     {
       m_receptionBss3 = true;
-      m_phyHeaderReceivedSuccessBss3 = phyHeaderSuccess;
       m_phyPayloadReceivedSuccessBss3 = false;
       if (m_initializedSnrBss3)
         {
@@ -623,7 +598,6 @@ TestStaticChannelBonding::RxErrorCallback (std::string context, Ptr<const Packet
   else if (context == "BSS4")
     {
       m_receptionBss4 = true;
-      m_phyHeaderReceivedSuccessBss4 = phyHeaderSuccess;
       m_phyPayloadReceivedSuccessBss4 = false;
       if (m_initializedSnrBss4)
         {
@@ -855,10 +829,10 @@ TestStaticChannelBonding::DoRun (void)
   Simulator::Schedule (Seconds (1.0) + MicroSeconds (5.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::IDLE, 2, false);
   Simulator::Schedule (Seconds (1.0) + MicroSeconds (5.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::IDLE, 4, false);
   Simulator::Schedule (Seconds (1.0) + MicroSeconds (5.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::CCA_BUSY, 4, true); //secondary channel should be sensed busy for BSS 4
-  Simulator::Schedule (Seconds (1.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, true, true, 1); // successfull reception for BSS 1
-  Simulator::Schedule (Seconds (1.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, true, true, 3); // successfull reception for BSS 3
-  Simulator::Schedule (Seconds (1.5), &TestStaticChannelBonding::VerifyResultsForBss, this, false, false, false, 2); // no reception for BSS 2
-  Simulator::Schedule (Seconds (1.5), &TestStaticChannelBonding::VerifyResultsForBss, this, false, false, false, 4); // no reception for BSS 4
+  Simulator::Schedule (Seconds (1.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, true, 1); // successfull reception for BSS 1
+  Simulator::Schedule (Seconds (1.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, true, 3); // successfull reception for BSS 3
+  Simulator::Schedule (Seconds (1.5), &TestStaticChannelBonding::VerifyResultsForBss, this, false, false, 2); // no reception for BSS 2
+  Simulator::Schedule (Seconds (1.5), &TestStaticChannelBonding::VerifyResultsForBss, this, false, false, 4); // no reception for BSS 4
 
   //CASE 1B: BSS 2
   Simulator::Schedule (Seconds (1.9), &TestStaticChannelBonding::Reset, this);
@@ -868,10 +842,10 @@ TestStaticChannelBonding::DoRun (void)
   Simulator::Schedule (Seconds (2.0) + MicroSeconds (5.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::IDLE, 1, false);
   Simulator::Schedule (Seconds (2.0) + MicroSeconds (5.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::IDLE, 3, false);
   Simulator::Schedule (Seconds (2.0) + MicroSeconds (5.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::CCA_BUSY, 3, true); //secondary channel should be sensed busy for BSS 3
-  Simulator::Schedule (Seconds (2.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, true, true, 2); // successfull reception for BSS 2
-  Simulator::Schedule (Seconds (2.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, true, true, 4); // successfull reception for BSS 4
-  Simulator::Schedule (Seconds (2.5), &TestStaticChannelBonding::VerifyResultsForBss, this, false, false, false, 1); // no reception for BSS 1
-  Simulator::Schedule (Seconds (2.5), &TestStaticChannelBonding::VerifyResultsForBss, this, false, false, false, 3); // no reception for BSS 3
+  Simulator::Schedule (Seconds (2.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, true, 2); // successfull reception for BSS 2
+  Simulator::Schedule (Seconds (2.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, true, 4); // successfull reception for BSS 4
+  Simulator::Schedule (Seconds (2.5), &TestStaticChannelBonding::VerifyResultsForBss, this, false, false, 1); // no reception for BSS 1
+  Simulator::Schedule (Seconds (2.5), &TestStaticChannelBonding::VerifyResultsForBss, this, false, false, 3); // no reception for BSS 3
 
   //CASE 1C: BSS 3
   Simulator::Schedule (Seconds (2.9), &TestStaticChannelBonding::Reset, this);
@@ -880,10 +854,10 @@ TestStaticChannelBonding::DoRun (void)
   Simulator::Schedule (Seconds (3.0) + MicroSeconds (5.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::RX, 2, false);
   Simulator::Schedule (Seconds (3.0) + MicroSeconds (5.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::RX, 3, false);
   Simulator::Schedule (Seconds (3.0) + MicroSeconds (5.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::RX, 4, false);
-  Simulator::Schedule (Seconds (3.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, true, true, 3); // successfull reception for BSS 3
-  Simulator::Schedule (Seconds (3.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, true, true, 4); // successfull reception for BSS 4
-  Simulator::Schedule (Seconds (3.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, false, false, 1); // reception failed for BSS 1 since channel width is not supported
-  Simulator::Schedule (Seconds (3.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, false, false, 2); // reception failed for BSS 2 since channel width is not supported
+  Simulator::Schedule (Seconds (3.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, true, 3); // successfull reception for BSS 3
+  Simulator::Schedule (Seconds (3.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, true, 4); // successfull reception for BSS 4
+  Simulator::Schedule (Seconds (3.5), &TestStaticChannelBonding::VerifyResultsForBss, this, false, false, 1); // no reception for BSS 1 since channel width is not supported
+  Simulator::Schedule (Seconds (3.5), &TestStaticChannelBonding::VerifyResultsForBss, this, false, false, 2); // no reception for BSS 2 since channel width is not supported
 
   //CASE 1D: BSS 4
   Simulator::Schedule (Seconds (3.9), &TestStaticChannelBonding::Reset, this);
@@ -892,10 +866,10 @@ TestStaticChannelBonding::DoRun (void)
   Simulator::Schedule (Seconds (4.0) + MicroSeconds (5.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::RX, 2, false);
   Simulator::Schedule (Seconds (4.0) + MicroSeconds (5.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::RX, 3, false);
   Simulator::Schedule (Seconds (4.0) + MicroSeconds (5.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::RX, 4, false);
-  Simulator::Schedule (Seconds (4.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, true, true, 3); // successfull reception for BSS 3
-  Simulator::Schedule (Seconds (4.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, true, true, 4); // successfull reception for BSS 4
-  Simulator::Schedule (Seconds (4.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, false, false, 1); // reception failed for BSS 1 since channel width is not supported
-  Simulator::Schedule (Seconds (4.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, false, false, 2); // reception failed for BSS 2 since channel width is not supported
+  Simulator::Schedule (Seconds (4.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, true, 3); // successfull reception for BSS 3
+  Simulator::Schedule (Seconds (4.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, true, 4); // successfull reception for BSS 4
+  Simulator::Schedule (Seconds (4.5), &TestStaticChannelBonding::VerifyResultsForBss, this, false, false, 1); // no reception for BSS 1 since channel width is not supported
+  Simulator::Schedule (Seconds (4.5), &TestStaticChannelBonding::VerifyResultsForBss, this, false, false, 2); // no reception for BSS 2 since channel width is not supported
 
   //CASE 2: verify reception on channel 36 (BSS 1) when channel 40 is used (BSS 2) at the same time
   Simulator::Schedule (Seconds (4.9), &TestStaticChannelBonding::Reset, this);
@@ -907,8 +881,8 @@ TestStaticChannelBonding::DoRun (void)
   Simulator::Schedule (Seconds (5.0) + MicroSeconds (5.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::RX, 4, false);
   Simulator::Schedule (Seconds (5.0), &TestStaticChannelBonding::SetExpectedSnrForBss, this, 44.0, 1); // BSS 1 expects SNR around 44 dB
   Simulator::Schedule (Seconds (5.0), &TestStaticChannelBonding::SetExpectedSnrForBss, this, 44.0, 1); // BSS 2 expects SNR around 44 dB
-  Simulator::Schedule (Seconds (5.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, true, true, 1); // successfull reception for BSS 1
-  Simulator::Schedule (Seconds (5.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, true, true, 2); // successfull reception for BSS 2
+  Simulator::Schedule (Seconds (5.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, true, 1); // successfull reception for BSS 1
+  Simulator::Schedule (Seconds (5.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, true, 2); // successfull reception for BSS 2
 
   //CASE 3: verify reception on channel 38 (BSS 3) when channel 36 is used (BSS 1) at the same time
   Simulator::Schedule (Seconds (5.9), &TestStaticChannelBonding::Reset, this);
@@ -919,8 +893,8 @@ TestStaticChannelBonding::DoRun (void)
   Simulator::Schedule (Seconds (6.0) + MicroSeconds (5.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::RX, 3, false);
   Simulator::Schedule (Seconds (6.0) + MicroSeconds (5.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::RX, 4, false);
   Simulator::Schedule (Seconds (6.0), &TestStaticChannelBonding::SetExpectedSnrForBss, this, 3.0, 1); // BSS 1 expects SNR around 3 dB
-  Simulator::Schedule (Seconds (6.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, true, false, 1); // PHY header passed but payload failed for BSS 1
-  Simulator::Schedule (Seconds (6.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, false, false, 3); // PHY header failed for BSS 3
+  Simulator::Schedule (Seconds (6.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, false, 1); // PHY header passed but payload failed for BSS 1
+  Simulator::Schedule (Seconds (6.5), &TestStaticChannelBonding::VerifyResultsForBss, this, false, false, 3); // L-SIG was not received for BSS 3, so reception was aborted
 
   //CASE 4: verify reception on channel 38 (BSS 3) when channel 40 is used (BSS 2) at the same time
   Simulator::Schedule (Seconds (6.9), &TestStaticChannelBonding::Reset, this);
@@ -931,8 +905,8 @@ TestStaticChannelBonding::DoRun (void)
   Simulator::Schedule (Seconds (7.0) + MicroSeconds (5.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::RX, 3, false);
   Simulator::Schedule (Seconds (7.0) + MicroSeconds (5.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::RX, 4, false);
   Simulator::Schedule (Seconds (7.0), &TestStaticChannelBonding::SetExpectedSnrForBss, this, 3.0, 2); // BSS 2 expects SNR around 3 dB
-  Simulator::Schedule (Seconds (7.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, true, false, 2); // PHY header passed but payload failed for BSS 2
-  Simulator::Schedule (Seconds (7.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, true, false, 3); // PHY header passed but payload failed for BSS 3
+  Simulator::Schedule (Seconds (7.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, false, 2); // PHY header passed but payload failed for BSS 2
+  Simulator::Schedule (Seconds (7.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, false, 3); // PHY header passed but payload failed for BSS 3
 
   //CASE 5: verify reception on channel 38 (BSS 4) when channel 36 is used (BSS 1) at the same time
   Simulator::Schedule (Seconds (7.9), &TestStaticChannelBonding::Reset, this);
@@ -943,8 +917,8 @@ TestStaticChannelBonding::DoRun (void)
   Simulator::Schedule (Seconds (8.0) + MicroSeconds (5.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::RX, 3, false);
   Simulator::Schedule (Seconds (8.0) + MicroSeconds (5.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::RX, 4, false);
   Simulator::Schedule (Seconds (8.0), &TestStaticChannelBonding::SetExpectedSnrForBss, this, 3.0, 1); // BSS 1 expects SNR around 3 dB
-  Simulator::Schedule (Seconds (8.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, true, false, 1); // PHY header passed but payload failed for BSS 1
-  Simulator::Schedule (Seconds (8.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, true, false, 4); // PHY header passed but payload failed for BSS 4
+  Simulator::Schedule (Seconds (8.5), &TestStaticChannelBonding::VerifyResultsForBss, this, false, false, 1); // HE-SIG was not received for BSS 1, so payload reception was not started
+  Simulator::Schedule (Seconds (8.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, false, 4); // PHY header passed but payload failed for BSS 4
 
   //CASE 6: verify reception on channel 38 (BSS 4) when channel 40 is used (BSS 2) at the same time
   Simulator::Schedule (Seconds (8.9), &TestStaticChannelBonding::Reset, this);
@@ -955,8 +929,8 @@ TestStaticChannelBonding::DoRun (void)
   Simulator::Schedule (Seconds (9.0) + MicroSeconds (5.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::RX, 3, false);
   Simulator::Schedule (Seconds (9.0) + MicroSeconds (5.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::RX, 4, false);
   Simulator::Schedule (Seconds (9.0), &TestStaticChannelBonding::SetExpectedSnrForBss, this, 3.0, 2); // BSS 2 expects SNR around 3 dB
-  Simulator::Schedule (Seconds (9.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, true, false, 2); // PHY header passed but payload failed for BSS 2
-  Simulator::Schedule (Seconds (9.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, false, false, 4); // PHY header failed for BSS 4
+  Simulator::Schedule (Seconds (9.5), &TestStaticChannelBonding::VerifyResultsForBss, this, false, false, 2); // HE-SIG was not received for BSS 2, so payload reception was not started
+  Simulator::Schedule (Seconds (9.5), &TestStaticChannelBonding::VerifyResultsForBss, this, false, false, 4); // L-SIG was not received for BSS 4, so reception was aborted
 
   //CASE 7: verify reception on channel 38 (BSS 3) when channels 36 (BSS 1) and 40 (BSS 2) are used at the same time
   Simulator::Schedule (Seconds (9.9), &TestStaticChannelBonding::Reset, this);
@@ -969,9 +943,9 @@ TestStaticChannelBonding::DoRun (void)
   Simulator::Schedule (Seconds (10.0) + MicroSeconds (5.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::RX, 4, false);
   Simulator::Schedule (Seconds (10.0), &TestStaticChannelBonding::SetExpectedSnrForBss, this, 3.0, 1); // BSS 1 expects SNR around 3 dB
   Simulator::Schedule (Seconds (10.0), &TestStaticChannelBonding::SetExpectedSnrForBss, this, 3.0, 2); // BSS 2 expects SNR around 3 dB
-  Simulator::Schedule (Seconds (10.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, true, false, 1); // PHY header passed but payload failed for BSS 1
-  Simulator::Schedule (Seconds (10.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, true, false, 2); // PHY header passed but payload failed for BSS 2
-  Simulator::Schedule (Seconds (10.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, false, false, 3); // PHY header failed for BSS 3
+  Simulator::Schedule (Seconds (10.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, false, 1); // PHY header passed but payload failed for BSS 1
+  Simulator::Schedule (Seconds (10.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, false, 2); // PHY header passed but payload failed for BSS 2
+  Simulator::Schedule (Seconds (10.5), &TestStaticChannelBonding::VerifyResultsForBss, this, false, false, 3); // L-SIG was not received for BSS 3, so reception was aborted
 
   //CASE 8: verify reception on channel 38 (BSS 4) when channels 36 (BSS 1) and 40 (BSS 2) are used at the same time
   Simulator::Schedule (Seconds (10.9), &TestStaticChannelBonding::Reset, this);
@@ -984,9 +958,9 @@ TestStaticChannelBonding::DoRun (void)
   Simulator::Schedule (Seconds (11.0) + MicroSeconds (5.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::RX, 4, false);
   Simulator::Schedule (Seconds (11.0), &TestStaticChannelBonding::SetExpectedSnrForBss, this, 3.0, 1); // BSS 1 expects SNR around 3 dB
   Simulator::Schedule (Seconds (11.0), &TestStaticChannelBonding::SetExpectedSnrForBss, this, 3.0, 2); // BSS 2 expects SNR around 3 dB
-  Simulator::Schedule (Seconds (11.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, true, false, 1); // PHY header passed but payload failed for BSS 1
-  Simulator::Schedule (Seconds (11.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, true, false, 2); // PHY header passed but payload failed for BSS 2
-  Simulator::Schedule (Seconds (11.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, false, false, 4); // PHY header failed for BSS 4
+  Simulator::Schedule (Seconds (11.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, false, 1); // PHY header passed but payload failed for BSS 1
+  Simulator::Schedule (Seconds (11.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, false, 2); // PHY header passed but payload failed for BSS 2
+  Simulator::Schedule (Seconds (11.5), &TestStaticChannelBonding::VerifyResultsForBss, this, false, false, 4); // L-SIG was not received for BSS 4, so reception was aborted
 
   Simulator::Run ();
   Simulator::Destroy ();
@@ -1095,7 +1069,7 @@ TestDynamicChannelBonding::SendPacket (uint8_t bss, uint16_t expectedChannelWidt
   HtSigHeader htSig;
   htSig.SetMcs (txVector.GetMode ().GetMcsValue ());
   htSig.SetChannelWidth (channelWidth);
-  htSig.SetLength (size);
+  htSig.SetHtLength (size);
   htSig.SetAggregation (txVector.IsAggregation ());
   htSig.SetShortGuardInterval (txVector.GetGuardInterval () == 400);
   pkt->AddHeader (htSig);
