@@ -345,4 +345,38 @@ function run_one () {
 
   cd ../examples
 
+  unset MCS
+  unset maxSlrc
+  unset bianchi
+  unset sigma
+  unset applicationTxStart
+  unset rxSensitivity
+  unset filterOutNonAddbaEstablished
+  unset useExplicitBarAfterMissedBlockAck
+  unset enableFrameCapture
+  unset enableThresholdPreambleDetection
+  unset disableArp
+  unset maxAmpduSizeBss1
+  unset maxAmpduSizeBss2
+  unset maxAmpduSizeBss3
+  unset maxAmpduSizeBss4
+  unset maxAmpduSizeBss5
+  unset maxAmpduSizeBss6
+  unset maxAmpduSizeBss7
+  unset colorBss1
+  unset colorBss2
+  unset colorBss3
+  unset colorBss4
+  unset colorBss5
+  unset colorBss6
+  unset colorBss7
+  unset obssPdThreshold
+  unset obssPdThresholdBss1
+  unset obssPdThresholdBss2
+  unset obssPdThresholdBss3
+  unset obssPdThresholdBss4
+  unset obssPdThresholdBss5
+  unset obssPdThresholdBss6
+  unset obssPdThresholdBss7
+  unset powerBackoff
 }
