@@ -239,6 +239,18 @@ WifiPhyStateHelper::GetLastRxStartTime (void) const
 WifiPhyState
 WifiPhyStateHelper::GetState (bool secondaryChannel) const
 {
+  Time now = Simulator::Now ();
+  if (secondaryChannel)
+    {
+      if (m_endCcaBusySecondary > now)
+        {
+          return WifiPhyState::CCA_BUSY;
+        }
+      else
+        {
+          return WifiPhyState::IDLE;
+        }
+    }
   if (m_isOff)
     {
       return WifiPhyState::OFF;
@@ -247,19 +259,19 @@ WifiPhyStateHelper::GetState (bool secondaryChannel) const
     {
       return WifiPhyState::SLEEP;
     }
-  else if (m_endTx > Simulator::Now ())
+  else if (m_endTx > now)
     {
       return WifiPhyState::TX;
     }
-  else if (m_endRx > Simulator::Now ())
+  else if (m_endRx > now)
     {
       return WifiPhyState::RX;
     }
-  else if (m_endSwitching > Simulator::Now ())
+  else if (m_endSwitching > now)
     {
       return WifiPhyState::SWITCHING;
     }
-  else if ((m_endCcaBusy > Simulator::Now ()) || (secondaryChannel && (m_endCcaBusySecondary > Simulator::Now ())))
+  else if (m_endCcaBusy > now)
     {
       return WifiPhyState::CCA_BUSY;
     }

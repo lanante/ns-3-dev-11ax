@@ -76,6 +76,8 @@ cpp_examples = [
     ("wifi-backward-compatibility --apVersion=80211a --staVersion=80211n_5GHZ --apRaa=Ideal --staRaa=Ideal --simulationTime=1", "True", "False"),
     ("wifi-backward-compatibility --apVersion=80211a --staVersion=80211ac --simulationTime=1", "True", "False"),
     ("wifi-backward-compatibility --apVersion=80211a --staVersion=80211ac --apRaa=Ideal --staRaa=Ideal --simulationTime=1", "True", "False"),
+    ("wifi-channel-bonding --channelBssA=36 --channelBssB=40 --maxSupportedChannelWidthBssA=20 --maxSupportedChannelWidthBssB=20 --useDynamicChannelBonding=false --verifyResults=1 --minExpectedThroughputBssA=59 --maxExpectedThroughputBssA=60 --minExpectedThroughputBssB=59 --maxExpectedThroughputBssB=60", "True", "False"),
+    ("wifi-channel-bonding --channelBssA=36 --channelBssB=40 --maxSupportedChannelWidthBssA=20 --maxSupportedChannelWidthBssB=20 --useDynamicChannelBonding=false --txMaskInnerBandMinimumRejection=-20 --txMaskOuterBandMinimumRejection=-28 --txMaskOuterBandMaximumRejection=-40  --verifyResults=1 --minExpectedThroughputBssA=29 --maxExpectedThroughputBssA=30 --minExpectedThroughputBssB=29 --maxExpectedThroughputBssB=30", "True", "False"),
 ]
 
 # A list of Python examples to run in order to ensure that they remain

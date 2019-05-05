@@ -175,11 +175,11 @@ TestStaticChannelBonding::TestStaticChannelBonding ()
 {
   LogLevel logLevel = (LogLevel)(LOG_PREFIX_TIME | LOG_PREFIX_NODE | LOG_LEVEL_ALL);
   LogComponentEnable ("WifiChannelBondingTest", logLevel);
-  //LogComponentEnable ("WifiSpectrumValueHelper", logLevel);
-  //LogComponentEnable ("WifiPhy", logLevel);
-  //LogComponentEnable ("SpectrumWifiPhy", logLevel);
-  //LogComponentEnable ("InterferenceHelper", logLevel);
-  //LogComponentEnable ("MultiModelSpectrumChannel", logLevel);
+  LogComponentEnable ("WifiSpectrumValueHelper", logLevel);
+  LogComponentEnable ("WifiPhy", logLevel);
+  LogComponentEnable ("SpectrumWifiPhy", logLevel);
+  LogComponentEnable ("InterferenceHelper", logLevel);
+  LogComponentEnable ("MultiModelSpectrumChannel", logLevel);
 }
 
 void
@@ -826,9 +826,16 @@ TestStaticChannelBonding::DoRun (void)
   Simulator::Schedule (Seconds (1.0), &TestStaticChannelBonding::SendPacket, this, 1);
   Simulator::Schedule (Seconds (1.0) + MicroSeconds (5.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::RX, 1, false);
   Simulator::Schedule (Seconds (1.0) + MicroSeconds (5.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::RX, 3, false);
+  //Simulator::Schedule (Seconds (1.0) + MicroSeconds (5.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::IDLE, 3, true); //secondary channel should be sensed idle for BSS 3
   Simulator::Schedule (Seconds (1.0) + MicroSeconds (5.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::IDLE, 2, false);
   Simulator::Schedule (Seconds (1.0) + MicroSeconds (5.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::IDLE, 4, false);
   Simulator::Schedule (Seconds (1.0) + MicroSeconds (5.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::CCA_BUSY, 4, true); //secondary channel should be sensed busy for BSS 4
+  Simulator::Schedule (Seconds (1.0) + MicroSeconds (165.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::IDLE, 1, false);
+  Simulator::Schedule (Seconds (1.0) + MicroSeconds (165.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::IDLE, 3, false);
+  Simulator::Schedule (Seconds (1.0) + MicroSeconds (165.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::IDLE, 3, true);
+  Simulator::Schedule (Seconds (1.0) + MicroSeconds (165.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::IDLE, 2, false);
+  Simulator::Schedule (Seconds (1.0) + MicroSeconds (165.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::IDLE, 4, false);
+  Simulator::Schedule (Seconds (1.0) + MicroSeconds (165.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::IDLE, 4, true);
   Simulator::Schedule (Seconds (1.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, true, 1); // successfull reception for BSS 1
   Simulator::Schedule (Seconds (1.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, true, 3); // successfull reception for BSS 3
   Simulator::Schedule (Seconds (1.5), &TestStaticChannelBonding::VerifyResultsForBss, this, false, false, 2); // no reception for BSS 2
@@ -839,9 +846,16 @@ TestStaticChannelBonding::DoRun (void)
   Simulator::Schedule (Seconds (2.0), &TestStaticChannelBonding::SendPacket, this, 2);
   Simulator::Schedule (Seconds (2.0) + MicroSeconds (5.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::RX, 2, false);
   Simulator::Schedule (Seconds (2.0) + MicroSeconds (5.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::RX, 4, false);
+  //Simulator::Schedule (Seconds (2.0) + MicroSeconds (5.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::IDLE, 4, true); //secondary channel should be sensed idle for BSS 4
   Simulator::Schedule (Seconds (2.0) + MicroSeconds (5.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::IDLE, 1, false);
   Simulator::Schedule (Seconds (2.0) + MicroSeconds (5.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::IDLE, 3, false);
   Simulator::Schedule (Seconds (2.0) + MicroSeconds (5.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::CCA_BUSY, 3, true); //secondary channel should be sensed busy for BSS 3
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (165.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::IDLE, 1, false);
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (165.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::IDLE, 3, false);
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (165.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::IDLE, 3, true);
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (165.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::IDLE, 2, false);
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (165.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::IDLE, 4, false);
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (165.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::IDLE, 4, true);
   Simulator::Schedule (Seconds (2.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, true, 2); // successfull reception for BSS 2
   Simulator::Schedule (Seconds (2.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, true, 4); // successfull reception for BSS 4
   Simulator::Schedule (Seconds (2.5), &TestStaticChannelBonding::VerifyResultsForBss, this, false, false, 1); // no reception for BSS 1
@@ -854,6 +868,10 @@ TestStaticChannelBonding::DoRun (void)
   Simulator::Schedule (Seconds (3.0) + MicroSeconds (5.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::RX, 2, false);
   Simulator::Schedule (Seconds (3.0) + MicroSeconds (5.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::RX, 3, false);
   Simulator::Schedule (Seconds (3.0) + MicroSeconds (5.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::RX, 4, false);
+  Simulator::Schedule (Seconds (3.0) + MicroSeconds (165.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::IDLE, 1, false);
+  Simulator::Schedule (Seconds (3.0) + MicroSeconds (165.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::IDLE, 3, false);
+  Simulator::Schedule (Seconds (3.0) + MicroSeconds (165.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::IDLE, 2, false);
+  Simulator::Schedule (Seconds (3.0) + MicroSeconds (165.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::IDLE, 4, false);
   Simulator::Schedule (Seconds (3.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, true, 3); // successfull reception for BSS 3
   Simulator::Schedule (Seconds (3.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, true, 4); // successfull reception for BSS 4
   Simulator::Schedule (Seconds (3.5), &TestStaticChannelBonding::VerifyResultsForBss, this, false, false, 1); // no reception for BSS 1 since channel width is not supported
@@ -866,6 +884,10 @@ TestStaticChannelBonding::DoRun (void)
   Simulator::Schedule (Seconds (4.0) + MicroSeconds (5.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::RX, 2, false);
   Simulator::Schedule (Seconds (4.0) + MicroSeconds (5.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::RX, 3, false);
   Simulator::Schedule (Seconds (4.0) + MicroSeconds (5.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::RX, 4, false);
+  Simulator::Schedule (Seconds (4.0) + MicroSeconds (165.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::IDLE, 1, false);
+  Simulator::Schedule (Seconds (4.0) + MicroSeconds (165.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::IDLE, 3, false);
+  Simulator::Schedule (Seconds (4.0) + MicroSeconds (165.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::IDLE, 2, false);
+  Simulator::Schedule (Seconds (4.0) + MicroSeconds (165.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::IDLE, 4, false);
   Simulator::Schedule (Seconds (4.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, true, 3); // successfull reception for BSS 3
   Simulator::Schedule (Seconds (4.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, true, 4); // successfull reception for BSS 4
   Simulator::Schedule (Seconds (4.5), &TestStaticChannelBonding::VerifyResultsForBss, this, false, false, 1); // no reception for BSS 1 since channel width is not supported
@@ -881,6 +903,10 @@ TestStaticChannelBonding::DoRun (void)
   Simulator::Schedule (Seconds (5.0) + MicroSeconds (5.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::RX, 4, false);
   Simulator::Schedule (Seconds (5.0), &TestStaticChannelBonding::SetExpectedSnrForBss, this, 44.0, 1); // BSS 1 expects SNR around 44 dB
   Simulator::Schedule (Seconds (5.0), &TestStaticChannelBonding::SetExpectedSnrForBss, this, 44.0, 1); // BSS 2 expects SNR around 44 dB
+  Simulator::Schedule (Seconds (5.0) + MicroSeconds (165.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::IDLE, 1, false);
+  Simulator::Schedule (Seconds (5.0) + MicroSeconds (165.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::IDLE, 3, false);
+  Simulator::Schedule (Seconds (5.0) + MicroSeconds (165.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::IDLE, 2, false);
+  Simulator::Schedule (Seconds (5.0) + MicroSeconds (165.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::IDLE, 4, false);
   Simulator::Schedule (Seconds (5.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, true, 1); // successfull reception for BSS 1
   Simulator::Schedule (Seconds (5.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, true, 2); // successfull reception for BSS 2
 
@@ -893,6 +919,10 @@ TestStaticChannelBonding::DoRun (void)
   Simulator::Schedule (Seconds (6.0) + MicroSeconds (5.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::RX, 3, false);
   Simulator::Schedule (Seconds (6.0) + MicroSeconds (5.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::RX, 4, false);
   Simulator::Schedule (Seconds (6.0), &TestStaticChannelBonding::SetExpectedSnrForBss, this, 3.0, 1); // BSS 1 expects SNR around 3 dB
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (165.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::IDLE, 1, false);
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (165.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::IDLE, 3, false);
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (165.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::IDLE, 2, false);
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (165.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::IDLE, 4, false);
   Simulator::Schedule (Seconds (6.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, false, 1); // PHY header passed but payload failed for BSS 1
   Simulator::Schedule (Seconds (6.5), &TestStaticChannelBonding::VerifyResultsForBss, this, false, false, 3); // L-SIG was not received for BSS 3, so reception was aborted
 
@@ -905,6 +935,10 @@ TestStaticChannelBonding::DoRun (void)
   Simulator::Schedule (Seconds (7.0) + MicroSeconds (5.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::RX, 3, false);
   Simulator::Schedule (Seconds (7.0) + MicroSeconds (5.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::RX, 4, false);
   Simulator::Schedule (Seconds (7.0), &TestStaticChannelBonding::SetExpectedSnrForBss, this, 3.0, 2); // BSS 2 expects SNR around 3 dB
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (165.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::IDLE, 1, false);
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (165.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::IDLE, 3, false);
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (165.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::IDLE, 2, false);
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (165.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::IDLE, 4, false);
   Simulator::Schedule (Seconds (7.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, false, 2); // PHY header passed but payload failed for BSS 2
   Simulator::Schedule (Seconds (7.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, false, 3); // PHY header passed but payload failed for BSS 3
 
@@ -917,6 +951,10 @@ TestStaticChannelBonding::DoRun (void)
   Simulator::Schedule (Seconds (8.0) + MicroSeconds (5.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::RX, 3, false);
   Simulator::Schedule (Seconds (8.0) + MicroSeconds (5.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::RX, 4, false);
   Simulator::Schedule (Seconds (8.0), &TestStaticChannelBonding::SetExpectedSnrForBss, this, 3.0, 1); // BSS 1 expects SNR around 3 dB
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (165.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::IDLE, 1, false);
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (165.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::IDLE, 3, false);
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (165.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::IDLE, 2, false);
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (165.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::IDLE, 4, false);
   Simulator::Schedule (Seconds (8.5), &TestStaticChannelBonding::VerifyResultsForBss, this, false, false, 1); // HE-SIG was not received for BSS 1, so payload reception was not started
   Simulator::Schedule (Seconds (8.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, false, 4); // PHY header passed but payload failed for BSS 4
 
@@ -929,6 +967,10 @@ TestStaticChannelBonding::DoRun (void)
   Simulator::Schedule (Seconds (9.0) + MicroSeconds (5.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::RX, 3, false);
   Simulator::Schedule (Seconds (9.0) + MicroSeconds (5.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::RX, 4, false);
   Simulator::Schedule (Seconds (9.0), &TestStaticChannelBonding::SetExpectedSnrForBss, this, 3.0, 2); // BSS 2 expects SNR around 3 dB
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (165.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::IDLE, 1, false);
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (165.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::IDLE, 3, false);
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (165.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::IDLE, 2, false);
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (165.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::IDLE, 4, false);
   Simulator::Schedule (Seconds (9.5), &TestStaticChannelBonding::VerifyResultsForBss, this, false, false, 2); // HE-SIG was not received for BSS 2, so payload reception was not started
   Simulator::Schedule (Seconds (9.5), &TestStaticChannelBonding::VerifyResultsForBss, this, false, false, 4); // L-SIG was not received for BSS 4, so reception was aborted
 
@@ -943,6 +985,10 @@ TestStaticChannelBonding::DoRun (void)
   Simulator::Schedule (Seconds (10.0) + MicroSeconds (5.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::RX, 4, false);
   Simulator::Schedule (Seconds (10.0), &TestStaticChannelBonding::SetExpectedSnrForBss, this, 3.0, 1); // BSS 1 expects SNR around 3 dB
   Simulator::Schedule (Seconds (10.0), &TestStaticChannelBonding::SetExpectedSnrForBss, this, 3.0, 2); // BSS 2 expects SNR around 3 dB
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (165.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::IDLE, 1, false);
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (165.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::IDLE, 3, false);
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (165.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::IDLE, 2, false);
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (165.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::IDLE, 4, false);
   Simulator::Schedule (Seconds (10.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, false, 1); // PHY header passed but payload failed for BSS 1
   Simulator::Schedule (Seconds (10.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, false, 2); // PHY header passed but payload failed for BSS 2
   Simulator::Schedule (Seconds (10.5), &TestStaticChannelBonding::VerifyResultsForBss, this, false, false, 3); // L-SIG was not received for BSS 3, so reception was aborted
@@ -958,6 +1004,10 @@ TestStaticChannelBonding::DoRun (void)
   Simulator::Schedule (Seconds (11.0) + MicroSeconds (5.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::RX, 4, false);
   Simulator::Schedule (Seconds (11.0), &TestStaticChannelBonding::SetExpectedSnrForBss, this, 3.0, 1); // BSS 1 expects SNR around 3 dB
   Simulator::Schedule (Seconds (11.0), &TestStaticChannelBonding::SetExpectedSnrForBss, this, 3.0, 2); // BSS 2 expects SNR around 3 dB
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (165.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::IDLE, 1, false);
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (165.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::IDLE, 3, false);
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (165.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::IDLE, 2, false);
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (165.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::IDLE, 4, false);
   Simulator::Schedule (Seconds (11.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, false, 1); // PHY header passed but payload failed for BSS 1
   Simulator::Schedule (Seconds (11.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, false, 2); // PHY header passed but payload failed for BSS 2
   Simulator::Schedule (Seconds (11.5), &TestStaticChannelBonding::VerifyResultsForBss, this, false, false, 4); // L-SIG was not received for BSS 4, so reception was aborted
