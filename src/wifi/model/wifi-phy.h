@@ -267,11 +267,9 @@ public:
   Time GetDelayUntilIdle (void) const;
 
   /**
-   * \return the delay since this PHY became WifiPhy::IDLE.
-   *
-   * \param secondaryChannel whether this is requested for the secondary channel
+   * \return the delay since the secondary channel is determined idle.
    */
-  Time GetDelaySinceIdle (bool secondaryChannel = false) const;
+  Time GetDelaySinceSecondaryIsIdle (void) const;
 
   /**
    * Return the start time of the last received packet.

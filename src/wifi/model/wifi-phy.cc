@@ -4255,9 +4255,9 @@ WifiPhy::GetLastRxStartTime (void) const
 }
 
 Time
-WifiPhy::GetDelaySinceIdle (bool secondaryChannel) const
+WifiPhy::GetDelaySinceSecondaryIsIdle (void) const
 {
-  return m_state->GetDelaySinceIdle (secondaryChannel);
+  return m_state->GetDelaySinceSecondaryIsIdle ();
 }
 
 void

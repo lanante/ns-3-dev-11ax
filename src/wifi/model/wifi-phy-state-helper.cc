@@ -185,47 +185,9 @@ WifiPhyStateHelper::GetDelayUntilIdle (void) const
 }
 
 Time
-WifiPhyStateHelper::GetDelaySinceIdle (bool secondaryChannel) const
+WifiPhyStateHelper::GetDelaySinceSecondaryIsIdle (void) const
 {
-  Time retval;
-
-  switch (GetState ())
-    {
-    case WifiPhyState::RX:
-      retval = Seconds (0);
-      break;
-    case WifiPhyState::TX:
-      retval = Seconds (0);
-      break;
-    case WifiPhyState::CCA_BUSY:
-      retval = Seconds (0);
-      break;
-    case WifiPhyState::SWITCHING:
-      retval = Seconds (0);
-      break;
-    case WifiPhyState::IDLE:
-      if (secondaryChannel)
-        {
-          retval = Simulator::Now () - m_endCcaBusySecondary;
-        }
-      else
-        {
-          retval = Simulator::Now () - m_endCcaBusy;
-        }
-      break;
-    case WifiPhyState::SLEEP:
-      NS_FATAL_ERROR ("Cannot determine when the device will wake up.");
-      retval = Seconds (0);
-      break;
-    case WifiPhyState::OFF:
-      NS_FATAL_ERROR ("Cannot determine when the device will be switched on.");
-      retval = Seconds (0);
-      break;
-    default:
-      NS_FATAL_ERROR ("Invalid WifiPhy state.");
-      retval = Seconds (0);
-      break;
-    }
+  Time retval = Simulator::Now () - m_endSecondaryBusy;
   retval = Max (retval, Seconds (0));
   return retval;
 }
@@ -237,20 +199,9 @@ WifiPhyStateHelper::GetLastRxStartTime (void) const
 }
 
 WifiPhyState
-WifiPhyStateHelper::GetState (bool secondaryChannel) const
+WifiPhyStateHelper::GetState (void) const
 {
   Time now = Simulator::Now ();
-  if (secondaryChannel)
-    {
-      if (m_endCcaBusySecondary > now)
-        {
-          return WifiPhyState::CCA_BUSY;
-        }
-      else
-        {
-          return WifiPhyState::IDLE;
-        }
-    }
   if (m_isOff)
     {
       return WifiPhyState::OFF;
@@ -278,6 +229,20 @@ WifiPhyStateHelper::GetState (bool secondaryChannel) const
   else
     {
       return WifiPhyState::IDLE;
+    }
+}
+
+bool
+WifiPhyStateHelper::IsSecondaryChannelIdle (void) const
+{
+  Time now = Simulator::Now ();
+  if (m_endSecondaryBusy > now)
+    {
+      return false;
+    }
+  else
+    {
+      return true;
     }
 }
 
@@ -436,6 +401,7 @@ WifiPhyStateHelper::SwitchToTx (Time txDuration, Ptr<const Packet> packet, doubl
   m_previousStateChangeTime = now;
   m_endTx = now + txDuration;
   m_startTx = now;
+  m_endSecondaryBusy = std::max (m_endSecondaryBusy, now + txDuration);
   NotifyTxStart (txDuration, txPowerDbm);
 }
 
@@ -464,7 +430,7 @@ WifiPhyStateHelper::SwitchToRx (Time rxDuration)
   m_previousStateChangeTime = now;
   m_startRx = now;
   m_endRx = now + rxDuration;
-  m_endCcaBusySecondary = std::max (m_endCcaBusySecondary, now + rxDuration);
+  m_endSecondaryBusy = std::max (m_endSecondaryBusy, now + rxDuration);
   NotifyRxStart (rxDuration);
   NS_ASSERT (IsStateRx ());
 }
@@ -556,6 +522,7 @@ WifiPhyStateHelper::DoSwitchFromRx (void)
 void
 WifiPhyStateHelper::SwitchMaybeToCcaBusy (Time duration, bool secondaryChannel)
 {
+  //TODO: we should instead pass a channel list
   NS_LOG_FUNCTION (this << duration << secondaryChannel);
   Time now = Simulator::Now ();
   if (!secondaryChannel)
@@ -581,7 +548,10 @@ WifiPhyStateHelper::SwitchMaybeToCcaBusy (Time duration, bool secondaryChannel)
         }
       m_stateLogger (now, duration, WifiPhyState::CCA_BUSY);
     }
-  m_endCcaBusySecondary = std::max (m_endCcaBusySecondary, now + duration);
+  else
+    {
+      m_endSecondaryBusy = std::max (m_endSecondaryBusy, now + duration);
+    }
 }
 
 void
