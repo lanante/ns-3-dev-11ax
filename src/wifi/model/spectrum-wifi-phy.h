@@ -87,10 +87,10 @@ public:
    * that of the supported channel width.
    * Consider that this "primary channel" is on the lower part for the time being.
    *
-   * \param txVector the TXVECTOR that has the channel width that is to be used
+   * \param currentWidth the channel width (in MHz)
    * \return the center frequency corresponding to the channel width to be used
    */
-  uint16_t GetCenterFrequencyForChannelWidth (WifiTxVector txVector) const;
+  uint16_t GetCenterFrequencyForChannelWidth (uint16_t currentWidth) const;
 
   /**
    * Method to encapsulate the creation of the WifiSpectrumPhyInterface

@@ -523,7 +523,7 @@ private:
    * \param dataTxMode the mode of the DATA used by the sender
    * \return TXVECTOR for the ACK
    */
-  WifiTxVector GetAckTxVector (Mac48Address to, WifiMode dataTxMode) const;
+  WifiTxVector GetAckTxVector (Mac48Address to, WifiMode dataTxMode, uint16_t channelWidth) const;
   /**
    * Return a TXVECTOR for the Block ACK frame given the destination and the mode of the DATA
    * used by the sender.
@@ -534,7 +534,7 @@ private:
    * \param dataTxMode the mode of the DATA used by the sender
    * \return TXVECTOR for the Block ACK
    */
-  WifiTxVector GetBlockAckTxVector (Mac48Address to, WifiMode dataTxMode) const;
+  WifiTxVector GetBlockAckTxVector (Mac48Address to, WifiMode dataTxMode, uint16_t channelWidthSendBlockAckResponse) const;
   /**
    * Return a TXVECTOR for the CTS frame given the destination and the mode of the RTS
    * used by the sender.
@@ -556,7 +556,7 @@ private:
    * \param dataTxMode the mode of the DATA used by the sender
    * \return TXVECTOR for the Block ACK
    */
-  WifiTxVector GetAckTxVectorForData (Mac48Address to, WifiMode dataTxMode) const;
+  WifiTxVector GetAckTxVectorForData (Mac48Address to, WifiMode dataTxMode, uint16_t channelWidth) const;
   /**
    * Get control answer mode function.
    *
@@ -699,7 +699,7 @@ private:
    * \param dataTxMode
    * \param dataSnr
    */
-  void SendAckAfterData (Mac48Address source, Time duration, WifiMode dataTxMode, double dataSnr);
+  void SendAckAfterData (Mac48Address source, Time duration, WifiTxVector txVector, double dataSnr);
   /**
    * Send DATA after receiving CTS.
    *
@@ -795,7 +795,7 @@ private:
    * \param rxSnr
    */
   void SendBlockAckAfterBlockAckRequest (const CtrlBAckRequestHeader reqHdr, Mac48Address originator,
-                                         Time duration, WifiMode blockAckReqTxMode, double rxSnr);
+                                         Time duration, WifiTxVector txVector, double rxSnr);
   /**
    * Invoked after an A-MPDU has been received. Looks for corresponding
    * block ack agreement and creates block ack bitmap on a received packets basis.
@@ -819,7 +819,7 @@ private:
    * \param rxSnr
    */
   void SendBlockAckResponse (const CtrlBAckResponseHeader* blockAck, Mac48Address originator, bool immediate,
-                             Time duration, WifiMode blockAckReqTxMode, double rxSnr);
+                             Time duration, WifiTxVector txVector, double rxSnr);
   /**
    * Every time that a block ack request or a packet with ack policy equals to <i>block ack</i>
    * are received, if a relative block ack agreement exists and the value of inactivity timeout

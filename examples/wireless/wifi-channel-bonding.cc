@@ -76,19 +76,21 @@
 //     ./waf --run "wifi-channel-bonding --channelBssA=38 --channelBssB=40 --maxSupportedChannelWidthBssA=40
 //                                       --maxSupportedChannelWidthBssB=20 --useDynamicChannelBonding=false"
 // The output gives:
-//     Throughput for BSS A: 64.5019 Mbit/s
-//     Throughput for BSS B: 0.456909 Mbit/s
-// FIX ME: ACKs should be duplicated on the secondary channel!
+//     Throughput for BSS A: 81.0519 Mbit/s
+//     Throughput for BSS B: 0.214323 Mbit/s
+// Since dynamic channel bonding is disabled, network A will always transmit on 40 MHz, regardless of
+// CCA on the secondary channel. As a result, network B suffers from a lot of collisions and has a very low
+// throughput. On the other hand, throughput for network A is high since it uses channel bonding, but it is
+// also impacted by transmissions on the secondary channel.
 //
 // One can run the previous scenario with dynamic channel bonding enabled:
 //     ./waf --run "wifi-channel-bonding --channelBssA=38 --channelBssB=40 --maxSupportedChannelWidthBssA=40
 //                                       --maxSupportedChannelWidthBssB=20 --useDynamicChannelBonding=true"
 // The output gives:
-//     Throughput for BSS A: 60.7712 Mbit/s
-//     Throughput for BSS B: 58.2959 Mbit/s
+//     Throughput for BSS A: 59.6172 Mbit/s
+//     Throughput for BSS B: 59.2851 Mbit/s
 // We can see the benefit of using a dynamic channel bonding. Since activity is detected on the secondary channel,
 // network A limits its channel width to 20 MHz and this gives similar results as in the first scenario presented above.
-// FIX ME: Why is there a so high difference between BSS A and BSS B since rebase?
 //
 // One can run a scenario where both networks make use of channel bonding:
 //     ./waf --run "wifi-channel-bonding --channelBssA=38 --channelBssB=38 --maxSupportedChannelWidthBssA=40
@@ -157,6 +159,13 @@ int main (int argc, char *argv[])
   cmd.AddValue ("minExpectedThroughputBssB", "Minimum expected throughput for BSS B", minExpectedThroughputBssB);
   cmd.AddValue ("maxExpectedThroughputBssB", "Maximum expected throughput for BSS B", maxExpectedThroughputBssB);
   cmd.Parse (argc, argv);
+
+  /*LogComponentEnableAll (LOG_PREFIX_TIME);
+  LogComponentEnableAll (LOG_PREFIX_NODE);
+
+  LogComponentEnable ("MacLow", LOG_LEVEL_ALL);
+  LogComponentEnable ("WifiPhy", LOG_LEVEL_ALL);
+  LogComponentEnable ("SpectrumWifiPhy", LOG_LEVEL_ALL);*/
 
   Config::SetDefault ("ns3::SpectrumWifiPhy::TxMaskInnerBandMinimumRejection", DoubleValue (txMaskInnerBandMinimumRejection));
   Config::SetDefault ("ns3::SpectrumWifiPhy::TxMaskOuterBandMinimumRejection", DoubleValue (txMaskOuterBandMinimumRejection));
