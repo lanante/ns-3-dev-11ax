@@ -41,7 +41,7 @@ class Packet;
  * considering that the per-MPDU reception status is also provided).
  *
  * arg1: packet received successfully
- * arg2: snr of packet
+ * arg2: SNR of packet
  * arg3: rx power (dBm) of packet
  * arg4: TXVECTOR of packet
  * arg5: vector of per-MPDU status of reception.
@@ -51,7 +51,7 @@ typedef Callback<void, Ptr<Packet>, double, double, WifiTxVector, std::vector<bo
  * Callback if packet unsuccessfully received
  *
  * arg1: packet received unsuccessfully
- * arg2: snr of packet
+ * arg2: SNR of packet
  */
 typedef Callback<void, Ptr<Packet>, double> RxErrorCallback;
 
