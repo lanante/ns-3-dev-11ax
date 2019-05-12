@@ -57,6 +57,8 @@ void
 EpcPgwApplication::UeInfo::RemoveBearer (uint8_t bearerId)
 {
   NS_LOG_FUNCTION (this << (uint16_t) bearerId);
+  std::map<uint8_t, uint32_t >::iterator it = m_teidByBearerIdMap.find (bearerId);
+  m_tftClassifier.Delete (it->second); //delete tft
   m_teidByBearerIdMap.erase (bearerId);
 }
 
@@ -421,6 +423,7 @@ EpcPgwApplication::DoRecvDeleteBearerResponse (Ptr<Packet> packet)
   for (auto &epsBearerId : msg.GetEpsBearerIds ())
     {
       // Remove de-activated bearer contexts from PGW side
+      NS_LOG_INFO ("PGW removing bearer " << (uint16_t) epsBearerId << " of IMSI " << imsi);
       ueit->second->RemoveBearer (epsBearerId);
     }
 }

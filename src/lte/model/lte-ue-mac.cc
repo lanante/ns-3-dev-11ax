@@ -67,6 +67,8 @@ public:
   virtual void AddLc (uint8_t lcId, LteUeCmacSapProvider::LogicalChannelConfig lcConfig, LteMacSapUser* msu);
   virtual void RemoveLc (uint8_t lcId);
   virtual void Reset ();
+  virtual void NotifyConnectionSuccessful ();
+  virtual void SetImsi (uint64_t imsi);
 
 private:
   LteUeMac* m_mac; ///< the UE MAC
@@ -119,6 +121,19 @@ UeMemberLteUeCmacSapProvider::Reset ()
 {
   m_mac->DoReset ();
 }
+
+void
+UeMemberLteUeCmacSapProvider::NotifyConnectionSuccessful ()
+{
+  m_mac->DoNotifyConnectionSuccessful ();
+}
+
+void
+ UeMemberLteUeCmacSapProvider::SetImsi (uint64_t imsi)
+ {
+   m_mac->DoSetImsi (imsi);
+ }
+
 
 /// UeMemberLteMacSapProvider class
 class UeMemberLteMacSapProvider : public LteMacSapProvider
@@ -220,7 +235,13 @@ LteUeMac::GetTypeId (void)
   static TypeId tid = TypeId ("ns3::LteUeMac")
     .SetParent<Object> ()
     .SetGroupName("Lte")
-    .AddConstructor<LteUeMac> ();
+    .AddConstructor<LteUeMac> ()
+    .AddTraceSource ("RaResponseTimeout",
+                     "trace fired upon RA response timeout",
+                     MakeTraceSourceAccessor (&LteUeMac::m_raResponseTimeoutTrace),
+                     "ns3::LteUeMac::RaResponseTimeoutTracedCallback")
+
+    ;
   return tid;
 }
 
@@ -231,6 +252,7 @@ LteUeMac::LteUeMac ()
      m_freshUlBsr (false),
      m_harqProcessId (0),
      m_rnti (0),
+     m_imsi (0),
      m_rachConfigured (false),
      m_waitingForRaResponse (false)
   
@@ -482,6 +504,9 @@ LteUeMac::RaResponseTimeout (bool contention)
   m_waitingForRaResponse = false;
   // 3GPP 36.321 5.1.4
   ++m_preambleTransmissionCounter;
+  //fire RA response timeout trace
+  m_raResponseTimeoutTrace (m_imsi, contention, m_preambleTransmissionCounter,
+                            m_rachConfig.preambleTransMax + 1);
   if (m_preambleTransmissionCounter == m_rachConfig.preambleTransMax + 1)
     {
       NS_LOG_INFO ("RAR timeout, preambleTransMax reached => giving up");
@@ -526,6 +551,13 @@ LteUeMac::DoSetRnti (uint16_t rnti)
 {
   NS_LOG_FUNCTION (this);
   m_rnti = rnti;
+}
+
+void
+LteUeMac::DoSetImsi (uint64_t imsi)
+{
+  NS_LOG_FUNCTION (this);
+  m_imsi = imsi;
 }
 
 
@@ -579,11 +611,19 @@ LteUeMac::DoReset ()
           m_lcInfoMap.erase (it++);
         }
     }
-
+  // note: rnti will be assigned by the eNB using RA response message
+  m_rnti = 0;
   m_noRaResponseReceivedEvent.Cancel ();
   m_rachConfigured = false;
   m_freshUlBsr = false;
   m_ulBsrReceived.clear ();
+}
+
+void
+LteUeMac::DoNotifyConnectionSuccessful ()
+{
+  NS_LOG_FUNCTION (this);
+  m_uePhySapProvider->NotifyConnectionSuccessful ();
 }
 
 void
