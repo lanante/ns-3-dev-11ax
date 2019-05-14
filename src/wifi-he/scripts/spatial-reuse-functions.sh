@@ -257,7 +257,9 @@ function run_one () {
         --colorBss5=${colorBss5} \
         --colorBss6=${colorBss6} \
         --colorBss7=${colorBss7} \
-        --powerBackoff=${powerBackoff}"
+        --powerBackoff=${powerBackoff}\
+	--ccaTrSta=${ccaTrSta}\
+	--ccaTrAp=${ccaTrAp}"
 
   # copy results files
   cd ../scripts
