@@ -1590,7 +1590,15 @@ main (int argc, char *argv[])
   // handling of 'W=1 wall' and using the ItuUmitPropagationLossModel
   // for Test 4.
   uint64_t lossModelStream = 500;
-  if (scenario == "residential")
+  if (scenario == "logdistance")
+    {
+   		Ptr<LogDistancePropagationLossModel> lossModel = CreateObject<LogDistancePropagationLossModel> ();
+     // more prominent example values:
+  lossModel ->SetAttribute ("ReferenceDistance", DoubleValue (1));
+  lossModel ->SetAttribute ("Exponent", DoubleValue (3.5));
+ lossModel ->SetAttribute ("ReferenceLoss", DoubleValue (50));
+      spectrumChannel->AddPropagationLossModel (lossModel);    }
+  else if (scenario == "residential")
     {
       Config::SetDefault ("ns3::Ieee80211axIndoorPropagationLossModel::DistanceBreakpoint", DoubleValue (5.0));
       Config::SetDefault ("ns3::Ieee80211axIndoorPropagationLossModel::Walls", DoubleValue (1.0));
