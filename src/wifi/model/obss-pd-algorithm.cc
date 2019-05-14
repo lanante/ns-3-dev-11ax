@@ -62,6 +62,21 @@ ObssPdAlgorithm::GetTypeId (void)
                    DoubleValue (25),
                    MakeDoubleAccessor (&ObssPdAlgorithm::m_txPowerRefMimo),
                    MakeDoubleChecker<double> ())
+	.AddAttribute ("mcs",
+                   "MCS",
+                   UintegerValue (0),
+                   MakeUintegerAccessor (&ObssPdAlgorithm::m_Mcs),
+                   MakeUintegerChecker<uint8_t> ())
+    .AddAttribute ("d",
+                   "d",
+                   DoubleValue (25),
+                   MakeDoubleAccessor (&ObssPdAlgorithm::m_d),
+                   MakeDoubleChecker<double> ())
+    .AddAttribute ("r",
+                   "r",
+                   DoubleValue (5),
+                   MakeDoubleAccessor (&ObssPdAlgorithm::m_r),
+                   MakeDoubleChecker<double> ())
     .AddTraceSource ("Reset", "Trace CCA Reset event",
                      MakeTraceSourceAccessor (&ObssPdAlgorithm::m_resetEvent),
                      "ns3::ObssPdAlgorithm::ResetTracedCallback")

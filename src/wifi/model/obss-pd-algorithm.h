@@ -47,7 +47,9 @@ class ObssPdAlgorithm : public Object
 {
 public:
   static TypeId GetTypeId (void);
-
+  uint8_t m_Mcs;
+  double m_d;
+  double m_r;
   /**
    * Connect the WifiNetDevice and setup eventual callbacks.
    *

@@ -1718,7 +1718,7 @@ main (int argc, char *argv[])
   Ssid ssidA = Ssid ("A");
   if (enableObssPd)
     {
-      wifi.SetObssPdAlgorithm ("ns3::ConstantObssPdAlgorithm",
+      wifi.SetObssPdAlgorithm ("ns3::DynamicObssPdAlgorithm",
                                "ObssPdLevelMin", DoubleValue (obssPdThresholdMinBss1),
                                "ObssPdLevelMax", DoubleValue (obssPdThresholdMaxBss1),
                                "ObssPdLevel", DoubleValue (obssPdThresholdBss1));
@@ -1777,7 +1777,7 @@ main (int argc, char *argv[])
       Ssid ssidB = Ssid ("B");
       if (enableObssPd)
         {
-          wifi.SetObssPdAlgorithm ("ns3::ConstantObssPdAlgorithm",
+          wifi.SetObssPdAlgorithm ("ns3::DynamicObssPdAlgorithm",
                                    "ObssPdLevelMin", DoubleValue (obssPdThresholdMinBss2),
                                    "ObssPdLevelMax", DoubleValue (obssPdThresholdMaxBss2),
                                    "ObssPdLevel", DoubleValue (obssPdThresholdBss2));
@@ -1833,7 +1833,7 @@ main (int argc, char *argv[])
       Ssid ssidC = Ssid ("C");
       if (enableObssPd)
         {
-          wifi.SetObssPdAlgorithm ("ns3::ConstantObssPdAlgorithm",
+          wifi.SetObssPdAlgorithm ("ns3::DynamicObssPdAlgorithm",
                                    "ObssPdLevelMin", DoubleValue (obssPdThresholdMinBss3),
                                    "ObssPdLevelMax", DoubleValue (obssPdThresholdMaxBss3),
                                    "ObssPdLevel", DoubleValue (obssPdThresholdBss3));
@@ -1889,7 +1889,7 @@ main (int argc, char *argv[])
       Ssid ssidD = Ssid ("D");
       if (enableObssPd)
         {
-          wifi.SetObssPdAlgorithm ("ns3::ConstantObssPdAlgorithm",
+          wifi.SetObssPdAlgorithm ("ns3::DynamicObssPdAlgorithm",
                                    "ObssPdLevelMin", DoubleValue (obssPdThresholdMinBss4),
                                    "ObssPdLevelMax", DoubleValue (obssPdThresholdMaxBss4),
                                    "ObssPdLevel", DoubleValue (obssPdThresholdBss4));
@@ -1945,7 +1945,7 @@ main (int argc, char *argv[])
       Ssid ssidE = Ssid ("E");
       if (enableObssPd)
         {
-          wifi.SetObssPdAlgorithm ("ns3::ConstantObssPdAlgorithm",
+          wifi.SetObssPdAlgorithm ("ns3::DynamicObssPdAlgorithm",
                                    "ObssPdLevelMin", DoubleValue (obssPdThresholdMinBss5),
                                    "ObssPdLevelMax", DoubleValue (obssPdThresholdMaxBss5),
                                    "ObssPdLevel", DoubleValue (obssPdThresholdBss5));
@@ -2001,7 +2001,7 @@ main (int argc, char *argv[])
       Ssid ssidF = Ssid ("F");
       if (enableObssPd)
         {
-          wifi.SetObssPdAlgorithm ("ns3::ConstantObssPdAlgorithm",
+          wifi.SetObssPdAlgorithm ("ns3::DynamicObssPdAlgorithm",
                                    "ObssPdLevelMin", DoubleValue (obssPdThresholdMinBss6),
                                    "ObssPdLevelMax", DoubleValue (obssPdThresholdMaxBss6),
                                    "ObssPdLevel", DoubleValue (obssPdThresholdBss6));
@@ -2056,7 +2056,7 @@ main (int argc, char *argv[])
       Ssid ssidG = Ssid ("G");
       if (enableObssPd)
         {
-          wifi.SetObssPdAlgorithm ("ns3::ConstantObssPdAlgorithm",
+          wifi.SetObssPdAlgorithm ("ns3::DynamicObssPdAlgorithm",
                                    "ObssPdLevelMin", DoubleValue (obssPdThresholdMinBss7),
                                    "ObssPdLevelMax", DoubleValue (obssPdThresholdMaxBss7),
                                    "ObssPdLevel", DoubleValue (obssPdThresholdBss7));
