@@ -1112,6 +1112,7 @@ main (int argc, char *argv[])
   uint32_t performTgaxTimingChecks = 0;
   // the scenario - should be one of: residential, enterprise, indoor, or outdoor
   std::string scenario ("residential");
+  std::string obssPdAlgorithm ("DynamicObssPdAlgorithm");
   std::string testname ("test");
 
   // local variables
@@ -1187,6 +1188,7 @@ main (int argc, char *argv[])
   cmd.AddValue ("obssPdThresholdBss7", "Energy threshold (dBm) for BSS 7 of received signal below which the PHY layer can avoid declaring CCA BUSY for inter-BSS frames.", obssPdThresholdBss7);
   cmd.AddValue ("checkTimings", "Perform TGax timings checks (for MAC simulation calibrations).", performTgaxTimingChecks);
   cmd.AddValue ("scenario", "The spatial-reuse scenario (residential, enterprise, indoor or outdoor).", scenario);
+  cmd.AddValue ("obssPdAlgorithm", "OBSS PD Algorithm (ConstantObssPdAlgorithm, DynamicObssPdAlgorithm).", obssPdAlgorithm);
   cmd.AddValue ("nBss", "The number of BSSs.", nBss);
   cmd.AddValue ("maxAmpduSizeBss1", "The maximum A-MPDU size for BSS 1 (bytes).", maxAmpduSizeBss1);
   cmd.AddValue ("maxAmpduSizeBss2", "The maximum A-MPDU size for BSS 2 (bytes).", maxAmpduSizeBss2);
@@ -1718,10 +1720,13 @@ main (int argc, char *argv[])
   Ssid ssidA = Ssid ("A");
   if (enableObssPd)
     {
-      wifi.SetObssPdAlgorithm ("ns3::DynamicObssPdAlgorithm",
+      wifi.SetObssPdAlgorithm ("ns3::"+obssPdAlgorithm,
                                "ObssPdLevelMin", DoubleValue (obssPdThresholdMinBss1),
                                "ObssPdLevelMax", DoubleValue (obssPdThresholdMaxBss1),
-                               "ObssPdLevel", DoubleValue (obssPdThresholdBss1));
+                               "ObssPdLevel", DoubleValue (obssPdThresholdBss1),
+                               "d",DoubleValue (d),
+                                 "r",DoubleValue (r),
+                                "mcs",UintegerValue(mcs));
     }
 
   mac.SetType ("ns3::StaWifiMac",
@@ -1777,10 +1782,13 @@ main (int argc, char *argv[])
       Ssid ssidB = Ssid ("B");
       if (enableObssPd)
         {
-          wifi.SetObssPdAlgorithm ("ns3::DynamicObssPdAlgorithm",
+          wifi.SetObssPdAlgorithm ("ns3::"+obssPdAlgorithm,
                                    "ObssPdLevelMin", DoubleValue (obssPdThresholdMinBss2),
                                    "ObssPdLevelMax", DoubleValue (obssPdThresholdMaxBss2),
-                                   "ObssPdLevel", DoubleValue (obssPdThresholdBss2));
+                                   "ObssPdLevel", DoubleValue (obssPdThresholdBss2),
+                               "d",DoubleValue (d),
+                                 "r",DoubleValue (r),
+                                "mcs",UintegerValue(mcs));
         }
 
       mac.SetType ("ns3::StaWifiMac",
@@ -1833,10 +1841,13 @@ main (int argc, char *argv[])
       Ssid ssidC = Ssid ("C");
       if (enableObssPd)
         {
-          wifi.SetObssPdAlgorithm ("ns3::DynamicObssPdAlgorithm",
+          wifi.SetObssPdAlgorithm ("ns3::"+obssPdAlgorithm,
                                    "ObssPdLevelMin", DoubleValue (obssPdThresholdMinBss3),
                                    "ObssPdLevelMax", DoubleValue (obssPdThresholdMaxBss3),
-                                   "ObssPdLevel", DoubleValue (obssPdThresholdBss3));
+                                   "ObssPdLevel", DoubleValue (obssPdThresholdBss3),
+                               "d",DoubleValue (d),
+                                 "r",DoubleValue (r),
+                                "mcs",UintegerValue(mcs));
         }
 
       mac.SetType ("ns3::StaWifiMac",
@@ -1889,10 +1900,13 @@ main (int argc, char *argv[])
       Ssid ssidD = Ssid ("D");
       if (enableObssPd)
         {
-          wifi.SetObssPdAlgorithm ("ns3::DynamicObssPdAlgorithm",
+          wifi.SetObssPdAlgorithm ("ns3::"+obssPdAlgorithm,
                                    "ObssPdLevelMin", DoubleValue (obssPdThresholdMinBss4),
                                    "ObssPdLevelMax", DoubleValue (obssPdThresholdMaxBss4),
-                                   "ObssPdLevel", DoubleValue (obssPdThresholdBss4));
+                                   "ObssPdLevel", DoubleValue (obssPdThresholdBss4),
+                               "d",DoubleValue (d),
+                                 "r",DoubleValue (r),
+                                "mcs",UintegerValue(mcs));
         }
 
       mac.SetType ("ns3::StaWifiMac",
@@ -1945,10 +1959,13 @@ main (int argc, char *argv[])
       Ssid ssidE = Ssid ("E");
       if (enableObssPd)
         {
-          wifi.SetObssPdAlgorithm ("ns3::DynamicObssPdAlgorithm",
+          wifi.SetObssPdAlgorithm ("ns3::"+obssPdAlgorithm,
                                    "ObssPdLevelMin", DoubleValue (obssPdThresholdMinBss5),
                                    "ObssPdLevelMax", DoubleValue (obssPdThresholdMaxBss5),
-                                   "ObssPdLevel", DoubleValue (obssPdThresholdBss5));
+                                   "ObssPdLevel", DoubleValue (obssPdThresholdBss5),
+                               "d",DoubleValue (d),
+                                 "r",DoubleValue (r),
+                                "mcs",UintegerValue(mcs));
         }
 
       mac.SetType ("ns3::StaWifiMac",
@@ -2001,10 +2018,13 @@ main (int argc, char *argv[])
       Ssid ssidF = Ssid ("F");
       if (enableObssPd)
         {
-          wifi.SetObssPdAlgorithm ("ns3::DynamicObssPdAlgorithm",
+          wifi.SetObssPdAlgorithm ("ns3::"+obssPdAlgorithm,
                                    "ObssPdLevelMin", DoubleValue (obssPdThresholdMinBss6),
                                    "ObssPdLevelMax", DoubleValue (obssPdThresholdMaxBss6),
-                                   "ObssPdLevel", DoubleValue (obssPdThresholdBss6));
+                                   "ObssPdLevel", DoubleValue (obssPdThresholdBss6),
+                               "d",DoubleValue (d),
+                                 "r",DoubleValue (r),
+                                "mcs",UintegerValue(mcs));
         }
 
       mac.SetType ("ns3::StaWifiMac",
@@ -2056,10 +2076,13 @@ main (int argc, char *argv[])
       Ssid ssidG = Ssid ("G");
       if (enableObssPd)
         {
-          wifi.SetObssPdAlgorithm ("ns3::DynamicObssPdAlgorithm",
+          wifi.SetObssPdAlgorithm ("ns3::"+obssPdAlgorithm,
                                    "ObssPdLevelMin", DoubleValue (obssPdThresholdMinBss7),
                                    "ObssPdLevelMax", DoubleValue (obssPdThresholdMaxBss7),
-                                   "ObssPdLevel", DoubleValue (obssPdThresholdBss7));
+                                   "ObssPdLevel", DoubleValue (obssPdThresholdBss7),
+                               "d",DoubleValue (d),
+                                 "r",DoubleValue (r),
+                                "mcs",UintegerValue(mcs));
         }
 
       mac.SetType ("ns3::StaWifiMac",

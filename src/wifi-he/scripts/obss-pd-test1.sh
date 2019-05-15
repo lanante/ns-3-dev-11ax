@@ -25,6 +25,7 @@ export nodePositionsFile=NONE
 export enablePcap=0
 export enableAscii=0
 export rxSensitivity=-82
+export obssPdAlgorithm=DynamicObssPdAlgorithm
 # only used by 11ax
 export obssPdThreshold=-72
 export AUTO_DELETE_SPATIAL_REUSE_OUTPUT_FILES=1
@@ -83,22 +84,24 @@ export bianchi=1
 export uplink=500.0
 export n=5
 
-# 1. 11ac (baseline, no OBSS_PD)
-export standard=11ac
-export test="obss-pd-test1-n5-11ac"
-run_one 
-
-# 2. 11ax (with OBSS_PD disabled)
-export standard=11ax_5GHZ
-export enableObssPd=0
-export test="obss-pd-test1-n5-11ax-no-obsspd"
-run_one 
-
-# 3. 11ax (with OBSS_PD enabled at obssPdThreshold=-72
+# 1. 11ax (with OBSS_PD enabled at obssPdThreshold=-72
 export standard=11ax_5GHZ
 export enableObssPd=1
 export obssPdThreshold=-72
 export test="obss-pd-test1-n5-11ax-with-obsspd"
 run_one 
+
+# 2. 11ac (baseline, no OBSS_PD)
+export standard=11ac
+export test="obss-pd-test1-n5-11ac"
+run_one 
+
+# 3. 11ax (with OBSS_PD disabled)
+export standard=11ax_5GHZ
+export enableObssPd=0
+export test="obss-pd-test1-n5-11ax-no-obsspd"
+run_one 
+
+
 
 wait

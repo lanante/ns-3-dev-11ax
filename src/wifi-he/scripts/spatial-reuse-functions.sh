@@ -259,7 +259,8 @@ function run_one () {
         --colorBss7=${colorBss7} \
         --powerBackoff=${powerBackoff}\
 	--ccaTrSta=${ccaTrSta}\
-	--ccaTrAp=${ccaTrAp}"
+	--ccaTrAp=${ccaTrAp}\
+	--obssPdAlgorithm=${obssPdAlgorithm}"
 
   # copy results files
   cd ../scripts
