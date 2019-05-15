@@ -75,6 +75,7 @@ DynamicObssPdAlgorithm::ReceiveHeSig (HePreambleParameters params)
   NS_LOG_DEBUG ("RSSI=" << WToDbm (params.rssiW) << " dBm , BSS color=" << +params.bssColor);
 
   Ptr<HeConfiguration> heConfiguration = m_device->GetHeConfiguration ();
+  Ptr<WifiPhy> phy = m_device->GetPhy ();
   NS_ASSERT (heConfiguration);
   UintegerValue bssColorAttribute;
   heConfiguration->GetAttribute ("BssColor", bssColorAttribute);
@@ -163,6 +164,7 @@ DynamicObssPdAlgorithm::ReceiveHeSig (HePreambleParameters params)
         {
           NS_LOG_DEBUG ("Frame is OBSS and RSSI " << WToDbm(params.rssiW) << " is below OBSS-PD level of " << m_obssPdLevel << "; reset PHY to IDLE");
           m_obssPdLevelMin=m_obssPdLevel;
+  phy->SetCcaEdThreshold (m_obssPdLevel);
           ResetPhy (params);
         }
       else
