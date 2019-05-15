@@ -27,7 +27,7 @@ export enableAscii=0
 export rxSensitivity=-82
 # only used by 11ax
 export obssPdThreshold=-72
-
+export AUTO_DELETE_SPATIAL_REUSE_OUTPUT_FILES=1
 # see Saturaged Throughtput Analysis/Calibration for Multi BSS Throughput (pptx)
 # Leonardo Lanante Jr.
 
@@ -43,8 +43,8 @@ export bw=20
 # PL(d) = 40.05 + 20*log10(fc/2.4) + 20*log10(min(d,10)) + (d>10) * 35*log10(d/10) 
 # –	d = max(3D-distance [m], 1)
 # –	fc = frequency [GHz]
-export scenario=study1
-export nBss=7
+export scenario=logdistance
+export nBss=3
 
 # MSDUsize = 1500 octets
 export payloadSizeUplink=1500
@@ -71,7 +71,8 @@ export powAp=20
 
 # CSR = 102m for AP
 export txRange=102
-
+export ccaTrSta=-62
+export ccaTrAp=-62
 export downlink=0.0
 # based on Bianchi Test4 - fully coupled BSS with saturated uplink
 export d=20
@@ -85,19 +86,19 @@ export n=5
 # 1. 11ac (baseline, no OBSS_PD)
 export standard=11ac
 export test="obss-pd-test1-n5-11ac"
-run_one &
+run_one 
 
 # 2. 11ax (with OBSS_PD disabled)
 export standard=11ax_5GHZ
 export enableObssPd=0
 export test="obss-pd-test1-n5-11ax-no-obsspd"
-run_one &
+run_one 
 
 # 3. 11ax (with OBSS_PD enabled at obssPdThreshold=-72
 export standard=11ax_5GHZ
 export enableObssPd=1
 export obssPdThreshold=-72
 export test="obss-pd-test1-n5-11ax-with-obsspd"
-run_one &
+run_one 
 
 wait

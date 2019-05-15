@@ -135,7 +135,7 @@ DynamicObssPdAlgorithm::ReceiveHeSig (HePreambleParameters params)
                 if (Interference<0)
 {Interference=0;}
 	        double Pn2=WToDbm(DbmToW(Pn)+Interference*1);
-	        NS_LOG_DEBUG ("expected RSSIW is "<<DbmToW(expectedRSSI) <<" Real RSSI  is      "<<params.rssiW <<"Interference is "<<Interference);
+	//        NS_LOG_DEBUG ("expected RSSIW is "<<DbmToW(expectedRSSI) <<" Real RSSI  is      "<<params.rssiW <<"Interference is "<<Interference);
 				NS_LOG_DEBUG ("expected RSSI is "<<expectedRSSI <<"Actual RSSI is "<<WToDbm(params.rssiW));
 
 	        double num= pow(10,(Pref_high-obssSNR)/10)*pow(DI,n);
@@ -143,23 +143,23 @@ DynamicObssPdAlgorithm::ReceiveHeSig (HePreambleParameters params)
 	        double S=pow(num/den,2/n)/pow(r,2)*2;
 
 
-	        NS_LOG_DEBUG ("my BSS color "<<+bssColor);
-	        NS_LOG_DEBUG ("OBSS color "<<+params.bssColor);
-	        NS_LOG_DEBUG ("MY AP POs "<<myx<<" "<<myy);
-	        NS_LOG_DEBUG ("OBSS AP POs "<<ox<<" "<<oy);
-	        NS_LOG_DEBUG ("d is "<<d);
-	        NS_LOG_DEBUG ("r is "<<r);
-	        NS_LOG_DEBUG ("mcs is "<<+mcs);
+	        //NS_LOG_DEBUG ("my BSS color "<<+bssColor);
+	        //NS_LOG_DEBUG ("OBSS color "<<+params.bssColor);
+	        //NS_LOG_DEBUG ("MY AP POs "<<myx<<" "<<myy);
+	        //NS_LOG_DEBUG ("OBSS AP POs "<<ox<<" "<<oy);
+	        //NS_LOG_DEBUG ("nBss is "<<+nBss);
+	        //NS_LOG_DEBUG ("d is "<<d);
+	        //NS_LOG_DEBUG ("r is "<<r);
+	        //NS_LOG_DEBUG ("mcs is "<<+mcs);
 	        NS_LOG_DEBUG ("DI is "<<DI);
-                NS_LOG_DEBUG ("R is "<<R);
-		NS_LOG_DEBUG ("S is "<<S);
+                //NS_LOG_DEBUG ("R is "<<R);
+		//NS_LOG_DEBUG ("S is "<<S);
 		NS_LOG_DEBUG ("Noise is "<<Pn <<" Noise Interference  is "<<Pn2);
 
 		m_obssPdLevel=expectedRSSI+10*log10(S);
-		
 	//------------------------------------------------------
  
-      if (WToDbm (params.rssiW) < m_obssPdLevel)
+      if (expectedRSSI< m_obssPdLevel)
         {
           NS_LOG_DEBUG ("Frame is OBSS and RSSI " << WToDbm(params.rssiW) << " is below OBSS-PD level of " << m_obssPdLevel << "; reset PHY to IDLE");
           m_obssPdLevelMin=m_obssPdLevel;
