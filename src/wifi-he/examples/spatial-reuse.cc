@@ -2413,25 +2413,75 @@ main (int argc, char *argv[])
     }
   else
     {
+
+      double x1 = 0.0;
+      double y1 = 0.0;
+      double theta = 0.0;  // radians
+      double x2 = d * cos(theta);
+      double y2 = d * sin(theta);
+      theta += 60.0 / 360.0 * 2.0 * M_PI;
+      double x3 = d * cos(theta);
+      double y3 = d * sin(theta);
+      theta += 60.0 / 360.0 * 2.0 * M_PI;
+      double x4 = d * cos(theta);
+      double y4 = d * sin(theta);
+      theta += 60.0 / 360.0 * 2.0 * M_PI;
+      double x5 = d * cos(theta);
+      double y5 = d * sin(theta);
+      theta += 60.0 / 360.0 * 2.0 * M_PI;
+      double x6 = d * cos(theta);
+      double y6 = d * sin(theta);
+      theta += 60.0 / 360.0 * 2.0 * M_PI;
+      double x7 = d * cos(theta);
+      double y7 = d * sin(theta);
+
       // "A" - APs
-      positionOutFile << 0.0 << ", " << 0.0 << ", " << r << ", " << csr << std::endl;
+      positionOutFile << x1 << ", " << y1 << ", " << r << ", " << csr << std::endl;
       positionOutFile << std::endl;
       positionOutFile << std::endl;
-
+      if (nBss >= 2)
+        {
       // "B" - APs
-      positionOutFile << d << ", " << 0.0 << ", " << r << ", " << csr << std::endl;
+      positionOutFile << x2 << ", " << y2 << ", " << r << ", " << csr << std::endl;
       positionOutFile << std::endl;
       positionOutFile << std::endl;
-
+        }
+      if (nBss >= 3)
+        {
       // "C" - APs
-      positionOutFile << 0.0 << ", " << -d << ", " << r << ", " << csr << std::endl;
+      positionOutFile << x3 << ", " << y3 << ", " << r << ", " << csr << std::endl;
       positionOutFile << std::endl;
       positionOutFile << std::endl;
-
+        }
+      if (nBss >= 4)
+        {
       // "D" - APs
-      positionOutFile << d << ", " << -d << ", " << r << ", " << csr << std::endl;
+      positionOutFile << x4 << ", " << y4 << ", " << r << ", " << csr << std::endl;
       positionOutFile << std::endl;
       positionOutFile << std::endl;
+        }
+      if (nBss >= 5)
+        {
+      // "E" - APs
+      positionOutFile << x5 << ", " << y5 << ", " << r << ", " << csr << std::endl;
+      positionOutFile << std::endl;
+      positionOutFile << std::endl;
+        }
+      if (nBss >= 6)
+        {
+      // "F" - APs
+      positionOutFile << x6 << ", " << y6 << ", " << r << ", " << csr << std::endl;
+      positionOutFile << std::endl;
+      positionOutFile << std::endl;
+        }
+      if (nBss >= 7)
+        {
+      // "G" - APs
+      positionOutFile << x7 << ", " << y7 << ", " << r << ", " << csr << std::endl;
+      positionOutFile << std::endl;
+      positionOutFile << std::endl;
+        }
+
 
       // Network "A"
       // AP1
@@ -2453,26 +2503,26 @@ main (int argc, char *argv[])
         }
       positionOutFile << std::endl;
       positionOutFile << std::endl;
-
-      if (nBss >= 2)
+      if(nBss>=2)
         {
-          // Network "B"
-          // AP2
-          positionAlloc->Add (Vector (d, 0.0, 0.0));
-          // STAs for AP2
-          Ptr<UniformDiscPositionAllocator> unitDiscPositionAllocator2 = CreateObject<UniformDiscPositionAllocator> ();
-          // see comments above - each allocator must have unique stream number.
-          unitDiscPositionAllocator2->AssignStreams (streamNumber + 1);
-          // AP2 is at (x=d, y=0), with radius Rho=r
-          unitDiscPositionAllocator2->SetX (d);
-          unitDiscPositionAllocator2->SetY (0);
-          unitDiscPositionAllocator2->SetRho (r);
-          for (uint32_t i = 0; i < n; i++)
-            {
-              Vector v = unitDiscPositionAllocator2->GetNext ();
-              positionAlloc->Add (v);
-              positionOutFile << v.x << ", " << v.y << std::endl;
-            }
+                // Network "B"
+                // AP2
+                positionAlloc->Add (Vector (x2, y2, 0.0));
+                // STAs for AP2
+                // STAs for each AP are allocated uwing a different instance of a UnitDiscPositionAllocation.  To
+                // ensure unique randomness of positions,  each allocator must be allocated a different stream number.
+                Ptr<UniformDiscPositionAllocator> unitDiscPositionAllocator2 = CreateObject<UniformDiscPositionAllocator> ();
+                unitDiscPositionAllocator2->AssignStreams (streamNumber + 1);
+                // AP1 is at origin (x=x2, y=y2), with radius Rho=r
+                 unitDiscPositionAllocator2->SetX (x2);
+                unitDiscPositionAllocator2->SetY (y2);
+                unitDiscPositionAllocator2->SetRho (r);
+                for (uint32_t i = 0; i < n; i++)
+                        {
+                         Vector v = unitDiscPositionAllocator2->GetNext ();
+                        positionAlloc->Add (v);
+                        positionOutFile << v.x << ", " << v.y << std::endl;
+                        }
         }
       else
         {
@@ -2480,66 +2530,162 @@ main (int argc, char *argv[])
           // since the post-processnig script expects there to be something here.
           positionOutFile << d << ", " << 0 << std::endl;
         }
-
       positionOutFile << std::endl;
       positionOutFile << std::endl;
 
-      if (nBss >= 3)
+      if(nBss>=3)
         {
-          // Network "C"
-          // AP3
-          positionAlloc->Add (Vector (0.0, -d, 0.0));
-          // STAs for AP3
-          Ptr<UniformDiscPositionAllocator> unitDiscPositionAllocator3 = CreateObject<UniformDiscPositionAllocator> ();
-          // see comments above - each allocator must have unique stream number.
-          unitDiscPositionAllocator3->AssignStreams (streamNumber + 2);
-          // AP3 is at (x=0, y=-d), with radius Rho=r
-          unitDiscPositionAllocator3->SetX (0);
-          unitDiscPositionAllocator3->SetY (-d);
-          unitDiscPositionAllocator3->SetRho (r);
-          for (uint32_t i = 0; i < n; i++)
-            {
-              Vector v = unitDiscPositionAllocator3->GetNext ();
-              positionAlloc->Add (v);
-              positionOutFile << v.x << ", " << v.y << std::endl;
-            }
+      // Network "C"
+      // AP3
+      positionAlloc->Add (Vector (x3, y3, 0.0));
+      // STAs for AP3
+      // STAs for each AP are allocated uwing a different instance of a UnitDiscPositionAllocation.  To
+      // ensure unique randomness of positions,  each allocator must be allocated a different stream number.
+      Ptr<UniformDiscPositionAllocator> unitDiscPositionAllocator3 = CreateObject<UniformDiscPositionAllocator> ();
+      unitDiscPositionAllocator3->AssignStreams (streamNumber + 2);
+      // AP1 is at origin (x=x3, y=y3), with radius Rho=r
+      unitDiscPositionAllocator3->SetX (x3);
+      unitDiscPositionAllocator3->SetY (y3);
+      unitDiscPositionAllocator3->SetRho (r);
+      for (uint32_t i = 0; i < n; i++)
+        {
+          Vector v = unitDiscPositionAllocator3->GetNext ();
+          positionAlloc->Add (v);
+          positionOutFile << v.x << ", " << v.y << std::endl;
+        }
         }
       else
         {
           // need to output something here to represent the positions section for STAs C
           // since the post-processnig script expects there to be something here.
-          positionOutFile << 0 << ", " << -d << std::endl;
+          positionOutFile << d << ", " << 0 << std::endl;
         }
-
       positionOutFile << std::endl;
       positionOutFile << std::endl;
 
-      if (nBss >= 4)
+      if(nBss>=4)
         {
-          // Network "D"
-          // AP4
-          positionAlloc->Add (Vector (d, -d, 0.0));
-          // STAs for AP4
-          Ptr<UniformDiscPositionAllocator> unitDiscPositionAllocator4 = CreateObject<UniformDiscPositionAllocator> ();
-          // see comments above - each allocator must have unique stream number.
-          unitDiscPositionAllocator4->AssignStreams (streamNumber + 3);
-          // AP3 is at (x=0, y=-d), with radius Rho=r
-          unitDiscPositionAllocator4->SetX (d);
-          unitDiscPositionAllocator4->SetY (-d);
-          unitDiscPositionAllocator4->SetRho (r);
-          for (uint32_t i = 0; i < n; i++)
-            {
-              Vector v = unitDiscPositionAllocator4->GetNext ();
-              positionAlloc->Add (v);
-              positionOutFile << v.x << ", " << v.y << std::endl;
-            }
+      // Network "D"
+      // AP4
+      positionAlloc->Add (Vector (x4, y4, 0.0));
+      // STAs for AP4
+      // STAs for each AP are allocated uwing a different instance of a UnitDiscPositionAllocation.  To
+      // ensure unique randomness of positions,  each allocator must be allocated a different stream number.
+      Ptr<UniformDiscPositionAllocator> unitDiscPositionAllocator4 = CreateObject<UniformDiscPositionAllocator> ();
+      unitDiscPositionAllocator4->AssignStreams (streamNumber + 3);
+      // AP1 is at origin (x=x4, y=y4), with radius Rho=r
+      unitDiscPositionAllocator4->SetX (x4);
+      unitDiscPositionAllocator4->SetY (y4);
+      unitDiscPositionAllocator4->SetRho (r);
+      for (uint32_t i = 0; i < n; i++)
+        {
+          Vector v = unitDiscPositionAllocator4->GetNext ();
+          positionAlloc->Add (v);
+          positionOutFile << v.x << ", " << v.y << std::endl;
+        }
         }
       else
         {
-          // need to output something here to represent the positions section for STAs B
+          // need to output something here to represent the positions section for STAs D
           // since the post-processnig script expects there to be something here.
-          positionOutFile << d << ", " << -d << std::endl;
+          positionOutFile << d << ", " << 0 << std::endl;
         }
+      positionOutFile << std::endl;
+      positionOutFile << std::endl;
+
+
+      if(nBss>=5)
+        {
+    // Network "E"
+      // AP5
+      positionAlloc->Add (Vector (x5, y5, 0.0));
+      // STAs for AP5
+      // STAs for each AP are allocated uwing a different instance of a UnitDiscPositionAllocation.  To
+      // ensure unique randomness of positions,  each allocator must be allocated a different stream number.
+      Ptr<UniformDiscPositionAllocator> unitDiscPositionAllocator5 = CreateObject<UniformDiscPositionAllocator> ();
+      unitDiscPositionAllocator5->AssignStreams (streamNumber + 4);
+      // AP1 is at origin (x=x5, y=y5), with radius Rho=r
+      unitDiscPositionAllocator5->SetX (x5);
+      unitDiscPositionAllocator5->SetY (y5);
+      unitDiscPositionAllocator5->SetRho (r);
+      for (uint32_t i = 0; i < n; i++)
+        {
+          Vector v = unitDiscPositionAllocator5->GetNext ();
+          positionAlloc->Add (v);
+          positionOutFile << v.x << ", " << v.y << std::endl;
+        }
+        }
+      else
+        {
+          // need to output something here to represent the positions section for STAs E
+          // since the post-processnig script expects there to be something here.
+          positionOutFile << d << ", " << 0 << std::endl;
+        }
+      positionOutFile << std::endl;
+      positionOutFile << std::endl;
+
+
+      if(nBss>=6)
+        {
+      // Network "F"
+      // AP6
+      positionAlloc->Add (Vector (x6, y6, 0.0));
+      // STAs for AP6
+      // STAs for each AP are allocated uwing a different instance of a UnitDiscPositionAllocation.  To
+      // ensure unique randomness of positions,  each allocator must be allocated a different stream number.
+      Ptr<UniformDiscPositionAllocator> unitDiscPositionAllocator6 = CreateObject<UniformDiscPositionAllocator> ();
+      unitDiscPositionAllocator6->AssignStreams (streamNumber + 5);
+      // AP1 is at origin (x=x6, y=y6), with radius Rho=r
+      unitDiscPositionAllocator6->SetX (x6);
+      unitDiscPositionAllocator6->SetY (y6);
+      unitDiscPositionAllocator6->SetRho (r);
+      for (uint32_t i = 0; i < n; i++)
+        {
+          Vector v = unitDiscPositionAllocator6->GetNext ();
+          positionAlloc->Add (v);
+          positionOutFile << v.x << ", " << v.y << std::endl;
+        }
+        }
+      else
+        {
+          // need to output something here to represent the positions section for STAs F
+          // since the post-processnig script expects there to be something here.
+          positionOutFile << d << ", " << 0 << std::endl;
+        }
+      positionOutFile << std::endl;
+      positionOutFile << std::endl;
+
+
+      if(nBss>=7)
+        {
+      // Network "G"
+      // AP7
+      positionAlloc->Add (Vector (x7, y7, 0.0));
+      // STAs for AP7
+      // STAs for each AP are allocated uwing a different instance of a UnitDiscPositionAllocation.  To
+      // ensure unique randomness of positions,  each allocator must be allocated a different stream number.
+      Ptr<UniformDiscPositionAllocator> unitDiscPositionAllocator7 = CreateObject<UniformDiscPositionAllocator> ();
+      unitDiscPositionAllocator7->AssignStreams (streamNumber + 6);
+      // AP1 is at origin (x=x7, y=y7), with radius Rho=r
+      unitDiscPositionAllocator7->SetX (x7);
+      unitDiscPositionAllocator7->SetY (y7);
+      unitDiscPositionAllocator7->SetRho (r);
+      for (uint32_t i = 0; i < n; i++)
+        {
+          Vector v = unitDiscPositionAllocator7->GetNext ();
+          positionAlloc->Add (v);
+          positionOutFile << v.x << ", " << v.y << std::endl;
+        }
+        }
+      else
+        {
+          // need to output something here to represent the positions section for STAs G
+          // since the post-processnig script expects there to be something here.
+          positionOutFile << d << ", " << 0 << std::endl;
+        }
+      positionOutFile << std::endl;
+      positionOutFile << std::endl;
+
 
       mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
       mobility.SetPositionAllocator (positionAlloc);
