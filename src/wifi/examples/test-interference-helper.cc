@@ -62,6 +62,8 @@
 #include "ns3/nist-error-rate-model.h"
 #include "ns3/constant-position-mobility-model.h"
 #include "ns3/simple-frame-capture-model.h"
+#include "ns3/wifi-psdu.h"
+#include "ns3/wifi-mac-trailer.h"
 
 using namespace ns3;
 
@@ -75,7 +77,7 @@ bool expectRxBSuccessfull = false;
 class InterferenceExperiment
 {
 public:
-  /// Input atructure
+  /// Input structure
   struct Input
   {
     Input ();
@@ -122,33 +124,37 @@ private:
 void
 InterferenceExperiment::SendA (void) const
 {
-  Ptr<Packet> p = Create<Packet> (m_input.packetSizeA);
+  WifiMacHeader hdr;
+  hdr.SetType (WIFI_MAC_CTL_ACK); //so that size may not be empty while being as short as possible
+  Ptr<WifiPsdu> psdu = Create<WifiPsdu> (Create<Packet> (m_input.packetSizeA - hdr.GetSerializedSize () - WIFI_MAC_FCS_LENGTH), hdr);
   WifiTxVector txVector;
   txVector.SetTxPowerLevel (0); //only one TX power level
   txVector.SetMode (WifiMode (m_input.txModeA));
   txVector.SetPreambleType (m_input.preamble);
-  m_txA->SendPacket (p, txVector);
+  m_txA->SendPacket (psdu, txVector);
 }
 
 void
 InterferenceExperiment::SendB (void) const
 {
-  Ptr<Packet> p = Create<Packet> (m_input.packetSizeB);
+  WifiMacHeader hdr;
+  hdr.SetType (WIFI_MAC_CTL_ACK); //so that size may not be empty while being as short as possible
+  Ptr<WifiPsdu> psdu = Create<WifiPsdu> (Create<Packet> (m_input.packetSizeB - hdr.GetSerializedSize () - WIFI_MAC_FCS_LENGTH), hdr);
   WifiTxVector txVector;
   txVector.SetTxPowerLevel (0); //only one TX power level
   txVector.SetMode (WifiMode (m_input.txModeB));
   txVector.SetPreambleType (m_input.preamble);
-  m_txB->SendPacket (p, txVector);
+  m_txB->SendPacket (psdu, txVector);
 }
 
 void
 InterferenceExperiment::PacketDropped (Ptr<const Packet> packet, WifiPhyRxfailureReason reason)
 {
-  if (packet->GetUid () == 0)
+  if (packet->GetSize () == 1499)
     {
       m_droppedA = true;
     }
-  else if (packet->GetUid () == 1)
+  else if (packet->GetSize () == 1500)
     {
       m_droppedB = true;
     }
@@ -173,7 +179,7 @@ InterferenceExperiment::Input::Input ()
     txModeB ("OfdmRate54Mbps"),
     txPowerLevelA (16.0206),
     txPowerLevelB (16.0206),
-    packetSizeA (1500),
+    packetSizeA (1499),
     packetSizeB (1500),
     standard (WIFI_PHY_STANDARD_80211a),
     preamble (WIFI_PREAMBLE_LONG),
@@ -260,8 +266,6 @@ int main (int argc, char *argv[])
   cmd.AddValue ("delay", "Delay in microseconds between frame transmission from sender A and frame transmission from sender B", delay);
   cmd.AddValue ("xA", "The position of transmitter A (< 0)", input.xA);
   cmd.AddValue ("xB", "The position of transmitter B (> 0)", input.xB);
-  cmd.AddValue ("packetSizeA", "Packet size in bytes of transmitter A", input.packetSizeA);
-  cmd.AddValue ("packetSizeB", "Packet size in bytes of transmitter B", input.packetSizeB);
   cmd.AddValue ("txPowerA", "TX power level of transmitter A", input.txPowerLevelA);
   cmd.AddValue ("txPowerB", "TX power level of transmitter B", input.txPowerLevelB);
   cmd.AddValue ("txModeA", "Wifi mode used for payload transmission of sender A", input.txModeA);
