@@ -266,41 +266,26 @@ GetPpduMaxTime (WifiPreamble preamble)
   return duration;
 }
 
-bool
-IsAmpdu (Ptr<const Packet> packet)
+std::size_t
+CopyByteTags (Ptr<const Packet> mpduSrc, Ptr<const Packet> mpduDst)
 {
-  AmpduSubframeHeader hdr;
-  //Rely on metadata if present
-  bool metadataEnabled = false;
-  PacketMetadata::ItemIterator metadataIterator = packet->BeginItem ();
-  while (metadataIterator.HasNext ())
+  size_t nByteTags = 0;
+  ByteTagIterator iter = mpduSrc->GetByteTagIterator ();
+  while (iter.HasNext ())
     {
-      metadataEnabled = true;
-      PacketMetadata::Item item = metadataIterator.Next ();
-      if (item.tid == hdr.GetTypeId ())
+      ByteTagIterator::Item item = iter.Next ();
+      Callback<ObjectBase *> constructor = item.GetTypeId ().GetConstructor ();
+      if (constructor.IsNull ())
         {
-          return true;
+          continue;
         }
+      Tag *tag = dynamic_cast<Tag *> (constructor ());
+      NS_ASSERT (tag != 0);
+      item.GetTag (*tag);
+      mpduDst->AddByteTag (*tag);
+      ++nByteTags;
     }
-  if (metadataEnabled)
-    {
-      //Didn't find header in metadata
-      return false;
-    }
-
-  //No metadata so peek manually into buffer and check consistency of extracted data
-  uint32_t totalSize = packet->GetSize ();
-  uint32_t deserialized = packet->PeekHeader (hdr);
-  if (deserialized == hdr.GetSerializedSize ()
-      && hdr.IsSignatureValid ()
-      && hdr.GetLength () <= (totalSize - deserialized))
-    {
-      return true;
-    }
-  else
-    {
-      return false;
-    }
+  return nByteTags;
 }
 
 } //namespace ns3
