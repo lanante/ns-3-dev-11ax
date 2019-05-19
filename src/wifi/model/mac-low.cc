@@ -518,7 +518,7 @@ MacLow::StartTransmission (Ptr<WifiMacQueueItem> mpdu,
   m_txParams = params;
   if (hdr.IsCtl ())
     {
-      m_currentTxVector = GetRtsTxVector  (mpdu);
+      m_currentTxVector = GetRtsTxVector (mpdu);
     }
   else
     {
