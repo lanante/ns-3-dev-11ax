@@ -72,7 +72,7 @@ DynamicObssPdAlgorithm::ReceiveHeSig (HePreambleParameters params)
       return;
     }
 
-  NS_LOG_DEBUG ("RSSI=" << WToDbm (params.rssiW) << " dBm , BSS color=" << +params.bssColor);
+  //NS_LOG_DEBUG ("RSSI=" << WToDbm (params.rssiW) << " dBm , BSS color=" << +params.bssColor);
 
   Ptr<HeConfiguration> heConfiguration = m_device->GetHeConfiguration ();
   Ptr<WifiPhy> phy = m_device->GetPhy ();
@@ -80,7 +80,11 @@ DynamicObssPdAlgorithm::ReceiveHeSig (HePreambleParameters params)
   UintegerValue bssColorAttribute;
   heConfiguration->GetAttribute ("BssColor", bssColorAttribute);
   uint8_t bssColor = bssColorAttribute.Get ();
-
+uint32_t currentNodeId=   m_device->GetNode ()->GetId ();
+uint8_t n=10;
+bool isAP=(currentNodeId%(1+n))==0;
+if (isAP)
+      {NS_LOG_DEBUG ("I am AP ");}
   if (bssColor == 0)
     {
       NS_LOG_DEBUG ("BSS color is 0");
@@ -91,6 +95,7 @@ DynamicObssPdAlgorithm::ReceiveHeSig (HePreambleParameters params)
       NS_LOG_DEBUG ("Received BSS color is 0");
       return;
     }
+      NS_LOG_DEBUG ("Received BSS color is "<<+params.bssColor);
   //TODO: SRP_AND_NON-SRG_OBSS-PD_PROHIBITED=1 => OBSS_PD SR is not allowed
 	double r=m_r;
 	double d=m_d;
@@ -112,6 +117,8 @@ DynamicObssPdAlgorithm::ReceiveHeSig (HePreambleParameters params)
 	        double myy=0;
 	        double ox=0;
 	        double oy=0;
+
+
 	        if (bssColor>0||bssColor<8)
 		        {myx=APx[bssColor-1];
 	                myy=APy[bssColor-1];}
@@ -133,12 +140,12 @@ DynamicObssPdAlgorithm::ReceiveHeSig (HePreambleParameters params)
 	        double DI=sqrt(pow(R,2)+pow(r,2)/2);
 		double expectedRSSI=Pref_high-35*log10(DI);
 	        double Interference=(params.rssiW-DbmToW(expectedRSSI));
-                if (Interference<0)
+                if (Interference<DbmToW(-72))
 {Interference=0;}
 	        double Pn2=WToDbm(DbmToW(Pn)+Interference*1);
-	//        NS_LOG_DEBUG ("expected RSSIW is "<<DbmToW(expectedRSSI) <<" Real RSSI  is      "<<params.rssiW <<"Interference is "<<Interference);
-				NS_LOG_DEBUG ("expected RSSI is "<<expectedRSSI <<"Actual RSSI is "<<WToDbm(params.rssiW));
 
+	NS_LOG_DEBUG ("expected RSSI is "<<expectedRSSI <<"Actual RSSI is "<<WToDbm(params.rssiW));
+NS_LOG_DEBUG("Interference is "<<WToDbm(Interference));
 	        double num= pow(10,(Pref_high-obssSNR)/10)*pow(DI,n);
 	        double den= pow(10,Pref_high/10)+pow(10,Pn2/10)*pow(DI,n);
 	        double S=pow(num/den,2/n)/pow(r,2)*2;
@@ -150,26 +157,28 @@ DynamicObssPdAlgorithm::ReceiveHeSig (HePreambleParameters params)
 	        //NS_LOG_DEBUG ("OBSS AP POs "<<ox<<" "<<oy);
 	        //NS_LOG_DEBUG ("nBss is "<<+nBss);
 	        //NS_LOG_DEBUG ("d is "<<d);
-	        //NS_LOG_DEBUG ("r is "<<r);
-	        //NS_LOG_DEBUG ("mcs is "<<+mcs);
+	        NS_LOG_DEBUG ("num is "<<num);
+	        NS_LOG_DEBUG ("den is "<<den);
 	        NS_LOG_DEBUG ("DI is "<<DI);
                 //NS_LOG_DEBUG ("R is "<<R);
-		//NS_LOG_DEBUG ("S is "<<S);
+		NS_LOG_LOGIC ("S is "<<S);
 		NS_LOG_DEBUG ("Noise is "<<Pn <<" Noise Interference  is "<<Pn2);
 
 		m_obssPdLevel=expectedRSSI+10*log10(S);
 	//------------------------------------------------------
  
-      if (expectedRSSI< m_obssPdLevel)
+      if (S> 1&&WToDbm(Interference)<-72)
         {
-          NS_LOG_DEBUG ("Frame is OBSS and RSSI " << WToDbm(params.rssiW) << " is below OBSS-PD level of " << m_obssPdLevel << "; reset PHY to IDLE");
+          NS_LOG_LOGIC ("Frame is OBSS and RSSI " << WToDbm(params.rssiW) << " is below OBSS-PD level of " << m_obssPdLevel << "; reset PHY to IDLE");
           m_obssPdLevelMin=m_obssPdLevel;
-  phy->SetCcaEdThreshold (m_obssPdLevel);
+   phy->SetCcaEdThreshold (-62);
           ResetPhy (params);
         }
       else
         {
-          NS_LOG_DEBUG ("Frame is OBSS and RSSI is above OBSS-PD level");
+          NS_LOG_LOGIC ("Frame is OBSS and RSSI " << WToDbm(params.rssiW) << " is below OBSS-PD level of " << m_obssPdLevel << "; reset PHY to IDLE");
+          NS_LOG_LOGIC("Frame is OBSS and RSSI is above OBSS-PD level");
+    phy->SetCcaEdThreshold (-82);
         }
     }
 }

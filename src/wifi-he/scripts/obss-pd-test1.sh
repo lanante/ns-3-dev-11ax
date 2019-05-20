@@ -45,7 +45,7 @@ export bw=20
 # –	d = max(3D-distance [m], 1)
 # –	fc = frequency [GHz]
 export scenario=logdistance
-export nBss=3
+export nBss=7
 
 # MSDUsize = 1500 octets
 export payloadSizeUplink=1500
