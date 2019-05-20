@@ -40,7 +40,7 @@
 #include "wifi-mac-trailer.h"
 #include "wifi-phy.h"
 #include "wifi-net-device.h"
-#include "wifi-mac.h"
+#include "ap-wifi-mac.h"
 #include <algorithm>
 #include "wifi-ack-policy-selector.h"
 
@@ -2653,6 +2653,17 @@ MacLow::CanTransmitNextCfFrame (void) const
   uint32_t maxMacFrameSize = MAX_MSDU_SIZE + hdr.GetSerializedSize () + fcs.GetSerializedSize ();
   Time nextTransmission = 2 * m_phy->CalculateTxDuration (maxMacFrameSize, m_currentTxVector, m_phy->GetFrequency ()) + 3 * GetSifs () + m_phy->CalculateTxDuration (GetCfEndSize (), m_currentTxVector, m_phy->GetFrequency ());
   return ((GetRemainingCfpDuration () - nextTransmission).IsPositive ());
+}
+
+uint16_t
+MacLow::GetStaId (Mac48Address receiver) const
+{
+  Ptr<ApWifiMac> apMac = DynamicCast<ApWifiMac> (m_mac);
+  if (apMac != 0)
+    {
+      return apMac->GetAssociationId (receiver);
+    }
+  return SU_STA_ID;
 }
 
 } //namespace ns3
