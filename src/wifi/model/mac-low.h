@@ -497,6 +497,15 @@ public:
    * \param aggr pointer to the MPDU aggregator.
    */
   void SetMpduAggregator (const Ptr<MpduAggregator> aggr);
+  /**
+   * Returns the station ID of the receiver if the MAC is
+   * an AP and that the receiver is associated.
+   *
+   * \param receiver the station's address
+   *
+   * \return the STA-ID if the receiver
+   */
+  uint16_t GetStaId (Mac48Address receiver) const;
 
 private:
   /**
