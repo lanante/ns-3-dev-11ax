@@ -629,8 +629,26 @@ void
 AnimationInterface::AddByteTag (uint64_t animUid, Ptr<const Packet> p)
 {
   AnimByteTag tag;
-  tag.Set (animUid);
-  p->AddByteTag (tag);
+  if (p->FindFirstMatchingByteTag (tag))
+    {
+      ByteTagIterator i = p->GetByteTagIterator ();
+      while (i.HasNext ())
+        {
+          ByteTagIterator::Item item = i.Next ();
+          if (tag.GetInstanceTypeId () == item.GetTypeId ())
+            {
+              tag.Set (animUid); //should be after FindFirstMatchingByteTag call
+              item.SetTag (tag); //Update UID
+              item.GetTag (tag);
+              NS_ASSERT (tag.Get () == animUid);
+            }
+        }
+    }
+  else
+    {
+      tag.Set (animUid);
+      p->AddByteTag (tag);
+    }
 }
 
 void 
