@@ -267,22 +267,40 @@ GetPpduMaxTime (WifiPreamble preamble)
 }
 
 std::size_t
-CopyByteTags (Ptr<const Packet> mpduSrc, Ptr<const Packet> mpduDst)
+CopyByteTags (Ptr<const Packet> packetSrc, Ptr<const Packet> packetDst)
 {
   size_t nByteTags = 0;
-  ByteTagIterator iter = mpduSrc->GetByteTagIterator ();
-  while (iter.HasNext ())
+  ByteTagIterator iterSrc = packetSrc->GetByteTagIterator ();
+  while (iterSrc.HasNext ())
     {
-      ByteTagIterator::Item item = iter.Next ();
-      Callback<ObjectBase *> constructor = item.GetTypeId ().GetConstructor ();
+      ByteTagIterator::Item itemSrc = iterSrc.Next ();
+      Callback<ObjectBase *> constructor = itemSrc.GetTypeId ().GetConstructor ();
       if (constructor.IsNull ())
         {
           continue;
         }
-      Tag *tag = dynamic_cast<Tag *> (constructor ());
-      NS_ASSERT (tag != 0);
-      item.GetTag (*tag);
-      mpduDst->AddByteTag (*tag);
+      Tag *tagSrc = dynamic_cast<Tag *> (constructor ());
+      NS_ASSERT (tagSrc != 0);
+      itemSrc.GetTag (*tagSrc);
+
+      //Replace if tag already exists
+      Tag *tagDst = dynamic_cast<Tag *> (constructor ());
+      if (packetDst->FindFirstMatchingByteTag (*tagDst))
+        {
+          ByteTagIterator iterDst = packetDst->GetByteTagIterator ();
+          while (iterDst.HasNext ())
+            {
+              ByteTagIterator::Item itemDst = iterDst.Next ();
+              if (tagSrc->GetInstanceTypeId () == itemDst.GetTypeId ())
+                {
+                  itemDst.SetTag (*tagSrc);
+                }
+            }
+        }
+      else
+        {
+          packetDst->AddByteTag (*tagSrc);
+        }
       ++nByteTags;
     }
   return nByteTags;

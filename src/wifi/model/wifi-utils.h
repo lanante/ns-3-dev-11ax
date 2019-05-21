@@ -176,14 +176,14 @@ void AddWifiMacTrailer (Ptr<Packet> packet);
  */
 uint32_t GetSize (Ptr<const Packet> packet, const WifiMacHeader *hdr, bool isAmpdu);
 /**
- * Copy of the byte tags of the source MPDU onto the destination MPDU's payload.
+ * Copy of the byte tags of the source packet onto the destination packet.
  *
- * \param mpduSrc the MPDU from which byte tags are to be read
- * \param mpduDst the MPDU on which byte tags are to be written
+ * \param packetSrc the packet from which byte tags are to be read
+ * \param packetDst the packet on which byte tags are to be written
  *
  * \return the number of copied byte tags
  */
-std::size_t CopyByteTags (Ptr<const Packet> mpduSrc, Ptr<const Packet> mpduDst);
+std::size_t CopyByteTags (Ptr<const Packet> packetSrc, Ptr<const Packet> packetDst);
 /**
  * Get the maximum PPDU duration (see Section 10.14 of 802.11-2016) for
  * the PHY layers defining the aPPDUMaxTime characteristic (HT, VHT and HE).
