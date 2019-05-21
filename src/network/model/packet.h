@@ -86,6 +86,15 @@ public:
      * by the user does not match the type of the underlying tag.
      */
     void GetTag (Tag &tag) const;
+    /**
+     * \brief Write the requested tag.
+     *
+     * \param tag the user tag to copy.
+     *
+     * This method will crash if the type of the tag provided
+     * by the user does not match the type of the underlying tag.
+     */
+    void SetTag (Tag &tag);
 private:
     /// Friend class
     friend class ByteTagIterator;
