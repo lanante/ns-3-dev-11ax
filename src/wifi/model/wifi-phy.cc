@@ -2355,7 +2355,9 @@ WifiPhy::NotifyTxBegin (Ptr<const WifiPsdu> psdu, double txPowerW)
 {
   for (auto& mpdu : *PeekPointer (psdu))
     {
-      m_phyTxBeginTrace (mpdu->GetProtocolDataUnit (), txPowerW);
+      Ptr<Packet> pdu = mpdu->GetProtocolDataUnit ();
+      m_phyTxBeginTrace (pdu, txPowerW);
+      CopyByteTags (pdu, mpdu->GetPacket ()); //mainly so that netanim's byte tags may be handed over to all receivers
     }
 }
 
