@@ -54,6 +54,15 @@ ByteTagIterator::Item::GetTag (Tag &tag) const
     }
   tag.Deserialize (m_buffer);
 }
+void
+ByteTagIterator::Item::SetTag (Tag &tag)
+{
+  if (tag.GetInstanceTypeId () != GetTypeId ())
+    {
+      NS_FATAL_ERROR ("The tag you provided is not of the right type.");
+    }
+  tag.Serialize (m_buffer);
+}
 ByteTagIterator::Item::Item (TypeId tid, uint32_t start, uint32_t end, TagBuffer buffer)
   : m_tid (tid),
     m_start (start),
