@@ -154,6 +154,7 @@ NetDeviceContainer staDevicesG;
 // for tracking packets and bytes received. will be reallocated once we finalize number of nodes
 std::vector<uint64_t> packetsReceived (0);
 std::vector<uint64_t> bytesReceived (0);
+std::vector<uint64_t> bytesTransmitted (0);
 
 std::vector<std::vector<uint64_t> > packetsReceivedPerNode;
 std::vector<std::vector<double> > rssiPerNode;
@@ -220,7 +221,19 @@ PacketTx (std::string context, Ptr<const Packet> packet, double txPowerW)
         }
     }
 }
-
+uint32_t
+Ipv4AddressToNodeId (Ipv4Address address)
+{
+std::stringstream address_str;
+address.Print(address_str);
+std::string sub = address_str.str().substr (10);
+uint32_t nodeId = atoi (sub.c_str ());
+if ((nodeId%(n+1))==0)
+{
+nodeId=(nodeId/(n+1)-1)*(n+1);
+}
+  return nodeId;
+}
 void
 PacketRx (std::string context, const Ptr<const Packet> p, const Address &srcAddress, const Address &destAddress)
 {
@@ -232,6 +245,13 @@ PacketRx (std::string context, const Ptr<const Packet> p, const Address &srcAddr
       packetsReceived[nodeId]++;
     }
   timeLastPacketReceived = Simulator::Now();
+
+uint32_t nodeId2= Ipv4AddressToNodeId(InetSocketAddress::ConvertFrom (srcAddress).GetIpv4 ());
+  if (!filterOutNonAddbaEstablished || allAddBaEstablished)
+    {
+      bytesTransmitted[nodeId2] += pktSize;
+    }
+
 }
 
 void
@@ -801,12 +821,16 @@ SaveSpatialReuseStats (const std::string filename,
   outFile << "Total Throughput Downlink [Mbps] : " << tputApDownlinkTotal << std::endl;
   
   double rxThroughputPerNode[numNodes];
+  double txThroughputPerNode[numNodes];
   // output for all nodes
   for (uint32_t k = 0; k < numNodes; k++)
     {
       double bitsReceived = bytesReceived[k] * 8;
+      double bitsTransmitted = bytesTransmitted[k] * 8;
       rxThroughputPerNode[k] = static_cast<double> (bitsReceived) / 1e6 / duration;
+      txThroughputPerNode[k] = static_cast<double> (bitsTransmitted) / 1e6 / duration;
       outFile << "Node " << k << ", pkts " << packetsReceived[k] << ", bytes " << bytesReceived[k] << ", throughput [MMb/s] " << rxThroughputPerNode[k] << std::endl;
+      outFile << "Node " << k << ", bytes " << bytesTransmitted[k] << ", throughput [MMb/s] " << txThroughputPerNode[k] << std::endl;
     }
 
   outFile << "Avg. RSSI:" << std::endl;
@@ -1429,6 +1453,7 @@ main (int argc, char *argv[])
   uint32_t numNodes = nBss * (n + 1);
   packetsReceived = std::vector<uint64_t> (numNodes);
   bytesReceived = std::vector<uint64_t> (numNodes);
+  bytesTransmitted = std::vector<uint64_t> (numNodes);
   nAssociatedStasPerBss = std::vector<uint32_t> (nBss * n);
 
   busyTime = std::vector<Time> (nBss);
@@ -1444,6 +1469,7 @@ main (int argc, char *argv[])
     {
       packetsReceived[nodeId] = 0;
       bytesReceived[nodeId] = 0;
+bytesTransmitted[nodeId] = 0;
     }
 
   // When logging, use prefixes
