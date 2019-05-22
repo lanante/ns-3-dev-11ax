@@ -293,6 +293,7 @@ LSigHeader::GetRate (uint16_t channelWidth) const
 void
 LSigHeader::SetLength (uint16_t length)
 {
+  NS_ASSERT_MSG (length < 4096, "Invalid length");
   m_length = length;
 }
 
@@ -382,6 +383,7 @@ HtSigHeader::GetSerializedSize (void) const
 void
 HtSigHeader::SetMcs (uint8_t mcs)
 {
+  NS_ASSERT (mcs <= 31);
   m_mcs = mcs;
 }
 
@@ -612,6 +614,7 @@ VhtSigHeader::GetShortGuardIntervalDisambiguation (void) const
 void
 VhtSigHeader::SetSuMcs (uint8_t mcs)
 {
+  NS_ASSERT (mcs <= 9);
   m_suMcs = mcs;
 }
 
@@ -744,6 +747,7 @@ HeSigHeader::SetMuFlag (bool mu)
 void
 HeSigHeader::SetMcs (uint8_t mcs)
 {
+  NS_ASSERT (mcs <= 11);
   m_mcs = mcs;
 }
 

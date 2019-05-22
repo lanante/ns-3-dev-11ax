@@ -37,6 +37,7 @@
 #include "ht-configuration.h"
 #include "he-configuration.h"
 #include "mpdu-aggregator.h"
+#include "wifi-phy-header.h"
 
 namespace ns3 {
 
@@ -2610,27 +2611,12 @@ WifiPhy::SendPacket (Ptr<const Packet> packet, WifiTxVector txVector)
       heSig.SetNStreams (txVector.GetNss ());
       newPacket->AddHeader (heSig);
     }
-  uint8_t sigExtention = 0;
-  if (Is2_4Ghz (GetFrequency ()))
-    {
-      sigExtention = 6;
-    }
-  uint8_t m = 0;
-  if (txVector.GetPreambleType () == WIFI_PREAMBLE_HE_SU)
-    {
-      m = 2;
-    }
-  else if (txVector.GetPreambleType () == WIFI_PREAMBLE_HE_MU)
-    {
-      m = 1;
-    }
-  //Equation 27-11 of IEEE P802.11/D4.0
-  uint16_t length = ((ceil ((static_cast<double> (txDuration.GetNanoSeconds () - (20 * 1000) - (sigExtention * 1000)) / 1000) / 4.0) * 3) - 3 - m);
   if ((txVector.GetMode ().GetModulationClass () == WIFI_MOD_CLASS_DSSS) || (txVector.GetMode ().GetModulationClass () == WIFI_MOD_CLASS_HR_DSSS))
     {
       DsssSigHeader sig;
       sig.SetRate (txVector.GetMode ().GetDataRate (22));
-      sig.SetLength (length);
+      Time psduDuration = txDuration - CalculatePlcpPreambleAndHeaderDuration (txVector);
+      sig.SetLength (psduDuration.GetMicroSeconds ());
       newPacket->AddHeader (sig);
     }
   else if ((txVector.GetMode ().GetModulationClass () != WIFI_MOD_CLASS_HT) || (txVector.GetPreambleType () != WIFI_PREAMBLE_HT_GF))
@@ -2638,9 +2624,29 @@ WifiPhy::SendPacket (Ptr<const Packet> packet, WifiTxVector txVector)
       LSigHeader sig;
       if ((txVector.GetMode ().GetModulationClass () == WIFI_MOD_CLASS_OFDM) || (txVector.GetMode ().GetModulationClass () == WIFI_MOD_CLASS_ERP_OFDM))
         {
-          sig.SetRate (txVector.GetMode ().GetDataRate (GetChannelWidth ()), GetChannelWidth ());
+          sig.SetRate (txVector.GetMode ().GetDataRate (txVector), GetChannelWidth ());
+          sig.SetLength (packet->GetSize ());
         }
-      sig.SetLength (length);
+      else //HT, VHT or HE
+      {
+          uint8_t sigExtention = 0;
+          if (Is2_4Ghz (GetFrequency ()))
+            {
+              sigExtention = 6;
+            }
+          uint8_t m = 0;
+          if (txVector.GetPreambleType () == WIFI_PREAMBLE_HE_SU)
+            {
+              m = 2;
+            }
+          else if (txVector.GetPreambleType () == WIFI_PREAMBLE_HE_MU)
+            {
+              m = 1;
+            }
+          //Equation 27-11 of IEEE P802.11/D4.0
+          uint16_t length = ((ceil ((static_cast<double> (txDuration.GetNanoSeconds () - (20 * 1000) - (sigExtention * 1000)) / 1000) / 4.0) * 3) - 3 - m);
+          sig.SetLength (length);
+      }
       newPacket->AddHeader (sig);
     }
 
@@ -2670,41 +2676,41 @@ WifiPhy::StartReceiveHeader (Ptr<Event> event, Time rxDuration)
   NS_LOG_DEBUG ("snr(dB)=" << RatioToDb (snrPer.snr) << ", per=" << snrPer.per);
 
   if (!m_preambleDetectionModel || (m_preambleDetectionModel->IsPreambleDetected (event->GetRxPowerW (), snr, m_channelWidth)))
-  {
-    m_state->SwitchToRx (rxDuration);
-    NotifyRxBegin (event->GetPacket ());
+    {
+      m_state->SwitchToRx (rxDuration);
+      NotifyRxBegin (event->GetPacket ());
 
-    m_timeLastPreambleDetected = Simulator::Now ();
+      m_timeLastPreambleDetected = Simulator::Now ();
 
-    WifiTxVector txVector = event->GetTxVector ();
+      WifiTxVector txVector = event->GetTxVector ();
 
-    if (txVector.GetNss () > GetMaxSupportedRxSpatialStreams ())
-      {
-        NS_LOG_DEBUG ("Packet reception could not be started because not enough RX antennas");
-        NotifyRxDrop (event->GetPacket (), UNSUPPORTED_SETTINGS);
-        MaybeCcaBusyDuration ();
-        return;
-      }
+      if (txVector.GetNss () > GetMaxSupportedRxSpatialStreams ())
+        {
+          NS_LOG_DEBUG ("Packet reception could not be started because not enough RX antennas");
+          NotifyRxDrop (event->GetPacket (), UNSUPPORTED_SETTINGS);
+          MaybeCcaBusyDuration ();
+          return;
+        }
 
-    if ((txVector.GetMode ().GetModulationClass () == WIFI_MOD_CLASS_HT) && (txVector.GetPreambleType () == WIFI_PREAMBLE_HT_GF))
-      {
-        //No legacy PHY header for HT GF
-        Time remainingPreambleHeaderDuration = CalculatePlcpPreambleAndHeaderDuration (txVector) - GetPreambleDetectionDuration ();
-        m_endPlcpRxEvent = Simulator::Schedule (remainingPreambleHeaderDuration, &WifiPhy::StartReceivePayload, this, event);
-      }
-    else
-      {
-        //Schedule end of legacy PHY header
-        Time remainingPreambleAndLegacyHeaderDuration = GetPlcpPreambleDuration (txVector) + GetPlcpHeaderDuration (txVector) - GetPreambleDetectionDuration ();
-        m_endPlcpRxEvent = Simulator::Schedule (remainingPreambleAndLegacyHeaderDuration, &WifiPhy::ContinueReceiveHeader, this, event);
-      }
-  }
+      if ((txVector.GetMode ().GetModulationClass () == WIFI_MOD_CLASS_HT) && (txVector.GetPreambleType () == WIFI_PREAMBLE_HT_GF))
+        {
+          //No legacy PHY header for HT GF
+          Time remainingPreambleHeaderDuration = CalculatePlcpPreambleAndHeaderDuration (txVector) - GetPreambleDetectionDuration ();
+          m_endPlcpRxEvent = Simulator::Schedule (remainingPreambleHeaderDuration, &WifiPhy::StartReceivePayload, this, event);
+        }
+      else
+        {
+          //Schedule end of legacy PHY header
+          Time remainingPreambleAndLegacyHeaderDuration = GetPlcpPreambleDuration (txVector) + GetPlcpHeaderDuration (txVector) - GetPreambleDetectionDuration ();
+          m_endPlcpRxEvent = Simulator::Schedule (remainingPreambleAndLegacyHeaderDuration, &WifiPhy::ContinueReceiveHeader, this, event);
+        }
+    }
   else
-  {
-    NS_LOG_DEBUG ("Drop packet because PHY preamble detection failed");
-    NotifyRxDrop (event->GetPacket (), PREAMBLE_DETECT_FAILURE);
-    m_interference.NotifyRxEnd ();
-  }
+    {
+      NS_LOG_DEBUG ("Drop packet because PHY preamble detection failed");
+      NotifyRxDrop (event->GetPacket (), PREAMBLE_DETECT_FAILURE);
+      m_interference.NotifyRxEnd ();
+    }
   // Like CCA-SD, CCA-ED is governed by the 4μs CCA window to flag CCA-BUSY
   // for any received signal greater than the CCA-ED threshold.
   MaybeCcaBusyDuration ();
