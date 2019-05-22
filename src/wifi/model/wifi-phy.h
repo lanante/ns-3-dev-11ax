@@ -29,7 +29,6 @@
 #include "wifi-phy-standard.h"
 #include "interference-helper.h"
 #include "wifi-phy-state-helper.h"
-#include "wifi-phy-header.h"
 
 namespace ns3 {
 

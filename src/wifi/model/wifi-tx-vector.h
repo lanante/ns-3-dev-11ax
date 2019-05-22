@@ -216,42 +216,6 @@ public:
    */
   bool IsValid (void) const;
 
-  enum HeSigA_UlDl
-  {
-    HE_SIG_A_UL_DL_DOWNLINK = 0,
-    HE_SIG_A_UL_DL_UPLINK = 1
-  };
-
-  /**
-   * Set the UL/DL indicator
-   * \param ul_dl the UL/DL indicator
-   */
-  void SetUlDl (enum HeSigA_UlDl ul_dl);
-  /**
-   * Get the Ul/DL indicator
-   * \return the Ul/DL indicatorr
-   */
-  enum HeSigA_UlDl GetUlDl (void) const;
-
-  enum HeSigA_SpatialReuse
-  {
-    HE_SIG_A_SPATIAL_REUSE_SRP_DISALLOW = 0,
-    // values 1-22 reserved
-    HE_SIG_A_SPATIAL_REUSE_SR_RESTRICTED = 13,
-    HE_SIG_A_SPATIAL_REUSE_SR_DELAY = 14,
-    HE_SIG_A_SPATIAL_REUSE_SRP_AND_NON_SRG_OBSS_PD_PROHIBITED = 15
-  };
-
-  /**
-   * Set the Spatial Reuse Parameter value
-   * \param srp the Spatial Reuse Parameter value
-   */
-  void SetSrp (enum HeSigA_SpatialReuse srp);
-  /**
-   * Get the Spatial Reuse Parameter value
-   * \return the Spatial Reuse Parameter value
-   */
-  enum HeSigA_SpatialReuse GetSrp (void) const;
 
 private:
   WifiMode m_mode;               /**< The DATARATE parameter in Table 15-4.
@@ -269,8 +233,6 @@ private:
   bool     m_aggregation;        /**< Flag whether the PSDU contains A-MPDU. */
   bool     m_stbc;               /**< STBC used or not */
   uint8_t  m_bssColor;           /**< BSS color */
-  enum HeSigA_UlDl m_uplinkDownlinkBit;  /**< UL/DL (1 bit)  */
-  enum HeSigA_SpatialReuse m_spatialReuse;  /**< Spatial Result parameter (4 bits) */
 
   bool     m_modeInitialized;         /**< Internal initialization flag */
 };

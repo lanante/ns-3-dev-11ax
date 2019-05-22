@@ -28,6 +28,7 @@
 #include "ns3/nist-error-rate-model.h"
 #include "ns3/wifi-mac-header.h"
 #include "ns3/wifi-mac-trailer.h"
+#include "ns3/wifi-phy-header.h"
 #include "ns3/wifi-phy-tag.h"
 #include "ns3/wifi-phy-standard.h"
 #include "ns3/wifi-phy-listener.h"

@@ -4215,7 +4215,7 @@ WifiPhy::GetTxPowerForTransmission (WifiTxVector txVector) const
       else
         {
           return std::min (m_txPowerMaxSiso, GetPowerDbm (txVector.GetTxPowerLevel ()));
-        }  
+        }
     }
 }
 

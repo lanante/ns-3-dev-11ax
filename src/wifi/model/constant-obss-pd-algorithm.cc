@@ -72,8 +72,6 @@ ConstantObssPdAlgorithm::ReceiveHeSig (HePreambleParameters params)
       return;
     }
 
-  NS_LOG_DEBUG ("RSSI=" << WToDbm (params.rssiW) << " dBm , BSS color=" << +params.bssColor);
-
   Ptr<HeConfiguration> heConfiguration = m_device->GetHeConfiguration ();
   NS_ASSERT (heConfiguration);
   UintegerValue bssColorAttribute;
