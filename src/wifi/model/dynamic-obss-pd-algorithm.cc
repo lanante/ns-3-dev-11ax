@@ -161,7 +161,7 @@ NS_LOG_DEBUG("Interference is "<<WToDbm(Interference));
 	        NS_LOG_DEBUG ("den is "<<den);
 	        NS_LOG_DEBUG ("DI is "<<DI);
                 //NS_LOG_DEBUG ("R is "<<R);
-		NS_LOG_LOGIC ("S is "<<S);
+		NS_LOG_DEBUG ("S is "<<S);
 		NS_LOG_DEBUG ("Noise is "<<Pn <<" Noise Interference  is "<<Pn2);
 
 		m_obssPdLevel=expectedRSSI+10*log10(S);
@@ -171,14 +171,14 @@ NS_LOG_DEBUG("Interference is "<<WToDbm(Interference));
         {
           NS_LOG_LOGIC ("Frame is OBSS and RSSI " << WToDbm(params.rssiW) << " is below OBSS-PD level of " << m_obssPdLevel << "; reset PHY to IDLE");
           m_obssPdLevelMin=m_obssPdLevel;
-   phy->SetCcaEdThreshold (-62);
+   phy->SetCcaEdThreshold (-30);
           ResetPhy (params);
         }
       else
         {
-          NS_LOG_LOGIC ("Frame is OBSS and RSSI " << WToDbm(params.rssiW) << " is below OBSS-PD level of " << m_obssPdLevel << "; reset PHY to IDLE");
-          NS_LOG_LOGIC("Frame is OBSS and RSSI is above OBSS-PD level");
-    phy->SetCcaEdThreshold (-82);
+   //       NS_LOG_LOGIC ("Frame is OBSS and RSSI " << WToDbm(params.rssiW) << " is below OBSS-PD level of " << m_obssPdLevel << "; reset PHY to IDLE");
+ //         NS_LOG_LOGIC("Frame is OBSS and RSSI is above OBSS-PD level");
+    phy->SetCcaEdThreshold (-100);
         }
     }
 }
