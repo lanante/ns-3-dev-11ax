@@ -13,13 +13,13 @@ obssPdLevel=-82
 export NS_LOG=DynamicObssPdAlgorithm=logic
 
 for i in 1 2 3 4 5; do
-for j in 0 ;do
-for k in 2 7; do
+for j in 0 5 11;do
+for k in 2 3 4 5 6 7 ; do
 RngRunpar=${i}
 nBsspar=${k}
 MCSpar=${j}
 npar=10
-durpar=1
+durpar=5
 if [ ${MCSpar} -eq 0 ]
 then
 ampdusizepar=4915
