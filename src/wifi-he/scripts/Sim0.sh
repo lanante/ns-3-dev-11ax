@@ -13,7 +13,7 @@ obssPdLevel=-82
 
 for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20; do
 for k in 0 5 11 ; do
-for j in -82 -80 -78 -76 -74 -72 -70 -68 -66 -64 -62 -;do
+for j in -82 -80 -78 -76 -74 -72 -70 -68 -66 -64 -62 ;do
 RngRunpar=${i}
 nBsspar=2
 MCSpar=${k}
