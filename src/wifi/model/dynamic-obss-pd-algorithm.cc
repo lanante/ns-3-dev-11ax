@@ -107,6 +107,7 @@ if (isAP)
 	
 	        double n=3.5;
 	        double Pref_high=-30;
+	    //    double obssSNRA[12]={0.7,3.7,6.2,9.3,12.6,16.8,18.2,19.4,23.5,25.1,28,31};
 	        double obssSNRA[12]={0.7,3.7,6.2,9.3,12.6,16.8,18.2,19.4,23.5,25.1,28,31};
 	        double Pn=-94;
 
@@ -144,7 +145,7 @@ if (isAP)
 {Interference=0;}
 	        double Pn2=WToDbm(DbmToW(Pn)+Interference*1);
 
-	NS_LOG_DEBUG ("expected RSSI is "<<expectedRSSI <<"Actual RSSI is "<<WToDbm(params.rssiW));
+	NS_LOG_LOGIC ("expected RSSI is "<<expectedRSSI <<"Actual RSSI is "<<WToDbm(params.rssiW));
 NS_LOG_DEBUG("Interference is "<<WToDbm(Interference));
 	        double num= pow(10,(Pref_high-obssSNR)/10)*pow(DI,n);
 	        double den= pow(10,Pref_high/10)+pow(10,Pn2/10)*pow(DI,n);
@@ -161,24 +162,25 @@ NS_LOG_DEBUG("Interference is "<<WToDbm(Interference));
 	        NS_LOG_DEBUG ("den is "<<den);
 	        NS_LOG_DEBUG ("DI is "<<DI);
                 //NS_LOG_DEBUG ("R is "<<R);
-		NS_LOG_DEBUG ("S is "<<S);
+
 		NS_LOG_DEBUG ("Noise is "<<Pn <<" Noise Interference  is "<<Pn2);
 
-		m_obssPdLevel=expectedRSSI+10*log10(S);
+		m_obssPdLevel=WToDbm(params.rssiW)+10*log10(S);
 	//------------------------------------------------------
  
       if (S> 1&&WToDbm(Interference)<-72)
         {
           NS_LOG_LOGIC ("Frame is OBSS and RSSI " << WToDbm(params.rssiW) << " is below OBSS-PD level of " << m_obssPdLevel << "; reset PHY to IDLE");
           m_obssPdLevelMin=m_obssPdLevel;
-   phy->SetCcaEdThreshold (-30);
+   phy->SetCcaEdThreshold (m_obssPdLevel);
           ResetPhy (params);
         }
       else
         {
-   //       NS_LOG_LOGIC ("Frame is OBSS and RSSI " << WToDbm(params.rssiW) << " is below OBSS-PD level of " << m_obssPdLevel << "; reset PHY to IDLE");
+    NS_LOG_LOGIC ("Frame is OBSS and RSSI " << WToDbm(params.rssiW) << " is above OBSS-PD level of " << m_obssPdLevel << "; reset PHY to IDLE");
+		NS_LOG_LOGIC ("S is "<<S);
  //         NS_LOG_LOGIC("Frame is OBSS and RSSI is above OBSS-PD level");
-    phy->SetCcaEdThreshold (-100);
+    phy->SetCcaEdThreshold (-82);
         }
     }
 }
