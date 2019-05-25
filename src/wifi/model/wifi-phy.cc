@@ -2690,7 +2690,7 @@ WifiPhy::StartReceiveHeader (Ptr<Event> event, Time headerPayloadDuration)
       if ((txVector.GetChannelWidth () >= 40) && (txVector.GetChannelWidth () > GetChannelWidth ()))
         {
           NS_LOG_DEBUG ("Packet reception could not be started because not enough channel width");
-          NotifyRxDrop (event->GetPsdu (), UNSUPPORTED_SETTINGS);
+          NotifyRxDrop (GetAddressedPsduInPpdu (event->GetPpdu ()), UNSUPPORTED_SETTINGS);
           MaybeCcaBusyDuration ();
           return;
         }
