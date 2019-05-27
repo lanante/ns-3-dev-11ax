@@ -19,6 +19,7 @@
  */
 
 #include "tx-vector-tag.h"
+#include "ns3/abort.h"
 
 /***************************************************************
  *           Packet Mode Tagger
@@ -33,6 +34,7 @@ HighLatencyDataTxVectorTag::HighLatencyDataTxVectorTag ()
 HighLatencyDataTxVectorTag::HighLatencyDataTxVectorTag (WifiTxVector dataTxVector)
   : m_dataTxVector (dataTxVector)
 {
+  NS_ABORT_MSG_IF (dataTxVector.GetPreambleType () == WIFI_PREAMBLE_HE_MU, "HE MU is not compatible with this tag");
 }
 
 WifiTxVector
@@ -89,6 +91,7 @@ HighLatencyRtsTxVectorTag::HighLatencyRtsTxVectorTag ()
 HighLatencyRtsTxVectorTag::HighLatencyRtsTxVectorTag (WifiTxVector rtsTxVector)
   : m_rtsTxVector (rtsTxVector)
 {
+  NS_ABORT_MSG_IF (rtsTxVector.GetPreambleType () == WIFI_PREAMBLE_HE_MU, "HE MU is not compatible with this tag");
 }
 
 WifiTxVector
@@ -145,6 +148,7 @@ HighLatencyCtsToSelfTxVectorTag::HighLatencyCtsToSelfTxVectorTag ()
 HighLatencyCtsToSelfTxVectorTag::HighLatencyCtsToSelfTxVectorTag (WifiTxVector ctsToSelfTxVector)
   : m_ctsToSelfTxVector (ctsToSelfTxVector)
 {
+  NS_ABORT_MSG_IF (ctsToSelfTxVector.GetPreambleType () == WIFI_PREAMBLE_HE_MU, "HE MU is not compatible with this tag");;
 }
 
 WifiTxVector
