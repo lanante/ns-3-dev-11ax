@@ -622,21 +622,38 @@ void
 BlockAckManager::ScheduleBar (Ptr<const WifiMacQueueItem> bar)
 {
   NS_LOG_FUNCTION (this << *bar);
-  NS_ASSERT (bar->GetHeader ().IsBlockAckReq ());
+  NS_ASSERT (bar->GetHeader ().IsBlockAckReq () || bar->GetHeader ().IsTrigger ());
 
-  CtrlBAckRequestHeader reqHdr;
-  bar->GetPacket ()->PeekHeader (reqHdr);
-  uint8_t tid = reqHdr.GetTidInfo ();
+  uint8_t tid = 0;
+  if (bar->GetHeader ().IsBlockAckReq ())
+    {
+      CtrlBAckRequestHeader reqHdr;
+      bar->GetPacket ()->PeekHeader (reqHdr);
+      tid = reqHdr.GetTidInfo ();
+    }
+#ifdef NS3_BUILD_PROFILE_DEBUG
+  else
+    {
+      CtrlTriggerHeader triggerHdr;
+      bar->GetPacket ()->PeekHeader (triggerHdr);
+      NS_ASSERT (triggerHdr.IsMuBar ());
+    }
+#endif
   Bar request (bar, tid);
 
   // if a BAR for the given agreement is present, replace it with the new one
-  for (std::list<Bar>::const_iterator i = m_bars.begin (); i != m_bars.end (); i++)
+  std::list<Bar>::const_iterator i = m_bars.end ();
+
+  if (bar->GetHeader ().IsBlockAckReq ())
     {
-      if (i->bar->GetHeader ().GetAddr1 () == bar->GetHeader ().GetAddr1 () && i->tid == tid)
+      for (i = m_bars.begin (); i != m_bars.end (); i++)
         {
-          i = m_bars.erase (i);
-          m_bars.insert (i, request);
-          return;
+          if (i->bar->GetHeader ().IsBlockAckReq ()
+              && i->bar->GetHeader ().GetAddr1 () == bar->GetHeader ().GetAddr1 () && i->tid == tid)
+            {
+              i = m_bars.erase (i);
+              break;
+            }
         }
     }
 
@@ -646,7 +663,7 @@ BlockAckManager::ScheduleBar (Ptr<const WifiMacQueueItem> bar)
     }
   else
     {
-      m_bars.push_back (request);
+      m_bars.insert (i, request);
     }
 }
 

@@ -164,6 +164,56 @@ QosTxop::PrepareBlockAckRequest (Mac48Address recipient, uint8_t tid) const
   return Create<const WifiMacQueueItem> (bar, hdr);
 }
 
+Ptr<const WifiMacQueueItem>
+QosTxop::PrepareMuBar (CtrlTriggerHeader trigger,
+                       std::map<uint16_t, std::pair<Mac48Address, uint8_t>> recipients) const
+{
+  NS_LOG_FUNCTION (this << trigger);
+  NS_ASSERT (trigger.GetNUserInfoFields () > 0 && !recipients.empty ());
+
+  Mac48Address rxAddress;
+  CtrlTriggerHeader muBar = trigger.GetCommonInfoField ();
+  muBar.SetType (TriggerFrameType::MU_BAR_TRIGGER);
+
+  // iterate over all the recipients
+  for (auto& recipient : recipients)
+    {
+      auto userInfoIt = trigger.FindUserInfoWithAid (recipient.first);
+      NS_ASSERT (userInfoIt != trigger.end ());
+      CtrlTriggerUserInfoField& userInfo = muBar.AddUserInfoField (*userInfoIt);
+
+      rxAddress = recipient.second.first;
+      uint8_t tid = recipient.second.second;
+
+      CtrlBAckRequestHeader reqHdr = m_low->GetEdca (tid)->m_baManager->GetBlockAckReqHeader (rxAddress, tid);
+      // Store the BAR in the Trigger Dependent User Info subfield
+      userInfo.SetMuBarTriggerDepUserInfo (reqHdr);
+    }
+
+  Ptr<Packet> bar = Create<Packet> ();
+  bar->AddHeader (muBar);
+  // "If the Trigger frame has one User Info field and the AID12 subfield of the
+  // User Info contains the AID of a STA, then the RA field is set to the address
+  // of that STA". Otherwise, it is set to the broadcast address (Sec. 9.3.1.23 -
+  // 802.11ax amendment draft 3.0)
+  if (muBar.GetNUserInfoFields () > 1)
+    {
+      rxAddress = Mac48Address::GetBroadcast ();
+    }
+
+  WifiMacHeader hdr;
+  hdr.SetType (WIFI_MAC_CTL_TRIGGER);
+  hdr.SetAddr1 (rxAddress);
+  hdr.SetAddr2 (m_low->GetAddress ());
+  hdr.SetAddr3 (m_low->GetBssid ());
+  hdr.SetDsNotTo ();
+  hdr.SetDsNotFrom ();
+  hdr.SetNoRetry ();
+  hdr.SetNoMoreFragments ();
+
+  return Create<const WifiMacQueueItem> (bar, hdr);
+}
+
 void
 QosTxop::ScheduleBar (Ptr<const WifiMacQueueItem> bar)
 {
@@ -1072,10 +1122,12 @@ QosTxop::StartNextPacket (void)
   m_currentPacket = 0;
   // peek the next BlockAckReq, if any
   Ptr<const WifiMacQueueItem> nextFrame = m_baManager->GetBar (false);
+  bool isPeekedFromBaManager = true;
 
   if (nextFrame == 0)
     {
       nextFrame = PeekNextFrame ();
+      isPeekedFromBaManager = false;
     }
 
   if (nextFrame != 0)
@@ -1097,7 +1149,7 @@ QosTxop::StartNextPacket (void)
             }
 
           Ptr<WifiMacQueueItem> item;
-          if (nextFrame->GetHeader ().IsBlockAckReq ())
+          if (isPeekedFromBaManager)
             {
               item = Copy (m_baManager->GetBar ());
             }
