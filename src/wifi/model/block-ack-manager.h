@@ -50,14 +50,14 @@ struct Bar
 {
   Bar ();
   /**
-   * Store a Block Ack Request along with the corresponding TID.
+   * Store a (SU or MU) Block Ack Request along with the corresponding TID.
    *
    * \param bar the BAR
    * \param tid the Traffic ID
    */
   Bar (Ptr<const WifiMacQueueItem> bar, uint8_t tid);
   Ptr<const WifiMacQueueItem> bar;  ///< block ack request
-  uint8_t tid;                      ///< TID
+  uint8_t tid;                      ///< TID (unused if MU-BAR)
 };
 
 

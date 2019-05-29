@@ -40,6 +40,7 @@ class MgtDelBaHeader;
 class AggregationCapableTransmissionListener;
 class WifiTxVector;
 class WifiAckPolicySelector;
+class CtrlTriggerHeader;
 
 /**
  * Enumeration for type of station
@@ -187,6 +188,19 @@ public:
    * for the given TID must have been established by such QosTxop.
    */
   Ptr<const WifiMacQueueItem> PrepareBlockAckRequest (Mac48Address recipient, uint8_t tid) const;
+  /**
+   * \param trigger the Trigger frame
+   * \param recipients the list of (recipient, tid) pairs indexed by the station's AID
+   * \return the MPDU containing the built MU-BAR
+   *
+   * Build a MU-BAR Trigger Frame having the same Common Info field as the given
+   * Trigger Frame and as many User Info fields as the number of recipients. The
+   * User Info fields are copied from the given Trigger Frame and are completed by
+   * setting the BAR Control and BAR Information fields of the Trigger Dependent
+   * User Info subfield. Return the MPDU containing the completed MU-BAR.
+   */
+  Ptr<const WifiMacQueueItem> PrepareMuBar (CtrlTriggerHeader trigger,
+                                            std::map<uint16_t, std::pair<Mac48Address, uint8_t>> recipients) const;
   /**
    * \param bar the Block Ack Request to schedule
    *
