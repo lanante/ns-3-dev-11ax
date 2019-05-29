@@ -255,4 +255,29 @@ std::ostream& operator<< (std::ostream& os, const HeRu::RuSpec &ru)
   return os;
 }
 
+uint16_t
+HeRu::GetBandwidth (RuType ruType)
+{
+  switch (ruType)
+    {
+    case RU_26_TONE:
+      return 2;
+    case RU_52_TONE:
+      return 4;
+    case RU_106_TONE:
+      return 8;
+    case RU_242_TONE:
+      return 20;
+    case RU_484_TONE:
+      return 40;
+    case RU_996_TONE:
+      return 80;
+    case RU_2x996_TONE:
+      return 160;
+    default:
+      NS_ABORT_MSG ("RU type " << ruType << " not found");
+      return 0;
+    }
+}
+
 } //namespace ns3
