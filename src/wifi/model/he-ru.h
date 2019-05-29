@@ -98,6 +98,14 @@ public:
    */
   static bool DoesOverlap (uint8_t bw, RuSpec ru, const std::vector<RuSpec> &v);
 
+  /**
+   * Get the approximate bandwidth occupied by a RU.
+   *
+   * \param ruType the RU type
+   * \return the approximate bandwidth (in MHz) occupied by the RU
+   */
+  static uint16_t GetBandwidth (RuType ruType);
+
   /// (bandwidth, number of tones) pair
   typedef std::pair<uint8_t, RuType> BwTonesPair;
 
