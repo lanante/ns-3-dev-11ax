@@ -525,12 +525,12 @@ WifiPpdu::GetTxVector (void) const
 Ptr<const WifiPsdu>
 WifiPpdu::GetPsdu (uint8_t bssColor, uint16_t staId) const
 {
-  if (m_preamble != WIFI_PREAMBLE_HE_MU) //SU
+  if (!IsMu ())
     {
       NS_ASSERT (m_psdus.size () == 1);
       return m_psdus.at (STA_ID_SU);
     }
-  else //HE MU
+  else
     {
       if (bssColor == m_heSig.GetBssColor ())
         {
@@ -617,6 +617,12 @@ WifiPpdu::GetTxDuration (void) const
         break;
     }
   return ppduDuration;
+}
+
+bool
+WifiPpdu::IsMu (void) const
+{
+  return ((m_preamble == WIFI_PREAMBLE_VHT_MU) || (m_preamble == WIFI_PREAMBLE_HE_MU));
 }
 
 void
