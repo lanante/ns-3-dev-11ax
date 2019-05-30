@@ -26,9 +26,13 @@
 #include "wifi-tx-vector.h"
 #include "wifi-phy-header.h"
 
+#define STA_ID_SU 65535
+
 namespace ns3 {
 
 class WifiPsdu;
+
+typedef std::map <uint16_t /* staId */, Ptr<const WifiPsdu> /* PSDU */> WifiPsdus;
 
 /**
  * \ingroup wifi
@@ -40,7 +44,7 @@ class WifiPpdu : public SimpleRefCount<WifiPpdu>
 {
 public:
   /**
-   * Create a single user PPDU storing a PSDU.
+   * Create a SU PPDU storing a PSDU.
    *
    * \param psdu the PHY payload (PSDU)
    * \param txVector the TXVECTOR that was used for this PPDU
@@ -48,6 +52,16 @@ public:
    * \param frequency the frequency used for the transmission of this PPDU
    */
   WifiPpdu (Ptr<const WifiPsdu> psdu, WifiTxVector txVector, Time ppduDuration, uint16_t frequency);
+
+  /**
+   * Create a MU PPDU storing a vector of PSDUs.
+   *
+   * \param psdus the PHY payloads (PSDUs)
+   * \param txVector the TXVECTOR that was used for this PPDU
+   * \param ppduDuration the transmission duration of this PPDU
+   * \param frequency the frequency used for the transmission of this PPDU
+   */
+  WifiPpdu (const WifiPsdus & psdus, WifiTxVector txVector, Time ppduDuration, uint16_t frequency);
 
   virtual ~WifiPpdu ();
 
@@ -58,9 +72,11 @@ public:
   WifiTxVector GetTxVector (void) const;
   /**
    * Get the payload of the PPDU.
+   * \param bssColor the BSS color of the PHY calling this function.
+   * \param staId the staId of the PHY calling this function.
    * \return the PSDU
    */
-  Ptr<const WifiPsdu> GetPsdu (void) const;
+  Ptr<const WifiPsdu> GetPsdu (uint8_t bssColor = 64, uint16_t staId = STA_ID_SU) const;
   /**
    * Return true if the PPDU's transmission was aborted due to transmitter switch off
    * \return true if the PPDU's transmission was aborted due to transmitter switch off
@@ -82,16 +98,26 @@ public:
    */
   void Print (std::ostream &os) const;
 
+
 private:
-  DsssSigHeader m_dsssSig;          //!< the DSSS SIG PHY header
-  LSigHeader m_lSig;                //!< the L-SIG PHY header
-  HtSigHeader m_htSig;              //!< the HT-SIG PHY header
-  VhtSigHeader m_vhtSig;            //!< the VHT-SIG PHY header
-  HeSigHeader m_heSig;              //!< the HE-SIG PHY header
-  WifiPreamble m_preamble;          //!< the PHY preamble
-  WifiModulationClass m_modulation; //!< the modulation used for the transmission of this PPDU
-  Ptr<const WifiPsdu> m_psdu;       //!< the PSDU contained in this PPDU
-  bool m_truncatedTx;               //!< flag indicating whether the frame's transmission was aborted due to transmitter switch off
+  /**
+   * Fill in the PHY headers.
+   *
+   * \param txVector the TXVECTOR that was used for this PPDU
+   * \param ppduDuration the transmission duration of this PPDU
+   * \param frequency the frequency used for the transmission of this PPDU
+   */
+  void SetPhyHeaders (WifiTxVector txVector, Time ppduDuration, uint16_t frequency);
+
+  DsssSigHeader m_dsssSig;                   //!< the DSSS SIG PHY header
+  LSigHeader m_lSig;                         //!< the L-SIG PHY header
+  HtSigHeader m_htSig;                       //!< the HT-SIG PHY header
+  VhtSigHeader m_vhtSig;                     //!< the VHT-SIG PHY header
+  HeSigHeader m_heSig;                       //!< the HE-SIG PHY header
+  WifiPreamble m_preamble;                   //!< the PHY preamble
+  WifiModulationClass m_modulation;          //!< the modulation used for the transmission of this PPDU
+  WifiPsdus m_psdus;                         //!< the PSDUs contained in this PPDU
+  bool m_truncatedTx;                        //!< flag indicating whether the frame's transmission was aborted due to transmitter switch off
   uint16_t m_frequency;             //!< the frequency used to transmit that PPDU
   uint16_t m_channelWidth;          //!< the channel width used to transmit that PPDU
 };
