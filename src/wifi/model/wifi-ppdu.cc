@@ -32,12 +32,32 @@ NS_LOG_COMPONENT_DEFINE ("WifiPpdu");
 WifiPpdu::WifiPpdu (Ptr<const WifiPsdu> psdu, WifiTxVector txVector, Time ppduDuration, uint16_t frequency)
   : m_preamble (txVector.GetPreambleType ()),
     m_modulation (txVector.IsValid () ? txVector.GetMode ().GetModulationClass () : WIFI_MOD_CLASS_UNKNOWN),
-    m_psdu (psdu),
     m_truncatedTx (false),
     m_frequency (frequency),
     m_channelWidth (txVector.GetChannelWidth ())
 {
-  NS_LOG_FUNCTION (this << psdu << txVector << ppduDuration << frequency);
+  m_psdus.insert (std::make_pair (STA_ID_SU, psdu));
+  SetPhyHeaders (txVector, ppduDuration, frequency);
+}
+
+WifiPpdu::WifiPpdu (const WifiPsdus & psdus, WifiTxVector txVector, Time ppduDuration, uint16_t frequency)
+  : m_preamble (txVector.GetPreambleType ()),
+    m_modulation (txVector.IsValid () ? txVector.GetMode ().GetModulationClass () : WIFI_MOD_CLASS_UNKNOWN),
+    m_psdus (psdus),
+    m_truncatedTx (false),
+    m_frequency (frequency),
+    m_channelWidth (txVector.GetChannelWidth ())
+{
+  SetPhyHeaders (txVector, ppduDuration, frequency);
+}
+
+WifiPpdu::~WifiPpdu ()
+{
+}
+
+void
+WifiPpdu::SetPhyHeaders (WifiTxVector txVector, Time ppduDuration, uint16_t frequency)
+{
   if (!txVector.IsValid ())
     {
       return;
@@ -47,6 +67,7 @@ WifiPpdu::WifiPpdu (Ptr<const WifiPsdu> psdu, WifiTxVector txVector, Time ppduDu
       case WIFI_MOD_CLASS_DSSS:
       case WIFI_MOD_CLASS_HR_DSSS:
         {
+          NS_ASSERT (m_psdus.size () == 1);
           m_dsssSig.SetRate (txVector.GetMode ().GetDataRate (22));
           Time psduDuration = ppduDuration - WifiPhy::CalculatePlcpPreambleAndHeaderDuration (txVector);
           m_dsssSig.SetLength (psduDuration.GetMicroSeconds ());
@@ -55,12 +76,14 @@ WifiPpdu::WifiPpdu (Ptr<const WifiPsdu> psdu, WifiTxVector txVector, Time ppduDu
       case WIFI_MOD_CLASS_OFDM:
       case WIFI_MOD_CLASS_ERP_OFDM:
         {
+          NS_ASSERT (m_psdus.size () == 1);
           m_lSig.SetRate (txVector.GetMode ().GetDataRate (txVector), m_channelWidth);
-          m_lSig.SetLength (psdu->GetSize ());
+          m_lSig.SetLength (m_psdus.at (STA_ID_SU)->GetSize ());
           break;
         }
       case WIFI_MOD_CLASS_HT:
         {
+          NS_ASSERT (m_psdus.size () == 1);
           uint8_t sigExtension = 0;
           if (Is2_4Ghz (frequency))
             {
@@ -70,7 +93,7 @@ WifiPpdu::WifiPpdu (Ptr<const WifiPsdu> psdu, WifiTxVector txVector, Time ppduDu
           m_lSig.SetLength (length);
           m_htSig.SetMcs (txVector.GetMode ().GetMcsValue ());
           m_htSig.SetChannelWidth (m_channelWidth);
-          m_htSig.SetHtLength (psdu->GetSize ());
+          m_htSig.SetHtLength (m_psdus.at (STA_ID_SU)->GetSize ());
           m_htSig.SetAggregation (txVector.IsAggregation ());
           m_htSig.SetShortGuardInterval (txVector.GetGuardInterval () == 400);
           break;
@@ -121,10 +144,6 @@ WifiPpdu::WifiPpdu (Ptr<const WifiPsdu> psdu, WifiTxVector txVector, Time ppduDu
         NS_FATAL_ERROR ("unsupported modulation class");
         break;
     }
-}
-
-WifiPpdu::~WifiPpdu ()
-{
 }
 
 WifiTxVector
@@ -396,7 +415,6 @@ WifiPpdu::GetTxVector (void) const
           txVector.SetChannelWidth (m_htSig.GetChannelWidth ());
           txVector.SetNss (1 + (m_htSig.GetMcs () / 8));
           txVector.SetGuardInterval(m_htSig.GetShortGuardInterval () ? 400 : 800);
-          txVector.SetAggregation (m_htSig.GetAggregation ());
           break;
         }
       case WIFI_MOD_CLASS_VHT:
@@ -442,7 +460,6 @@ WifiPpdu::GetTxVector (void) const
           txVector.SetChannelWidth (m_vhtSig.GetChannelWidth ());
           txVector.SetNss (m_vhtSig.GetNStreams ());
           txVector.SetGuardInterval (m_vhtSig.GetShortGuardInterval () ? 400 : 800);
-          txVector.SetAggregation (m_psdu->IsAggregate ());
           break;
         }
       case WIFI_MOD_CLASS_HE:
@@ -495,20 +512,36 @@ WifiPpdu::GetTxVector (void) const
           txVector.SetNss (m_heSig.GetNStreams ());
           txVector.SetGuardInterval (m_heSig.GetGuardInterval ());
           txVector.SetBssColor (m_heSig.GetBssColor ());
-          txVector.SetAggregation (m_psdu->IsAggregate ());
           break;
         }
       default:
         NS_FATAL_ERROR ("unsupported modulation class");
         break;
     }
+  txVector.SetAggregation (m_psdus.size () > 1 || m_psdus.begin ()->second->IsAggregate ());
   return txVector;
 }
 
 Ptr<const WifiPsdu>
-WifiPpdu::GetPsdu (void) const
+WifiPpdu::GetPsdu (uint8_t bssColor, uint16_t staId) const
 {
-  return m_psdu;
+  if (m_preamble != WIFI_PREAMBLE_HE_MU) //SU
+    {
+      NS_ASSERT (m_psdus.size () == 1);
+      return m_psdus.at (STA_ID_SU);
+    }
+  else //HE MU
+    {
+      if (bssColor == m_heSig.GetBssColor ())
+        {
+          auto it = m_psdus.find (staId);
+          if (it != m_psdus.end ())
+            {
+              return it->second;
+            }
+        }
+    }
+  return nullptr;
 }
 
 bool
@@ -591,8 +624,11 @@ WifiPpdu::Print (std::ostream& os) const
 {
   os << "preamble=" << m_preamble
      << ", modulation=" << m_modulation
-     << ", truncatedTx=" << (m_truncatedTx ? "Y" : "N")
-     << ", PSDU=" << m_psdu;
+     << ", truncatedTx=" << (m_truncatedTx ? "Y" : "N");
+  for (auto const& psdu : m_psdus)
+    {
+      os << ", PSDU=" << psdu.second;
+    }
 }
 
 std::ostream & operator << (std::ostream &os, const WifiPpdu &ppdu)
