@@ -1658,7 +1658,7 @@ MacLow::ForwardDown (Ptr<const WifiPsdu> psdu, WifiTxVector txVector)
             }
         }
     }
-  m_phy->SendPacket (psdu, txVector);
+  m_phy->Send (psdu, txVector);
 }
 
 void
