@@ -2642,7 +2642,7 @@ WifiPhy::StartReceiveHeader (Ptr<Event> event, Time headerPayloadDuration)
   if (!m_preambleDetectionModel || (m_preambleDetectionModel->IsPreambleDetected (event->GetRxPowerW (), snr, m_channelWidth)))
     {
       m_state->SwitchToRx (headerPayloadDuration);
-      NotifyRxBegin (event->GetPpdu ()->GetPsdu ());
+      NotifyRxBegin (GetPsduInPpdu (event->GetPpdu ()));
 
       m_timeLastPreambleDetected = Simulator::Now ();
 
@@ -2664,7 +2664,7 @@ WifiPhy::StartReceiveHeader (Ptr<Event> event, Time headerPayloadDuration)
       if (nss > GetMaxSupportedRxSpatialStreams ())
         {
           NS_LOG_DEBUG ("Packet reception could not be started because not enough RX antennas");
-          NotifyRxDrop (event->GetPpdu ()->GetPsdu (), UNSUPPORTED_SETTINGS);
+          NotifyRxDrop (GetPsduInPpdu (event->GetPpdu ()), UNSUPPORTED_SETTINGS);
           MaybeCcaBusyDuration ();
           return;
         }
@@ -2685,7 +2685,7 @@ WifiPhy::StartReceiveHeader (Ptr<Event> event, Time headerPayloadDuration)
   else
     {
       NS_LOG_DEBUG ("Drop packet because PHY preamble detection failed");
-      NotifyRxDrop (event->GetPpdu ()->GetPsdu (), PREAMBLE_DETECT_FAILURE);
+      NotifyRxDrop (GetPsduInPpdu (event->GetPpdu ()), PREAMBLE_DETECT_FAILURE);
       m_interference.NotifyRxEnd ();
     }
   // Like CCA-SD, CCA-ED is governed by the 4μs CCA window to flag CCA-BUSY
@@ -2741,7 +2741,7 @@ WifiPhy::StartReceivePreamble (Ptr<WifiPpdu> ppdu, double rxPowerW)
     {
       //If SetRate method was not called above when filling in txVector, this means the PHY does support the rate indicated in PHY SIG headers
       NS_LOG_DEBUG ("drop packet because of unsupported RX mode");
-      NotifyRxDrop (ppdu->GetPsdu (), UNSUPPORTED_SETTINGS);
+      NotifyRxDrop (GetPsduInPpdu (ppdu), UNSUPPORTED_SETTINGS);
       return;
     }
 
@@ -2750,7 +2750,7 @@ WifiPhy::StartReceivePreamble (Ptr<WifiPpdu> ppdu, double rxPowerW)
     {
     case WifiPhyState::SWITCHING:
       NS_LOG_DEBUG ("drop packet because of channel switching");
-      NotifyRxDrop (ppdu->GetPsdu (), NOT_ALLOWED);
+      NotifyRxDrop (GetPsduInPpdu (ppdu), NOT_ALLOWED);
       /*
        * Packets received on the upcoming channel are added to the event list
        * during the switching state. This way the medium can be correctly sensed
@@ -2780,7 +2780,7 @@ WifiPhy::StartReceivePreamble (Ptr<WifiPpdu> ppdu, double rxPowerW)
         {
           NS_LOG_DEBUG ("Drop packet because already in Rx (power=" <<
                         rxPowerW << "W)");
-          NotifyRxDrop (ppdu->GetPsdu (), NOT_ALLOWED);
+          NotifyRxDrop (GetPsduInPpdu (ppdu), NOT_ALLOWED);
           if (endRx > Simulator::Now () + m_state->GetDelayUntilIdle ())
             {
               //that packet will be noise _after_ the reception of the currently-received packet.
@@ -2792,7 +2792,7 @@ WifiPhy::StartReceivePreamble (Ptr<WifiPpdu> ppdu, double rxPowerW)
     case WifiPhyState::TX:
       NS_LOG_DEBUG ("Drop packet because already in Tx (power=" <<
                     rxPowerW << "W)");
-      NotifyRxDrop (ppdu->GetPsdu (), NOT_ALLOWED);
+      NotifyRxDrop (GetPsduInPpdu (ppdu), NOT_ALLOWED);
       if (endRx > Simulator::Now () + m_state->GetDelayUntilIdle ())
         {
           //that packet will be noise _after_ the transmission of the currently-transmitted packet.
@@ -2806,7 +2806,7 @@ WifiPhy::StartReceivePreamble (Ptr<WifiPpdu> ppdu, double rxPowerW)
       break;
     case WifiPhyState::SLEEP:
       NS_LOG_DEBUG ("Drop packet because in sleep mode");
-      NotifyRxDrop (ppdu->GetPsdu (), NOT_ALLOWED);
+      NotifyRxDrop (GetPsduInPpdu (ppdu), NOT_ALLOWED);
       break;
     default:
       NS_FATAL_ERROR ("Invalid WifiPhy state.");
@@ -2868,13 +2868,13 @@ WifiPhy::StartReceivePayload (Ptr<Event> event)
       else //mode is not allowed
         {
           NS_LOG_DEBUG ("Drop packet because it was sent using an unsupported mode (" << txMode << ")");
-          NotifyRxDrop (event->GetPpdu ()->GetPsdu (), UNSUPPORTED_SETTINGS);
+          NotifyRxDrop (GetPsduInPpdu (event->GetPpdu ()), UNSUPPORTED_SETTINGS);
         }
     }
   else //plcp reception failed
     {
       NS_LOG_DEBUG ("Drop packet because non-legacy PHY header reception failed");
-      NotifyRxDrop (event->GetPpdu ()->GetPsdu (), SIG_A_FAILURE);
+      NotifyRxDrop (GetPsduInPpdu (event->GetPpdu ()), SIG_A_FAILURE);
     }
 }
 
@@ -2889,29 +2889,7 @@ WifiPhy::EndReceive (Ptr<Event> event)
   std::vector<bool> statusPerMpdu;
   SignalNoiseDbm signalNoise;
 
-  Ptr<const WifiPpdu> ppdu = event->GetPpdu ();
-  Ptr<const WifiPsdu> psdu;
-  if (!ppdu->IsMu ())
-    {
-      psdu = ppdu->GetPsdu ();
-    }
-  else
-    {
-      uint8_t bssColor = 0;
-      Ptr<WifiNetDevice> device = DynamicCast<WifiNetDevice> (GetDevice ());
-      if (device)
-        {
-          Ptr<HeConfiguration> heConfiguration = device->GetHeConfiguration ();
-          if (heConfiguration)
-            {
-              UintegerValue bssColorAttribute;
-              heConfiguration->GetAttribute ("BssColor", bssColorAttribute);
-              bssColor = bssColorAttribute.Get ();
-            }
-        }
-      uint16_t staId = 0; //FIXME
-      psdu = ppdu->GetPsdu (bssColor, staId);
-    }
+  Ptr<const WifiPsdu> psdu = GetPsduInPpdu (event->GetPpdu ());
   Time relativeStart = NanoSeconds (0);
   bool receptionOkAtLeastForOneMpdu = true;
   std::pair<bool, SignalNoiseDbm> rxInfo;
@@ -4094,7 +4072,7 @@ WifiPhy::AbortCurrentReception (WifiPhyRxfailureReason reason)
     {
       m_endRxEvent.Cancel ();
     }
-  NotifyRxDrop (m_currentEvent->GetPpdu ()->GetPsdu (), reason);
+  NotifyRxDrop (GetPsduInPpdu (m_currentEvent->GetPpdu ()), reason);
   m_interference.NotifyRxEnd ();
   bool is_failure = (reason != OBSS_PD_CCA_RESET);
   m_state->SwitchFromRxAbort (is_failure);
@@ -4152,7 +4130,7 @@ WifiPhy::StartRx (Ptr<Event> event, double rxPowerW)
   else if ((m_frameCaptureModel != 0) && (rxPowerW > m_currentEvent->GetRxPowerW ()))
     {
       NS_LOG_DEBUG ("Received a stronger signal during preamble detection: drop current packet and switch to new packet");
-      NotifyRxDrop (m_currentEvent->GetPpdu ()->GetPsdu (), PREAMBLE_DETECTION_PACKET_SWITCH);
+      NotifyRxDrop (GetPsduInPpdu (m_currentEvent->GetPpdu ()), PREAMBLE_DETECTION_PACKET_SWITCH);
       m_interference.NotifyRxEnd ();
       m_endPreambleDetectionEvent.Cancel ();
       m_interference.NotifyRxStart ();
@@ -4164,10 +4142,38 @@ WifiPhy::StartRx (Ptr<Event> event, double rxPowerW)
   else
     {
       NS_LOG_DEBUG ("Drop packet because RX is already decoding preamble");
-      NotifyRxDrop (event->GetPpdu ()->GetPsdu (), NOT_ALLOWED);
+      NotifyRxDrop (GetPsduInPpdu (event->GetPpdu ()), NOT_ALLOWED);
       return;
     }
   m_currentEvent = event;
+}
+
+Ptr<const WifiPsdu>
+WifiPhy::GetPsduInPpdu (Ptr<const WifiPpdu> ppdu) const
+{
+  Ptr<const WifiPsdu> psdu;
+  if (!ppdu->IsMu ())
+    {
+      psdu = ppdu->GetPsdu ();
+    }
+  else
+    {
+      uint8_t bssColor = 0;
+      Ptr<WifiNetDevice> device = DynamicCast<WifiNetDevice> (GetDevice ());
+      if (device)
+        {
+          Ptr<HeConfiguration> heConfiguration = device->GetHeConfiguration ();
+          if (heConfiguration)
+            {
+              UintegerValue bssColorAttribute;
+              heConfiguration->GetAttribute ("BssColor", bssColorAttribute);
+              bssColor = bssColorAttribute.Get ();
+            }
+        }
+      uint16_t staId = 0; //FIXME
+      psdu = ppdu->GetPsdu (bssColor, staId);
+    }
+    return psdu;
 }
 
 int64_t
