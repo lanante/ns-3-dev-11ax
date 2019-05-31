@@ -28,7 +28,6 @@
 #include "ns3/spectrum-wifi-phy.h"
 #include "ns3/nist-error-rate-model.h"
 #include "ns3/wifi-mac-header.h"
-#include "ns3/wifi-mac-trailer.h"
 #include "ns3/ampdu-tag.h"
 #include "ns3/wifi-spectrum-signal-parameters.h"
 #include "ns3/wifi-utils.h"
@@ -116,7 +115,6 @@ TestThresholdPreambleDetectionWithoutFrameCapture::SendPacket (double rxPowerDbm
 
   Ptr<Packet> pkt = Create<Packet> (1000);
   WifiMacHeader hdr;
-  WifiMacTrailer trailer;
 
   hdr.SetType (WIFI_MAC_QOSDATA);
   hdr.SetQosTid (0);
@@ -450,7 +448,6 @@ TestThresholdPreambleDetectionWithFrameCapture::SendPacket (double rxPowerDbm)
   
   Ptr<Packet> pkt = Create<Packet> (1000);
   WifiMacHeader hdr;
-  WifiMacTrailer trailer;
 
   hdr.SetType (WIFI_MAC_QOSDATA);
   hdr.SetQosTid (0);
@@ -812,7 +809,6 @@ TestSimpleFrameCaptureModel::SendPacket (double rxPowerDbm, uint32_t packetSize)
   
   Ptr<Packet> pkt = Create<Packet> (packetSize);
   WifiMacHeader hdr;
-  WifiMacTrailer trailer;
   
   hdr.SetType (WIFI_MAC_QOSDATA);
   hdr.SetQosTid (0);
@@ -1013,7 +1009,6 @@ TestPhyHeadersReception::SendPacket (double rxPowerDbm)
 
   Ptr<Packet> pkt = Create<Packet> (1000);
   WifiMacHeader hdr;
-  WifiMacTrailer trailer;
 
   hdr.SetType (WIFI_MAC_QOSDATA);
   hdr.SetQosTid (0);
