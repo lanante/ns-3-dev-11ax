@@ -29,6 +29,7 @@
 #include "wifi-phy-standard.h"
 #include "interference-helper.h"
 #include "wifi-phy-state-helper.h"
+#include "wifi-ppdu.h"
 
 namespace ns3 {
 
@@ -44,8 +45,6 @@ class FrameCaptureModel;
 class PreambleDetectionModel;
 class WifiRadioEnergyModel;
 class UniformRandomVariable;
-class WifiPsdu;
-class WifiPpdu;
 
 typedef enum
 {
@@ -187,7 +186,14 @@ public:
    *        this PSDU, and txPowerLevel, a power level to use to send the whole PPDU. The real transmission
    *        power is calculated as txPowerMin + txPowerLevel * (txPowerMax - txPowerMin) / nTxLevels
    */
-  void Send (Ptr<const WifiPsdu> psdu, WifiTxVector txVector);
+  void Send (Ptr<const WifiPsdu> psdu, WifiTxVector txVector); //TODO: remove this function once MAC layer is sending a map of PSDUs
+  /**
+   * \param psdus the PSDUs to send
+   * \param txVector the TXVECTOR that has tx parameters such as mode, the transmission mode to use to send
+   *        this PSDU, and txPowerLevel, a power level to use to send the whole PPDU. The real transmission
+   *        power is calculated as txPowerMin + txPowerLevel * (txPowerMax - txPowerMin) / nTxLevels
+   */
+  void Send (WifiPsdus psdu, WifiTxVector txVector);
 
   /**
    * \param ppdu the PPDU to send
@@ -1164,10 +1170,10 @@ public:
    * Public method used to fire a PhyTxBegin trace.
    * Implemented for encapsulation purposes.
    *
-   * \param psdu the PSDU being transmitted
+   * \param psdus the PSDUs being transmitted (only one unless MU transmission)
    * \param txPowerW the transmit power in Watts
    */
-  void NotifyTxBegin (Ptr<const WifiPsdu> psdu, double txPowerW);
+  void NotifyTxBegin (WifiPsdus psdus, double txPowerW);
   /**
    * Public method used to fire a PhyTxEnd trace.
    * Implemented for encapsulation purposes.
@@ -1665,6 +1671,13 @@ protected:
    * class is higher than the CcaEdThreshold
    */
   void SwitchMaybeToCcaBusy (void);
+
+  /**
+   * TODO...
+   *
+   * \return the STA ID
+   */
+  virtual uint16_t GetStaId (void) const;
 
   InterferenceHelper m_interference;   //!< Pointer to InterferenceHelper
   Ptr<UniformRandomVariable> m_random; //!< Provides uniform random variables.
