@@ -2435,13 +2435,16 @@ WifiPhy::CalculateTxDuration (std::map<uint16_t, Ptr<const WifiPsdu>> psduMap, W
 }
 
 void
-WifiPhy::NotifyTxBegin (Ptr<const WifiPsdu> psdu, double txPowerW)
+WifiPhy::NotifyTxBegin (WifiPsdus psdus, double txPowerW)
 {
-  for (auto& mpdu : *PeekPointer (psdu))
+  for (auto const& psdu : psdus)
     {
-      Ptr<Packet> pdu = mpdu->GetProtocolDataUnit ();
-      m_phyTxBeginTrace (pdu, txPowerW);
-      CopyByteTags (pdu, mpdu->GetPacket ()); //mainly so that netanim's byte tags may be handed over to all receivers
+      for (auto& mpdu : *PeekPointer (psdu.second))
+        {
+          Ptr<Packet> pdu = mpdu->GetProtocolDataUnit ();
+          m_phyTxBeginTrace (pdu, txPowerW);
+          CopyByteTags (pdu, mpdu->GetPacket ()); //mainly so that netanim's byte tags may be handed over to all receivers
+        }
     }
 }
 
@@ -2466,27 +2469,36 @@ WifiPhy::NotifyTxDrop (Ptr<const WifiPsdu> psdu)
 void
 WifiPhy::NotifyRxBegin (Ptr<const WifiPsdu> psdu)
 {
-  for (auto& mpdu : *PeekPointer (psdu))
+  if (psdu)
     {
-      m_phyRxBeginTrace (mpdu->GetProtocolDataUnit ());
+      for (auto& mpdu : *PeekPointer (psdu))
+        {
+          m_phyRxBeginTrace (mpdu->GetProtocolDataUnit ());
+        }
     }
 }
 
 void
 WifiPhy::NotifyRxEnd (Ptr<const WifiPsdu> psdu)
 {
-  for (auto& mpdu : *PeekPointer (psdu))
+  if (psdu)
     {
-      m_phyRxEndTrace (mpdu->GetProtocolDataUnit ());
+      for (auto& mpdu : *PeekPointer (psdu))
+        {
+          m_phyRxEndTrace (mpdu->GetProtocolDataUnit ());
+        }
     }
 }
 
 void
 WifiPhy::NotifyRxDrop (Ptr<const WifiPsdu> psdu, WifiPhyRxfailureReason reason)
 {
-  for (auto& mpdu : *PeekPointer (psdu))
+  if (psdu)
     {
-      m_phyRxDropTrace (mpdu->GetProtocolDataUnit (), reason);
+      for (auto& mpdu : *PeekPointer (psdu))
+        {
+          m_phyRxDropTrace (mpdu->GetProtocolDataUnit (), reason);
+        }
     }
 }
 
@@ -2502,7 +2514,7 @@ WifiPhy::NotifyMonitorSniffRx (Ptr<const WifiPsdu> psdu, uint16_t channelFreqMhz
       aMpdu.mpduRefNumber = ++m_rxMpduReferenceNumber;
       size_t nMpdus = psdu->GetNMpdus ();
       NS_ABORT_MSG_IF (statusPerMpdu.size () != nMpdus, "Should have one reception status per MPDU");
-      aMpdu.type = (psdu->IsSingle ()) ? SINGLE_MPDU: FIRST_MPDU_IN_AGGREGATE;
+      aMpdu.type = (psdu->IsSingle ()) ? SINGLE_MPDU : FIRST_MPDU_IN_AGGREGATE;
       for (size_t i = 0; i < nMpdus;)
         {
           if (statusPerMpdu.at (i)) //packet received without error, hand over to sniffer
@@ -2556,6 +2568,15 @@ void
 WifiPhy::Send (Ptr<const WifiPsdu> psdu, WifiTxVector txVector)
 {
   NS_LOG_FUNCTION (this << *psdu << txVector);
+  WifiPsdus psdus;
+  psdus.insert (std::make_pair (STA_ID_SU, psdu));
+  Send (psdus, txVector);
+}
+
+void
+WifiPhy::Send (WifiPsdus psdus, WifiTxVector txVector)
+{
+  NS_LOG_FUNCTION (this << psdus << txVector);
   /* Transmission can happen if:
    *  - we are syncing on a packet. It is the responsibility of the
    *    MAC layer to avoid doing this but the PHY does nothing to
@@ -2572,11 +2593,14 @@ WifiPhy::Send (Ptr<const WifiPsdu> psdu, WifiTxVector txVector)
   if (m_state->IsStateSleep ())
     {
       NS_LOG_DEBUG ("Dropping packet because in sleep mode");
-      NotifyTxDrop (psdu);
+      for (auto const& psdu : psdus)
+        {
+          NotifyTxDrop (psdu.second);
+        }
       return;
     }
 
-  Time txDuration = CalculateTxDuration (psdu->GetSize (), txVector, GetFrequency ());
+  Time txDuration = CalculateTxDuration (psdus.at (STA_ID_SU)->GetSize (), txVector, GetFrequency ()); //TODO: extend CalculateTxDuration for MU
   NS_ASSERT (txDuration.IsStrictlyPositive ());
 
   if (m_endPreambleDetectionEvent.IsRunning ())
@@ -2605,9 +2629,9 @@ WifiPhy::Send (Ptr<const WifiPsdu> psdu, WifiTxVector txVector)
       NS_LOG_DEBUG ("Transmitting without power restriction");
     }
 
-  NotifyTxBegin (psdu, DbmToW (GetTxPowerForTransmission (txVector) + GetTxGain ()));
-  NotifyMonitorSniffTx (psdu, GetFrequency (), txVector);
-  m_state->SwitchToTx (txDuration, psdu->GetPacket (), GetPowerDbm (txVector.GetTxPowerLevel ()), txVector);
+  NotifyTxBegin (psdus, DbmToW (GetTxPowerForTransmission (txVector) + GetTxGain ()));
+  NotifyMonitorSniffTx (psdus.at (STA_ID_SU), GetFrequency (), txVector); //TODO: fix for MU
+  m_state->SwitchToTx (txDuration, psdus, GetPowerDbm (txVector.GetTxPowerLevel ()), txVector);
 
   if (m_state->GetState () == WifiPhyState::OFF)
     {
@@ -2615,7 +2639,7 @@ WifiPhy::Send (Ptr<const WifiPsdu> psdu, WifiTxVector txVector)
       return;
     }
 
-  Ptr<WifiPpdu> ppdu = Create<WifiPpdu> (psdu, txVector, txDuration, GetFrequency ());
+  Ptr<WifiPpdu> ppdu = Create<WifiPpdu> (psdus, txVector, txDuration, GetFrequency ());
 
   if (m_wifiRadioEnergyModel != 0 && m_wifiRadioEnergyModel->GetMaximumTimeInState (WifiPhyState::TX) < txDuration)
     {
@@ -2854,9 +2878,19 @@ WifiPhy::StartReceivePayload (Ptr<Event> event)
     {
       if (IsModeSupported (txMode) || IsMcsSupported (txMode))
         {
-          Time payloadDuration = event->GetEndTime () - event->GetStartTime () - CalculatePlcpPreambleAndHeaderDuration (txVector);
-          m_endRxEvent = Simulator::Schedule (payloadDuration, &WifiPhy::EndReceive, this, event);
-          NS_LOG_DEBUG ("Receiving payload");
+          Ptr<const WifiPpdu> ppdu = event->GetPpdu ();
+          Ptr<const WifiPsdu> psdu = GetPsduInPpdu (ppdu);
+          if (psdu)
+            {
+              Time payloadDuration = event->GetEndTime () - event->GetStartTime () - CalculatePlcpPreambleAndHeaderDuration (txVector);
+              m_endRxEvent = Simulator::Schedule (payloadDuration, &WifiPhy::EndReceive, this, event);
+              NS_LOG_DEBUG ("Receiving PSDU");
+            }
+          else
+            {
+              NS_ASSERT (ppdu->IsMu ());
+              NS_LOG_DEBUG ("Receiving MU PPDU without any PSDU for this STA");
+            }
           if (txMode.GetModulationClass () == WIFI_MOD_CLASS_HE)
             {
               HePreambleParameters params;
@@ -4170,10 +4204,17 @@ WifiPhy::GetPsduInPpdu (Ptr<const WifiPpdu> ppdu) const
               bssColor = bssColorAttribute.Get ();
             }
         }
-      uint16_t staId = 0; //FIXME
+      uint16_t staId = GetStaId ();
       psdu = ppdu->GetPsdu (bssColor, staId);
     }
     return psdu;
+}
+
+uint16_t
+WifiPhy::GetStaId (void) const
+{
+  //TODO: read from MAC
+  return STA_ID_SU;
 }
 
 int64_t
