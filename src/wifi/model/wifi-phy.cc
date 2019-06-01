@@ -28,6 +28,7 @@
 #include "wifi-phy.h"
 #include "ampdu-tag.h"
 #include "wifi-utils.h"
+#include "sta-wifi-mac.h"
 #include "frame-capture-model.h"
 #include "preamble-detection-model.h"
 #include "wifi-radio-energy-model.h"
@@ -4213,7 +4214,15 @@ WifiPhy::GetPsduInPpdu (Ptr<const WifiPpdu> ppdu) const
 uint16_t
 WifiPhy::GetStaId (void) const
 {
-  //TODO: read from MAC
+  Ptr<WifiNetDevice> device = DynamicCast<WifiNetDevice> (GetDevice ());
+  if (device)
+    {
+      Ptr<StaWifiMac> mac = DynamicCast<StaWifiMac> (device->GetMac ());
+      if (mac && mac->IsAssociated ())
+        {
+          return mac->GetAssociationId ();
+        }
+    }
   return STA_ID_SU;
 }
 
