@@ -1673,7 +1673,8 @@ protected:
   void SwitchMaybeToCcaBusy (void);
 
   /**
-   * TODO...
+   * Return the STA ID that has been assigned to the station this PHY belongs to.
+   * This is typically called for MU PPDUs, in order to pick the correct PSDU.
    *
    * \return the STA ID
    */
