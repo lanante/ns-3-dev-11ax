@@ -251,7 +251,7 @@ TxDurationTest::CheckHeMuTxDuration (std::list<uint32_t> sizes, std::list<HeMuUs
       auto iterStaId = staIds.begin ();
       for (auto & size : sizes)
         {
-          Time ppduDurationForSta = phy->CalculateTxDuration (size, txVector, testedFrequency, NORMAL_MPDU, *iterStaId);
+          Time ppduDurationForSta = phy->CalculateTxDuration (size, txVector, testedFrequency, *iterStaId);
           if (ppduDurationForSta > calculatedDuration)
             {
               calculatedDuration = ppduDurationForSta;
@@ -513,16 +513,16 @@ TxDurationTest::DoRun (void)
                             std::list<HeMuUserInfo> { {{true, HeRu::RU_242_TONE, 1}, WifiPhy::GetHeMcs0 (), 1},
                                                       {{true, HeRu::RU_242_TONE, 2}, WifiPhy::GetHeMcs0 (), 1} },
                             40, 800, NanoSeconds (1489600)) //equivalent to HE_SU for 20 MHz with extra HE-SIG-B (i.e. 4 us)
-  && CheckHeMuTxDuration (std::list<uint32_t> {1536,
-                                               1536},
-                          std::list<HeMuUserInfo> { {{true, HeRu::RU_242_TONE, 1}, WifiPhy::GetHeMcs1 (), 1},
-                                                    {{true, HeRu::RU_242_TONE, 2}, WifiPhy::GetHeMcs0 (), 1} },
-                          40, 800, NanoSeconds (1489600)) //shouldn't change if first PSDU is shorter
-  && CheckHeMuTxDuration (std::list<uint32_t> {1536,
-                                               76},
-                          std::list<HeMuUserInfo> { {{true, HeRu::RU_242_TONE, 1}, WifiPhy::GetHeMcs0 (), 1},
-                                                    {{true, HeRu::RU_242_TONE, 2}, WifiPhy::GetHeMcs0 (), 1} },
-                          40, 800, NanoSeconds (1489600));
+    && CheckHeMuTxDuration (std::list<uint32_t> {1536,
+                                                 1536},
+                            std::list<HeMuUserInfo> { {{true, HeRu::RU_242_TONE, 1}, WifiPhy::GetHeMcs1 (), 1},
+                                                      {{true, HeRu::RU_242_TONE, 2}, WifiPhy::GetHeMcs0 (), 1} },
+                            40, 800, NanoSeconds (1489600)) //shouldn't change if first PSDU is shorter
+    && CheckHeMuTxDuration (std::list<uint32_t> {1536,
+                                                 76},
+                            std::list<HeMuUserInfo> { {{true, HeRu::RU_242_TONE, 1}, WifiPhy::GetHeMcs0 (), 1},
+                                                      {{true, HeRu::RU_242_TONE, 2}, WifiPhy::GetHeMcs0 (), 1} },
+                            40, 800, NanoSeconds (1489600));
 
   NS_TEST_EXPECT_MSG_EQ (retval, true, "an 802.11ax MU duration failed");
 }

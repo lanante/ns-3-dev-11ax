@@ -2405,10 +2405,10 @@ WifiPhy::CalculatePlcpPreambleAndHeaderDuration (WifiTxVector txVector)
 }
 
 Time
-WifiPhy::CalculateTxDuration (uint32_t size, WifiTxVector txVector, uint16_t frequency, MpduType mpdutype, uint16_t staId)
+WifiPhy::CalculateTxDuration (uint32_t size, WifiTxVector txVector, uint16_t frequency, uint16_t staId)
 {
   Time duration = CalculatePlcpPreambleAndHeaderDuration (txVector)
-    + GetPayloadDuration (size, txVector, frequency, mpdutype, staId);
+    + GetPayloadDuration (size, txVector, frequency, NORMAL_MPDU, staId);
   return duration;
 }
 
