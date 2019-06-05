@@ -264,6 +264,15 @@ public:
    * \return the total amount of time this PHY will stay busy for the transmission of these bytes.
    */
   static Time CalculateTxDuration (uint32_t size, WifiTxVector txVector, uint16_t frequency, uint16_t staId = SU_STA_ID);
+  /**
+   * \param psduMap the PSDU(s) to transmit indexed by STA-ID
+   * \param txVector the TXVECTOR used for the transmission of the PPDU
+   * \param frequency the channel center frequency (MHz)
+   *
+   * \return the total amount of time this PHY will stay busy for the transmission of the PPDU
+   */
+  static Time CalculateTxDuration (std::map<uint16_t, Ptr<const WifiPsdu>> psduMap, //TODO replace map with WifiPsduMap type once Sebastien's code is merged
+                                   WifiTxVector txVector, uint16_t frequency);
 
   /**
    * \param txVector the transmission parameters used for this packet
