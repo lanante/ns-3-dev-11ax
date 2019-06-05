@@ -58,7 +58,7 @@ public:
   typedef struct
   {
     bool primary80MHz;   //!< true if the RU is allocated in the primary 80MHz channel
-    RuType ruType;   //!< RU type
+    RuType ruType;       //!< RU type
     std::size_t index;   //!< index (starting at 1)
   } RuSpec;
 

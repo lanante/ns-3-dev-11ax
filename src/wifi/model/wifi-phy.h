@@ -277,8 +277,7 @@ public:
    *
    * \return the total amount of time this PHY will stay busy for the transmission of the PPDU
    */
-  static Time CalculateTxDuration (std::map<uint16_t, Ptr<const WifiPsdu>> psduMap, //TODO replace map with WifiPsduMap type once Sebastien's code is merged
-                                   WifiTxVector txVector, uint16_t frequency);
+  static Time CalculateTxDuration (WifiPsduMap psduMap, WifiTxVector txVector, uint16_t frequency);
 
   /**
    * \param txVector the transmission parameters used for this packet
@@ -1838,7 +1837,7 @@ private:
    * \param ppdu the PPDU to extract the PSDU from
    * \return the PSDU addressed to that PHY
    */
-  Ptr<const WifiPsdu> GetPsduInPpdu (Ptr<const WifiPpdu> ppdu) const;
+  Ptr<const WifiPsdu> GetAddressedPsduInPpdu (Ptr<const WifiPpdu> ppdu) const;
 
   /**
    * The trace source fired when a packet begins the transmission process on
