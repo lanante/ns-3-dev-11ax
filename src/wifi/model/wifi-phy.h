@@ -260,10 +260,12 @@ public:
    * \param txVector the TXVECTOR used for the transmission of this packet
    * \param frequency the channel center frequency (MHz)
    * \param mpdutype the type of the MPDU as defined in WifiPhy::MpduType.
+   * \param staId the STA-ID of the recipient (only used for MU)
    *
    * \return the total amount of time this PHY will stay busy for the transmission of these bytes.
    */
-  static Time CalculateTxDuration (uint32_t size, WifiTxVector txVector, uint16_t frequency, MpduType mpdutype = NORMAL_MPDU);
+  static Time CalculateTxDuration (uint32_t size, WifiTxVector txVector, uint16_t frequency,
+                                   MpduType mpdutype = NORMAL_MPDU, uint16_t staId = SU_STA_ID);
   /**
    * \param size the number of bytes in the packet to send
    * \param txVector the TXVECTOR used for the transmission of this packet
@@ -276,11 +278,13 @@ public:
    * \param totalAmpduNumSymbols the number of symbols previously transmitted for the MPDUs in the concerned A-MPDU,
    * used for the computation of the number of symbols needed for the last MPDU.
    * If incFlag is set, this parameter will be updated.
+   * \param staId the STA-ID of the recipient (only used for MU)
    *
    * \return the total amount of time this PHY will stay busy for the transmission of these bytes.
    */
   static Time CalculateTxDuration (uint32_t size, WifiTxVector txVector, uint16_t frequency, MpduType mpdutype,
-                                   bool incFlag, uint32_t &totalAmpduSize, double &totalAmpduNumSymbols);
+                                   bool incFlag, uint32_t &totalAmpduSize, double &totalAmpduNumSymbols,
+                                   uint16_t staId = SU_STA_ID);
 
   /**
    * \param txVector the transmission parameters used for this packet
@@ -359,10 +363,12 @@ public:
    * \param txVector the TXVECTOR used for the transmission of this packet
    * \param frequency the channel center frequency (MHz)
    * \param mpdutype the type of the MPDU as defined in WifiPhy::MpduType.
+   * \param staId the STA-ID of the PSDU (only used for MU PPDUs)
    *
-   * \return the duration of the payload
+   * \return the duration of the PSDU
    */
-  static Time GetPayloadDuration (uint32_t size, WifiTxVector txVector, uint16_t frequency, MpduType mpdutype = NORMAL_MPDU);
+  static Time GetPayloadDuration (uint32_t size, WifiTxVector txVector, uint16_t frequency, MpduType mpdutype = NORMAL_MPDU,
+                                  uint16_t staId = SU_STA_ID);
   /**
    * \param size the number of bytes in the packet to send
    * \param txVector the TXVECTOR used for the transmission of this packet
@@ -375,10 +381,13 @@ public:
    * \param totalAmpduNumSymbols the number of symbols previously transmitted for the MPDUs in the concerned A-MPDU,
    * used for the computation of the number of symbols needed for the last MPDU.
    * If incFlag is set, this parameter will be updated.
+   * \param staId the STA-ID of the PSDU (only used for MU PPDUs)
    *
-   * \return the duration of the payload
+   * \return the duration of the PSDU
    */
-  static Time GetPayloadDuration (uint32_t size, WifiTxVector txVector, uint16_t frequency, MpduType mpdutype, bool incFlag, uint32_t &totalAmpduSize, double &totalAmpduNumSymbols);
+  static Time GetPayloadDuration (uint32_t size, WifiTxVector txVector, uint16_t frequency, MpduType mpdutype,
+                                  bool incFlag, uint32_t &totalAmpduSize, double &totalAmpduNumSymbols,
+                                  uint16_t staId);
   /**
    * \param txVector the transmission parameters used for this packet
    *
@@ -1749,13 +1758,14 @@ private:
    *
    * \param psdu the arriving MPDU formatted as a PSDU
    * \param event the event holding incoming PPDU's information
+   * \param staId the station ID of the PSDU (only used for MU)
    * \param relativeMpduStart the relative start time of the MPDU within the A-MPDU. 0 for normal MPDUs
    * \param mpduDuration the duration of the MPDU
    *
    * \return information on MPDU reception: status, signal power (dBm), and noise power (in dBm)
    */
   std::pair<bool, SignalNoiseDbm> GetReceptionStatus (Ptr<const WifiPsdu> psdu,
-                                                      Ptr<Event> event,
+                                                      Ptr<Event> event, uint16_t staId,
                                                       Time relativeMpduStart,
                                                       Time mpduDuration);
 

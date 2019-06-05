@@ -196,11 +196,13 @@ public:
    * this class.
    *
    * \param event the event corresponding to the first time the corresponding PPDU arrives
+   * \param staId the station ID of the PSDU (only used for MU)
    * \param relativeMpduStartStop the time window (pair of start and end times) of PLCP payload to focus on
    *
    * \return struct of SNR and PER (with PER being evaluated over the provided time window)
    */
-  struct InterferenceHelper::SnrPer CalculatePayloadSnrPer (Ptr<Event> event, std::pair<Time, Time> relativeMpduStartStop) const;
+  struct InterferenceHelper::SnrPer CalculatePayloadSnrPer (Ptr<Event> event, uint16_t staId,
+                                                            std::pair<Time, Time> relativeMpduStartStop) const;
   /**
    * Calculate the SNIR for the event (starting from now until the event end).
    *
@@ -329,12 +331,14 @@ private:
    * multiple chunks (e.g. due to interference from other transmissions).
    *
    * \param event
+   * \param staId the station ID of the PSDU (only used for MU)
    * \param ni
    * \param window time window (pair of start and end times) of PLCP payload to focus on
    *
    * \return the error rate of the payload
    */
-  double CalculatePayloadPer (Ptr<const Event> event, NiChanges *ni, std::pair<Time, Time> window) const;
+  double CalculatePayloadPer (Ptr<const Event> event, uint16_t staId,
+                              NiChanges *ni, std::pair<Time, Time> window) const;
   /**
    * Calculate the error rate of the legacy PHY header. The legacy PHY header
    * can be divided into multiple chunks (e.g. due to interference from other transmissions).

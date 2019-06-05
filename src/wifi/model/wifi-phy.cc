@@ -1766,15 +1766,16 @@ WifiPhy::GetPlcpTrainingSymbolDuration (WifiTxVector txVector)
   uint8_t Ndltf, Neltf;
   //We suppose here that STBC = 0.
   //If STBC > 0, we need a different mapping between Nss and Nltf (IEEE 802.11n-2012 standard, page 1682).
-  if (txVector.GetNss () < 3)
+  uint8_t nss = txVector.GetNssMax (); //so as to cover also HE MU case (see section 27.3.10.10 of IEEE P802.11ax/D4.0)
+  if (nss < 3)
     {
-      Ndltf = txVector.GetNss ();
+      Ndltf = nss;
     }
-  else if (txVector.GetNss () < 5)
+  else if (nss < 5)
     {
       Ndltf = 4;
     }
-  else if (txVector.GetNss () < 7)
+  else if (nss < 7)
     {
       Ndltf = 6;
     }
@@ -2084,18 +2085,19 @@ WifiPhy::GetPlcpPreambleDuration (WifiTxVector txVector)
 }
 
 Time
-WifiPhy::GetPayloadDuration (uint32_t size, WifiTxVector txVector, uint16_t frequency, MpduType mpdutype)
+WifiPhy::GetPayloadDuration (uint32_t size, WifiTxVector txVector, uint16_t frequency, MpduType mpdutype, uint16_t staId)
 {
   uint32_t totalAmpduSize;
   double totalAmpduNumSymbols;
-  return GetPayloadDuration (size, txVector, frequency, mpdutype, false, totalAmpduSize, totalAmpduNumSymbols);
+  return GetPayloadDuration (size, txVector, frequency, mpdutype, false, totalAmpduSize, totalAmpduNumSymbols, staId);
 }
 
 Time
 WifiPhy::GetPayloadDuration (uint32_t size, WifiTxVector txVector, uint16_t frequency, MpduType mpdutype,
-                             bool incFlag, uint32_t &totalAmpduSize, double &totalAmpduNumSymbols)
+                             bool incFlag, uint32_t &totalAmpduSize, double &totalAmpduNumSymbols,
+                             uint16_t staId)
 {
-  WifiMode payloadMode = txVector.GetMode ();
+  WifiMode payloadMode = txVector.GetMode (staId);
   NS_LOG_FUNCTION (size << payloadMode);
 
   double stbc = 1;
@@ -2122,37 +2124,37 @@ WifiPhy::GetPayloadDuration (uint32_t size, WifiTxVector txVector, uint16_t freq
   if (payloadMode.GetModulationClass () == WIFI_MOD_CLASS_VHT)
     {
       if (txVector.GetChannelWidth () == 40
-          && txVector.GetNss () == 3
+          && txVector.GetNss (staId) == 3
           && payloadMode.GetMcsValue () >= 8)
         {
           Nes = 2;
         }
       if (txVector.GetChannelWidth () == 80
-          && txVector.GetNss () == 2
+          && txVector.GetNss (staId) == 2
           && payloadMode.GetMcsValue () >= 7)
         {
           Nes = 2;
         }
       if (txVector.GetChannelWidth () == 80
-          && txVector.GetNss () == 3
+          && txVector.GetNss (staId) == 3
           && payloadMode.GetMcsValue () >= 7)
         {
           Nes = 2;
         }
       if (txVector.GetChannelWidth () == 80
-          && txVector.GetNss () == 3
+          && txVector.GetNss (staId) == 3
           && payloadMode.GetMcsValue () == 9)
         {
           Nes = 3;
         }
       if (txVector.GetChannelWidth () == 80
-          && txVector.GetNss () == 4
+          && txVector.GetNss (staId) == 4
           && payloadMode.GetMcsValue () >= 4)
         {
           Nes = 2;
         }
       if (txVector.GetChannelWidth () == 80
-          && txVector.GetNss () == 4
+          && txVector.GetNss (staId) == 4
           && payloadMode.GetMcsValue () >= 7)
         {
           Nes = 3;
@@ -2163,55 +2165,55 @@ WifiPhy::GetPayloadDuration (uint32_t size, WifiTxVector txVector, uint16_t freq
           Nes = 2;
         }
       if (txVector.GetChannelWidth () == 160
-          && txVector.GetNss () == 2
+          && txVector.GetNss (staId) == 2
           && payloadMode.GetMcsValue () >= 4)
         {
           Nes = 2;
         }
       if (txVector.GetChannelWidth () == 160
-          && txVector.GetNss () == 2
+          && txVector.GetNss (staId) == 2
           && payloadMode.GetMcsValue () >= 7)
         {
           Nes = 3;
         }
       if (txVector.GetChannelWidth () == 160
-          && txVector.GetNss () == 3
+          && txVector.GetNss (staId) == 3
           && payloadMode.GetMcsValue () >= 3)
         {
           Nes = 2;
         }
       if (txVector.GetChannelWidth () == 160
-          && txVector.GetNss () == 3
+          && txVector.GetNss (staId) == 3
           && payloadMode.GetMcsValue () >= 5)
         {
           Nes = 3;
         }
       if (txVector.GetChannelWidth () == 160
-          && txVector.GetNss () == 3
+          && txVector.GetNss (staId) == 3
           && payloadMode.GetMcsValue () >= 7)
         {
           Nes = 4;
         }
       if (txVector.GetChannelWidth () == 160
-          && txVector.GetNss () == 4
+          && txVector.GetNss (staId) == 4
           && payloadMode.GetMcsValue () >= 2)
         {
           Nes = 2;
         }
       if (txVector.GetChannelWidth () == 160
-          && txVector.GetNss () == 4
+          && txVector.GetNss (staId) == 4
           && payloadMode.GetMcsValue () >= 4)
         {
           Nes = 3;
         }
       if (txVector.GetChannelWidth () == 160
-          && txVector.GetNss () == 4
+          && txVector.GetNss (staId) == 4
           && payloadMode.GetMcsValue () >= 5)
         {
           Nes = 4;
         }
       if (txVector.GetChannelWidth () == 160
-          && txVector.GetNss () == 4
+          && txVector.GetNss (staId) == 4
           && payloadMode.GetMcsValue () >= 7)
         {
           Nes = 6;
@@ -2264,7 +2266,7 @@ WifiPhy::GetPayloadDuration (uint32_t size, WifiTxVector txVector, uint16_t freq
       break;
     }
 
-  double numDataBitsPerSymbol = payloadMode.GetDataRate (txVector) * symbolDuration.GetNanoSeconds () / 1e9;
+  double numDataBitsPerSymbol = payloadMode.GetDataRate (txVector, staId) * symbolDuration.GetNanoSeconds () / 1e9;
 
   double numSymbols = 0;
   if (mpdutype == FIRST_MPDU_IN_AGGREGATE)
@@ -2376,10 +2378,10 @@ WifiPhy::CalculatePlcpPreambleAndHeaderDuration (WifiTxVector txVector)
 }
 
 Time
-WifiPhy::CalculateTxDuration (uint32_t size, WifiTxVector txVector, uint16_t frequency, MpduType mpdutype)
+WifiPhy::CalculateTxDuration (uint32_t size, WifiTxVector txVector, uint16_t frequency, MpduType mpdutype, uint16_t staId)
 {
   Time duration = CalculatePlcpPreambleAndHeaderDuration (txVector)
-    + GetPayloadDuration (size, txVector, frequency, mpdutype);
+    + GetPayloadDuration (size, txVector, frequency, mpdutype, staId);
   return duration;
 }
 
@@ -2597,7 +2599,20 @@ WifiPhy::StartReceiveHeader (Ptr<Event> event, Time headerPayloadDuration)
 
       WifiTxVector txVector = event->GetTxVector ();
 
-      if (txVector.GetNss () > GetMaxSupportedRxSpatialStreams ())
+      uint8_t nss = txVector.GetNssMax();
+      if (txVector.GetPreambleType () == WIFI_PREAMBLE_HE_MU)
+        {
+          uint16_t myStaId = 0; //FIXME GetMyStaIdIfMyBssColor (txVector.GetBssColor ());
+          for (auto info : txVector.GetHeMuUserInfoMap ())
+            {
+              if (info.first == myStaId)
+                {
+                  nss = info.second.nss; //no need to look at other PSDUs
+                  break;
+                }
+            }
+        }
+      if (nss > GetMaxSupportedRxSpatialStreams ())
         {
           NS_LOG_DEBUG ("Packet reception could not be started because not enough RX antennas");
           NotifyRxDrop (event->GetPsdu (), UNSUPPORTED_SETTINGS);
@@ -2605,7 +2620,7 @@ WifiPhy::StartReceiveHeader (Ptr<Event> event, Time headerPayloadDuration)
           return;
         }
 
-      if ((txVector.GetMode ().GetModulationClass () == WIFI_MOD_CLASS_HT) && (txVector.GetPreambleType () == WIFI_PREAMBLE_HT_GF))
+      if (txVector.GetPreambleType () == WIFI_PREAMBLE_HT_GF)
         {
           //No legacy PHY header for HT GF
           Time remainingPreambleHeaderDuration = CalculatePlcpPreambleAndHeaderDuration (txVector) - GetPreambleDetectionDuration ();
@@ -2832,6 +2847,7 @@ WifiPhy::EndReceive (Ptr<Event> event)
   std::pair<bool, SignalNoiseDbm> rxInfo;
   WifiTxVector txVector = event->GetTxVector ();
   size_t nMpdus = psdu->GetNMpdus ();
+  uint16_t staId = 0; //FIXME: GetMyStaIdIfMyBssColor (txVector.GetBssColor ());
   if (nMpdus > 1)
     {
       //Extract all MPDUs of the A-MPDU to compute per-MPDU PER stats
@@ -2843,14 +2859,15 @@ WifiPhy::EndReceive (Ptr<Event> event)
       for (size_t i = 0; i < nMpdus && mpdu != psdu->end (); ++mpdu)
         {
           Time mpduDuration = GetPayloadDuration (psdu->GetAmpduSubframeSize (i), txVector,
-                                                  GetFrequency (), mpdutype, true, totalAmpduSize, totalAmpduNumSymbols);
+                                                  GetFrequency (), mpdutype, true, totalAmpduSize, totalAmpduNumSymbols,
+                                                  staId);
           remainingAmpduDuration -= mpduDuration;
           if (i == (nMpdus - 1) && !remainingAmpduDuration.IsZero ()) //no more MPDU coming
             {
               mpduDuration += remainingAmpduDuration; //apply a correction just in case rounding had induced slight shift
             }
           rxInfo = GetReceptionStatus (Create<WifiPsdu> (*mpdu, false),
-                                       event, relativeStart, mpduDuration);
+                                       event, staId, relativeStart, mpduDuration);
           NS_LOG_DEBUG ("Extracted MPDU #" << i << ": duration: " << mpduDuration.GetNanoSeconds () << "ns" <<
                         ", correct reception: " << rxInfo.first <<
                         ", Signal/Noise: " << rxInfo.second.signal << "/" << rxInfo.second.noise << "dBm");
@@ -2866,7 +2883,7 @@ WifiPhy::EndReceive (Ptr<Event> event)
     }
   else
     {
-      rxInfo = GetReceptionStatus (psdu, event, relativeStart, psduDuration);
+      rxInfo = GetReceptionStatus (psdu, event, SU_STA_ID, relativeStart, psduDuration);
       signalNoise = rxInfo.second; //same information for all MPDUs
       statusPerMpdu.push_back (rxInfo.first);
       receptionOkAtLeastForOneMpdu = rxInfo.first;
@@ -2887,13 +2904,15 @@ WifiPhy::EndReceive (Ptr<Event> event)
 }
 
 std::pair<bool, SignalNoiseDbm>
-WifiPhy::GetReceptionStatus (Ptr<const WifiPsdu> psdu, Ptr<Event> event, Time relativeMpduStart, Time mpduDuration)
+WifiPhy::GetReceptionStatus (Ptr<const WifiPsdu> psdu, Ptr<Event> event, uint16_t staId,
+                             Time relativeMpduStart, Time mpduDuration)
 {
-  NS_LOG_FUNCTION (this << *psdu << *event << relativeMpduStart << mpduDuration);
+  NS_LOG_FUNCTION (this << *psdu << *event << staId << relativeMpduStart << mpduDuration);
   InterferenceHelper::SnrPer snrPer;
-  snrPer = m_interference.CalculatePayloadSnrPer (event, std::make_pair (relativeMpduStart, relativeMpduStart + mpduDuration));
+  snrPer = m_interference.CalculatePayloadSnrPer (event, staId, std::make_pair (relativeMpduStart, relativeMpduStart + mpduDuration));
 
-  NS_LOG_DEBUG ("mode=" << (event->GetTxVector ().GetMode ().GetDataRate (event->GetTxVector ())) <<
+  WifiMode mode = event->GetTxVector ().GetMode (staId);
+  NS_LOG_DEBUG ("mode=" << (mode.GetDataRate (event->GetTxVector (), staId)) <<
                 ", snr(dB)=" << RatioToDb (snrPer.snr) << ", per=" << snrPer.per << ", size=" << psdu->GetSize () <<
                 ", relativeStart = " << relativeMpduStart.GetNanoSeconds () << "ns, duration = " << mpduDuration.GetNanoSeconds () << "ns");
 
