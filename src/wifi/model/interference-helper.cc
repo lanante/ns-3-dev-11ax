@@ -295,14 +295,15 @@ InterferenceHelper::CalculateChunkSuccessRate (double snir, Time duration, WifiM
 }
 
 double
-InterferenceHelper::CalculatePayloadPer (Ptr<const Event> event, NiChanges *ni, std::pair<Time, Time> window) const
+InterferenceHelper::CalculatePayloadPer (Ptr<const Event> event, uint16_t staId,
+                                         NiChanges *ni, std::pair<Time, Time> window) const
 {
-  NS_LOG_FUNCTION (this << window.first << window.second);
+  NS_LOG_FUNCTION (this << staId << window.first << window.second);
   const WifiTxVector txVector = event->GetTxVector ();
   double psr = 1.0; /* Packet Success Rate */
   auto j = ni->begin ();
   Time previous = j->first;
-  WifiMode payloadMode = event->GetTxVector ().GetMode ();
+  WifiMode payloadMode = txVector.GetMode (staId);
   WifiPreamble preamble = txVector.GetPreambleType ();
   Time plcpHeaderStart = j->first + WifiPhy::GetPlcpPreambleDuration (txVector); //PPDU start time + preamble
   Time plcpHsigHeaderStart = plcpHeaderStart + WifiPhy::GetPlcpHeaderDuration (txVector); //PPDU start time + preamble + L-SIG
@@ -864,7 +865,8 @@ InterferenceHelper::CalculateNonLegacyPhyHeaderPer (Ptr<const Event> event, NiCh
 }
 
 struct InterferenceHelper::SnrPer
-InterferenceHelper::CalculatePayloadSnrPer (Ptr<Event> event, std::pair<Time, Time> relativeMpduStartStop) const
+InterferenceHelper::CalculatePayloadSnrPer (Ptr<Event> event, uint16_t staId,
+                                            std::pair<Time, Time> relativeMpduStartStop) const
 {
   NiChanges ni;
   double noiseInterferenceW = CalculateNoiseInterferenceW (event, &ni);
@@ -875,7 +877,7 @@ InterferenceHelper::CalculatePayloadSnrPer (Ptr<Event> event, std::pair<Time, Ti
   /* calculate the SNIR at the start of the MPDU (located through windowing) and accumulate
    * all SNIR changes in the snir vector.
    */
-  double per = CalculatePayloadPer (event, &ni, relativeMpduStartStop);
+  double per = CalculatePayloadPer (event, staId, &ni, relativeMpduStartStop);
 
   struct SnrPer snrPer;
   snrPer.snr = snr;
