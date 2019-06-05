@@ -2412,6 +2412,28 @@ WifiPhy::CalculateTxDuration (uint32_t size, WifiTxVector txVector, uint16_t fre
   return duration;
 }
 
+Time
+WifiPhy::CalculateTxDuration (std::map<uint16_t, Ptr<const WifiPsdu>> psduMap, WifiTxVector txVector, uint16_t frequency) //TODO replace map with WifiPsduMap type once Sebastien's code is merged
+{
+  Time maxDuration = Seconds (0);
+  for (auto & staIdPsdu : psduMap)
+    {
+      if (txVector.GetPreambleType () == WIFI_PREAMBLE_HE_MU)
+        {
+          WifiTxVector::HeMuUserInfoMap userInfoMap = txVector.GetHeMuUserInfoMap ();
+          NS_ABORT_MSG_IF (userInfoMap.find (staIdPsdu.first) == userInfoMap.end (), "STA-ID in psduMap (" << staIdPsdu.first << ") should be referenced in txVector");
+        }
+      Time current = CalculateTxDuration (staIdPsdu.second->GetSize (), txVector, frequency,
+                                          staIdPsdu.first);
+      if (current > maxDuration)
+        {
+          maxDuration = current;
+        }
+    }
+  NS_ASSERT (maxDuration.IsStrictlyPositive ());
+  return maxDuration;
+}
+
 void
 WifiPhy::NotifyTxBegin (Ptr<const WifiPsdu> psdu, double txPowerW)
 {
