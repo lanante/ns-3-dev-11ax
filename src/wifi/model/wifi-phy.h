@@ -193,7 +193,7 @@ public:
    *        this PSDU, and txPowerLevel, a power level to use to send the whole PPDU. The real transmission
    *        power is calculated as txPowerMin + txPowerLevel * (txPowerMax - txPowerMin) / nTxLevels
    */
-  void Send (WifiPsdus psdu, WifiTxVector txVector);
+  void Send (WifiPsduMap psdus, WifiTxVector txVector);
 
   /**
    * \param ppdu the PPDU to send
@@ -1173,7 +1173,7 @@ public:
    * \param psdus the PSDUs being transmitted (only one unless MU transmission)
    * \param txPowerW the transmit power in Watts
    */
-  void NotifyTxBegin (WifiPsdus psdus, double txPowerW);
+  void NotifyTxBegin (WifiPsduMap psdus, double txPowerW);
   /**
    * Public method used to fire a PhyTxEnd trace.
    * Implemented for encapsulation purposes.

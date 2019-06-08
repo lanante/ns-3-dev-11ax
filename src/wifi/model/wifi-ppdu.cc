@@ -41,7 +41,7 @@ WifiPpdu::WifiPpdu (Ptr<const WifiPsdu> psdu, WifiTxVector txVector, Time ppduDu
   SetPhyHeaders (txVector, ppduDuration, frequency);
 }
 
-WifiPpdu::WifiPpdu (const WifiPsdus & psdus, WifiTxVector txVector, Time ppduDuration, uint16_t frequency)
+WifiPpdu::WifiPpdu (const WifiPsduMap & psdus, WifiTxVector txVector, Time ppduDuration, uint16_t frequency)
   : m_preamble (txVector.GetPreambleType ()),
     m_modulation (txVector.IsValid () ? txVector.GetMode ().GetModulationClass () : WIFI_MOD_CLASS_UNKNOWN),
     m_psdus (psdus),
@@ -131,6 +131,10 @@ WifiPpdu::SetPhyHeaders (WifiTxVector txVector, Time ppduDuration, uint16_t freq
           else if (m_preamble == WIFI_PREAMBLE_HE_MU)
             {
               m = 1;
+            }
+          else
+            {
+              NS_ASSERT_MSG (false, "Unsupported preamble type");
             }
           uint16_t length = ((ceil ((static_cast<double> (ppduDuration.GetNanoSeconds () - (20 * 1000) - (sigExtension * 1000)) / 1000) / 4.0) * 3) - 3 - m);
           m_lSig.SetLength (length);
@@ -642,7 +646,7 @@ std::ostream & operator << (std::ostream &os, const WifiPpdu &ppdu)
   return os;
 }
 
-std::ostream & operator << (std::ostream &os, const WifiPsdus &psdus)
+std::ostream & operator << (std::ostream &os, const WifiPsduMap &psdus)
 {
   for (auto const& psdu : psdus)
     {

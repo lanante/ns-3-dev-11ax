@@ -32,7 +32,7 @@ namespace ns3 {
 
 class WifiPsdu;
 
-typedef std::map <uint16_t /* staId */, Ptr<const WifiPsdu> /* PSDU */> WifiPsdus;
+typedef std::map <uint16_t /* staId */, Ptr<const WifiPsdu> /* PSDU */> WifiPsduMap;
 
 /**
  * \ingroup wifi
@@ -61,7 +61,7 @@ public:
    * \param ppduDuration the transmission duration of this PPDU
    * \param frequency the frequency used for the transmission of this PPDU
    */
-  WifiPpdu (const WifiPsdus & psdus, WifiTxVector txVector, Time ppduDuration, uint16_t frequency);
+  WifiPpdu (const WifiPsduMap & psdus, WifiTxVector txVector, Time ppduDuration, uint16_t frequency);
 
   virtual ~WifiPpdu ();
 
@@ -118,15 +118,15 @@ private:
    */
   void SetPhyHeaders (WifiTxVector txVector, Time ppduDuration, uint16_t frequency);
 
-  DsssSigHeader m_dsssSig;                   //!< the DSSS SIG PHY header
-  LSigHeader m_lSig;                         //!< the L-SIG PHY header
-  HtSigHeader m_htSig;                       //!< the HT-SIG PHY header
-  VhtSigHeader m_vhtSig;                     //!< the VHT-SIG PHY header
-  HeSigHeader m_heSig;                       //!< the HE-SIG PHY header
-  WifiPreamble m_preamble;                   //!< the PHY preamble
-  WifiModulationClass m_modulation;          //!< the modulation used for the transmission of this PPDU
-  WifiPsdus m_psdus;                         //!< the PSDUs contained in this PPDU
-  bool m_truncatedTx;                        //!< flag indicating whether the frame's transmission was aborted due to transmitter switch off
+  DsssSigHeader m_dsssSig;          //!< the DSSS SIG PHY header
+  LSigHeader m_lSig;                //!< the L-SIG PHY header
+  HtSigHeader m_htSig;              //!< the HT-SIG PHY header
+  VhtSigHeader m_vhtSig;            //!< the VHT-SIG PHY header
+  HeSigHeader m_heSig;              //!< the HE-SIG PHY header
+  WifiPreamble m_preamble;          //!< the PHY preamble
+  WifiModulationClass m_modulation; //!< the modulation used for the transmission of this PPDU
+  WifiPsduMap m_psdus;              //!< the PSDUs contained in this PPDU
+  bool m_truncatedTx;               //!< flag indicating whether the frame's transmission was aborted due to transmitter switch off
   uint16_t m_frequency;             //!< the frequency used to transmit that PPDU
   uint16_t m_channelWidth;          //!< the channel width used to transmit that PPDU
 };
@@ -147,7 +147,7 @@ std::ostream& operator<< (std::ostream& os, const WifiPpdu &ppdu);
  * \param psdus the PSDUs
  * \returns a reference to the stream
  */
-std::ostream & operator << (std::ostream &os, const WifiPsdus &psdus);
+std::ostream & operator << (std::ostream &os, const WifiPsduMap &psdus);
 
 } //namespace ns3
 
