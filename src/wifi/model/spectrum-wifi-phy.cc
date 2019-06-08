@@ -22,7 +22,7 @@
  * Ported from yans-wifi-phy.cc by several contributors starting
  * with Nicola Baldo and Dean Armstrong
  */
-
+#include "ns3/simulator.h"
 #include "ns3/wifi-spectrum-value-helper.h"
 #include "ns3/log.h"
 #include "ns3/boolean.h"
@@ -32,6 +32,8 @@
 #include "wifi-spectrum-signal-parameters.h"
 #include "wifi-spectrum-phy-interface.h"
 #include "wifi-utils.h"
+#include "wifi-net-device.h"
+#include "ns3/node.h"
 
 namespace ns3 {
 
@@ -199,7 +201,10 @@ SpectrumWifiPhy::StartRx (Ptr<SpectrumSignalParameters> rxParams)
     {
       senderNodeId = rxParams->txPhy->GetDevice ()->GetNode ()->GetId ();
     }
-  NS_LOG_DEBUG ("Received signal from " << senderNodeId << " with unfiltered power " << WToDbm (Integral (*receivedSignalPsd)) << " dBm");
+    Ptr<WifiNetDevice> wifiNetDevice = DynamicCast<WifiNetDevice> (GetDevice ());
+  uint32_t currentNodeId=   wifiNetDevice->GetNode ()->GetId ();
+
+std::cout<<"Node "<<currentNodeId<<" is Receiving a packet from node "<<senderNodeId <<" at Time:" <<Simulator:: Now().GetMicroSeconds ()<<"us"<<std::endl;
   // Integrate over our receive bandwidth (i.e., all that the receive
   // spectral mask representing our filtering allows) to find the
   // total energy apparent to the "demodulator".

@@ -37,7 +37,8 @@
 #include "ht-configuration.h"
 #include "he-configuration.h"
 #include "mpdu-aggregator.h"
-
+#include "ns3/node.h"
+#include "wifi-net-device.h"
 namespace ns3 {
 
 NS_LOG_COMPONENT_DEFINE ("WifiPhy");
@@ -2651,9 +2652,10 @@ WifiPhy::SendPacket (Ptr<const Packet> packet, WifiTxVector txVector)
     }
   WifiPhyTag tag (txVector.GetPreambleType (), txVector.GetMode ().GetModulationClass (), isFrameComplete);
   newPacket->AddPacketTag (tag);
-
+    Ptr<WifiNetDevice> wifiNetDevice = DynamicCast<WifiNetDevice> (GetDevice ());
+  uint32_t currentNodeId=   wifiNetDevice->GetNode ()->GetId ();
   StartTx (newPacket, txVector, txDuration);
-
+std::cout<<"Node "<<currentNodeId<<" is Transmitting a "<<txVector.GetMode ()<<" packet at Time:" <<Simulator:: Now().GetMicroSeconds ()<<"us with a duration of "<<txDuration.GetMicroSeconds()<<"us"<<std::endl;
   m_channelAccessRequested = false;
   m_powerRestricted = false;
 }
@@ -4227,6 +4229,7 @@ WifiPhy::StartRx (Ptr<Event> event, double rxPowerW, Time rxDuration)
       Time remainingRxDuration = rxDuration - startOfPreambleDuration;
       m_endPreambleDetectionEvent = Simulator::Schedule (startOfPreambleDuration, &WifiPhy::StartReceiveHeader, this,
                                                          event, remainingRxDuration);
+
     }
   else if ((m_frameCaptureModel != 0) && (rxPowerW > m_currentEvent->GetRxPowerW ()))
     {
