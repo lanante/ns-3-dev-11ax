@@ -17,7 +17,7 @@ export performTgaxTimingChecks=0
 export nodePositionsFile=NONE
 export enablePcap=0
 export enableAscii=0
-export rxSensitivity=-90
+export rxSensitivity=-82
 export AUTO_DELETE_SPATIAL_REUSE_OUTPUT_FILES=1
 # only used by 11ax
 export obssPdThreshold=-72
@@ -41,6 +41,8 @@ export maxAmpduSize=1600
 export useIdealWifiManager=0
 export MCS=7
 
+#Inter AP distance
+export d=110 
 
 # Dropping radius r=10m
 export r=10
@@ -51,13 +53,14 @@ export powAp=20
 
 # CSR = 102m for AP
 export txRange=102
-export sigma=5.0
+export sigma=0.0
 export bianchi=1
 
 #Traffic
 export downlink=40 #downlink offered load in Mbps
 export uplink=0.0 #uplink offered load in Mbps
-export d=20
+
+
 
 
 #Number of STAs
