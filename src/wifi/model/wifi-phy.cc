@@ -2436,7 +2436,7 @@ WifiPhy::CalculateTxDuration (std::map<uint16_t, Ptr<const WifiPsdu>> psduMap, W
 }
 
 void
-WifiPhy::NotifyTxBegin (WifiPsdus psdus, double txPowerW)
+WifiPhy::NotifyTxBegin (WifiPsduMap psdus, double txPowerW)
 {
   for (auto const& psdu : psdus)
     {
@@ -2569,13 +2569,13 @@ void
 WifiPhy::Send (Ptr<const WifiPsdu> psdu, WifiTxVector txVector)
 {
   NS_LOG_FUNCTION (this << *psdu << txVector);
-  WifiPsdus psdus;
+  WifiPsduMap psdus;
   psdus.insert (std::make_pair (STA_ID_SU, psdu));
   Send (psdus, txVector);
 }
 
 void
-WifiPhy::Send (WifiPsdus psdus, WifiTxVector txVector)
+WifiPhy::Send (WifiPsduMap psdus, WifiTxVector txVector)
 {
   NS_LOG_FUNCTION (this << psdus << txVector);
   /* Transmission can happen if:

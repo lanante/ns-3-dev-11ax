@@ -164,7 +164,7 @@ public:
    * \param txPowerDbm the nominal tx power in dBm
    * \param txVector the tx vector for the transmission
    */
-  void SwitchToTx (Time txDuration, WifiPsdus psdus, double txPowerDbm, WifiTxVector txVector);
+  void SwitchToTx (Time txDuration, WifiPsduMap psdus, double txPowerDbm, WifiTxVector txVector);
   /**
    * Switch state to RX for the given duration.
    *
