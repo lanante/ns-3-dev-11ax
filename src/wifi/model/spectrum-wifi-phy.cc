@@ -136,7 +136,7 @@ SpectrumWifiPhy::UpdateInterferenceHelperBands (void)
       for (uint8_t i = 0; i < (channelWidth / 160); i++)
         {
           WifiSpectrumBand band = GetBand (160, i);
-          m_interference.AddBand (band);            
+          m_interference.AddBand (band);
         }
       for (uint8_t i = 0; i < (channelWidth / 80); i++)
         {
@@ -152,6 +152,33 @@ SpectrumWifiPhy::UpdateInterferenceHelperBands (void)
         {
           WifiSpectrumBand band = GetBand (20, i);
           m_interference.AddBand (band);
+        }
+    }
+  if ((GetStandard () == WIFI_PHY_STANDARD_80211ax_2_4GHZ) || (GetStandard () == WIFI_PHY_STANDARD_80211ax_5GHZ))
+    {
+      for (unsigned int type = 0; type < 7; type++)
+        {
+          HeRu::RuType ruType = static_cast <HeRu::RuType> (type);
+          for (std::size_t index = 1; index <= HeRu::GetNRus ((channelWidth == 160) ? 80 : channelWidth, ruType); index++)
+            {
+              HeRu::SubcarrierRange range = HeRu::GetSubcarrierRange (channelWidth, ruType, index);
+              WifiSpectrumBand band = SpectrumWifiPhy::ConvertHeRuIndices (channelWidth, *(range.begin()));
+              for (auto const& indices : range)
+                {
+                  WifiSpectrumBand tmp = SpectrumWifiPhy::ConvertHeRuIndices (channelWidth, indices);
+                  band.second = tmp.second;
+                }
+              m_interference.AddBand (band);
+              if (channelWidth == 160)
+                {
+                  WifiSpectrumBand secondaryChannelBand;
+                  //Divide by 3 to get the number of bands in the full 160 MHz, then divide by 2 to get the 80 MHz offset
+                  size_t offset = static_cast<uint32_t> (((GetRxSpectrumModel ()->GetNumBands () / 3) / 2) + 0.5);
+                  secondaryChannelBand.first = band.first + offset;
+                  secondaryChannelBand.second = band.second + offset;
+                  m_interference.AddBand (secondaryChannelBand);
+                }
+            }
         }
     }
 }
@@ -306,6 +333,47 @@ SpectrumWifiPhy::StartRx (Ptr<SpectrumSignalParameters> rxParams)
       totalRxPowerW += rxPowerPerBandW;
       rxPowerW.insert ({filteredBand, rxPowerPerBandW});
       NS_LOG_DEBUG ("Signal power received after antenna gain for 20 MHz channel band " << +i << ": " << rxPowerPerBandW << " W (" << WToDbm (rxPowerPerBandW) << " dBm)");
+    }
+  
+  if ((GetStandard () == WIFI_PHY_STANDARD_80211ax_2_4GHZ) || (GetStandard () == WIFI_PHY_STANDARD_80211ax_5GHZ))
+    {
+      for (unsigned int type = 0; type < 7; type++)
+        {
+          HeRu::RuType ruType = static_cast <HeRu::RuType> (type);
+          for (std::size_t index = 1; index <= HeRu::GetNRus ((channelWidth == 160) ? 80 : channelWidth, ruType); index++)
+            {
+              HeRu::Indices indice;
+              HeRu::SubcarrierRange range = HeRu::GetSubcarrierRange (channelWidth, ruType, index);
+              indice.first = range.begin()->first;
+              WifiSpectrumBand band = SpectrumWifiPhy::ConvertHeRuIndices (channelWidth, *(range.begin()));
+              for (auto const& indices : range)
+                {
+                  WifiSpectrumBand tmp = SpectrumWifiPhy::ConvertHeRuIndices (channelWidth, indices);
+                  band.second = tmp.second;
+                  indice.second = indices.second;
+                }
+              Ptr<SpectrumValue> filter = WifiSpectrumValueHelper::CreateRfFilter (GetFrequency (), channelWidth, GetBandBandwidth (), GetGuardBandwidth (channelWidth), band);
+              SpectrumValue filteredSignal = (*filter) * (*receivedSignalPsd);
+              NS_LOG_DEBUG ("Signal power received (watts) before antenna gain for RU with range (" << indice.first << "; " << indice.second << ") -> (" << band.first << "; " << band.second <<  "): " << Integral (filteredSignal));
+              double rxPowerPerBandW = Integral (filteredSignal) * DbToRatio (GetRxGain ());
+              NS_LOG_DEBUG ("Signal power received after antenna gain for RU with range (" << indice.first << "; " << indice.second << ") -> (" << band.first << "; " << band.second <<  "): " << rxPowerPerBandW << " W (" << WToDbm (rxPowerPerBandW) << " dBm)");
+              rxPowerW.insert ({band, rxPowerPerBandW});
+              if (channelWidth == 160)
+                {
+                  WifiSpectrumBand band2;
+                  //Divide by 3 to get the number of bands in the full 160 MHz, then divide by 2 to get the 80 MHz offset
+                  size_t offset = static_cast<uint32_t> (((GetRxSpectrumModel ()->GetNumBands () / 3) / 2) + 0.5);
+                  band2.first = band.first + offset;
+                  band2.second = band.second + offset;
+                  Ptr<SpectrumValue> filter2 = WifiSpectrumValueHelper::CreateRfFilter (GetFrequency (), channelWidth, GetBandBandwidth (), GetGuardBandwidth (channelWidth), band2);
+                  SpectrumValue filteredSignal2 = (*filter2) * (*receivedSignalPsd);
+                  NS_LOG_DEBUG ("Signal power received (watts) before antenna gain for RU with range (" << band2.first << "; " << band2.second <<  "): " << Integral (filteredSignal2));
+                  rxPowerPerBandW = Integral (filteredSignal2) * DbToRatio (GetRxGain ());
+                  NS_LOG_DEBUG ("Signal power received after antenna gain for RU with range (" << band2.first << "; " << band2.second <<  "): " << rxPowerPerBandW << " W (" << WToDbm (rxPowerPerBandW) << " dBm)");
+                  rxPowerW.insert ({band2, rxPowerPerBandW});
+                }
+            }
+        }
     }
 
   NS_LOG_DEBUG ("Total signal power received after antenna gain: " << totalRxPowerW << " W (" << WToDbm (totalRxPowerW) << " dBm)");
