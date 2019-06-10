@@ -42,10 +42,10 @@ export useIdealWifiManager=0
 export MCS=7
 
 #Inter AP distance
-export d=110 
+export d=40 
 
 # Dropping radius r=10m
-export r=10
+export r=20
 
 # Transmit Power = 20dBm for AP, 15dBm for STA
 export powSta=15
@@ -57,14 +57,14 @@ export sigma=0.0
 export bianchi=1
 
 #Traffic
-export downlink=40 #downlink offered load in Mbps
-export uplink=0.0 #uplink offered load in Mbps
+export downlink=0 #downlink offered load in Mbps
+export uplink=30 #uplink offered load in Mbps
 
 
 
 
 #Number of STAs
-export n=5
+export n=20
 
 #Run
 export test="Example1"
