@@ -181,13 +181,6 @@ public:
   void EndReceiveInterBss (void);
 
   /**
-   * \param psdu the PSDU to send
-   * \param txVector the TXVECTOR that has tx parameters such as mode, the transmission mode to use to send
-   *        this PSDU, and txPowerLevel, a power level to use to send the whole PPDU. The real transmission
-   *        power is calculated as txPowerMin + txPowerLevel * (txPowerMax - txPowerMin) / nTxLevels
-   */
-  void Send (Ptr<const WifiPsdu> psdu, WifiTxVector txVector); //TODO: remove this function once MAC layer is sending a map of PSDUs
-  /**
    * \param psdus the PSDUs to send
    * \param txVector the TXVECTOR that has tx parameters such as mode, the transmission mode to use to send
    *        this PSDU, and txPowerLevel, a power level to use to send the whole PPDU. The real transmission
