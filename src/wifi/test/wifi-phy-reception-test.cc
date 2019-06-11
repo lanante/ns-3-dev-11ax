@@ -1753,9 +1753,9 @@ TestAmpduReception::DoRun (void)
   Simulator::Schedule (Seconds (9.1), &TestAmpduReception::CheckRxFailureBitmapAmpdu1, this, 0b00000000);
   Simulator::Schedule (Seconds (9.1), &TestAmpduReception::CheckRxDroppedBitmapAmpdu1, this, 0b00000111);
 
-  // All MPDUs of A-MPDU 2 should have been received with errors.
+  // All MPDUs of A-MPDU 2 should have been dropped because non-legacy header failed
   Simulator::Schedule (Seconds (9.1), &TestAmpduReception::CheckRxSuccessBitmapAmpdu2, this, 0b00000000);
-  Simulator::Schedule (Seconds (9.1), &TestAmpduReception::CheckRxFailureBitmapAmpdu2, this, 0b00000111);
+  Simulator::Schedule (Seconds (9.1), &TestAmpduReception::CheckRxFailureBitmapAmpdu2, this, 0b00000000);
   Simulator::Schedule (Seconds (9.1), &TestAmpduReception::CheckRxDroppedBitmapAmpdu2, this, 0b00000111);
 
   Simulator::Schedule (Seconds (9.2), &TestAmpduReception::ResetBitmaps, this);
