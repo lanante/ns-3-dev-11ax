@@ -130,9 +130,15 @@ WifiMode::GetPhyRate (uint16_t channelWidth, uint16_t guardInterval, uint8_t nss
 }
 
 uint64_t
-WifiMode::GetPhyRate (WifiTxVector txVector) const
+WifiMode::GetPhyRate (WifiTxVector txVector, uint16_t staId) const
 {
-  return GetPhyRate (txVector.GetChannelWidth (), txVector.GetGuardInterval (), txVector.GetNss ());
+  return GetPhyRate (txVector.GetChannelWidth (), txVector.GetGuardInterval (), txVector.GetNss (staId));
+}
+
+uint64_t
+WifiMode::GetPhyRate (uint16_t channelWidth) const
+{
+  return GetPhyRate (channelWidth, 800, 1);
 }
 
 uint64_t

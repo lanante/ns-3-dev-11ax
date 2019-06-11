@@ -273,11 +273,25 @@ InterferenceHelper::CalculateChunkSuccessRate (double snir, Time duration, WifiM
     {
       return 1.0;
     }
-  uint64_t rate = mode.GetDataRate (txVector);
+  uint64_t rate = mode.GetPhyRate (txVector.GetChannelWidth ());
   uint64_t nbits = static_cast<uint64_t> (rate * duration.GetSeconds ());
-  if (txVector.GetMode ().GetModulationClass () == WIFI_MOD_CLASS_HT || txVector.GetMode ().GetModulationClass () == WIFI_MOD_CLASS_VHT || txVector.GetMode ().GetModulationClass () == WIFI_MOD_CLASS_HE)
+  double csr = m_errorRateModel->GetChunkSuccessRate (mode, txVector, snir, nbits);
+  return csr;
+}
+
+double
+InterferenceHelper::CalculatePayloadChunkSuccessRate (double snir, Time duration, WifiTxVector txVector, uint16_t staId) const
+{
+  if (duration.IsZero ())
     {
-      nbits /= txVector.GetNss (); //divide effective number of bits by NSS to achieve same chunk error rate as SISO for AWGN
+      return 1.0;
+    }
+  WifiMode mode = txVector.GetMode (staId);
+  uint64_t rate = mode.GetPhyRate (txVector, staId);
+  uint64_t nbits = static_cast<uint64_t> (rate * duration.GetSeconds ());
+  if (mode.GetModulationClass () == WIFI_MOD_CLASS_HT || mode.GetModulationClass () == WIFI_MOD_CLASS_VHT || mode.GetModulationClass () == WIFI_MOD_CLASS_HE)
+    {
+      nbits /= txVector.GetNss (staId); //divide effective number of bits by NSS to achieve same chunk error rate as SISO for AWGN
       double gain = (txVector.GetNTx () * m_numRxAntennas); //compute gain offered by MIMO, SIMO or MISO compared to SISO for AWGN
       NS_LOG_DEBUG ("TX=" << +txVector.GetNTx () <<
                     ", RX=" << +m_numRxAntennas <<
@@ -315,21 +329,21 @@ InterferenceHelper::CalculatePayloadPer (Ptr<const Event> event, uint16_t staId,
       //Case 1: Both previous and current point to the windowed payload
       if (previous >= windowStart)
         {
-          psr *= CalculateChunkSuccessRate (CalculateSnr (powerW,
-                                                          noiseInterferenceW,
-                                                          txVector.GetChannelWidth ()),
-                                            current - previous,
-                                            payloadMode, txVector);
+          psr *= CalculatePayloadChunkSuccessRate (CalculateSnr (powerW,
+                                                                 noiseInterferenceW,
+                                                                 txVector.GetChannelWidth ()),
+                                                   current - previous,
+                                                   txVector, staId);
           NS_LOG_DEBUG ("Both previous and current point to the windowed payload: mode=" << payloadMode << ", psr=" << psr);
         }
       //Case 2: previous is before windowed payload and current is in the windowed payload
       else if (current >= windowStart)
         {
-          psr *= CalculateChunkSuccessRate (CalculateSnr (powerW,
-                                                          noiseInterferenceW,
-                                                          txVector.GetChannelWidth ()),
-                                            current - windowStart,
-                                            payloadMode, txVector);
+          psr *= CalculatePayloadChunkSuccessRate (CalculateSnr (powerW,
+                                                                 noiseInterferenceW,
+                                                                 txVector.GetChannelWidth ()),
+                                                   current - windowStart,
+                                                   txVector, staId);
           NS_LOG_DEBUG ("previous is before windowed payload and current is in the windowed payload: mode=" << payloadMode << ", psr=" << psr);
         }
       noiseInterferenceW = j->second.GetPower () - powerW;
