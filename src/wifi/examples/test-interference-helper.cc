@@ -131,7 +131,7 @@ InterferenceExperiment::SendA (void) const
   txVector.SetTxPowerLevel (0); //only one TX power level
   txVector.SetMode (WifiMode (m_input.txModeA));
   txVector.SetPreambleType (m_input.preamble);
-  m_txA->Send (psdu, txVector);
+  m_txA->Send (WifiPsduMap ({std::make_pair (SU_STA_ID, psdu)}), txVector);
 }
 
 void
@@ -144,7 +144,7 @@ InterferenceExperiment::SendB (void) const
   txVector.SetTxPowerLevel (0); //only one TX power level
   txVector.SetMode (WifiMode (m_input.txModeB));
   txVector.SetPreambleType (m_input.preamble);
-  m_txB->Send (psdu, txVector);
+  m_txB->Send (WifiPsduMap ({std::make_pair (SU_STA_ID, psdu)}), txVector);
 }
 
 void

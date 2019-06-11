@@ -2567,15 +2567,6 @@ WifiPhy::NotifyEndOfHePreamble (HePreambleParameters params)
 }
 
 void
-WifiPhy::Send (Ptr<const WifiPsdu> psdu, WifiTxVector txVector)
-{
-  NS_LOG_FUNCTION (this << *psdu << txVector);
-  WifiPsduMap psdus;
-  psdus.insert (std::make_pair (STA_ID_SU, psdu));
-  Send (psdus, txVector);
-}
-
-void
 WifiPhy::Send (WifiPsduMap psdus, WifiTxVector txVector)
 {
   NS_LOG_FUNCTION (this << psdus << txVector);

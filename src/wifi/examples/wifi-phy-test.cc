@@ -85,7 +85,7 @@ PsrExperiment::Send (void)
   txVector.SetTxPowerLevel (m_input.txPowerLevel);
   txVector.SetMode (mode);
   txVector.SetPreambleType (WIFI_PREAMBLE_LONG);
-  m_tx->Send (psdu, txVector);
+  m_tx->Send (WifiPsduMap ({std::make_pair (SU_STA_ID, psdu)}), txVector);
 }
 
 void
@@ -210,7 +210,7 @@ CollisionExperiment::SendA (void) const
   txVector.SetTxPowerLevel (m_input.txPowerLevelA);
   txVector.SetMode (WifiMode (m_input.txModeA));
   txVector.SetPreambleType (WIFI_PREAMBLE_LONG);
-  m_txA->Send (psdu, txVector);
+  m_txA->Send (WifiPsduMap ({std::make_pair (SU_STA_ID, psdu)}), txVector);
 }
 
 void
@@ -222,7 +222,7 @@ CollisionExperiment::SendB (void) const
   txVector.SetTxPowerLevel (m_input.txPowerLevelB);
   txVector.SetMode (WifiMode (m_input.txModeB));
   txVector.SetPreambleType (WIFI_PREAMBLE_LONG);
-  m_txB->Send (psdu, txVector);
+  m_txB->Send (WifiPsduMap ({std::make_pair (SU_STA_ID, psdu)}), txVector);
 }
 
 void
