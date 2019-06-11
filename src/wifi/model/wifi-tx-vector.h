@@ -200,17 +200,24 @@ public:
    */
   uint8_t GetNssMax (void) const;
   /**
-   * Sets the number of Nss refer to IEEE 802.11n Table 20-28 for explanation and range
+   * Sets the number of Nss
    *
    * \param nss
    */
   void SetNss (uint8_t nss);
   /**
+   * Sets the number of Nss
+   *
+   * \param nss
+   * \param staId the station ID for HE MU
+   */
+  void SetNss (uint8_t nss, uint16_t staId);
+  /**
    * \returns the number of Ness
    */
   uint8_t GetNess (void) const;
   /**
-   * Sets the Ness number refer to IEEE 802.11n Table 20-6 for explanation
+   * Sets the Ness number
    *
    * \param ness
    */
