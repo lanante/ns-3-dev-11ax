@@ -2881,7 +2881,7 @@ WifiPhy::StartReceivePayload (Ptr<Event> event)
       if (psdu)
         {
           WifiTxVector txVector = event->GetTxVector ();
-          WifiMode txMode = txVector.GetPreambleType () == WIFI_PREAMBLE_HE_MU ? txVector.GetMode (GetStaId ()) : txVector.GetMode ();
+          WifiMode txMode = txVector.GetMode (GetStaId ());
           if (IsModeSupported (txMode) || IsMcsSupported (txMode))
             {
               Time payloadDuration = event->GetEndTime () - event->GetStartTime () - CalculatePlcpPreambleAndHeaderDuration (txVector);
@@ -2976,7 +2976,7 @@ WifiPhy::EndReceive (Ptr<Event> event)
   if (receptionOkAtLeastForOneMpdu)
     {
       NotifyMonitorSniffRx (psdu, GetFrequency (), txVector, signalNoise, statusPerMpdu);
-      m_state->SwitchFromRxEndOk (Copy (psdu), snr, txVector, statusPerMpdu);
+      m_state->SwitchFromRxEndOk (Copy (psdu), snr, txVector, staId, statusPerMpdu);
     }
   else
     {
