@@ -52,6 +52,8 @@ class CtrlBAckResponseHeader;
 class MsduAggregator;
 class MpduAggregator;
 
+typedef std::map <uint16_t /* staId */, Ptr<const WifiPsdu> /* PSDU */> WifiPsduMap;
+
 /**
  * \ingroup wifi
  * \brief handle RTS/CTS/DATA/ACK transactions.
@@ -515,6 +517,13 @@ private:
    * \param txVector the transmit vector
    */
   void ForwardDown (Ptr<const WifiPsdu> psdu, WifiTxVector txVector);
+  /**
+   * Forward a set of PSDUs (indexed by STA-ID) down to WifiPhy for transmission.
+   *
+   * \param psduMap the PSDU map
+   * \param txVector the transmit vector
+   */
+  void ForwardDown (WifiPsduMap psduMap, WifiTxVector txVector);
   /**
    * Return a TXVECTOR for the RTS frame given the destination.
    * The function consults WifiRemoteStationManager, which controls the rate

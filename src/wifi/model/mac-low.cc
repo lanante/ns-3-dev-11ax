@@ -1594,21 +1594,33 @@ MacLow::NotifyCtsTimeoutResetNow (void)
 void
 MacLow::ForwardDown (Ptr<const WifiPsdu> psdu, WifiTxVector txVector)
 {
-  NS_LOG_FUNCTION (this << psdu << txVector);
+  ForwardDown (WifiPsduMap ({std::make_pair (SU_STA_ID, psdu)}), txVector);
+}
 
-  NS_ASSERT (psdu->GetNMpdus ());
-  const WifiMacHeader& hdr = (*psdu->begin ())->GetHeader ();
+void
+MacLow::ForwardDown (WifiPsduMap psduMap, WifiTxVector txVector)
+{
+  NS_LOG_FUNCTION (this << txVector);
+  NS_ASSERT (!psduMap.empty ());
 
-  NS_LOG_DEBUG ("send " << hdr.GetTypeString () <<
-                ", to=" << hdr.GetAddr1 () <<
-                ", size=" << psdu->GetSize () <<
-                ", mode=" << txVector.GetMode  () <<
-                ", preamble=" << txVector.GetPreambleType () <<
-                ", duration=" << hdr.GetDuration () <<
-                ", seq=0x" << std::hex << hdr.GetSequenceControl () << std::dec);
-
-  if (!psdu->IsAggregate ())
+  for (auto& psdu : psduMap)
     {
+      NS_ASSERT (psdu.second->GetNMpdus () > 0);
+      const WifiMacHeader& hdr = (*psdu.second->begin ())->GetHeader ();
+
+      NS_LOG_DEBUG ("send " << hdr.GetTypeString () <<
+                    ", to=" << hdr.GetAddr1 () <<
+                    ", size=" << psdu.second->GetSize () <<
+                    ", mode=" << txVector.GetMode  () <<
+                    ", duration=" << hdr.GetDuration () <<
+                    ", seq=0x" << std::hex << hdr.GetSequenceControl () << std::dec);
+    }
+
+  if (psduMap.size () == 1)
+    {
+      Ptr<const WifiPsdu> psdu = psduMap.begin ()->second;
+      const WifiMacHeader& hdr = (*psdu->begin ())->GetHeader ();
+
       if (hdr.IsCfPoll () && m_stationManager->GetPcfSupported ())
         {
           Simulator::Schedule (GetPifs () + m_phy->CalculateTxDuration (psdu->GetSize (), txVector, m_phy->GetFrequency ()), &MacLow::CfPollTimeout, this);
@@ -1632,33 +1644,44 @@ MacLow::ForwardDown (Ptr<const WifiPsdu> psdu, WifiTxVector txVector)
         {
           m_cfAckInfo.expectCfAck = true;
         }
-      NS_LOG_DEBUG ("Sending non aggregate MPDU");
-    }
-  else   // S-MPDU or A-MPDU
-    {
-      txVector.SetAggregation (true);
+
       if (psdu->IsSingle ())
         {
+          txVector.SetAggregation (true);
           NS_LOG_DEBUG ("Sending S-MPDU");
+        }
+      else if (psdu->IsAggregate ())
+        {
+          txVector.SetAggregation (true);
+          NS_LOG_DEBUG ("Sending A-MPDU");
         }
       else
         {
-          NS_LOG_DEBUG ("Sending A-MPDU");
+          NS_LOG_DEBUG ("Sending non aggregate MPDU");
         }
+    }
+  else
+    {
+      txVector.SetAggregation (true);
+      NS_LOG_DEBUG ("Sending " << psduMap.size () << " PSDUs");
+    }
 
-      if (psdu->GetNMpdus () > 1)
+  for (auto& psdu : psduMap)
+    {
+      for (auto& mpdu : *PeekPointer (psdu.second))
         {
-          for (auto& mpdu : *PeekPointer (psdu))
+          if (mpdu->GetHeader ().IsQosData ())
             {
-              if (mpdu->GetHeader ().IsQosData ())
+              uint8_t tid = mpdu->GetHeader ().GetQosTid ();
+              auto edcaIt = m_edca.find (QosUtilsMapTidToAc (tid));
+              if (edcaIt->second->GetBaAgreementEstablished (mpdu->GetHeader ().GetAddr1 (), tid))
                 {
-                  auto edcaIt = m_edca.find (QosUtilsMapTidToAc (mpdu->GetHeader ().GetQosTid ()));
                   edcaIt->second->CompleteMpduTx (mpdu);
                 }
             }
         }
     }
-  m_phy->Send (psdu, txVector);
+  m_phy->Send (psduMap, txVector);
 }
 
 void
