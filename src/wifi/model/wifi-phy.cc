@@ -2410,6 +2410,7 @@ WifiPhy::CalculateTxDuration (uint32_t size, WifiTxVector txVector, uint16_t fre
 {
   Time duration = CalculatePlcpPreambleAndHeaderDuration (txVector)
     + GetPayloadDuration (size, txVector, frequency, NORMAL_MPDU, staId);
+  NS_ASSERT (duration.IsStrictlyPositive ());
   return duration;
 }
 
@@ -2601,8 +2602,7 @@ WifiPhy::Send (WifiPsduMap psdus, WifiTxVector txVector)
       return;
     }
 
-  Time txDuration = CalculateTxDuration (psdus.at (STA_ID_SU)->GetSize (), txVector, GetFrequency ()); //TODO: extend CalculateTxDuration for MU
-  NS_ASSERT (txDuration.IsStrictlyPositive ());
+  Time txDuration = CalculateTxDuration (psdus, txVector, GetFrequency ());
 
   if (m_endPreambleDetectionEvent.IsRunning ())
     {
