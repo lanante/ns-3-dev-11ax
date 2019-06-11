@@ -26,8 +26,6 @@
 #include "wifi-tx-vector.h"
 #include "wifi-phy-header.h"
 
-#define STA_ID_SU 65535
-
 namespace ns3 {
 
 class WifiPsdu;
@@ -77,7 +75,7 @@ public:
    * \param staId the staId of the PHY calling this function.
    * \return the PSDU
    */
-  Ptr<const WifiPsdu> GetPsdu (uint8_t bssColor = 64, uint16_t staId = STA_ID_SU) const;
+  Ptr<const WifiPsdu> GetPsdu (uint8_t bssColor = 64, uint16_t staId = SU_STA_ID) const;
 
   /**
    * Return true if the PPDU's transmission was aborted due to transmitter switch off

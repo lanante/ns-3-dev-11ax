@@ -4215,7 +4215,7 @@ WifiPhy::GetStaId (void) const
           return mac->GetAssociationId ();
         }
     }
-  return STA_ID_SU;
+  return SU_STA_ID;
 }
 
 int64_t

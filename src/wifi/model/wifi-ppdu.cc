@@ -37,7 +37,7 @@ WifiPpdu::WifiPpdu (Ptr<const WifiPsdu> psdu, WifiTxVector txVector, Time ppduDu
     m_channelWidth (txVector.GetChannelWidth ())
 {
   NS_LOG_FUNCTION (this << *psdu << txVector << ppduDuration << frequency);
-  m_psdus.insert (std::make_pair (STA_ID_SU, psdu));
+  m_psdus.insert (std::make_pair (SU_STA_ID, psdu));
   SetPhyHeaders (txVector, ppduDuration, frequency);
 }
 
@@ -84,7 +84,7 @@ WifiPpdu::SetPhyHeaders (WifiTxVector txVector, Time ppduDuration, uint16_t freq
         {
           NS_ASSERT (m_psdus.size () == 1);
           m_lSig.SetRate (txVector.GetMode ().GetDataRate (txVector), m_channelWidth);
-          m_lSig.SetLength (m_psdus.at (STA_ID_SU)->GetSize ());
+          m_lSig.SetLength (m_psdus.at (SU_STA_ID)->GetSize ());
           break;
         }
       case WIFI_MOD_CLASS_HT:
@@ -99,7 +99,7 @@ WifiPpdu::SetPhyHeaders (WifiTxVector txVector, Time ppduDuration, uint16_t freq
           m_lSig.SetLength (length);
           m_htSig.SetMcs (txVector.GetMode ().GetMcsValue ());
           m_htSig.SetChannelWidth (m_channelWidth);
-          m_htSig.SetHtLength (m_psdus.at (STA_ID_SU)->GetSize ());
+          m_htSig.SetHtLength (m_psdus.at (SU_STA_ID)->GetSize ());
           m_htSig.SetAggregation (txVector.IsAggregation ());
           m_htSig.SetShortGuardInterval (txVector.GetGuardInterval () == 400);
           break;
@@ -548,7 +548,7 @@ WifiPpdu::GetPsdu (uint8_t bssColor, uint16_t staId) const
   if (!IsMu ())
     {
       NS_ASSERT (m_psdus.size () == 1);
-      return m_psdus.at (STA_ID_SU);
+      return m_psdus.at (SU_STA_ID);
     }
   else
     {
@@ -657,7 +657,7 @@ WifiPpdu::Print (std::ostream& os) const
   os << "preamble=" << m_preamble
      << ", modulation=" << m_modulation
      << ", truncatedTx=" << (m_truncatedTx ? "Y" : "N");
-  IsMu () ? (os << ", " << m_psdus) : (os << ", PSDU=" << m_psdus.at (STA_ID_SU));
+  IsMu () ? (os << ", " << m_psdus) : (os << ", PSDU=" << m_psdus.at (SU_STA_ID));
 }
 
 std::ostream & operator << (std::ostream &os, const WifiPpdu &ppdu)
