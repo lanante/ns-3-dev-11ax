@@ -41,6 +41,7 @@
 #include "wifi-phy.h"
 #include "wifi-net-device.h"
 #include "ap-wifi-mac.h"
+#include "sta-wifi-mac.h"
 #include <algorithm>
 #include "wifi-ack-policy-selector.h"
 
@@ -2662,6 +2663,11 @@ MacLow::GetStaId (Mac48Address receiver) const
   if (apMac != 0)
     {
       return apMac->GetAssociationId (receiver);
+    }
+  Ptr<StaWifiMac> staMac = DynamicCast<StaWifiMac> (m_mac);
+  if (staMac != 0 && staMac->IsAssociated ())
+    {
+      return staMac->GetAssociationId ();
     }
   return SU_STA_ID;
 }
