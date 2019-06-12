@@ -2587,7 +2587,7 @@ WifiPhy::Send (WifiPsduMap psdus, WifiTxVector txVector)
    */
   NS_ASSERT (!m_state->IsStateTx () && !m_state->IsStateSwitching ());
 
-  if (txVector.GetNss () > GetMaxSupportedTxSpatialStreams ())
+  if (txVector.GetNssMax () > GetMaxSupportedTxSpatialStreams ())
     {
       NS_FATAL_ERROR ("Unsupported number of spatial streams!");
     }
@@ -2601,7 +2601,7 @@ WifiPhy::Send (WifiPsduMap psdus, WifiTxVector txVector)
         }
       return;
     }
-
+  
   Time txDuration = CalculateTxDuration (psdus, txVector, GetFrequency ());
 
   if (m_endPreambleDetectionEvent.IsRunning ())
@@ -2631,7 +2631,7 @@ WifiPhy::Send (WifiPsduMap psdus, WifiTxVector txVector)
     }
 
   NotifyTxBegin (psdus, DbmToW (GetTxPowerForTransmission (txVector) + GetTxGain ()));
-  NotifyMonitorSniffTx (psdus.at (STA_ID_SU), GetFrequency (), txVector); //TODO: fix for MU
+  NotifyMonitorSniffTx (psdus.begin()->second, GetFrequency (), txVector); //TODO: fix for MU
   m_state->SwitchToTx (txDuration, psdus, GetPowerDbm (txVector.GetTxPowerLevel ()), txVector);
 
   if (m_state->GetState () == WifiPhyState::OFF)
@@ -4137,7 +4137,7 @@ WifiPhy::GetTxPowerForTransmission (WifiTxVector txVector) const
     }
   else
     {
-      if (txVector.GetNss () > 1)
+      if (txVector.GetNssMax () > 1)
         {
           return std::min (m_txPowerMaxMimo, GetPowerDbm (txVector.GetTxPowerLevel ()));
         }
