@@ -351,7 +351,7 @@ WifiPhyStateHelper::SwitchToTx (Time txDuration, WifiPsduMap psdus, double txPow
   NS_LOG_FUNCTION (this << txDuration << psdus << txPowerDbm << txVector);
   for (auto const& psdu : psdus)
     {
-      m_txTrace (psdu.second->GetPacket (), txVector.GetMode (), txVector.GetPreambleType (), txVector.GetTxPowerLevel ());
+      m_txTrace (psdu.second->GetPacket (), txVector.GetMode (psdu.first), txVector.GetPreambleType (), txVector.GetTxPowerLevel ());
     }
   Time now = Simulator::Now ();
   switch (GetState ())
