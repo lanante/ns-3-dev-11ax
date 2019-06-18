@@ -188,30 +188,50 @@ HeRu::DoesOverlap (uint8_t bw, RuSpec ru, const std::vector<RuSpec> &v)
       return true;
     }
 
-  Indices ranges1 = GetSubcarrierRange (bw, ru.ruType, ru.index);
-
-  for (auto& r1 : ranges1)
+  Indices ranges = GetSubcarrierRange (bw, ru.ruType, ru.index);
+  for (auto& p : v)
     {
-      for (auto& p : v)
+      if (ru.primary80MHz != p.primary80MHz)
         {
-          if (bw == 160 && p.ruType == RU_2x996_TONE)
+          // the two RUs are located in distinct 80MHz bands
+          continue;
+        }
+      if (DoesOverlap (bw, p, ranges))
+        {
+          return true;
+        }
+    }
+  return false;
+}
+
+bool
+HeRu::DoesOverlap (uint8_t bw, RuSpec ru, const Indices &toneRanges)
+{
+  for (const auto & range : toneRanges)
+    {
+      if (bw == 160 && ru.ruType == RU_2x996_TONE)
+        {
+          return true;
+        }
+
+      Indices rangesRu = GetSubcarrierRange (bw, ru.ruType, ru.index);
+      if (bw == 160)
+        {
+          // Translate 80 MHz indices obtained from GetSubcarrierRange (i.e. from -500 to 500)
+          // into 160 MHz indices (i.e. -1012 to 1012) for HE-SIG-B content channel differentiation
+          int16_t shift = ru.primary80MHz ? -512 : 512;
+          for (auto & pair : rangesRu)
+            {
+              pair.first += shift;
+              pair.second += shift;
+            }
+        }
+
+      for (auto& r : rangesRu)
+        {
+          if (range.second >= r.first && r.second >= range.first)
             {
               return true;
-            }
-
-          if (ru.primary80MHz != p.primary80MHz)
-            {
-              // the two RUs are located in distinct 80MHz bands
-              continue;
-            }
-
-          Indices ranges2 = GetSubcarrierRange (bw, p.ruType, p.index);
-          for (auto& r2 : ranges2)
-            {
-              if (r1.second >= r2.first && r2.second >= r1.first)
-                {
-                  return true;
-                }
             }
         }
     }
