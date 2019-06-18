@@ -99,6 +99,19 @@ public:
   static bool DoesOverlap (uint8_t bw, RuSpec ru, const std::vector<RuSpec> &v);
 
   /**
+   * Check whether the given RU overlaps with the given tone ranges.
+   * Note that for channel width of 160 MHz the tone ranges are relative to
+   * to the whole interval (-1012, 1012), as used for HE-SIG-B content channel
+   * differentiation.
+   *
+   * \param bw the bandwidth (MHz) of the HE PPDU (20, 40, 80, 160)
+   * \param ru the given RU allocation
+   * \param toneRanges the given set of tone ranges
+   * \return true if the given RU overlaps with the given set of tone ranges.
+   */
+  static bool DoesOverlap (uint8_t bw, RuSpec ru, const Indices &toneRanges);
+
+  /**
    * Get the approximate bandwidth occupied by a RU.
    *
    * \param ruType the RU type
