@@ -1896,9 +1896,9 @@ WifiPhy::GetPlcpSigA2Duration (WifiPreamble preamble)
 }
 
 Time
-WifiPhy::GetPlcpSigBDuration (WifiPreamble preamble)
+WifiPhy::GetPlcpSigBDuration (WifiTxVector txVector)
 {
-  switch (preamble)
+  switch (txVector.GetPreambleType ())
     {
     case WIFI_PREAMBLE_VHT_MU:
     case WIFI_PREAMBLE_HE_MU:
@@ -2409,7 +2409,7 @@ WifiPhy::CalculatePlcpPreambleAndHeaderDuration (WifiTxVector txVector)
     + GetPlcpSigA1Duration (preamble)
     + GetPlcpSigA2Duration (preamble)
     + GetPlcpTrainingSymbolDuration (txVector)
-    + GetPlcpSigBDuration (preamble);
+    + GetPlcpSigBDuration (txVector);
   return duration;
 }
 
