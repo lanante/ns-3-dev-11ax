@@ -78,10 +78,10 @@ public:
    * RUs of the given type (number of tones) available in a HE PPDU of the
    * given bandwidth. A subcarrier range is defined as one or more pairs
    * indicating the lowest frequency index and the highest frequency index.
-   * Note that subcarrier ranges are only available for channel widths of 20,
-   * 40 or 80 MHz.
+   * Note that for channel width of 160 MHz the returned range is relative to
+   * an 80 MHz subchannel.
    *
-   * \param bw the bandwidth (MHz) of the HE PPDU (20, 40, 80)
+   * \param bw the bandwidth (MHz) of the HE PPDU (20, 40, 80, 160)
    * \param ruType the RU type (number of tones)
    * \param index the index (starting at 1) of the RU
    * \return the subcarrier range of the specified RU

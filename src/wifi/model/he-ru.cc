@@ -171,7 +171,7 @@ HeRu::GetNRus (uint8_t bw, RuType ruType)
 HeRu::Indices
 HeRu::GetSubcarrierRange (uint8_t bw, RuType ruType, std::size_t index)
 {
-  auto it = m_heRuSubcarrierRanges.find ({bw, ruType});
+  auto it = m_heRuSubcarrierRanges.find ({(bw == 160 ? 80 : bw), ruType});
 
   NS_ABORT_MSG_IF (it == m_heRuSubcarrierRanges.end (), "RU not found");
   NS_ABORT_MSG_IF (!index || index > it->second.size (), "RU index not available");
@@ -188,7 +188,7 @@ HeRu::DoesOverlap (uint8_t bw, RuSpec ru, const std::vector<RuSpec> &v)
       return true;
     }
 
-  Indices ranges1 = GetSubcarrierRange ((bw == 160 ? 80 : bw), ru.ruType, ru.index);
+  Indices ranges1 = GetSubcarrierRange (bw, ru.ruType, ru.index);
 
   for (auto& r1 : ranges1)
     {
@@ -205,7 +205,7 @@ HeRu::DoesOverlap (uint8_t bw, RuSpec ru, const std::vector<RuSpec> &v)
               continue;
             }
 
-          Indices ranges2 = GetSubcarrierRange ((bw == 160 ? 80 : bw), p.ruType, p.index);
+          Indices ranges2 = GetSubcarrierRange (bw, p.ruType, p.index);
           for (auto& r2 : ranges2)
             {
               if (r1.second >= r2.first && r2.second >= r1.first)
