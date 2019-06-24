@@ -312,6 +312,19 @@ public:
    * \return the WifiMode used for the transmission of the HE-STF, HE-LTF and HE-SIG-B fields
    */
   static WifiMode GetHePlcpHeaderMode ();
+  /*
+   * Get the mode used for HE-SIG-B transmission.
+   * This is applicable only for HE MU.
+   * Get smallest HE MCS index among station's allocations and use the
+   * VHT version of the index. This enables to have 800 ns GI, 52 data
+   * tones, and 312.5 kHz spacing while ensuring that MCS will be decoded
+   * by all stations.
+   *
+   * \param txVector the transmission parameters used for the HE MU PPDU
+   *
+   * \return the transmission mode used for HE-SIG-B
+   */
+  static WifiMode GetHeSigBMode (WifiTxVector txVector);
   /**
    * \param preamble the type of preamble
    *
