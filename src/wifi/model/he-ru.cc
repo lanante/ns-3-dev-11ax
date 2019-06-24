@@ -168,7 +168,7 @@ HeRu::GetNRus (uint8_t bw, RuType ruType)
   return (bw == 160 ? 2 : 1) * it->second.size ();
 }
 
-HeRu::Indices
+HeRu::SubcarrierRange
 HeRu::GetSubcarrierRange (uint8_t bw, RuType ruType, std::size_t index)
 {
   auto it = m_heRuSubcarrierRanges.find ({(bw == 160 ? 80 : bw), ruType});
@@ -188,7 +188,7 @@ HeRu::DoesOverlap (uint8_t bw, RuSpec ru, const std::vector<RuSpec> &v)
       return true;
     }
 
-  Indices ranges = GetSubcarrierRange (bw, ru.ruType, ru.index);
+  SubcarrierRange ranges = GetSubcarrierRange (bw, ru.ruType, ru.index);
   for (auto& p : v)
     {
       if (ru.primary80MHz != p.primary80MHz)
@@ -205,7 +205,7 @@ HeRu::DoesOverlap (uint8_t bw, RuSpec ru, const std::vector<RuSpec> &v)
 }
 
 bool
-HeRu::DoesOverlap (uint8_t bw, RuSpec ru, const Indices &toneRanges)
+HeRu::DoesOverlap (uint8_t bw, RuSpec ru, const SubcarrierRange &toneRanges)
 {
   for (const auto & range : toneRanges)
     {
@@ -214,7 +214,7 @@ HeRu::DoesOverlap (uint8_t bw, RuSpec ru, const Indices &toneRanges)
           return true;
         }
 
-      Indices rangesRu = GetSubcarrierRange (bw, ru.ruType, ru.index);
+      SubcarrierRange rangesRu = GetSubcarrierRange (bw, ru.ruType, ru.index);
       if (bw == 160)
         {
           // Translate 80 MHz indices obtained from GetSubcarrierRange (i.e. from -500 to 500)

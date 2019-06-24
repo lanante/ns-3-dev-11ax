@@ -47,8 +47,12 @@ public:
     RU_2x996_TONE
   };
 
-  /// (lowest index, highest index) pairs defining subcarrier ranges
-  typedef std::vector<std::pair<int16_t, int16_t>> Indices;
+  /// (lowest index, highest index) pair
+  typedef std::pair<int16_t, int16_t> Indices;
+
+  /// (lowest index, highest index) pairs defining subcarrier range
+  typedef std::vector<Indices> SubcarrierRange;
+
 
   /**
    * RU Specification. Stores the information carried by the RU Allocation
@@ -86,7 +90,7 @@ public:
    * \param index the index (starting at 1) of the RU
    * \return the subcarrier range of the specified RU
    */
-  static Indices GetSubcarrierRange (uint8_t bw, RuType ruType, std::size_t index);
+  static SubcarrierRange GetSubcarrierRange (uint8_t bw, RuType ruType, std::size_t index);
 
   /**
    * Check whether the given RU overlaps with the given set of RUs.
@@ -109,7 +113,7 @@ public:
    * \param toneRanges the given set of tone ranges
    * \return true if the given RU overlaps with the given set of tone ranges.
    */
-  static bool DoesOverlap (uint8_t bw, RuSpec ru, const Indices &toneRanges);
+  static bool DoesOverlap (uint8_t bw, RuSpec ru, const SubcarrierRange &toneRanges);
 
   /**
    * Get the approximate bandwidth occupied by a RU.
@@ -123,7 +127,7 @@ public:
   typedef std::pair<uint8_t, RuType> BwTonesPair;
 
   /// map (bandwidth, number of tones) pairs to the range of subcarrier indices
-  typedef std::map<BwTonesPair, std::vector<Indices>> SubcarrierRanges;
+  typedef std::map<BwTonesPair, std::vector<SubcarrierRange> > SubcarrierRanges;
 
   //!< Subcarrier ranges for all RUs
   static const SubcarrierRanges  m_heRuSubcarrierRanges;
