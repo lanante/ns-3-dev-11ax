@@ -408,8 +408,9 @@ private:
    * Callback invoked when PHY receives a packet
    * \param context the context
    * \param p the packet
+   * \param rxPowersW the received power per channel band in watts
    */
-  void Receive (std::string context, Ptr<const Packet> p);
+  void Receive (std::string context, Ptr<const Packet> p, RxPowerWattPerChannelBand rxPowersW);
 };
 
 void
@@ -485,7 +486,7 @@ BlockAckAggregationDisabledTest::Transmit (std::string context, Ptr<const Packet
 }
 
 void
-BlockAckAggregationDisabledTest::Receive (std::string context, Ptr<const Packet> p)
+BlockAckAggregationDisabledTest::Receive (std::string context, Ptr<const Packet> p, RxPowerWattPerChannelBand rxPowersW)
 {
   WifiMacHeader hdr;
   p->PeekHeader (hdr);
