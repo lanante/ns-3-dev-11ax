@@ -2474,13 +2474,13 @@ WifiPhy::NotifyTxDrop (Ptr<const WifiPsdu> psdu)
 }
 
 void
-WifiPhy::NotifyRxBegin (Ptr<const WifiPsdu> psdu)
+WifiPhy::NotifyRxBegin (Ptr<const WifiPsdu> psdu, RxPowerWattPerChannelBand rxPowersW)
 {
   if (psdu)
     {
       for (auto& mpdu : *PeekPointer (psdu))
         {
-          m_phyRxBeginTrace (mpdu->GetProtocolDataUnit ());
+          m_phyRxBeginTrace (mpdu->GetProtocolDataUnit (), rxPowersW);
         }
     }
 }
@@ -2672,7 +2672,7 @@ WifiPhy::StartReceiveHeader (Ptr<Event> event, Time headerPayloadDuration)
   if (!m_preambleDetectionModel || (m_preambleDetectionModel->IsPreambleDetected (event->GetRxPowerW (), snr, m_channelWidth)))
     {
       m_state->SwitchToRx (headerPayloadDuration);
-      NotifyRxBegin (GetAddressedPsduInPpdu (event->GetPpdu ()));
+      NotifyRxBegin (GetAddressedPsduInPpdu (event->GetPpdu ()), event->GetRxPowerWPerBand ());
 
       m_timeLastPreambleDetected = Simulator::Now ();
 
