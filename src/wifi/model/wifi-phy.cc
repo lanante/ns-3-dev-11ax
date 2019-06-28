@@ -3053,11 +3053,6 @@ WifiPhy::EndReceive (Ptr<Event> event)
   NS_LOG_FUNCTION (this << *event << psduDuration);
   NS_ASSERT (event->GetEndTime () == Simulator::Now ());
 
-  uint16_t channelWidth = std::min (GetChannelWidth (), event->GetTxVector ().GetChannelWidth ());
-  double snr = m_interference.CalculateSnr (event, channelWidth, GetBand (channelWidth));
-  std::vector<bool> statusPerMpdu;
-  SignalNoiseDbm signalNoise;
-
   Ptr<const WifiPpdu> ppdu = event->GetPpdu ();
   uint16_t staId;
   if (ppdu->IsUlMu ())
@@ -3069,11 +3064,26 @@ WifiPhy::EndReceive (Ptr<Event> event)
       staId = GetStaId ();
     }
 
+  uint16_t channelWidth = std::min (GetChannelWidth (), event->GetTxVector ().GetChannelWidth ());
+  WifiTxVector txVector = event->GetTxVector ();
+  WifiSpectrumBand band;
+  if (txVector.IsMu ())
+    {
+      band = GetRuBand (txVector, staId);
+      channelWidth = HeRu::GetBandwidth (txVector.GetRu (staId).ruType);
+    }
+  else
+    {
+      band = GetBand (channelWidth);
+    }
+
+  double snr = m_interference.CalculateSnr (event, channelWidth, band);
+  std::vector<bool> statusPerMpdu;
+  SignalNoiseDbm signalNoise;
   Ptr<const WifiPsdu> psdu = GetAddressedPsduInPpdu (ppdu);
   Time relativeStart = NanoSeconds (0);
   bool receptionOkAtLeastForOneMpdu = true;
   std::pair<bool, SignalNoiseDbm> rxInfo;
-  WifiTxVector txVector = event->GetTxVector ();
   size_t nMpdus = psdu->GetNMpdus ();
   if (nMpdus > 1)
     {
@@ -3137,7 +3147,18 @@ WifiPhy::GetReceptionStatus (Ptr<const WifiPsdu> psdu, Ptr<Event> event, uint16_
 {
   NS_LOG_FUNCTION (this << *psdu << *event << staId << relativeMpduStart << mpduDuration);
   uint16_t channelWidth = std::min (GetChannelWidth (), event->GetTxVector ().GetChannelWidth ());
-  InterferenceHelper::SnrPer snrPer = m_interference.CalculatePayloadSnrPer (event, channelWidth, GetBand (channelWidth), staId, std::make_pair (relativeMpduStart, relativeMpduStart + mpduDuration));
+  WifiTxVector txVector = event->GetTxVector ();
+  WifiSpectrumBand band;
+  if (txVector.IsMu ())
+    {
+      band = GetRuBand (txVector, staId);
+      channelWidth = HeRu::GetBandwidth (txVector.GetRu (staId).ruType);
+    }
+  else
+    {
+      band = GetBand (channelWidth);
+    }
+  InterferenceHelper::SnrPer snrPer = m_interference.CalculatePayloadSnrPer (event, channelWidth, band, staId, std::make_pair (relativeMpduStart, relativeMpduStart + mpduDuration));
 
   WifiMode mode = event->GetTxVector ().GetMode (staId);
   NS_LOG_DEBUG ("mode=" << (mode.GetDataRate (event->GetTxVector (), staId)) <<
@@ -3164,6 +3185,41 @@ WifiPhy::GetReceptionStatus (Ptr<const WifiPsdu> psdu, Ptr<Event> event, uint16_
       NotifyRxDrop (psdu, ERRONEOUS_FRAME);
       return std::make_pair (false, signalNoise);
     }
+}
+
+WifiSpectrumBand
+WifiPhy::GetRuBand (WifiTxVector txVector, uint16_t staId)
+{
+  NS_ASSERT (txVector.IsMu ());
+  WifiSpectrumBand band;
+  HeRu::RuSpec ru = txVector.GetRu (staId);
+  uint16_t channelWidth = txVector.GetChannelWidth ();
+  NS_ASSERT (channelWidth <= GetChannelWidth ());
+  HeRu::SubcarrierGroup group = HeRu::GetSubcarrierGroup (channelWidth, ru.ruType, ru.index);
+  HeRu::SubcarrierRange range = std::make_pair (group.front ().first, group.back ().second);
+  band = ConvertHeRuSubcarriers (channelWidth, range);
+  if (channelWidth == 160 && !ru.primary80MHz)
+    {
+      size_t offset = GetSecondary80MHzOffset ();
+      band.first = band.first + offset;
+      band.second = band.second + offset;
+    }
+  return band;
+}
+
+WifiSpectrumBand
+WifiPhy::ConvertHeRuSubcarriers (uint16_t channelWidth, HeRu::SubcarrierRange range) const
+{
+  NS_ASSERT_MSG (false, "802.11ax can only be used with SpectrumWifiPhy");
+  WifiSpectrumBand convertedSubcarriers;
+  return convertedSubcarriers;
+}
+
+size_t
+WifiPhy::GetSecondary80MHzOffset (void)
+{
+  NS_ASSERT_MSG (false, "802.11ax can only be used with SpectrumWifiPhy");
+  return 0;
 }
 
 void
