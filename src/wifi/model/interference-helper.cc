@@ -358,12 +358,12 @@ InterferenceHelper::CalculatePayloadChunkSuccessRate (double snir, Time duration
 }
 
 double
-InterferenceHelper::CalculatePayloadPer (Ptr<const Event> event, NiChangesPerBand *nis, WifiSpectrumBand band,
+InterferenceHelper::CalculatePayloadPer (Ptr<const Event> event, uint16_t channelWidth,
+                                         NiChangesPerBand *nis, WifiSpectrumBand band,
                                          uint16_t staId, std::pair<Time, Time> window) const
 {
-  NS_LOG_FUNCTION (this << staId << band.first << band.second << window.first << window.second);
+  NS_LOG_FUNCTION (this << staId << channelWidth << band.first << band.second << window.first << window.second);
   const WifiTxVector txVector = event->GetTxVector ();
-  uint16_t channelWidth = txVector.GetChannelWidth ();
   double psr = 1.0; /* Packet Success Rate */
   auto ni_it = nis->find (band)->second;
   auto j = ni_it.begin ();
@@ -947,7 +947,7 @@ InterferenceHelper::CalculatePayloadSnrPer (Ptr<Event> event, uint16_t channelWi
   /* calculate the SNIR at the start of the MPDU (located through windowing) and accumulate
    * all SNIR changes in the snir vector.
    */
-  double per = CalculatePayloadPer (event, &ni, band, staId, relativeMpduStartStop);
+  double per = CalculatePayloadPer (event, channelWidth, &ni, band, staId, relativeMpduStartStop);
 
   struct SnrPer snrPer;
   snrPer.snr = snr;

@@ -376,7 +376,7 @@ WifiTxVector::GetNumRusPerHeSigBContentChannel (void) const
       return std::make_pair (m_muUserInfos.size (), 0); //all RUs are in HE-SIG-B content channel 1
     }
 
-  HeRu::SubcarrierRange toneRangesContentChannel1, toneRangesContentChannel2;
+  HeRu::SubcarrierGroup toneRangesContentChannel1, toneRangesContentChannel2;
   // See section 27.3.10.8.3 of IEEE 802.11ax draft 4.0 for tone ranges per HE-SIG-B content channel
   switch (m_channelWidth)
   {

@@ -23,7 +23,7 @@
 
 namespace ns3 {
 
-const HeRu::SubcarrierRanges HeRu::m_heRuSubcarrierRanges =
+const HeRu::SubcarrierGroups HeRu::m_heRuSubcarrierGroups =
 {
   // RUs in a 20 MHz HE PPDU (Table 28-6)
   { {20, HeRu::RU_26_TONE}, { /* 1 */ {{-121, -96}},
@@ -158,9 +158,9 @@ HeRu::GetNRus (uint8_t bw, RuType ruType)
 
   // if the bandwidth is 160MHz, search for the number of RUs available
   // in 80MHz and double the result.
-  auto it = m_heRuSubcarrierRanges.find ({(bw == 160 ? 80 : bw), ruType});
+  auto it = m_heRuSubcarrierGroups.find ({(bw == 160 ? 80 : bw), ruType});
 
-  if (it == m_heRuSubcarrierRanges.end ())
+  if (it == m_heRuSubcarrierGroups.end ())
     {
       return 0;
     }
@@ -168,12 +168,12 @@ HeRu::GetNRus (uint8_t bw, RuType ruType)
   return (bw == 160 ? 2 : 1) * it->second.size ();
 }
 
-HeRu::SubcarrierRange
-HeRu::GetSubcarrierRange (uint8_t bw, RuType ruType, std::size_t index)
+HeRu::SubcarrierGroup
+HeRu::GetSubcarrierGroup (uint8_t bw, RuType ruType, std::size_t index)
 {
-  auto it = m_heRuSubcarrierRanges.find ({(bw == 160 ? 80 : bw), ruType});
+  auto it = m_heRuSubcarrierGroups.find ({(bw == 160 ? 80 : bw), ruType});
 
-  NS_ABORT_MSG_IF (it == m_heRuSubcarrierRanges.end (), "RU not found");
+  NS_ABORT_MSG_IF (it == m_heRuSubcarrierGroups.end (), "RU not found");
   NS_ABORT_MSG_IF (!index || index > it->second.size (), "RU index not available");
 
   return it->second.at (index-1);
@@ -188,7 +188,7 @@ HeRu::DoesOverlap (uint8_t bw, RuSpec ru, const std::vector<RuSpec> &v)
       return true;
     }
 
-  SubcarrierRange ranges = GetSubcarrierRange (bw, ru.ruType, ru.index);
+  SubcarrierGroup groups = GetSubcarrierGroup (bw, ru.ruType, ru.index);
   for (auto& p : v)
     {
       if (ru.primary80MHz != p.primary80MHz)
@@ -196,7 +196,7 @@ HeRu::DoesOverlap (uint8_t bw, RuSpec ru, const std::vector<RuSpec> &v)
           // the two RUs are located in distinct 80MHz bands
           continue;
         }
-      if (DoesOverlap (bw, p, ranges))
+      if (DoesOverlap (bw, p, groups))
         {
           return true;
         }
@@ -205,7 +205,7 @@ HeRu::DoesOverlap (uint8_t bw, RuSpec ru, const std::vector<RuSpec> &v)
 }
 
 bool
-HeRu::DoesOverlap (uint8_t bw, RuSpec ru, const SubcarrierRange &toneRanges)
+HeRu::DoesOverlap (uint8_t bw, RuSpec ru, const SubcarrierGroup &toneRanges)
 {
   for (const auto & range : toneRanges)
     {
@@ -214,10 +214,10 @@ HeRu::DoesOverlap (uint8_t bw, RuSpec ru, const SubcarrierRange &toneRanges)
           return true;
         }
 
-      SubcarrierRange rangesRu = GetSubcarrierRange (bw, ru.ruType, ru.index);
+      SubcarrierGroup rangesRu = GetSubcarrierGroup (bw, ru.ruType, ru.index);
       if (bw == 160)
         {
-          // Translate 80 MHz indices obtained from GetSubcarrierRange (i.e. from -500 to 500)
+          // Translate 80 MHz indices obtained from GetSubcarrierGroup (i.e. from -500 to 500)
           // into 160 MHz indices (i.e. -1012 to 1012) for HE-SIG-B content channel differentiation
           int16_t shift = ru.primary80MHz ? -512 : 512;
           for (auto & pair : rangesRu)

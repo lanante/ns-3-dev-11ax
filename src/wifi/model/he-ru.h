@@ -28,7 +28,7 @@ namespace ns3 {
 
 
 /**
- * This class stores the subcarrier ranges of all the available HE RUs.
+ * This class stores the subcarrier groups of all the available HE RUs.
  */
 class HeRu
 {
@@ -47,11 +47,11 @@ public:
     RU_2x996_TONE
   };
 
-  /// (lowest index, highest index) pair
-  typedef std::pair<int16_t, int16_t> Indices;
+  /// (lowest index, highest index) pair defining a subcarrier range
+  typedef std::pair<int16_t, int16_t> SubcarrierRange;
 
-  /// (lowest index, highest index) pairs defining subcarrier range
-  typedef std::vector<Indices> SubcarrierRange;
+  /// a vector of subcarrier ranges defining a subcarrier group
+  typedef std::vector<SubcarrierRange> SubcarrierGroup;
 
 
   /**
@@ -78,9 +78,9 @@ public:
   static std::size_t GetNRus (uint8_t bw, RuType ruType);
 
   /**
-   * Get the subcarrier range of the RU having the given index among all the
+   * Get the subcarrier group of the RU having the given index among all the
    * RUs of the given type (number of tones) available in a HE PPDU of the
-   * given bandwidth. A subcarrier range is defined as one or more pairs
+   * given bandwidth. A subcarrier group is defined as one or more pairs
    * indicating the lowest frequency index and the highest frequency index.
    * Note that for channel width of 160 MHz the returned range is relative to
    * an 80 MHz subchannel.
@@ -90,7 +90,7 @@ public:
    * \param index the index (starting at 1) of the RU
    * \return the subcarrier range of the specified RU
    */
-  static SubcarrierRange GetSubcarrierRange (uint8_t bw, RuType ruType, std::size_t index);
+  static SubcarrierGroup GetSubcarrierGroup (uint8_t bw, RuType ruType, std::size_t index);
 
   /**
    * Check whether the given RU overlaps with the given set of RUs.
@@ -113,7 +113,7 @@ public:
    * \param toneRanges the given set of tone ranges
    * \return true if the given RU overlaps with the given set of tone ranges.
    */
-  static bool DoesOverlap (uint8_t bw, RuSpec ru, const SubcarrierRange &toneRanges);
+  static bool DoesOverlap (uint8_t bw, RuSpec ru, const SubcarrierGroup &toneRanges);
 
   /**
    * Get the approximate bandwidth occupied by a RU.
@@ -126,11 +126,11 @@ public:
   /// (bandwidth, number of tones) pair
   typedef std::pair<uint8_t, RuType> BwTonesPair;
 
-  /// map (bandwidth, number of tones) pairs to the range of subcarrier indices
-  typedef std::map<BwTonesPair, std::vector<SubcarrierRange> > SubcarrierRanges;
+  /// map (bandwidth, number of tones) pairs to the group of subcarrier ranges
+  typedef std::map<BwTonesPair, std::vector<SubcarrierGroup> > SubcarrierGroups;
 
-  //!< Subcarrier ranges for all RUs
-  static const SubcarrierRanges  m_heRuSubcarrierRanges;
+  //!< Subcarrier groups for all RUs
+  static const SubcarrierGroups  m_heRuSubcarrierGroups;
 };
 
 /**
