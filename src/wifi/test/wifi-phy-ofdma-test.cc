@@ -34,6 +34,8 @@
 #include "ns3/wifi-net-device.h"
 #include "ns3/wifi-psdu.h"
 #include "ns3/wifi-ppdu.h"
+#include "ns3/waveform-generator.h"
+#include "ns3/non-communicating-net-device.h"
 
 using namespace ns3;
 
@@ -167,23 +169,61 @@ public:
   void RxSuccessSta3 (Ptr<WifiPsdu> psdu, double snr, WifiTxVector txVector, std::vector<bool> statusPerMpdu);
 
   /**
-   * Check the results
+   * Receive failure function for STA 1
+   * \param psdu the PSDU
    */
-  void CheckResults ();
+  void RxFailureSta1 (Ptr<WifiPsdu> psdu);
+  /**
+   * Receive failure function for STA 2
+   * \param psdu the PSDU
+   */
+  void RxFailureSta2 (Ptr<WifiPsdu> psdu);
+  /**
+   * Receive failure function for STA 3
+   * \param psdu the PSDU
+   */
+  void RxFailureSta3 (Ptr<WifiPsdu> psdu);
 
-  uint32_t m_countRxPacketsSta1; ///< count RX packets for STA 1
-  uint32_t m_countRxPacketsSta2; ///< count RX packets for STA 2
-  uint32_t m_countRxPacketsSta3; ///< count RX packets for STA 3
+  /**
+   * Check the results for STA 1
+   * \param expectedRxSuccess the expected number of RX success
+   * \param expectedRxFailure the expected number of RX failures
+   * \param expectedRxBytes the expected number of RX bytes
+   */
+  void CheckResultsSta1 (uint32_t expectedRxSuccess, uint32_t expectedRxFailure, uint32_t expectedRxBytes);
+  /**
+   * Check the results for STA 2
+   * \param expectedRxSuccess the expected number of RX success
+   * \param expectedRxFailure the expected number of RX failures
+   * \param expectedRxBytes the expected number of RX bytes
+   */
+  void CheckResultsSta2 (uint32_t expectedRxSuccess, uint32_t expectedRxFailure, uint32_t expectedRxBytes);
+  /**
+   * Check the results for STA 3
+   * \param expectedRxSuccess the expected number of RX success
+   * \param expectedRxFailure the expected number of RX failures
+   * \param expectedRxBytes the expected number of RX bytes
+   */
+  void CheckResultsSta3 (uint32_t expectedRxSuccess, uint32_t expectedRxFailure, uint32_t expectedRxBytes);
+
+  /**
+   * Reset the results
+   */
+  void ResetResults ();
+
+  uint32_t m_countRxSuccessSta1; ///< count RX success for STA 1
+  uint32_t m_countRxSuccessSta2; ///< count RX success for STA 2
+  uint32_t m_countRxSuccessSta3; ///< count RX success for STA 3
+  uint32_t m_countRxFailureSta1; ///< count RX failure for STA 1
+  uint32_t m_countRxFailureSta2; ///< count RX failure for STA 2
+  uint32_t m_countRxFailureSta3; ///< count RX failure for STA 3
   uint32_t m_countRxBytesSta1;   ///< count RX bytes for STA 1
   uint32_t m_countRxBytesSta2;   ///< count RX bytes for STA 2
   uint32_t m_countRxBytesSta3;   ///< count RX bytes for STA 3
 
 protected:
   virtual void DoSetup (void);
-  Ptr<SpectrumWifiPhy> m_phyAp;   ///< PHY of AP
-  Ptr<OfdmaSpectrumWifiPhy> m_phySta1; ///< PHY of STA 1
-  Ptr<OfdmaSpectrumWifiPhy> m_phySta2; ///< PHY of STA 2
-  Ptr<OfdmaSpectrumWifiPhy> m_phySta3; ///< PHY of STA 3
+
   /**
    * Send MU-PPDU function
    * \param rxStaId1 the ID of the recipient STA for the first PSDU
@@ -191,8 +231,24 @@ protected:
    */
   void SendMuPpdu (uint16_t rxStaId1, uint16_t rxStaId2);
 
+  /**
+   * Generate interference function
+   * \param interferencePsd the PSD of the interference to be generated
+   * \param duration the duration of the interference
+   */
+  void GenerateInterference (Ptr<SpectrumValue> interferencePsd, Time duration);
+  /**
+   * Stop interference function
+   */
+  void StopInterference (void);
+
 private:
   virtual void DoRun (void);
+
+  /**
+   * Run one function
+   */
+  void RunOne ();
 
   /**
    * Check the PHY state
@@ -201,28 +257,86 @@ private:
    */
   void CheckPhyState (Ptr<OfdmaSpectrumWifiPhy> phy, WifiPhyState expectedState);
   void DoCheckPhyState (Ptr<OfdmaSpectrumWifiPhy> phy, WifiPhyState expectedState);
+
+  Ptr<SpectrumWifiPhy> m_phyAp;           ///< PHY of AP
+  Ptr<OfdmaSpectrumWifiPhy> m_phySta1;    ///< PHY of STA 1
+  Ptr<OfdmaSpectrumWifiPhy> m_phySta2;    ///< PHY of STA 2
+  Ptr<OfdmaSpectrumWifiPhy> m_phySta3;    ///< PHY of STA 3
+  Ptr<WaveformGenerator> m_phyInterferer; ///< PHY of interferer
+
+  uint16_t m_frequency;        ///< frequency in MHz
+  uint16_t m_channelWidth;     ///< channel width in MHz
+  Time m_expectedPpduDuration; ///< expected duration to send MU PPDU
 };
 
 TestDlOfdmaReception::TestDlOfdmaReception ()
   : TestCase ("DL-OFDMA PHY reception test"),
-    m_countRxPacketsSta1 (0),
-    m_countRxPacketsSta2 (0),
-    m_countRxPacketsSta3 (0),
+    m_countRxSuccessSta1 (0),
+    m_countRxSuccessSta2 (0),
+    m_countRxSuccessSta3 (0),
+    m_countRxFailureSta1 (0),
+    m_countRxFailureSta2 (0),
+    m_countRxFailureSta3 (0),
     m_countRxBytesSta1 (0),
     m_countRxBytesSta2 (0),
-    m_countRxBytesSta3 (0)
+    m_countRxBytesSta3 (0),
+    m_frequency (5180),
+    m_channelWidth (20),
+    m_expectedPpduDuration (NanoSeconds (306400))
 {
+}
+
+void
+TestDlOfdmaReception::ResetResults (void)
+{
+  m_countRxSuccessSta1 = 0;
+  m_countRxSuccessSta2 = 0;
+  m_countRxSuccessSta3 = 0;
+  m_countRxFailureSta1 = 0;
+  m_countRxFailureSta2 = 0;
+  m_countRxFailureSta3 = 0;
+  m_countRxBytesSta1 = 0;
+  m_countRxBytesSta2 = 0;
+  m_countRxBytesSta3 = 0;
 }
 
 void
 TestDlOfdmaReception::SendMuPpdu (uint16_t rxStaId1, uint16_t rxStaId2)
 {
   WifiPsduMap psdus;
-  WifiTxVector txVector = WifiTxVector (WifiPhy::GetHeMcs7 (), 0, WIFI_PREAMBLE_HE_MU, 800, 1, 1, 0, 20, false, false);
-
+  WifiTxVector txVector = WifiTxVector (WifiPhy::GetHeMcs7 (), 0, WIFI_PREAMBLE_HE_MU, 800, 1, 1, 0, m_channelWidth, false, false);
+  HeRu::RuType ruType;
+  if (m_channelWidth == 20)
+    {
+      ruType = HeRu::RU_106_TONE;
+    }
+  else if (m_channelWidth == 40)
+    {
+      ruType = HeRu::RU_242_TONE;
+    }
+  else if (m_channelWidth == 80)
+    {
+      ruType = HeRu::RU_484_TONE;
+    }
+  else if (m_channelWidth == 160)
+    {
+      ruType = HeRu::RU_996_TONE;
+    }
+  else
+    {
+      NS_ASSERT_MSG (false, "Unsupported channel width");
+    }
+  
   HeRu::RuSpec ru1;
-  ru1.primary80MHz = false;
-  ru1.ruType = HeRu::RU_106_TONE;
+  if (m_channelWidth == 160)
+    {
+      ru1.primary80MHz = true;
+    }
+  else
+    {
+      ru1.primary80MHz = false;
+    }
+  ru1.ruType = ruType;
   ru1.index = 1;
   txVector.SetRu (ru1, rxStaId1);
   txVector.SetMode (WifiPhy::GetHeMcs7 (), rxStaId1);
@@ -230,8 +344,15 @@ TestDlOfdmaReception::SendMuPpdu (uint16_t rxStaId1, uint16_t rxStaId2)
 
   HeRu::RuSpec ru2;
   ru2.primary80MHz = false;
-  ru2.ruType = HeRu::RU_106_TONE;
-  ru2.index = 2;
+  ru2.ruType = ruType;
+  if (m_channelWidth == 160)
+    {
+      ru2.index = 1;
+    }
+  else
+    {
+      ru2.index = 2;
+    }
   txVector.SetRu (ru2, rxStaId2);
   txVector.SetMode (WifiPhy::GetHeMcs9 (), rxStaId2);
   txVector.SetNss (1, rxStaId2);
@@ -257,19 +378,35 @@ TestDlOfdmaReception::SendMuPpdu (uint16_t rxStaId1, uint16_t rxStaId2)
   m_phyAp->Send (psdus, txVector);
 }
 
+void
+TestDlOfdmaReception::GenerateInterference (Ptr<SpectrumValue> interferencePsd, Time duration)
+{
+  m_phyInterferer->SetTxPowerSpectralDensity (interferencePsd);
+  m_phyInterferer->SetPeriod (duration);
+  m_phyInterferer->Start ();
+  Simulator::Schedule (duration, &TestDlOfdmaReception::StopInterference, this);
+}
+
+void
+TestDlOfdmaReception::StopInterference (void)
+{
+  m_phyInterferer->Stop();
+}
+
 TestDlOfdmaReception::~TestDlOfdmaReception ()
 {
   m_phyAp = 0;
   m_phySta1 = 0;
   m_phySta2 = 0;
   m_phySta3 = 0;
+  m_phyInterferer = 0;
 }
 
 void
 TestDlOfdmaReception::RxSuccessSta1 (Ptr<WifiPsdu> psdu, double snr, WifiTxVector txVector, std::vector<bool> /*statusPerMpdu*/)
 {
   NS_LOG_FUNCTION (this << *psdu << snr << txVector);
-  m_countRxPacketsSta1++;
+  m_countRxSuccessSta1++;
   m_countRxBytesSta1 += (psdu->GetSize () - 30);
 }
 
@@ -277,7 +414,7 @@ void
 TestDlOfdmaReception::RxSuccessSta2 (Ptr<WifiPsdu> psdu, double snr, WifiTxVector txVector, std::vector<bool> /*statusPerMpdu*/)
 {
   NS_LOG_FUNCTION (this << *psdu << snr << txVector);
-  m_countRxPacketsSta2++;
+  m_countRxSuccessSta2++;
   m_countRxBytesSta2 += (psdu->GetSize () - 30);
 }
 
@@ -285,19 +422,53 @@ void
 TestDlOfdmaReception::RxSuccessSta3 (Ptr<WifiPsdu> psdu, double snr, WifiTxVector txVector, std::vector<bool> /*statusPerMpdu*/)
 {
   NS_LOG_FUNCTION (this << *psdu << snr << txVector);
-  m_countRxPacketsSta3++;
+  m_countRxSuccessSta3++;
   m_countRxBytesSta3 += (psdu->GetSize () - 30);
 }
 
 void
-TestDlOfdmaReception::CheckResults ()
+TestDlOfdmaReception::RxFailureSta1 (Ptr<WifiPsdu> psdu)
 {
-  NS_TEST_ASSERT_MSG_EQ (m_countRxPacketsSta1, 2, "The number of packets received by STA1 is not correct!");
-  NS_TEST_ASSERT_MSG_EQ (m_countRxPacketsSta2, 1, "The number of packets received by STA2 is not correct!");
-  NS_TEST_ASSERT_MSG_EQ (m_countRxPacketsSta3, 1, "The number of packets received by STA3 is not correct!");
-  NS_TEST_ASSERT_MSG_EQ (m_countRxBytesSta1, 2000, "The number of bytes received by STA1 is not correct!");
-  NS_TEST_ASSERT_MSG_EQ (m_countRxBytesSta2, 1500, "The number of bytes received by STA2 is not correct!");
-  NS_TEST_ASSERT_MSG_EQ (m_countRxBytesSta3, 1500, "The number of bytes received by STA3 is not correct!");
+  NS_LOG_FUNCTION (this << *psdu);
+  m_countRxFailureSta1++;
+}
+
+void
+TestDlOfdmaReception::RxFailureSta2 (Ptr<WifiPsdu> psdu)
+{
+  NS_LOG_FUNCTION (this << *psdu);
+  m_countRxFailureSta2++;
+}
+
+void
+TestDlOfdmaReception::RxFailureSta3 (Ptr<WifiPsdu> psdu)
+{
+  NS_LOG_FUNCTION (this << *psdu);
+  m_countRxFailureSta3++;
+}
+
+void
+TestDlOfdmaReception::CheckResultsSta1 (uint32_t expectedRxSuccess, uint32_t expectedRxFailure, uint32_t expectedRxBytes)
+{
+  NS_TEST_ASSERT_MSG_EQ (m_countRxSuccessSta1, expectedRxSuccess, "The number of successfully received packets by STA 1 is not correct!");
+  NS_TEST_ASSERT_MSG_EQ (m_countRxFailureSta1, expectedRxFailure, "The number of unsuccessfully received packets by STA 1 is not correct!");
+  NS_TEST_ASSERT_MSG_EQ (m_countRxBytesSta1, expectedRxBytes, "The number of bytes received by STA 1 is not correct!");
+}
+
+void
+TestDlOfdmaReception::CheckResultsSta2 (uint32_t expectedRxSuccess, uint32_t expectedRxFailure, uint32_t expectedRxBytes)
+{
+  NS_TEST_ASSERT_MSG_EQ (m_countRxSuccessSta2, expectedRxSuccess, "The number of successfully received packets by STA 2 is not correct!");
+  NS_TEST_ASSERT_MSG_EQ (m_countRxFailureSta2, expectedRxFailure, "The number of unsuccessfully received packets by STA 2 is not correct!");
+  NS_TEST_ASSERT_MSG_EQ (m_countRxBytesSta2, expectedRxBytes, "The number of bytes received by STA 2 is not correct!");
+}
+
+void
+TestDlOfdmaReception::CheckResultsSta3 (uint32_t expectedRxSuccess, uint32_t expectedRxFailure, uint32_t expectedRxBytes)
+{
+  NS_TEST_ASSERT_MSG_EQ (m_countRxSuccessSta3, expectedRxSuccess, "The number of successfully received packets by STA 3 is not correct!");
+  NS_TEST_ASSERT_MSG_EQ (m_countRxFailureSta3, expectedRxFailure, "The number of unsuccessfully received packets by STA 3 is not correct!");
+  NS_TEST_ASSERT_MSG_EQ (m_countRxBytesSta3, expectedRxBytes, "The number of bytes received by STA 3 is not correct!");
 }
 
 void
@@ -322,11 +493,12 @@ TestDlOfdmaReception::DoCheckPhyState (Ptr<OfdmaSpectrumWifiPhy> phy, WifiPhySta
 void
 TestDlOfdmaReception::DoSetup (void)
 {
-  uint32_t frequency = 5180; // MHz
+  //LogLevel logLevel = (LogLevel)(LOG_PREFIX_FUNC | LOG_PREFIX_TIME | LOG_LEVEL_ALL);
+  //LogComponentEnable ("WifiPhyOfdmaTest", logLevel);
 
   Ptr<MultiModelSpectrumChannel> spectrumChannel = CreateObject<MultiModelSpectrumChannel> ();
   Ptr<FriisPropagationLossModel> lossModel = CreateObject<FriisPropagationLossModel> ();
-  lossModel->SetFrequency (frequency);
+  lossModel->SetFrequency (m_frequency);
   spectrumChannel->AddPropagationLossModel (lossModel);
   Ptr<ConstantSpeedPropagationDelayModel> delayModel = CreateObject<ConstantSpeedPropagationDelayModel> ();
   spectrumChannel->SetPropagationDelayModel (delayModel);
@@ -338,7 +510,6 @@ TestDlOfdmaReception::DoSetup (void)
   m_phyAp->ConfigureStandard (WIFI_PHY_STANDARD_80211ax_5GHZ);
   Ptr<ErrorRateModel> error = CreateObject<NistErrorRateModel> ();
   m_phyAp->SetErrorRateModel (error);
-  m_phyAp->SetFrequency (frequency);
   m_phyAp->SetDevice (apDev);
   m_phyAp->SetChannel (spectrumChannel);
   Ptr<ConstantPositionMobilityModel> apMobility = CreateObject<ConstantPositionMobilityModel> ();
@@ -353,9 +524,9 @@ TestDlOfdmaReception::DoSetup (void)
   m_phySta1->CreateWifiSpectrumPhyInterface (sta1Dev);
   m_phySta1->ConfigureStandard (WIFI_PHY_STANDARD_80211ax_5GHZ);
   m_phySta1->SetErrorRateModel (error);
-  m_phySta1->SetFrequency (frequency);
   m_phySta1->SetChannel (spectrumChannel);
   m_phySta1->SetReceiveOkCallback (MakeCallback (&TestDlOfdmaReception::RxSuccessSta1, this));
+  m_phySta1->SetReceiveErrorCallback (MakeCallback (&TestDlOfdmaReception::RxFailureSta1, this));
   Ptr<ConstantPositionMobilityModel> sta1Mobility = CreateObject<ConstantPositionMobilityModel> ();
   m_phySta1->SetMobility (sta1Mobility);
   sta1Dev->SetPhy (m_phySta1);
@@ -368,9 +539,9 @@ TestDlOfdmaReception::DoSetup (void)
   m_phySta2->CreateWifiSpectrumPhyInterface (sta2Dev);
   m_phySta2->ConfigureStandard (WIFI_PHY_STANDARD_80211ax_5GHZ);
   m_phySta2->SetErrorRateModel (error);
-  m_phySta2->SetFrequency (frequency);
   m_phySta2->SetChannel (spectrumChannel);
   m_phySta2->SetReceiveOkCallback (MakeCallback (&TestDlOfdmaReception::RxSuccessSta2, this));
+  m_phySta2->SetReceiveErrorCallback (MakeCallback (&TestDlOfdmaReception::RxFailureSta2, this));
   Ptr<ConstantPositionMobilityModel> sta2Mobility = CreateObject<ConstantPositionMobilityModel> ();
   m_phySta2->SetMobility (sta2Mobility);
   sta2Dev->SetPhy (m_phySta2);
@@ -383,18 +554,26 @@ TestDlOfdmaReception::DoSetup (void)
   m_phySta3->CreateWifiSpectrumPhyInterface (sta3Dev);
   m_phySta3->ConfigureStandard (WIFI_PHY_STANDARD_80211ax_5GHZ);
   m_phySta3->SetErrorRateModel (error);
-  m_phySta3->SetFrequency (frequency);
   m_phySta3->SetChannel (spectrumChannel);
   m_phySta3->SetReceiveOkCallback (MakeCallback (&TestDlOfdmaReception::RxSuccessSta3, this));
+  m_phySta3->SetReceiveErrorCallback (MakeCallback (&TestDlOfdmaReception::RxFailureSta3, this));
   Ptr<ConstantPositionMobilityModel> sta3Mobility = CreateObject<ConstantPositionMobilityModel> ();
   m_phySta3->SetMobility (sta3Mobility);
   sta3Dev->SetPhy (m_phySta3);
   sta3Node->AggregateObject (sta3Mobility);
   sta3Node->AddDevice (sta3Dev);
+
+  Ptr<Node> interfererNode = CreateObject<Node> ();
+  Ptr<NonCommunicatingNetDevice> interfererDev = CreateObject<NonCommunicatingNetDevice> ();
+  m_phyInterferer = CreateObject<WaveformGenerator> ();
+  m_phyInterferer->SetDevice (interfererDev);
+  m_phyInterferer->SetChannel (spectrumChannel);
+  m_phyInterferer->SetDutyCycle (1);
+  interfererNode->AddDevice (interfererDev);
 }
 
 void
-TestDlOfdmaReception::DoRun (void)
+TestDlOfdmaReception::RunOne (void)
 {
   RngSeedManager::SetSeed (1);
   RngSeedManager::SetRun (1);
@@ -404,40 +583,202 @@ TestDlOfdmaReception::DoRun (void)
   m_phySta2->AssignStreams (streamNumber);
   m_phySta3->AssignStreams (streamNumber);
 
+  m_phyAp->SetFrequency (m_frequency);
+  m_phyAp->SetChannelWidth (m_channelWidth);
+
+  m_phySta1->SetFrequency (m_frequency);
+  m_phySta1->SetChannelWidth (m_channelWidth);
+
+  m_phySta2->SetFrequency (m_frequency);
+  m_phySta2->SetChannelWidth (m_channelWidth);
+
+  m_phySta3->SetFrequency (m_frequency);
+  m_phySta3->SetChannelWidth (m_channelWidth);
+
+  Simulator::Schedule (Seconds (0.5), &TestDlOfdmaReception::ResetResults, this);
+
   //Send MU PPDU with two PSDUs addressed to STA 1 and STA 2:
   //Each STA should receive its PSDU.
   Simulator::Schedule (Seconds (1.0), &TestDlOfdmaReception::SendMuPpdu, this, 1, 2);
 
-  //Since it takes 306.4us to transmit the largest packet,
-  //both PHYs should be back to IDLE at the same time time 306.4us
-  Simulator::Schedule (Seconds (1.0) + NanoSeconds (306399), &TestDlOfdmaReception::CheckPhyState, this, m_phySta1, WifiPhyState::RX);
-  Simulator::Schedule (Seconds (1.0) + NanoSeconds (306399), &TestDlOfdmaReception::CheckPhyState, this, m_phySta2, WifiPhyState::RX);
-  Simulator::Schedule (Seconds (1.0) + NanoSeconds (306399), &TestDlOfdmaReception::CheckPhyState, this, m_phySta3, WifiPhyState::RX);
-  Simulator::Schedule (Seconds (1.0) + NanoSeconds (306400), &TestDlOfdmaReception::CheckPhyState, this, m_phySta1, WifiPhyState::IDLE);
-  Simulator::Schedule (Seconds (1.0) + NanoSeconds (306400), &TestDlOfdmaReception::CheckPhyState, this, m_phySta2, WifiPhyState::IDLE);
-  Simulator::Schedule (Seconds (1.0) + NanoSeconds (306400), &TestDlOfdmaReception::CheckPhyState, this, m_phySta3, WifiPhyState::IDLE);
+  //Since it takes m_expectedPpduDuration to transmit the PPDU,
+  //both PHYs should be back to IDLE at the same time,
+  //even the PHY that has no PSDU addressed to it.
+  Simulator::Schedule (Seconds (1.0) + m_expectedPpduDuration - NanoSeconds (1), &TestDlOfdmaReception::CheckPhyState, this, m_phySta1, WifiPhyState::RX);
+  Simulator::Schedule (Seconds (1.0) + m_expectedPpduDuration - NanoSeconds (1), &TestDlOfdmaReception::CheckPhyState, this, m_phySta2, WifiPhyState::RX);
+  Simulator::Schedule (Seconds (1.0) + m_expectedPpduDuration - NanoSeconds (1), &TestDlOfdmaReception::CheckPhyState, this, m_phySta3, WifiPhyState::RX);
+  Simulator::Schedule (Seconds (1.0) + m_expectedPpduDuration, &TestDlOfdmaReception::CheckPhyState, this, m_phySta1, WifiPhyState::IDLE);
+  Simulator::Schedule (Seconds (1.0) + m_expectedPpduDuration, &TestDlOfdmaReception::CheckPhyState, this, m_phySta2, WifiPhyState::IDLE);
+  Simulator::Schedule (Seconds (1.0) + m_expectedPpduDuration, &TestDlOfdmaReception::CheckPhyState, this, m_phySta3, WifiPhyState::IDLE);
+
+  //One PSDU of 1000 bytes should have been successfully received by STA 1
+  Simulator::Schedule (Seconds (1.1), &TestDlOfdmaReception::CheckResultsSta1, this, 1, 0, 1000);
+  //One PSDU of 1500 bytes should have been successfully received by STA 2
+  Simulator::Schedule (Seconds (1.1), &TestDlOfdmaReception::CheckResultsSta2, this, 1, 0, 1500);
+  //No PSDU should have been received by STA 3
+  Simulator::Schedule (Seconds (1.1), &TestDlOfdmaReception::CheckResultsSta3, this, 0, 0, 0);
+
+  Simulator::Schedule (Seconds (1.5), &TestDlOfdmaReception::ResetResults, this);
 
   //Send MU PPDU with two PSDUs addressed to STA 1 and STA 3:
   //STA 1 should receive its PSDU, whereas STA 2 should not receive any PSDU
   //but should keep its PHY busy during all PPDU duration.
   Simulator::Schedule (Seconds (2.0), &TestDlOfdmaReception::SendMuPpdu, this, 1, 3);
 
-  //Since it takes 306.4us to transmit the largest packet,
-  //both PHYs should be back to IDLE at the same time time 306.4us,
+  //Since it takes m_expectedPpduDuration to transmit the PPDU,
+  //both PHYs should be back to IDLE at the same time,
   //even the PHY that has no PSDU addressed to it.
-  Simulator::Schedule (Seconds (2.0) + NanoSeconds (306399), &TestDlOfdmaReception::CheckPhyState, this, m_phySta1, WifiPhyState::RX);
-  Simulator::Schedule (Seconds (2.0) + NanoSeconds (306399), &TestDlOfdmaReception::CheckPhyState, this, m_phySta2, WifiPhyState::RX);
-  Simulator::Schedule (Seconds (2.0) + NanoSeconds (306399), &TestDlOfdmaReception::CheckPhyState, this, m_phySta3, WifiPhyState::RX);
-  Simulator::Schedule (Seconds (2.0) + NanoSeconds (306400), &TestDlOfdmaReception::CheckPhyState, this, m_phySta1, WifiPhyState::IDLE);
-  Simulator::Schedule (Seconds (2.0) + NanoSeconds (306400), &TestDlOfdmaReception::CheckPhyState, this, m_phySta2, WifiPhyState::IDLE);
-  Simulator::Schedule (Seconds (2.0) + NanoSeconds (306400), &TestDlOfdmaReception::CheckPhyState, this, m_phySta3, WifiPhyState::IDLE);
+  Simulator::Schedule (Seconds (2.0) + m_expectedPpduDuration - NanoSeconds (1), &TestDlOfdmaReception::CheckPhyState, this, m_phySta1, WifiPhyState::RX);
+  Simulator::Schedule (Seconds (2.0) + m_expectedPpduDuration - NanoSeconds (1), &TestDlOfdmaReception::CheckPhyState, this, m_phySta2, WifiPhyState::RX);
+  Simulator::Schedule (Seconds (2.0) + m_expectedPpduDuration - NanoSeconds (1), &TestDlOfdmaReception::CheckPhyState, this, m_phySta3, WifiPhyState::RX);
+  Simulator::Schedule (Seconds (2.0) + m_expectedPpduDuration, &TestDlOfdmaReception::CheckPhyState, this, m_phySta1, WifiPhyState::IDLE);
+  Simulator::Schedule (Seconds (2.0) + m_expectedPpduDuration, &TestDlOfdmaReception::CheckPhyState, this, m_phySta2, WifiPhyState::IDLE);
+  Simulator::Schedule (Seconds (2.0) + m_expectedPpduDuration, &TestDlOfdmaReception::CheckPhyState, this, m_phySta3, WifiPhyState::IDLE);
+
+  //One PSDU of 1000 bytes should have been successfully received by STA 1
+  Simulator::Schedule (Seconds (2.1), &TestDlOfdmaReception::CheckResultsSta1, this, 1, 0, 1000);
+  //No PSDU should have been received by STA 2
+  Simulator::Schedule (Seconds (2.1), &TestDlOfdmaReception::CheckResultsSta2, this, 0, 0, 0);
+  //One PSDU of 1500 bytes should have been successfully received by STA 3
+  Simulator::Schedule (Seconds (2.1), &TestDlOfdmaReception::CheckResultsSta3, this, 1, 0, 1500);
+
+  Simulator::Schedule (Seconds (2.5), &TestDlOfdmaReception::ResetResults, this);
+
+  //Send MU PPDU with two PSDUs addressed to STA 1 and STA 2:
+  Simulator::Schedule (Seconds (3.0), &TestDlOfdmaReception::SendMuPpdu, this, 1, 2);
+
+  //A strong non-wifi interference is generated on RU 1 during PSDU reception
+  BandInfo bandInfo;
+  bandInfo.fc = (m_frequency - (m_channelWidth / 4)) * 1e6;
+  bandInfo.fl = bandInfo.fc - ((m_channelWidth / 4) * 1e6);
+  bandInfo.fh = bandInfo.fc + ((m_channelWidth / 4) * 1e6);
+  Bands bands;
+  bands.push_back (bandInfo);
+
+  Ptr<SpectrumModel> SpectrumInterferenceRu1 = Create<SpectrumModel> (bands);
+  Ptr<SpectrumValue> interferencePsdRu1 = Create<SpectrumValue> (SpectrumInterferenceRu1);
+  double interferencePower = 0.1; //watts
+  *interferencePsdRu1 = interferencePower / ((m_channelWidth / 2) * 20e6);
+
+  Simulator::Schedule (Seconds (3.0) + MicroSeconds (50), &TestDlOfdmaReception::GenerateInterference, this, interferencePsdRu1, MilliSeconds (100));
+
+  //Since it takes m_expectedPpduDuration to transmit the PPDU,
+  //both PHYs should be back to CCA_BUSY (due to the interference) at the same time,
+  //even the PHY that has no PSDU addressed to it.
+  Simulator::Schedule (Seconds (3.0) + m_expectedPpduDuration - NanoSeconds (1), &TestDlOfdmaReception::CheckPhyState, this, m_phySta1, WifiPhyState::RX);
+  Simulator::Schedule (Seconds (3.0) + m_expectedPpduDuration - NanoSeconds (1), &TestDlOfdmaReception::CheckPhyState, this, m_phySta2, WifiPhyState::RX);
+  Simulator::Schedule (Seconds (3.0) + m_expectedPpduDuration - NanoSeconds (1), &TestDlOfdmaReception::CheckPhyState, this, m_phySta3, WifiPhyState::RX);
+  Simulator::Schedule (Seconds (3.0) + m_expectedPpduDuration, &TestDlOfdmaReception::CheckPhyState, this, m_phySta1, WifiPhyState::CCA_BUSY);
+  Simulator::Schedule (Seconds (3.0) + m_expectedPpduDuration, &TestDlOfdmaReception::CheckPhyState, this, m_phySta2, WifiPhyState::CCA_BUSY);
+  Simulator::Schedule (Seconds (3.0) + m_expectedPpduDuration, &TestDlOfdmaReception::CheckPhyState, this, m_phySta3, WifiPhyState::CCA_BUSY);
+
+  //One PSDU of 1000 bytes should have been unsuccessfully received by STA 1 (since interference occupies RU 1)
+  Simulator::Schedule (Seconds (3.1), &TestDlOfdmaReception::CheckResultsSta1, this, 0, 1, 0);
+  //One PSDU of 1500 bytes should have been successfully received by STA 2
+  Simulator::Schedule (Seconds (3.1), &TestDlOfdmaReception::CheckResultsSta2, this, 1, 0, 1500);
+  //No PSDU should have been received by STA3
+  Simulator::Schedule (Seconds (3.1), &TestDlOfdmaReception::CheckResultsSta3, this, 0, 0, 0);
+
+  Simulator::Schedule (Seconds (3.5), &TestDlOfdmaReception::ResetResults, this);
+
+  //Send MU PPDU with two PSDUs addressed to STA 1 and STA 2:
+  Simulator::Schedule (Seconds (4.0), &TestDlOfdmaReception::SendMuPpdu, this, 1, 2);
+
+  //A strong non-wifi interference is generated on RU 2 during PSDU reception
+  bandInfo.fc = (m_frequency + (m_channelWidth / 4)) * 1e6;
+  bandInfo.fl = bandInfo.fc - ((m_channelWidth / 4) * 1e6);
+  bandInfo.fh = bandInfo.fc + ((m_channelWidth / 4) * 1e6);
+  bands.clear ();
+  bands.push_back (bandInfo);
+
+  Ptr<SpectrumModel> SpectrumInterferenceRu2 = Create<SpectrumModel> (bands);
+  Ptr<SpectrumValue> interferencePsdRu2 = Create<SpectrumValue> (SpectrumInterferenceRu2);
+  *interferencePsdRu2 = interferencePower / ((m_channelWidth / 2) * 20e6);
+
+  Simulator::Schedule (Seconds (4.0) + MicroSeconds (50), &TestDlOfdmaReception::GenerateInterference, this, interferencePsdRu2, MilliSeconds (100));
+
+  //Since it takes m_expectedPpduDuration to transmit the PPDU,
+  //both PHYs should be back to IDLE (or CCA_BUSY if interference on the primary 20 MHz) at the same time,
+  //even the PHY that has no PSDU addressed to it.
+  Simulator::Schedule (Seconds (4.0) + m_expectedPpduDuration - NanoSeconds (1), &TestDlOfdmaReception::CheckPhyState, this, m_phySta1, WifiPhyState::RX);
+  Simulator::Schedule (Seconds (4.0) + m_expectedPpduDuration - NanoSeconds (1), &TestDlOfdmaReception::CheckPhyState, this, m_phySta2, WifiPhyState::RX);
+  Simulator::Schedule (Seconds (4.0) + m_expectedPpduDuration - NanoSeconds (1), &TestDlOfdmaReception::CheckPhyState, this, m_phySta3, WifiPhyState::RX);
+  Simulator::Schedule (Seconds (4.0) + m_expectedPpduDuration, &TestDlOfdmaReception::CheckPhyState, this, m_phySta1, (m_channelWidth >= 40) ? WifiPhyState::IDLE : WifiPhyState::CCA_BUSY);
+  Simulator::Schedule (Seconds (4.0) + m_expectedPpduDuration, &TestDlOfdmaReception::CheckPhyState, this, m_phySta2, (m_channelWidth >= 40) ? WifiPhyState::IDLE : WifiPhyState::CCA_BUSY);
+  Simulator::Schedule (Seconds (4.0) + m_expectedPpduDuration, &TestDlOfdmaReception::CheckPhyState, this, m_phySta3, (m_channelWidth >= 40) ? WifiPhyState::IDLE : WifiPhyState::CCA_BUSY);
+
+  //One PSDU of 1000 bytes should have been successfully received by STA 1
+  Simulator::Schedule (Seconds (4.1), &TestDlOfdmaReception::CheckResultsSta1, this, 1, 0, 1000);
+  //One PSDU of 1500 bytes should have been unsuccessfully received by STA 2 (since interference occupies RU 2)
+  Simulator::Schedule (Seconds (4.1), &TestDlOfdmaReception::CheckResultsSta2, this, 0, 1, 0);
+  //No PSDU should have been received by STA3
+  Simulator::Schedule (Seconds (4.1), &TestDlOfdmaReception::CheckResultsSta3, this, 0, 0, 0);
+
+  Simulator::Schedule (Seconds (4.5), &TestDlOfdmaReception::ResetResults, this);
+
+  //Send MU PPDU with two PSDUs addressed to STA 1 and STA 2:
+  Simulator::Schedule (Seconds (5.0), &TestDlOfdmaReception::SendMuPpdu, this, 1, 2);
+
+  //A strong non-wifi interference is generated on the full band during PSDU reception
+  bandInfo.fc = m_frequency * 1e6;
+  bandInfo.fl = bandInfo.fc - ((m_channelWidth / 2) * 1e6);
+  bandInfo.fh = bandInfo.fc + ((m_channelWidth / 2) * 1e6);
+  bands.clear ();
+  bands.push_back (bandInfo);
+
+  Ptr<SpectrumModel> SpectrumInterferenceAll = Create<SpectrumModel> (bands);
+  Ptr<SpectrumValue> interferencePsdAll = Create<SpectrumValue> (SpectrumInterferenceAll);
+  *interferencePsdAll = interferencePower / (m_channelWidth * 20e6);
+
+  Simulator::Schedule (Seconds (5.0) + MicroSeconds (50), &TestDlOfdmaReception::GenerateInterference, this, interferencePsdAll, MilliSeconds (100));
+
+  //Since it takes m_expectedPpduDuration to transmit the PPDU,
+  //both PHYs should be back to CCA_BUSY (due to the interference) at the same time,
+  //even the PHY that has no PSDU addressed to it.
+  Simulator::Schedule (Seconds (5.0) + m_expectedPpduDuration - NanoSeconds (1), &TestDlOfdmaReception::CheckPhyState, this, m_phySta1, WifiPhyState::RX);
+  Simulator::Schedule (Seconds (5.0) + m_expectedPpduDuration - NanoSeconds (1), &TestDlOfdmaReception::CheckPhyState, this, m_phySta2, WifiPhyState::RX);
+  Simulator::Schedule (Seconds (5.0) + m_expectedPpduDuration - NanoSeconds (1), &TestDlOfdmaReception::CheckPhyState, this, m_phySta3, WifiPhyState::RX);
+  Simulator::Schedule (Seconds (5.0) + m_expectedPpduDuration, &TestDlOfdmaReception::CheckPhyState, this, m_phySta1, WifiPhyState::CCA_BUSY);
+  Simulator::Schedule (Seconds (5.0) + m_expectedPpduDuration, &TestDlOfdmaReception::CheckPhyState, this, m_phySta2, WifiPhyState::CCA_BUSY);
+  Simulator::Schedule (Seconds (5.0) + m_expectedPpduDuration, &TestDlOfdmaReception::CheckPhyState, this, m_phySta3, WifiPhyState::CCA_BUSY);
+
+  //One PSDU of 1000 bytes should have been unsuccessfully received by STA 1 (since interference occupies RU 1)
+  Simulator::Schedule (Seconds (5.1), &TestDlOfdmaReception::CheckResultsSta1, this, 0, 1, 0);
+  //One PSDU of 1500 bytes should have been unsuccessfully received by STA 2 (since interference occupies RU 2)
+  Simulator::Schedule (Seconds (5.1), &TestDlOfdmaReception::CheckResultsSta2, this, 0, 1, 0);
+  //No PSDU should have been received by STA3
+  Simulator::Schedule (Seconds (5.1), &TestDlOfdmaReception::CheckResultsSta3, this, 0, 0, 0);
+
+  Simulator::Schedule (Seconds (5.5), &TestDlOfdmaReception::ResetResults, this);
 
   Simulator::Run ();
-  Simulator::Destroy ();
-
-  CheckResults ();
 }
 
+void
+TestDlOfdmaReception::DoRun (void)
+{
+  m_frequency = 5180;
+  m_channelWidth = 20;
+  m_expectedPpduDuration = NanoSeconds (306400);
+  RunOne ();
+
+  m_frequency = 5190;
+  m_channelWidth = 40;
+  m_expectedPpduDuration = NanoSeconds (156800);
+  RunOne ();
+
+  m_frequency = 5210;
+  m_channelWidth = 80;
+  m_expectedPpduDuration = NanoSeconds (102400);
+  RunOne ();
+
+  m_frequency = 5250;
+  m_channelWidth = 160;
+  m_expectedPpduDuration = NanoSeconds (75200);
+  RunOne ();
+ 
+  Simulator::Destroy ();
+}
 
 /**
  * \ingroup wifi-test
@@ -523,7 +864,8 @@ TestUlOfdmaPpduUid::~TestUlOfdmaPpduUid ()
 void
 TestUlOfdmaPpduUid::DoSetup (void)
 {
-  uint32_t frequency = 5180; // MHz
+  uint16_t frequency = 5180; // MHz
+  uint16_t channelWidth = 20; // MHz
 
   Ptr<MultiModelSpectrumChannel> spectrumChannel = CreateObject<MultiModelSpectrumChannel> ();
   Ptr<FriisPropagationLossModel> lossModel = CreateObject<FriisPropagationLossModel> ();
@@ -540,6 +882,7 @@ TestUlOfdmaPpduUid::DoSetup (void)
   Ptr<ErrorRateModel> error = CreateObject<NistErrorRateModel> ();
   m_phyAp->SetErrorRateModel (error);
   m_phyAp->SetFrequency (frequency);
+  m_phyAp->SetChannelWidth (channelWidth);
   m_phyAp->SetDevice (apDev);
   m_phyAp->SetChannel (spectrumChannel);
   m_phyAp->TraceConnectWithoutContext ("TxPpduUid", MakeCallback (&TestUlOfdmaPpduUid::TxPpduAp, this));
@@ -556,6 +899,7 @@ TestUlOfdmaPpduUid::DoSetup (void)
   m_phySta1->ConfigureStandard (WIFI_PHY_STANDARD_80211ax_5GHZ);
   m_phySta1->SetErrorRateModel (error);
   m_phySta1->SetFrequency (frequency);
+  m_phySta1->SetChannelWidth (channelWidth);
   m_phySta1->SetChannel (spectrumChannel);
   m_phySta1->TraceConnectWithoutContext ("TxPpduUid", MakeCallback (&TestUlOfdmaPpduUid::TxPpduSta1, this));
   Ptr<ConstantPositionMobilityModel> sta1Mobility = CreateObject<ConstantPositionMobilityModel> ();
@@ -571,6 +915,7 @@ TestUlOfdmaPpduUid::DoSetup (void)
   m_phySta2->ConfigureStandard (WIFI_PHY_STANDARD_80211ax_5GHZ);
   m_phySta2->SetErrorRateModel (error);
   m_phySta2->SetFrequency (frequency);
+  m_phySta2->SetChannelWidth (channelWidth);
   m_phySta2->SetChannel (spectrumChannel);
   m_phySta2->TraceConnectWithoutContext ("TxPpduUid", MakeCallback (&TestUlOfdmaPpduUid::TxPpduSta2, this));
   Ptr<ConstantPositionMobilityModel> sta2Mobility = CreateObject<ConstantPositionMobilityModel> ();
