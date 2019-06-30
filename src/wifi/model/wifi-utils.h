@@ -202,6 +202,34 @@ std::size_t CopyByteTags (Ptr<const Packet> packetSrc, Ptr<const Packet> packetD
  */
 Time GetPpduMaxTime (WifiPreamble preamble);
 
+/**
+ * Return whether the preamble is a HT format preamble.
+ *
+ * \param preamble the preamble type
+ *
+ * \return true if the preamble is a HT format preamble,
+ *         false otherwise
+ */
+bool IsHt (WifiPreamble preamble);
+/**
+ * Return whether the preamble is a VHT format preamble.
+ *
+ * \param preamble the preamble type
+ *
+ * \return true if the preamble is a VHT format preamble,
+ *         false otherwise
+ */
+bool IsVht (WifiPreamble preamble);
+/**
+ * Return whether the preamble is a HE format preamble.
+ *
+ * \param preamble the preamble type
+ *
+ * \return true if the preamble is a HE format preamble,
+ *         false otherwise
+ */
+bool IsHe (WifiPreamble preamble);
+
 /// Size of the space of sequence numbers
 const uint16_t SEQNO_SPACE_SIZE = 4096;
 
