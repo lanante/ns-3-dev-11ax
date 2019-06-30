@@ -50,7 +50,7 @@ WifiPpdu::WifiPpdu (const WifiPsduMap & psdus, WifiTxVector txVector, Time ppduD
     m_channelWidth (txVector.GetChannelWidth ())
 {
   NS_LOG_FUNCTION (this << psdus << txVector << ppduDuration << frequency);
-  if (m_preamble == WIFI_PREAMBLE_HE_MU)
+  if (m_preamble == WIFI_PREAMBLE_HE_MU || m_preamble == WIFI_PREAMBLE_HE_TB)
     {
       m_muUserInfos = txVector.GetHeMuUserInfoMap ();
     }
@@ -128,7 +128,7 @@ WifiPpdu::SetPhyHeaders (WifiTxVector txVector, Time ppduDuration, uint16_t freq
               sigExtension = 6;
             }
           uint8_t m = 0;
-          if (m_preamble == WIFI_PREAMBLE_HE_SU)
+          if ((m_preamble == WIFI_PREAMBLE_HE_SU) || (m_preamble == WIFI_PREAMBLE_HE_TB))
             {
               m = 2;
             }
@@ -146,7 +146,7 @@ WifiPpdu::SetPhyHeaders (WifiTxVector txVector, Time ppduDuration, uint16_t freq
             {
               m_heSig.SetMuFlag (true);
             }
-          else
+          else if (m_preamble != WIFI_PREAMBLE_HE_TB)
             {
               m_heSig.SetMcs (txVector.GetMode ().GetMcsValue ());
               m_heSig.SetNStreams (txVector.GetNss ());
@@ -618,7 +618,7 @@ WifiPpdu::GetTxDuration (void) const
               sigExtension = 6;
             }
           uint8_t m = 0;
-          if (m_preamble == WIFI_PREAMBLE_HE_SU)
+          if ((m_preamble == WIFI_PREAMBLE_HE_SU) || (m_preamble == WIFI_PREAMBLE_HE_TB))
             {
               m = 2;
             }
@@ -642,7 +642,7 @@ WifiPpdu::GetTxDuration (void) const
 bool
 WifiPpdu::IsMu (void) const
 {
-  return ((m_preamble == WIFI_PREAMBLE_VHT_MU) || (m_preamble == WIFI_PREAMBLE_HE_MU));
+  return ((m_preamble == WIFI_PREAMBLE_VHT_MU) || (m_preamble == WIFI_PREAMBLE_HE_MU) || (m_preamble == WIFI_PREAMBLE_HE_TB));
 }
 
 WifiModulationClass
