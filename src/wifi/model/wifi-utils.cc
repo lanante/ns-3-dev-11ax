@@ -316,4 +316,22 @@ CopyByteTags (Ptr<const Packet> packetSrc, Ptr<const Packet> packetDst)
   return nByteTags;
 }
 
+bool
+IsHt (WifiPreamble preamble)
+{
+   return (preamble == WIFI_PREAMBLE_HT_MF || preamble == WIFI_PREAMBLE_HT_GF);
+}
+
+bool
+IsVht (WifiPreamble preamble)
+{
+   return (preamble == WIFI_PREAMBLE_VHT_SU || preamble == WIFI_PREAMBLE_VHT_MU);
+}
+
+bool
+IsHe (WifiPreamble preamble)
+{
+   return (preamble == WIFI_PREAMBLE_HE_SU || preamble == WIFI_PREAMBLE_HE_MU || preamble == WIFI_PREAMBLE_HE_TB || preamble == WIFI_PREAMBLE_HE_ER_SU);
+}
+
 } //namespace ns3
