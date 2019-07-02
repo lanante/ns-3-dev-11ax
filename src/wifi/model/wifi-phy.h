@@ -1694,7 +1694,7 @@ protected:
   EventId m_endRxEvent;                //!< the end of receive event
   EventId m_endPlcpRxEvent;            //!< the end of PLCP receive event
   EventId m_endPreambleDetectionEvent; //!< the end of preamble detection event
-
+  static uint64_t m_globalPpduUid;     //!< Global counter of the PPDU UID
 
 private:
   /**
@@ -2018,6 +2018,7 @@ private:
   Time m_timeLastPreambleDetected; //!< Record the time the last preamble was detected
 
   Callback<void> m_capabilitiesChangedCallback; //!< Callback when PHY capabilities changed
+
 };
 
 /**
