@@ -400,7 +400,8 @@ WifiPhy::WifiPhy ()
     m_initialChannelNumber (0),
     m_currentEvent (0),
     m_wifiRadioEnergyModel (0),
-    m_timeLastPreambleDetected (Seconds (0))
+    m_timeLastPreambleDetected (Seconds (0)),
+    m_previouslyRxPpduUid (UINT64_MAX)
 {
   NS_LOG_FUNCTION (this);
   m_random = CreateObject<UniformRandomVariable> ();
@@ -2638,7 +2639,19 @@ WifiPhy::Send (WifiPsduMap psdus, WifiTxVector txVector)
       return;
     }
 
-  Ptr<WifiPpdu> ppdu = Create<WifiPpdu> (psdus, txVector, txDuration, GetFrequency (), m_globalPpduUid++);
+  uint64_t uid;
+  if (txVector.GetPreambleType () == WIFI_PREAMBLE_HE_TB)
+    {
+      //Use UID of PPDU containing trigger frame to identify resulting HE TB PPDUs, since the latter should immediately follow the former
+      NS_ASSERT (m_previouslyRxPpduUid != UINT64_MAX);
+      uid = m_previouslyRxPpduUid;
+    }
+  else
+    {
+      uid = m_globalPpduUid++;
+    }
+  m_previouslyRxPpduUid = UINT64_MAX; //reset to use it only once
+  Ptr<WifiPpdu> ppdu = Create<WifiPpdu> (psdus, txVector, txDuration, GetFrequency (), uid);
 
   if (m_wifiRadioEnergyModel != 0 && m_wifiRadioEnergyModel->GetMaximumTimeInState (WifiPhyState::TX) < txDuration)
     {
@@ -3014,6 +3027,7 @@ WifiPhy::EndReceive (Ptr<Event> event)
     {
       NotifyMonitorSniffRx (psdu, GetFrequency (), txVector, signalNoise, statusPerMpdu);
       m_state->SwitchFromRxEndOk (Copy (psdu), snr, txVector, staId, statusPerMpdu);
+      m_previouslyRxPpduUid = event->GetPpdu ()->GetUid (); //store UID only if reception is successful (b/c otherwise trigger won't be read by MAC layer)
     }
   else
     {
