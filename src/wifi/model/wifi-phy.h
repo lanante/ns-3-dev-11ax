@@ -2019,6 +2019,7 @@ private:
 
   Callback<void> m_capabilitiesChangedCallback; //!< Callback when PHY capabilities changed
 
+  uint64_t m_previouslyRxPpduUid;  //!< UID of the previously received PPDU (reused by HE TB PPDUs), reset to UINT64_MAX upon transmission
 };
 
 /**
