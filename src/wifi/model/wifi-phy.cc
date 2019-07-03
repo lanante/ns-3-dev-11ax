@@ -3003,8 +3003,17 @@ WifiPhy::StartReceivePayload (Ptr<Event> event)
       Ptr<const WifiPsdu> psdu = GetAddressedPsduInPpdu (ppdu);
       if (psdu)
         {
+          uint16_t staId;
+          if (ppdu->IsUlMu ())
+            {
+              staId = ppdu->GetStaId ();
+            }
+          else
+            {
+              staId = GetStaId ();
+            }
           WifiTxVector txVector = event->GetTxVector ();
-          WifiMode txMode = txVector.GetMode (GetStaId ());
+          WifiMode txMode = txVector.GetMode (staId);
           if (IsModeSupported (txMode) || IsMcsSupported (txMode))
             {
               Time payloadDuration = event->GetEndTime () - event->GetStartTime () - CalculatePlcpPreambleAndHeaderDuration (txVector);
@@ -3019,7 +3028,7 @@ WifiPhy::StartReceivePayload (Ptr<Event> event)
         }
       else
         {
-          NS_ASSERT (ppdu->IsMu ());
+          NS_ASSERT (ppdu->IsDlMu ());
           NS_LOG_DEBUG ("Receiving MU PPDU without any PSDU for this STA");
         }
       if (modulation == WIFI_MOD_CLASS_HE)
@@ -3049,13 +3058,23 @@ WifiPhy::EndReceive (Ptr<Event> event)
   std::vector<bool> statusPerMpdu;
   SignalNoiseDbm signalNoise;
 
-  Ptr<const WifiPsdu> psdu = GetAddressedPsduInPpdu (event->GetPpdu ());
+  Ptr<const WifiPpdu> ppdu = event->GetPpdu ();
+  uint16_t staId;
+  if (ppdu->IsUlMu ())
+    {
+      staId = ppdu->GetStaId ();
+    }
+  else
+    {
+      staId = GetStaId ();
+    }
+
+  Ptr<const WifiPsdu> psdu = GetAddressedPsduInPpdu (ppdu);
   Time relativeStart = NanoSeconds (0);
   bool receptionOkAtLeastForOneMpdu = true;
   std::pair<bool, SignalNoiseDbm> rxInfo;
   WifiTxVector txVector = event->GetTxVector ();
   size_t nMpdus = psdu->GetNMpdus ();
-  uint16_t staId = GetStaId ();
   if (nMpdus > 1)
     {
       //Extract all MPDUs of the A-MPDU to compute per-MPDU PER stats
@@ -4315,7 +4334,7 @@ Ptr<const WifiPsdu>
 WifiPhy::GetAddressedPsduInPpdu (Ptr<const WifiPpdu> ppdu) const
 {
   Ptr<const WifiPsdu> psdu;
-  if (!ppdu->IsMu ())
+  if (!ppdu->IsDlMu ())
     {
       psdu = ppdu->GetPsdu ();
     }
