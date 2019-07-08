@@ -29,6 +29,11 @@
 namespace ns3 {
 
 /**
+ * typedef for a pair of start and stop sub-band indexes
+ */
+typedef std::pair<uint32_t, uint32_t> WifiSpectrumBand;
+
+/**
  * \ingroup spectrum
  *
  *  This class defines all functions to create a spectrum model for
@@ -57,7 +62,7 @@ public:
    * \return the static SpectrumModel instance corresponding to the
    * given carrier frequency and channel width configuration.
    */
-  static Ptr<SpectrumModel> GetSpectrumModel (uint32_t centerFrequency, uint16_t channelWidth, double bandBandwidth, uint16_t guardBandwidth);
+  static Ptr<SpectrumModel> GetSpectrumModel (uint32_t centerFrequency, uint16_t channelWidth, uint32_t bandBandwidth, uint16_t guardBandwidth);
 
   /**
    * Create a transmit power spectral density corresponding to DSSS
@@ -123,7 +128,7 @@ public:
    * \param guardBandwidth width of the guard band (MHz)
    * \return a pointer to a newly allocated SpectrumValue representing the noise Power Spectral Density in W/Hz for each Band
    */
-  static Ptr<SpectrumValue> CreateNoisePowerSpectralDensity (uint32_t centerFrequency, uint16_t channelWidth, double bandBandwidth, double noiseFigure, uint16_t guardBandwidth);
+  static Ptr<SpectrumValue> CreateNoisePowerSpectralDensity (uint32_t centerFrequency, uint16_t channelWidth, uint32_t bandBandwidth, double noiseFigure, uint16_t guardBandwidth);
 
   /**
    * Create a thermal noise power spectral density
@@ -137,20 +142,16 @@ public:
   /**
    * Create a spectral density corresponding to the RF filter
    *
-   * \param centerFrequency center frequency (MHz)
-   * \param channelWidth channel width (MHz)
-   * \param bandBandwidth width of each band (Hz)
-   * \param guardBandwidth width of the guard band (MHz)
+   * \param centerFrequency the center frequency (MHz)
+   * \param totalChannelWidth the total channel width (MHz)
+   * \param bandBandwidth the width of each band (MHz)
+   * \param guardBandwidth the width of the guard band (MHz)
+   * \param band the pair of start and stop indexes that defines the band to be filtered
    *
    * \return a pointer to a SpectrumValue representing the RF filter applied
    * to an received power spectral density
    */
-  static Ptr<SpectrumValue> CreateRfFilter (uint32_t centerFrequency, uint16_t channelWidth, double bandBandwidth, uint16_t guardBandwidth);
-
-  /**
-   * typedef for a pair of start and stop sub-band indexes
-   */
-  typedef std::pair<uint32_t, uint32_t> StartStop;
+  static Ptr<SpectrumValue> CreateRfFilter (uint32_t centerFrequency, uint16_t totalChannelWidth, uint32_t bandBandwidth, uint16_t guardBandwidth, WifiSpectrumBand band);
 
   /**
    * Create a transmit power spectral density corresponding to OFDM
@@ -187,7 +188,7 @@ public:
    * \param lowestPointDbr maximum relative power of the outermost subcarriers of the guard band (in dBr)
    * \return a pointer to a newly allocated SpectrumValue representing the HT OFDM Transmit Power Spectral Density in W/Hz for each Band
    */
-  static void CreateSpectrumMaskForOfdm (Ptr<SpectrumValue> c, std::vector <StartStop> allocatedSubBands, StartStop maskBand,
+  static void CreateSpectrumMaskForOfdm (Ptr<SpectrumValue> c, std::vector <WifiSpectrumBand> allocatedSubBands, WifiSpectrumBand maskBand,
                                          double txPowerPerBandW, uint32_t nGuardBands,
                                          uint32_t innerSlopeWidth, double lowestPointDbr);
 

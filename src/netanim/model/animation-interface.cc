@@ -892,7 +892,7 @@ AnimationInterface::WifiPhyTxBeginTrace (std::string context, Ptr<const Packet> 
 }
 
 void 
-AnimationInterface::WifiPhyRxBeginTrace (std::string context, Ptr<const Packet> p)
+AnimationInterface::WifiPhyRxBeginTrace (std::string context, Ptr<const Packet> p, RxPowerWattPerChannelBand rxPowersW)
 {
   NS_LOG_FUNCTION (this);
   CHECK_STARTED_INTIMEWINDOW_TRACKPACKETS;
