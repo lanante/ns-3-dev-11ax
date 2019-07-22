@@ -249,6 +249,7 @@ void
 MacLow::SetPhy (const Ptr<WifiPhy> phy)
 {
   m_phy = phy;
+  m_phy->TraceConnectWithoutContext ("PhyRxPayloadBegin", MakeCallback (&MacLow::RxStartIndication, this));
   m_phy->SetReceiveOkCallback (MakeCallback (&MacLow::DeaggregateAmpduAndReceive, this));
   m_phy->SetReceiveErrorCallback (MakeCallback (&MacLow::ReceiveError, this));
   SetupPhyMacLowListener (phy);
@@ -263,6 +264,7 @@ MacLow::GetPhy (void) const
 void
 MacLow::ResetPhy (void)
 {
+  m_phy->TraceDisconnectWithoutContext ("PhyRxPayloadBegin", MakeCallback (&MacLow::RxStartIndication, this));
   m_phy->SetReceiveOkCallback (MakeNullCallback<void, Ptr<WifiPsdu>, double, WifiTxVector, std::vector<bool>> ());
   m_phy->SetReceiveErrorCallback (MakeNullCallback<void, Ptr<WifiPsdu>> ());
   RemovePhyMacLowListener (m_phy);
@@ -662,6 +664,15 @@ MacLow::IsWithinSizeAndTimeLimits (uint32_t mpduSize, Mac48Address receiver, uin
     }
 
   return true;
+}
+
+void
+MacLow::RxStartIndication (WifiTxVector txVector, Time psduDuration)
+{
+  NS_LOG_FUNCTION (this << txVector << psduDuration);
+  NS_LOG_DEBUG ("PSDU reception started for " << psduDuration.GetMicroSeconds () << " us (txVector:" << txVector << ")");
+  //TODO fill with the appropriate logic
+  return;
 }
 
 void
