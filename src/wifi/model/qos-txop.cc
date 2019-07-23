@@ -491,12 +491,13 @@ QosTxop::NotifyAccessGranted (void)
 
   if (m_currentPacket == 0)
     {
-      if (m_baManager->HasBar (m_currentBar))
+      Ptr<const WifiMacQueueItem> peekedItem = m_baManager->GetBar ();
+      if (peekedItem != 0)
         {
-          SendBlockAckRequest (m_currentBar);
+          SendBlockAckRequest (Copy (peekedItem));
           return;
         }
-      Ptr<const WifiMacQueueItem> peekedItem = PeekNextFrame ();
+      peekedItem = PeekNextFrame ();
       if (peekedItem == 0)
         {
           NS_LOG_DEBUG ("no packets available for transmission");
@@ -565,7 +566,7 @@ QosTxop::NotifyAccessGranted (void)
     }
   else if (m_currentHdr.GetType () == WIFI_MAC_CTL_BACKREQ)
     {
-      SendBlockAckRequest (m_currentBar);
+      SendBlockAckRequest (mpdu);
     }
   else
     {
@@ -1052,17 +1053,10 @@ QosTxop::StartNextPacket (void)
   NS_ASSERT (GetTxopLimit ().IsStrictlyPositive () && GetTxopRemaining ().IsStrictlyPositive ());
 
   m_currentPacket = 0;
-  Ptr<const WifiMacQueueItem> nextFrame;
-
   // peek the next BlockAckReq, if any
-  if (m_baManager->HasBar (m_currentBar, false))
-    {
-      WifiMacHeader hdr;
-      hdr.SetType (WIFI_MAC_CTL_BACKREQ);
-      hdr.SetAddr1 (m_currentBar.recipient);
-      nextFrame = Create<const WifiMacQueueItem> (m_currentBar.bar, hdr);
-    }
-  else
+  Ptr<const WifiMacQueueItem> nextFrame = m_baManager->GetBar (false);
+
+  if (nextFrame == 0)
     {
       nextFrame = PeekNextFrame ();
     }
@@ -1076,8 +1070,8 @@ QosTxop::StartNextPacket (void)
           if (nextFrame->GetHeader ().IsBlockAckReq ())
             {
               NS_LOG_DEBUG ("start next BlockAckReq within the current TXOP");
-              m_baManager->HasBar (m_currentBar);
-              SendBlockAckRequest (m_currentBar);
+              nextFrame = m_baManager->GetBar ();
+              SendBlockAckRequest (Copy (nextFrame));
               return;
             }
 
@@ -1536,12 +1530,11 @@ QosTxop::SetupBlockAckIfNeeded (void)
 }
 
 void
-QosTxop::SendBlockAckRequest (const Bar &bar)
+QosTxop::SendBlockAckRequest (Ptr<WifiMacQueueItem> bar)
 {
-  NS_LOG_FUNCTION (this << &bar);
-  WifiMacHeader hdr;
+  NS_LOG_FUNCTION (this << *bar);
+  WifiMacHeader& hdr = bar->GetHeader ();
   hdr.SetType (WIFI_MAC_CTL_BACKREQ);
-  hdr.SetAddr1 (bar.recipient);
   hdr.SetAddr2 (m_low->GetAddress ());
   hdr.SetAddr3 (m_low->GetBssid ());
   hdr.SetDsNotTo ();
@@ -1549,13 +1542,12 @@ QosTxop::SendBlockAckRequest (const Bar &bar)
   hdr.SetNoRetry ();
   hdr.SetNoMoreFragments ();
 
-  m_currentPacket = bar.bar;
+  m_currentPacket = bar->GetPacket ();
   m_currentHdr = hdr;
 
-  Ptr<WifiMacQueueItem> mpdu = Create<WifiMacQueueItem> (m_currentPacket, m_currentHdr);
-  m_currentParams = GetTransmissionParameters (mpdu);
+  m_currentParams = GetTransmissionParameters (bar);
 
-  m_low->StartTransmission (mpdu, m_currentParams, this);
+  m_low->StartTransmission (bar, m_currentParams, this);
 }
 
 void
