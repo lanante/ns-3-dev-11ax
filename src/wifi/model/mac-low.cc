@@ -778,7 +778,7 @@ MacLow::ReceiveOk (Ptr<WifiMacQueueItem> mpdu, RxSignalInfo rxSignalInfo, WifiTx
               NS_LOG_DEBUG ("rx RTS from=" << hdr.GetAddr2 () << ", schedule CTS");
               NS_ASSERT (m_sendCtsEvent.IsExpired ());
               m_stationManager->ReportRxOk (hdr.GetAddr2 (), &hdr,
-                                            rxSnr, txVector.GetMode ());
+                                            rxSignalInfo, txVector.GetMode ());
               m_sendCtsEvent = Simulator::Schedule (GetSifs (),
                                                     &MacLow::SendCtsAfterRts, this,
                                                     hdr.GetAddr2 (),
@@ -807,7 +807,7 @@ MacLow::ReceiveOk (Ptr<WifiMacQueueItem> mpdu, RxSignalInfo rxSignalInfo, WifiTx
       SnrTag tag;
       packet->RemovePacketTag (tag);
       m_stationManager->ReportRxOk (m_currentPacket->GetAddr1 (), &m_currentPacket->GetHeader (0),
-                                    rxSnr, txVector.GetMode ());
+                                    rxSignalInfo, txVector.GetMode ());
       m_stationManager->ReportRtsOk (m_currentPacket->GetAddr1 (), &m_currentPacket->GetHeader (0),
                                      rxSnr, txVector.GetMode (), tag.Get ());
 
@@ -830,7 +830,7 @@ MacLow::ReceiveOk (Ptr<WifiMacQueueItem> mpdu, RxSignalInfo rxSignalInfo, WifiTx
       if (!m_txParams.HasNextPacket ())
         {
           m_stationManager->ReportRxOk (m_currentPacket->GetAddr1 (), &m_currentPacket->GetHeader (0),
-                                        rxSnr, txVector.GetMode ());
+                                        rxSignalInfo, txVector.GetMode ());
           m_stationManager->ReportDataOk (m_currentPacket->GetAddr1 (), &m_currentPacket->GetHeader (0),
                                           rxSnr, txVector.GetMode (), tag.Get (),
                                           m_currentPacket->GetSize ());
@@ -994,7 +994,7 @@ MacLow::ReceiveOk (Ptr<WifiMacQueueItem> mpdu, RxSignalInfo rxSignalInfo, WifiTx
             }
         }
       m_stationManager->ReportRxOk (hdr.GetAddr2 (), &hdr,
-                                    rxSnr, txVector.GetMode ());
+                                    rxSignalInfo, txVector.GetMode ());
       if (hdr.IsQosData () && ReceiveMpdu (packet, hdr))
         {
           /* From section 9.10.4 in IEEE 802.11:
