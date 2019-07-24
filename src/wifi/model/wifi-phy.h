@@ -82,6 +82,13 @@ struct HePreambleParameters
   uint8_t bssColor; ///< BSS color
 };
 
+/// RxSignalInfo structure containing info on the received signal
+struct RxSignalInfo
+{
+  double snr;  ///< SNR in dB
+  double rssi; ///< RSSI in dBm
+};
+
 /**
  * \brief 802.11 PHY layer model
  * \ingroup wifi
@@ -2089,6 +2096,13 @@ private:
  * \return output stream
  */
 std::ostream& operator<< (std::ostream& os, WifiPhyState state);
+
+/**
+ * \param os           output stream
+ * \param rxSignalInfo received signal info to stringify
+ * \return output stream
+ */
+std::ostream& operator<< (std::ostream& os, RxSignalInfo rxSignalInfo);
 
 } //namespace ns3
 

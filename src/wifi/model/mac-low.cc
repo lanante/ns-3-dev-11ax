@@ -265,7 +265,7 @@ void
 MacLow::ResetPhy (void)
 {
   m_phy->TraceDisconnectWithoutContext ("PhyRxPayloadBegin", MakeCallback (&MacLow::RxStartIndication, this));
-  m_phy->SetReceiveOkCallback (MakeNullCallback<void, Ptr<WifiPsdu>, double, WifiTxVector, std::vector<bool>> ());
+  m_phy->SetReceiveOkCallback (MakeNullCallback<void, Ptr<WifiPsdu>, RxSignalInfo, WifiTxVector, std::vector<bool>> ());
   m_phy->SetReceiveErrorCallback (MakeNullCallback<void, Ptr<WifiPsdu>> ());
   RemovePhyMacLowListener (m_phy);
   m_phy = 0;
@@ -743,9 +743,9 @@ MacLow::NotifyOffNow (void)
 }
 
 void
-MacLow::ReceiveOk (Ptr<WifiMacQueueItem> mpdu, double rxSnr, WifiTxVector txVector, bool ampduSubframe)
+MacLow::ReceiveOk (Ptr<WifiMacQueueItem> mpdu, RxSignalInfo rxSignalInfo, WifiTxVector txVector, bool ampduSubframe)
 {
-  NS_LOG_FUNCTION (this << *mpdu << rxSnr << txVector);
+  NS_LOG_FUNCTION (this << *mpdu << rxSignalInfo << txVector);
   /* An MPDU is received from the PHY.
    * When we have handled this MPDU,
    * we handle any packet present in the
@@ -757,6 +757,7 @@ MacLow::ReceiveOk (Ptr<WifiMacQueueItem> mpdu, double rxSnr, WifiTxVector txVect
   bool isPrevNavZero = IsNavZero ();
   NS_LOG_DEBUG ("duration/id=" << hdr.GetDuration ());
   NotifyNav (packet, hdr);
+  double rxSnr = rxSignalInfo.snr;
   if (hdr.IsRts ())
     {
       /* see section 9.2.5.7 802.11-1999
@@ -2538,9 +2539,11 @@ MacLow::RegisterEdcaForAc (AcIndex ac, Ptr<QosTxop> edca)
 }
 
 void
-MacLow::DeaggregateAmpduAndReceive (Ptr<WifiPsdu> psdu, double rxSnr, WifiTxVector txVector, std::vector<bool> statusPerMpdu)
+MacLow::DeaggregateAmpduAndReceive (Ptr<WifiPsdu> psdu, RxSignalInfo rxSignalInfo,
+                                    WifiTxVector txVector, std::vector<bool> statusPerMpdu)
 {
-  NS_LOG_FUNCTION (this);
+  NS_LOG_FUNCTION (this << psdu << rxSignalInfo << txVector <<
+                   statusPerMpdu.size () << std::all_of(statusPerMpdu.begin(), statusPerMpdu.end(), [](bool v) { return v; })); //returns true if all true
   bool normalAck = false;
   bool ampduSubframe = false; //flag indicating the packet belongs to an A-MPDU and is not a VHT/HE single MPDU
   if (txVector.IsAggregation ())
@@ -2577,17 +2580,17 @@ MacLow::DeaggregateAmpduAndReceive (Ptr<WifiPsdu> psdu, double rxSnr, WifiTxVect
                                                             firsthdr.GetQosTid (),
                                                             firsthdr.GetAddr2 (),
                                                             firsthdr.GetDuration (),
-                                                            txVector, rxSnr);
+                                                            txVector, rxSignalInfo.snr);
                     }
 
                   if (firsthdr.IsAck () || firsthdr.IsBlockAck () || firsthdr.IsBlockAckReq ())
                     {
-                      ReceiveOk ((*n), rxSnr, txVector, ampduSubframe);
+                      ReceiveOk ((*n), rxSignalInfo, txVector, ampduSubframe);
                     }
                   else if (firsthdr.IsData () || firsthdr.IsQosData ())
                     {
                       NS_LOG_DEBUG ("Deaggregate packet from " << firsthdr.GetAddr2 () << " with sequence=" << firsthdr.GetSequenceNumber ());
-                      ReceiveOk ((*n), rxSnr, txVector, ampduSubframe);
+                      ReceiveOk ((*n), rxSignalInfo, txVector, ampduSubframe);
                       if (firsthdr.IsQosAck ())
                         {
                           NS_LOG_DEBUG ("Normal Ack");
@@ -2631,7 +2634,7 @@ MacLow::DeaggregateAmpduAndReceive (Ptr<WifiPsdu> psdu, double rxSnr, WifiTxVect
     {
       /* Simple MPDU */
       NS_ASSERT (!psdu->IsAggregate ());
-      ReceiveOk ((*psdu->begin ()), rxSnr, txVector, ampduSubframe);
+      ReceiveOk ((*psdu->begin ()), rxSignalInfo, txVector, ampduSubframe);
     }
 }
 
