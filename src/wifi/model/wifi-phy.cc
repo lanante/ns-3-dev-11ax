@@ -3135,7 +3135,10 @@ WifiPhy::EndReceive (Ptr<Event> event)
   if (receptionOkAtLeastForOneMpdu)
     {
       NotifyMonitorSniffRx (psdu, GetFrequency (), txVector, signalNoise, statusPerMpdu);
-      m_state->SwitchFromRxEndOk (Copy (psdu), snr, txVector, staId, statusPerMpdu);
+      RxSignalInfo rxSignalInfo;
+      rxSignalInfo.snr = snr;
+      rxSignalInfo.rssi = signalNoise.signal;
+      m_state->SwitchFromRxEndOk (Copy (psdu), rxSignalInfo, txVector, staId, statusPerMpdu);
       m_previouslyRxPpduUid = event->GetPpdu ()->GetUid (); //store UID only if reception is successful (b/c otherwise trigger won't be read by MAC layer)
     }
   else
@@ -4474,6 +4477,13 @@ std::ostream& operator<< (std::ostream& os, WifiPhyState state)
       NS_FATAL_ERROR ("Invalid WifiPhy state");
       return (os << "INVALID");
     }
+}
+
+std::ostream& operator<< (std::ostream& os, RxSignalInfo rxSignalInfo)
+{
+  os << "SNR:" << rxSignalInfo.snr << " dB"
+     << ", RSSI:" << rxSignalInfo.rssi << " dBm";
+  return os;
 }
 
 } //namespace ns3
