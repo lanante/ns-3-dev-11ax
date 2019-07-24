@@ -146,27 +146,30 @@ public:
   /**
    * Receive success function for STA 1
    * \param psdu the PSDU
-   * \param snr the SNR
+   * \param rxSignalInfo the info on the received signal (\see RxSignalInfo)
    * \param txVector the transmit vector
    * \param statusPerMpdu reception status per MPDU
    */
-  void RxSuccessSta1 (Ptr<WifiPsdu> psdu, double snr, WifiTxVector txVector, std::vector<bool> statusPerMpdu);
+  void RxSuccessSta1 (Ptr<WifiPsdu> psdu, RxSignalInfo rxSignalInfo,
+                      WifiTxVector txVector, std::vector<bool> statusPerMpdu);
   /**
    * Receive success function for STA 2
    * \param psdu the PSDU
-   * \param snr the SNR
+   * \param rxSignalInfo the info on the received signal (\see RxSignalInfo)
    * \param txVector the transmit vector
    * \param statusPerMpdu reception status per MPDU
    */
-  void RxSuccessSta2 (Ptr<WifiPsdu> psdu, double snr, WifiTxVector txVector, std::vector<bool> statusPerMpdu);
+  void RxSuccessSta2 (Ptr<WifiPsdu> psdu, RxSignalInfo rxSignalInfo,
+                      WifiTxVector txVector, std::vector<bool> statusPerMpdu);
   /**
    * Receive success function for STA 3
    * \param psdu the PSDU
-   * \param snr the SNR
+   * \param rxSignalInfo the info on the received signal (\see RxSignalInfo)
    * \param txVector the transmit vector
    * \param statusPerMpdu reception status per MPDU
    */
-  void RxSuccessSta3 (Ptr<WifiPsdu> psdu, double snr, WifiTxVector txVector, std::vector<bool> statusPerMpdu);
+  void RxSuccessSta3 (Ptr<WifiPsdu> psdu, RxSignalInfo rxSignalInfo,
+                      WifiTxVector txVector, std::vector<bool> statusPerMpdu);
 
   /**
    * Receive failure function for STA 1
@@ -403,25 +406,28 @@ TestDlOfdmaReception::~TestDlOfdmaReception ()
 }
 
 void
-TestDlOfdmaReception::RxSuccessSta1 (Ptr<WifiPsdu> psdu, double snr, WifiTxVector txVector, std::vector<bool> /*statusPerMpdu*/)
+TestDlOfdmaReception::RxSuccessSta1 (Ptr<WifiPsdu> psdu, RxSignalInfo rxSignalInfo,
+                                     WifiTxVector txVector, std::vector<bool> /*statusPerMpdu*/)
 {
-  NS_LOG_FUNCTION (this << *psdu << snr << txVector);
+  NS_LOG_FUNCTION (this << *psdu << rxSignalInfo << txVector);
   m_countRxSuccessSta1++;
   m_countRxBytesSta1 += (psdu->GetSize () - 30);
 }
 
 void
-TestDlOfdmaReception::RxSuccessSta2 (Ptr<WifiPsdu> psdu, double snr, WifiTxVector txVector, std::vector<bool> /*statusPerMpdu*/)
+TestDlOfdmaReception::RxSuccessSta2 (Ptr<WifiPsdu> psdu, RxSignalInfo rxSignalInfo,
+                                     WifiTxVector txVector, std::vector<bool> /*statusPerMpdu*/)
 {
-  NS_LOG_FUNCTION (this << *psdu << snr << txVector);
+  NS_LOG_FUNCTION (this << *psdu << rxSignalInfo << txVector);
   m_countRxSuccessSta2++;
   m_countRxBytesSta2 += (psdu->GetSize () - 30);
 }
 
 void
-TestDlOfdmaReception::RxSuccessSta3 (Ptr<WifiPsdu> psdu, double snr, WifiTxVector txVector, std::vector<bool> /*statusPerMpdu*/)
+TestDlOfdmaReception::RxSuccessSta3 (Ptr<WifiPsdu> psdu, RxSignalInfo rxSignalInfo,
+                                     WifiTxVector txVector, std::vector<bool> /*statusPerMpdu*/)
 {
-  NS_LOG_FUNCTION (this << *psdu << snr << txVector);
+  NS_LOG_FUNCTION (this << *psdu << rxSignalInfo << txVector);
   m_countRxSuccessSta3++;
   m_countRxBytesSta3 += (psdu->GetSize () - 30);
 }
