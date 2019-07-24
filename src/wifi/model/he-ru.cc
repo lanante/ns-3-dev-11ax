@@ -189,6 +189,18 @@ HeRu::DoesOverlap (uint8_t bw, RuSpec ru, const std::vector<RuSpec> &v)
     }
 
   SubcarrierGroup groups = GetSubcarrierGroup (bw, ru.ruType, ru.index);
+  if (bw == 160)
+    {
+      // Translate 80 MHz indices obtained from GetSubcarrierGroup (i.e. from -500 to 500)
+      // into 160 MHz indices (i.e. -1012 to 1012) for HE-SIG-B content channel differentiation
+      int16_t shift = ru.primary80MHz ? -512 : 512;
+      for (auto & pair : groups)
+        {
+          pair.first += shift;
+          pair.second += shift;
+        }
+    }
+
   for (auto& p : v)
     {
       if (ru.primary80MHz != p.primary80MHz)
