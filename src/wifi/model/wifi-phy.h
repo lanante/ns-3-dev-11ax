@@ -158,7 +158,7 @@ public:
    * Start receiving the PHY preamble of a PPDU (i.e. the first bit of the preamble has arrived).
    *
    * \param ppdu the arriving PPDU
-   * \param rxPowersW the receive power in W per 20 MHz channel band
+   * \param rxPowersW the receive power in W per band
    */
   void StartReceivePreamble (Ptr<WifiPpdu> ppdu, RxPowerWattPerChannelBand rxPowersW);
 
@@ -182,6 +182,15 @@ public:
    * \param event the event holding incoming PPDU's information
    */
   void StartReceivePayload (Ptr<Event> event);
+
+  /**
+   * Start receiving the PSDU (i.e. the first symbol of the PSDU has arrived) of an UL-OFDMA transmission.
+   * This function is called upon the RX event corresponding to the OFDMA part of the UL MU PPDU.
+   *
+   * \param ppdu the arriving PPDU
+   * \param rxPowersW the receive power in W per band
+   */
+  void StartReceiveOfdmaPayload (Ptr<WifiPpdu> ppdu, RxPowerWattPerChannelBand rxPowersW);
 
   /**
    * The last symbol of the PPDU has arrived.
@@ -1747,6 +1756,8 @@ protected:
 
   std::vector <EventId> m_endPreambleDetectionEvents; //!< the end of preamble detection events
   std::map <uint64_t /* UID*/, Ptr<Event> > m_currentPreambleEvents; //!< store event associated to a PPDU (that has a unique ID) whose preamble is being received
+
+  uint64_t m_currentHeTbPpduUid;   //!< UID of the HE TB PPDU being received
 
   static uint64_t m_globalPpduUid;     //!< Global counter of the PPDU UID
 
