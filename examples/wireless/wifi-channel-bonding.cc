@@ -119,10 +119,10 @@ int main (int argc, char *argv[])
   bool useDynamicChannelBonding = true;
   uint16_t maxSupportedChannelWidthBssA = 40;
   uint16_t maxSupportedChannelWidthBssB = 20;
-  uint16_t channelBssA = 38;
+  uint16_t channelBssA = 36;
   uint16_t channelBssB = 40;
   std::string secondaryChannelBssA = "UPPER";
-  std::string secondaryChannelBssB = "";
+  std::string secondaryChannelBssB = "LOWER";
   double ccaEdThresholdPrimaryBssA = -62.0;
   double ccaEdThresholdSecondaryBssA = -62.0;
   double ccaEdThresholdPrimaryBssB = -62.0;
