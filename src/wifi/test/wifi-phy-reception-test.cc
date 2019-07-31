@@ -100,12 +100,15 @@ private:
    * \param expectedFailureCount the number of unsuccessfully received packets
    */
   void CheckRxPacketCount (uint32_t expectedSuccessCount, uint32_t expectedFailureCount);
+
+  uint64_t m_uid;
 };
 
 TestThresholdPreambleDetectionWithoutFrameCapture::TestThresholdPreambleDetectionWithoutFrameCapture ()
   : TestCase ("Threshold preamble detection model test when no frame capture model is applied"),
     m_countRxSuccess (0),
-    m_countRxFailure (0)
+    m_countRxFailure (0),
+    m_uid (0)
 {
 }
 
@@ -123,7 +126,7 @@ TestThresholdPreambleDetectionWithoutFrameCapture::SendPacket (double rxPowerDbm
   Ptr<WifiPsdu> psdu = Create<WifiPsdu> (pkt, hdr);
   Time txDuration = m_phy->CalculateTxDuration (psdu->GetSize (), txVector, m_phy->GetFrequency ());
 
-  Ptr<WifiPpdu> ppdu = Create<WifiPpdu> (psdu, txVector, txDuration, FREQUENCY, 0);
+  Ptr<WifiPpdu> ppdu = Create<WifiPpdu> (psdu, txVector, txDuration, FREQUENCY, m_uid++);
 
   Ptr<SpectrumValue> txPowerSpectrum = WifiSpectrumValueHelper::CreateHeOfdmTxPowerSpectralDensity (FREQUENCY, CHANNEL_WIDTH, DbmToW (rxPowerDbm), GUARD_WIDTH);
 
@@ -282,9 +285,9 @@ TestThresholdPreambleDetectionWithoutFrameCapture::DoRun (void)
 
   Simulator::Schedule (Seconds (5.0), &TestThresholdPreambleDetectionWithoutFrameCapture::SendPacket, this, rxPowerDbm);
   Simulator::Schedule (Seconds (5.0) + MicroSeconds (2.0), &TestThresholdPreambleDetectionWithoutFrameCapture::SendPacket, this, rxPowerDbm + 3);
-  // At 4us, STA PHY STATE should move from IDLE to CCA_BUSY
-  Simulator::Schedule (Seconds (5.0) + NanoSeconds (3999), &TestThresholdPreambleDetectionWithoutFrameCapture::CheckPhyState, this, WifiPhyState::IDLE);
-  Simulator::Schedule (Seconds (5.0) + NanoSeconds (4000), &TestThresholdPreambleDetectionWithoutFrameCapture::CheckPhyState, this, WifiPhyState::CCA_BUSY);
+  // At 6us, STA PHY STATE should move from IDLE to CCA_BUSY
+  Simulator::Schedule (Seconds (5.0) + NanoSeconds (5999), &TestThresholdPreambleDetectionWithoutFrameCapture::CheckPhyState, this, WifiPhyState::IDLE);
+  Simulator::Schedule (Seconds (5.0) + NanoSeconds (6000), &TestThresholdPreambleDetectionWithoutFrameCapture::CheckPhyState, this, WifiPhyState::CCA_BUSY);
   // Since it takes 152.8us to transmit each packet, PHY should be back to IDLE at time 152.8 + 2 = 154.8us
   Simulator::Schedule (Seconds (5.0) + NanoSeconds (154799), &TestThresholdPreambleDetectionWithoutFrameCapture::CheckPhyState, this, WifiPhyState::CCA_BUSY);
   Simulator::Schedule (Seconds (5.0) + NanoSeconds (154800), &TestThresholdPreambleDetectionWithoutFrameCapture::CheckPhyState, this, WifiPhyState::IDLE);
@@ -435,12 +438,15 @@ private:
    * \param expectedFailureCount the number of unsuccessfully received packets
    */
   void CheckRxPacketCount (uint32_t expectedSuccessCount, uint32_t expectedFailureCount);
+
+  uint64_t m_uid;
 };
 
 TestThresholdPreambleDetectionWithFrameCapture::TestThresholdPreambleDetectionWithFrameCapture ()
 : TestCase ("Threshold preamble detection model test when simple frame capture model is applied"),
-m_countRxSuccess (0),
-m_countRxFailure (0)
+  m_countRxSuccess (0),
+  m_countRxFailure (0),
+  m_uid (0)
 {
 }
 
@@ -458,7 +464,7 @@ TestThresholdPreambleDetectionWithFrameCapture::SendPacket (double rxPowerDbm)
   Ptr<WifiPsdu> psdu = Create<WifiPsdu> (pkt, hdr);
   Time txDuration = m_phy->CalculateTxDuration (psdu->GetSize (), txVector, m_phy->GetFrequency ());
 
-  Ptr<WifiPpdu> ppdu = Create<WifiPpdu> (psdu, txVector, txDuration, FREQUENCY, 0);
+  Ptr<WifiPpdu> ppdu = Create<WifiPpdu> (psdu, txVector, txDuration, FREQUENCY, m_uid++);
 
   Ptr<SpectrumValue> txPowerSpectrum = WifiSpectrumValueHelper::CreateHeOfdmTxPowerSpectralDensity (FREQUENCY, CHANNEL_WIDTH, DbmToW (rxPowerDbm), GUARD_WIDTH);
 
@@ -796,6 +802,8 @@ private:
   bool m_rxSuccess1500B; ///< count received packets with 1500B payload
   bool m_rxDropped1000B; ///< count dropped packets with 1000B payload
   bool m_rxDropped1500B; ///< count dropped packets with 1500B payload
+
+  uint64_t m_uid;
 };
 
 TestSimpleFrameCaptureModel::TestSimpleFrameCaptureModel ()
@@ -803,7 +811,8 @@ TestSimpleFrameCaptureModel::TestSimpleFrameCaptureModel ()
   m_rxSuccess1000B (false),
   m_rxSuccess1500B (false),
   m_rxDropped1000B (false),
-  m_rxDropped1500B (false)
+  m_rxDropped1500B (false),
+  m_uid (0)
 {
 }
 
@@ -821,7 +830,7 @@ TestSimpleFrameCaptureModel::SendPacket (double rxPowerDbm, uint32_t packetSize)
   Ptr<WifiPsdu> psdu = Create<WifiPsdu> (pkt, hdr);
   Time txDuration = m_phy->CalculateTxDuration (psdu->GetSize (), txVector, m_phy->GetFrequency ());
 
-  Ptr<WifiPpdu> ppdu = Create<WifiPpdu> (psdu, txVector, txDuration, FREQUENCY, 0);
+  Ptr<WifiPpdu> ppdu = Create<WifiPpdu> (psdu, txVector, txDuration, FREQUENCY, m_uid++);
 
   Ptr<SpectrumValue> txPowerSpectrum = WifiSpectrumValueHelper::CreateHeOfdmTxPowerSpectralDensity (FREQUENCY, CHANNEL_WIDTH, DbmToW (rxPowerDbm), GUARD_WIDTH);
 
@@ -1001,10 +1010,13 @@ private:
    */
   void CheckPhyState (WifiPhyState expectedState);
   void DoCheckPhyState (WifiPhyState expectedState);
+
+  uint64_t m_uid;
 };
 
 TestPhyHeadersReception::TestPhyHeadersReception ()
-: TestCase ("PHY headers reception test")
+: TestCase ("PHY headers reception test"),
+  m_uid (0)
 {
 }
 
@@ -1022,7 +1034,7 @@ TestPhyHeadersReception::SendPacket (double rxPowerDbm)
   Ptr<WifiPsdu> psdu = Create<WifiPsdu> (pkt, hdr);
   Time txDuration = m_phy->CalculateTxDuration (psdu->GetSize (), txVector, m_phy->GetFrequency ());
 
-  Ptr<WifiPpdu> ppdu = Create<WifiPpdu> (psdu, txVector, txDuration, FREQUENCY, 0);
+  Ptr<WifiPpdu> ppdu = Create<WifiPpdu> (psdu, txVector, txDuration, FREQUENCY, m_uid++);
 
   Ptr<SpectrumValue> txPowerSpectrum = WifiSpectrumValueHelper::CreateHeOfdmTxPowerSpectralDensity (FREQUENCY, CHANNEL_WIDTH, DbmToW (rxPowerDbm), GUARD_WIDTH);
 
@@ -1301,6 +1313,8 @@ private:
 
   uint8_t m_rxDroppedBitmapAmpdu1;
   uint8_t m_rxDroppedBitmapAmpdu2;
+
+  uint64_t m_uid;
 };
 
 TestAmpduReception::TestAmpduReception ()
@@ -1310,7 +1324,8 @@ TestAmpduReception::TestAmpduReception ()
   m_rxFailureBitmapAmpdu1 (0),
   m_rxFailureBitmapAmpdu2 (0),
   m_rxDroppedBitmapAmpdu1 (0),
-  m_rxDroppedBitmapAmpdu2 (0)
+  m_rxDroppedBitmapAmpdu2 (0),
+  m_uid (0)
 {
 }
 
@@ -1515,7 +1530,7 @@ TestAmpduReception::SendAmpduWithThreeMpdus (double rxPowerDbm, uint32_t referen
   
   Time txDuration = m_phy->CalculateTxDuration (psdu->GetSize (), txVector, m_phy->GetFrequency ());
 
-  Ptr<WifiPpdu> ppdu = Create<WifiPpdu> (psdu, txVector, txDuration, FREQUENCY, 0);
+  Ptr<WifiPpdu> ppdu = Create<WifiPpdu> (psdu, txVector, txDuration, FREQUENCY, m_uid++);
 
   Ptr<SpectrumValue> txPowerSpectrum = WifiSpectrumValueHelper::CreateHeOfdmTxPowerSpectralDensity (FREQUENCY, CHANNEL_WIDTH, DbmToW (rxPowerDbm), GUARD_WIDTH);
 
