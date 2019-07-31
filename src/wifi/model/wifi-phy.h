@@ -166,9 +166,8 @@ public:
    * Start receiving the PHY header of a PPDU (i.e. after the end of receiving the preamble).
    *
    * \param event the event holding incoming PPDU's information
-   * \param headerPayloadDuration the duration needed for the reception of the header and PSDU of the PPDU
    */
-  void StartReceiveHeader (Ptr<Event> event, Time headerPayloadDuration);
+  void StartReceiveHeader (Ptr<Event> event);
 
   /**
    * Continue receiving the PHY header of a PPDU (i.e. after the end of receiving the legacy header part).
@@ -1735,8 +1734,12 @@ protected:
 
   EventId m_endRxEvent;                //!< the end of receive event
   EventId m_endPlcpRxEvent;            //!< the end of PLCP receive event
-  EventId m_endPreambleDetectionEvent; //!< the end of preamble detection event
+
+  std::vector <EventId> m_endPreambleDetectionEvents; //!< the end of preamble detection events
+  std::map <uint64_t /* UID*/, Ptr<Event> > m_currentPreambleEvents; //!< store event associated to a PPDU (that has a unique ID) whose preamble is being received
+
   static uint64_t m_globalPpduUid;     //!< Global counter of the PPDU UID
+
 
 private:
   /**
