@@ -30,6 +30,8 @@
 
 namespace ns3 {
 
+class WifiTxVector;
+
 /**
  * \ingroup wifi
  * \brief Headers for Block ack request.
@@ -457,6 +459,13 @@ public:
    */
   CtrlTriggerUserInfoField (uint8_t triggerType);
   /**
+   * Copy assignment operator.
+   *
+   * Checks that the given User Info fields is included in the same type
+   * of Trigger Frame.
+   */
+  CtrlTriggerUserInfoField& operator= (const CtrlTriggerUserInfoField& userInfo);
+  /**
    * Destructor
    */
   ~CtrlTriggerUserInfoField ();
@@ -486,6 +495,12 @@ public:
    * \return Buffer::Iterator to the next available buffer
    */
   Buffer::Iterator Deserialize (Buffer::Iterator start);
+  /**
+   * Get the type of the Trigger Frame this User Info field belongs to.
+   *
+   * \return the type of the Trigger Frame this User Info field belongs to
+   */
+  TriggerFrameType GetType (void) const;
   /**
    * Set the AID12 subfield, which carries the 12 LSBs of the AID of the
    * station for which this User Info field is intended. The whole AID can
@@ -738,6 +753,22 @@ class CtrlTriggerHeader : public Header
 {
 public:
   CtrlTriggerHeader ();
+  /**
+   * \brief Constructor
+   *
+   * Construct a Trigger Frame of the given type from the values stored in the
+   * given TX vector. In particular:
+   *   - the UL Bandwidth and GI And LTF Type subfields of the Common Info field
+   *     are set based on the values stored in the TX vector;
+   *   - as many User Info fields as the number of entries in the HeMuUserInfoMap
+   *     of the TX vector are added to the Trigger Frame. The AID12, RU Allocation,
+   *     UL MCS and SS Allocation subfields of each User Info field are set based
+   *     on the values stored in the corresponding entry of the HeMuUserInfoMap.
+   *
+   * \param type the Trigger frame type
+   * \param txVector the TX vector used to build this Trigger Frame
+   */
+  CtrlTriggerHeader (TriggerFrameType type, WifiTxVector txVector);
   ~CtrlTriggerHeader ();
   /**
    * \brief Get the type ID.
@@ -825,6 +856,15 @@ public:
    */
   uint16_t GetUlLength (void) const;
   /**
+   * Get the TX vector that the station with the given STA-ID will use to send
+   * the HE TB PPDU solicited by this Trigger Frame. Note that the TX power
+   * level is not set by this method.
+   *
+   * \param staId the STA-ID of a station addressed by this Trigger Frame
+   * \return the TX vector of the solicited HE TB PPDU
+   */
+  WifiTxVector GetHeTbTxVector (uint16_t staId) const;
+  /**
    * Set the More TF subfield of the Common Info field.
    *
    * \param more the value for the More TF subfield
@@ -860,6 +900,29 @@ public:
    * \return the bandwidth (20, 40, 80 or 160)
    */
   uint8_t GetUlBandwidth (void) const;
+  /**
+   * Set the GI And LTF Type subfield of the Common Info field.
+   * Allowed combinations are:
+   *   - 1x LTF + 1.6us GI
+   *   - 2x LTF + 1.6us GI
+   *   - 4x LTF + 3.2us GI
+   *
+   * \param guardInterval the guard interval duration (in nanoseconds)
+   * \param ltfType the HE-LTF type (1, 2 or 4)
+   */
+  void SetGiAndLtfType (uint16_t guardInterval, uint8_t ltfType);
+  /**
+   * Get the guard interval duration (in nanoseconds) of the solicited HE TB PPDU.
+   *
+   * \return the guard interval duration (in nanoseconds) of the solicited HE TB PPDU
+   */
+  uint16_t GetGuardInterval (void) const;
+  /**
+   * Get the LTF type of the solicited HE TB PPDU.
+   *
+   * \return the LTF tyoe of the solicited HE TB PPDU
+   */
+  uint8_t GetLtfType (void) const;
   /**
    * Set the AP TX Power subfield of the Common Info field.
    *
@@ -900,6 +963,15 @@ public:
    * \return a non-const reference to the newly added User Info field
    */
   CtrlTriggerUserInfoField& AddUserInfoField (void);
+  /**
+   * Append the given User Info field to this Trigger frame and return
+   * a non-const reference to it. Make sure that the type of the given
+   * User Info field matches the type of this Trigger Frame.
+   *
+   * \param userInfo the User Info field to append to this Trigger Frame
+   * \return a non-const reference to the newly added User Info field
+   */
+  CtrlTriggerUserInfoField& AddUserInfoField (const CtrlTriggerUserInfoField& userInfo);
 
   /// User Info fields list const iterator
   typedef std::list<CtrlTriggerUserInfoField>::const_iterator ConstIterator;
@@ -1009,14 +1081,14 @@ private:
   /**
    * Common Info field
    */
-  uint8_t m_triggerType;   //!< Trigger type
-  uint16_t m_ulLength;    //!< Value for the L-SIG Length field
-  bool m_moreTF;   //!< True if a subsequent Trigger frame follows
-  bool m_csRequired;   //!< Carrier Sense required
-  uint8_t m_ulBandwidth;   //!< UL BW subfield
-  uint8_t m_apTxPower;   //!< Tx Power used by AP to transmit the Trigger Frame
+  uint8_t m_triggerType;       //!< Trigger type
+  uint16_t m_ulLength;         //!< Value for the L-SIG Length field
+  bool m_moreTF;               //!< True if a subsequent Trigger frame follows
+  bool m_csRequired;           //!< Carrier Sense required
+  uint8_t m_ulBandwidth;       //!< UL BW subfield
+  uint8_t m_giAndLtfType;      //!< GI And LTF Type subfield
+  uint8_t m_apTxPower;         //!< Tx Power used by AP to transmit the Trigger Frame
   uint16_t m_ulSpatialReuse;   //!< Value for the Spatial Reuse field in HE-SIG-A
-  // TODO Add CP and LTF Type, Number of LTFs, HE-SIG-A reserved
   /**
    * List of User Info fields
    */
