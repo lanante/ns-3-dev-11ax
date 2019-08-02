@@ -19,6 +19,8 @@
  */
 
 #include "ctrl-headers.h"
+#include "wifi-tx-vector.h"
+#include "wifi-phy.h"
 #include <algorithm>
 
 namespace ns3 {
@@ -805,10 +807,33 @@ CtrlTriggerUserInfoField::~CtrlTriggerUserInfoField ()
 {
 }
 
+CtrlTriggerUserInfoField&
+CtrlTriggerUserInfoField::operator= (const CtrlTriggerUserInfoField& userInfo)
+{
+  NS_ABORT_MSG_IF (m_triggerType != userInfo.m_triggerType, "Trigger Frame type mismatch");
+
+  // check for self-assignment
+  if (&userInfo == this)
+    {
+      return *this;
+    }
+
+  m_aid12 = userInfo.m_aid12;
+  m_ruAllocation = userInfo.m_ruAllocation;
+  m_ulFecCodingType = userInfo.m_ulFecCodingType;
+  m_ulMcs = userInfo.m_ulMcs;
+  m_ulDcm = userInfo.m_ulDcm;
+  m_bits26To31 = userInfo.m_bits26To31;
+  m_ulTargetRssi = userInfo.m_ulTargetRssi;
+  m_basicTriggerDependentUserInfo = userInfo.m_basicTriggerDependentUserInfo;
+  m_muBarTriggerDependentUserInfo = userInfo.m_muBarTriggerDependentUserInfo;
+  return *this;
+}
+
 void
 CtrlTriggerUserInfoField::Print (std::ostream &os) const
 {
-  os << ", USER_INFO AID=" << m_aid12 << ", RU_Allocation=" << m_ruAllocation << ", MCS=" << +m_ulMcs;
+  os << ", USER_INFO AID=" << m_aid12 << ", RU_Allocation=" << +m_ruAllocation << ", MCS=" << +m_ulMcs;
 }
 
 uint32_t
@@ -920,6 +945,12 @@ CtrlTriggerUserInfoField::Deserialize (Buffer::Iterator start)
     }
 
   return i;
+}
+
+TriggerFrameType
+CtrlTriggerUserInfoField::GetType (void) const
+{
+  return static_cast<TriggerFrameType> (m_triggerType);
 }
 
 void
@@ -1222,9 +1253,34 @@ CtrlTriggerHeader::CtrlTriggerHeader ()
     m_moreTF (false),
     m_csRequired (false),
     m_ulBandwidth (0),
+    m_giAndLtfType (0),
     m_apTxPower (0),
     m_ulSpatialReuse (0)
 {
+}
+
+CtrlTriggerHeader::CtrlTriggerHeader (TriggerFrameType type, WifiTxVector txVector)
+  : CtrlTriggerHeader ()
+{
+  m_triggerType = type;
+  SetUlBandwidth (txVector.GetChannelWidth ());
+  uint16_t gi = txVector.GetGuardInterval ();
+  if (gi == 800 || gi == 1600)
+    {
+      m_giAndLtfType = 1;
+    }
+  else
+    {
+      m_giAndLtfType = 2;
+    }
+  for (auto& userInfo : txVector.GetHeMuUserInfoMap ())
+    {
+      CtrlTriggerUserInfoField& ui = AddUserInfoField ();
+      ui.SetAid12 (userInfo.first);
+      ui.SetRuAllocation (userInfo.second.ru);
+      ui.SetUlMcs (userInfo.second.mcs.GetMcsValue ());
+      ui.SetSsAllocation (1, userInfo.second.nss);
+    }
 }
 
 CtrlTriggerHeader::~CtrlTriggerHeader ()
@@ -1251,7 +1307,7 @@ CtrlTriggerHeader::GetInstanceTypeId (void) const
 void
 CtrlTriggerHeader::Print (std::ostream &os) const
 {
-  os << "TriggerType=" << m_triggerType << ", Bandwidth=" << GetUlBandwidth ();
+  os << "TriggerType=" << +m_triggerType << ", Bandwidth=" << +GetUlBandwidth ();
 
   for (auto& ui : m_userInfoFields)
     {
@@ -1296,6 +1352,7 @@ CtrlTriggerHeader::Serialize (Buffer::Iterator start) const
   commonInfo |= (m_moreTF ? 1 << 16 : 0);
   commonInfo |= (m_csRequired ? 1 << 17 : 0);
   commonInfo |= (m_ulBandwidth & 0x03) << 18;
+  commonInfo |= (m_giAndLtfType & 0x03) << 20;
   commonInfo |= static_cast<uint64_t> (m_apTxPower & 0x3f) << 28;
   commonInfo |= static_cast<uint64_t> (m_ulSpatialReuse) << 37;
 
@@ -1321,6 +1378,7 @@ CtrlTriggerHeader::Deserialize (Buffer::Iterator start)
   m_moreTF = (commonInfo >> 16) & 0x01;
   m_csRequired = (commonInfo >> 17) & 0x01;
   m_ulBandwidth = (commonInfo >> 18) & 0x03;
+  m_giAndLtfType = (commonInfo >> 20) & 0x03;
   m_apTxPower = (commonInfo >> 28) & 0x3f;
   m_ulSpatialReuse = (commonInfo >> 37) & 0xffff;
 
@@ -1416,6 +1474,23 @@ CtrlTriggerHeader::GetUlLength (void) const
   return m_ulLength;
 }
 
+WifiTxVector
+CtrlTriggerHeader::GetHeTbTxVector (uint16_t staId) const
+{
+  auto userInfoIt = FindUserInfoWithAid (staId);
+  NS_ASSERT (userInfoIt != end ());
+
+  WifiTxVector v;
+  v.SetPreambleType (WifiPreamble::WIFI_PREAMBLE_HE_TB);
+  v.SetChannelWidth (GetUlBandwidth ());
+  v.SetGuardInterval (GetGuardInterval ());
+  v.SetLength (GetUlLength ());
+  v.SetHeMuUserInfo (staId, {userInfoIt->GetRuAllocation (),
+                            WifiPhy::GetHeMcs (userInfoIt->GetUlMcs ()),
+                            userInfoIt->GetNss ()});
+  return v;
+}
+
 void
 CtrlTriggerHeader::SetMoreTF (bool more)
 {
@@ -1470,6 +1545,65 @@ CtrlTriggerHeader::GetUlBandwidth (void) const
 }
 
 void
+CtrlTriggerHeader::SetGiAndLtfType (uint16_t guardInterval, uint8_t ltfType)
+{
+  if (ltfType == 1 && guardInterval == 1600)
+    {
+      m_giAndLtfType = 0;
+    }
+  else if (ltfType == 2 && guardInterval == 1600)
+    {
+      m_giAndLtfType = 1;
+    }
+  else if (ltfType == 4 && guardInterval == 3200)
+    {
+      m_giAndLtfType = 2;
+    }
+  else
+    {
+      NS_FATAL_ERROR ("Invalid combination of GI and LTF type");
+    }
+}
+
+uint16_t
+CtrlTriggerHeader::GetGuardInterval (void) const
+{
+  if (m_giAndLtfType == 0 || m_giAndLtfType == 1)
+    {
+      return 1600;
+    }
+  else if (m_giAndLtfType == 2)
+    {
+      return 3200;
+    }
+  else
+    {
+      NS_FATAL_ERROR ("Invalid value for GI And LTF Type subfield");
+    }
+}
+
+uint8_t
+CtrlTriggerHeader::GetLtfType (void) const
+{
+  if (m_giAndLtfType == 0)
+    {
+      return 1;
+    }
+  else if (m_giAndLtfType == 1)
+    {
+      return 2;
+    }
+  else if (m_giAndLtfType == 2)
+    {
+      return 4;
+    }
+  else
+    {
+      NS_FATAL_ERROR ("Invalid value for GI And LTF Type subfield");
+    }
+}
+
+void
 CtrlTriggerHeader::SetApTxPower (int8_t power)
 {
   // see Table 9-25f "AP Tx Power subfield encoding" of 802.11ax amendment D3.0
@@ -1510,6 +1644,15 @@ CtrlTriggerUserInfoField&
 CtrlTriggerHeader::AddUserInfoField (void)
 {
   m_userInfoFields.emplace_back (m_triggerType);
+  return m_userInfoFields.back ();
+}
+
+CtrlTriggerUserInfoField&
+CtrlTriggerHeader::AddUserInfoField (const CtrlTriggerUserInfoField& userInfo)
+{
+  NS_ABORT_MSG_IF (userInfo.GetType () != m_triggerType,
+                   "Trying to add a User Info field of a type other than the type of the Trigger Frame");
+  m_userInfoFields.push_back (userInfo);
   return m_userInfoFields.back ();
 }
 

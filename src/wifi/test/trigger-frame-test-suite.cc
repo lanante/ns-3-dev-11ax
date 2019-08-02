@@ -21,6 +21,7 @@
 #include "ns3/test.h"
 #include "ns3/ctrl-headers.h"
 #include "ns3/packet.h"
+#include "ns3/wifi-phy.h"
 
 using namespace ns3;
 
@@ -57,20 +58,24 @@ TriggerFrameSerialization::~TriggerFrameSerialization ()
 void
 TriggerFrameSerialization::DoRun (void)
 {
-  uint16_t ulLength = 2100;
+  Time heTbPpduDuration = MicroSeconds (120);
   bool moreTF = true;
   bool csRequired = true;
   uint8_t ulBandwidth = 160;
+  uint16_t guardInterval = 1600;
+  uint8_t ltfType = 2;
   int8_t apTxPower = 40;
   uint16_t ulSpatialReuse = 60500;
+  uint16_t frequency = 5000;
 
   CtrlTriggerHeader trigger;
 
   trigger.SetType (m_triggerType);
-  trigger.SetUlLength (ulLength);
+  trigger.SetUlLength (WifiPhy::ConvertHeTbPpduDurationToLSigLength (heTbPpduDuration, frequency));
   trigger.SetMoreTF (moreTF);
   trigger.SetCsRequired (csRequired);
   trigger.SetUlBandwidth (ulBandwidth);
+  trigger.SetGiAndLtfType (guardInterval, ltfType);
   trigger.SetApTxPower (apTxPower);
   trigger.SetUlSpatialReuse (ulSpatialReuse);
 
@@ -155,14 +160,20 @@ TriggerFrameSerialization::DoRun (void)
                          || (m_triggerType == BSRP_TRIGGER && trigger.IsBsrp ())
                          || (m_triggerType == BQRP_TRIGGER && trigger.IsBqrp ()),
                          true, "Different trigger frame type found");
-  NS_TEST_EXPECT_MSG_EQ (trigger.GetUlLength (), ulLength,
-                         "Different UL Length found");
+  WifiTxVector heTbTxVector = trigger.GetHeTbTxVector (aid1);
+  NS_TEST_EXPECT_MSG_EQ (WifiPhy::ConvertLSigLengthToHeTbPpduDuration (trigger.GetUlLength (), heTbTxVector, frequency).GetMicroSeconds (),
+                         heTbPpduDuration.GetMicroSeconds (),
+                         "UL Length does not encode the correct HE TB PPDU duration");
   NS_TEST_EXPECT_MSG_EQ (trigger.GetMoreTF (), moreTF,
                          "Different MoreTF found");
   NS_TEST_EXPECT_MSG_EQ (trigger.GetCsRequired (), csRequired,
                          "Different CS Required found");
   NS_TEST_EXPECT_MSG_EQ (trigger.GetUlBandwidth (), ulBandwidth,
                          "Different UL Bandwidth found");
+  NS_TEST_EXPECT_MSG_EQ (trigger.GetGuardInterval (), guardInterval,
+                         "Different Guard Interval found");
+  NS_TEST_EXPECT_MSG_EQ (trigger.GetLtfType (), ltfType,
+                         "Different LTF Type found");
   NS_TEST_EXPECT_MSG_EQ (trigger.GetApTxPower (), apTxPower,
                          "Different AP TX Power found");
   NS_TEST_EXPECT_MSG_EQ (trigger.GetUlSpatialReuse (), ulSpatialReuse,
@@ -265,14 +276,20 @@ TriggerFrameSerialization::DoRun (void)
                          || (m_triggerType == BSRP_TRIGGER && trigger.IsBsrp ())
                          || (m_triggerType == BQRP_TRIGGER && trigger.IsBqrp ()),
                          true, "Different trigger frame type found in deserialized header");
-  NS_TEST_EXPECT_MSG_EQ (triggerCopy.GetUlLength (), ulLength,
-                         "Different UL Length found in deserialized header");
+  WifiTxVector heTbTxVectorCopy = triggerCopy.GetHeTbTxVector (aid1);
+  NS_TEST_EXPECT_MSG_EQ (WifiPhy::ConvertLSigLengthToHeTbPpduDuration (triggerCopy.GetUlLength (), heTbTxVectorCopy, frequency).GetMicroSeconds (),
+                         heTbPpduDuration.GetMicroSeconds (),
+                         "UL Length in deserialized header does not encode the correct HE TB PPDU duration");
   NS_TEST_EXPECT_MSG_EQ (triggerCopy.GetMoreTF (), moreTF,
                          "Different MoreTF found in deserialized header");
   NS_TEST_EXPECT_MSG_EQ (triggerCopy.GetCsRequired (), csRequired,
                          "Different CS Required found in deserialized header");
   NS_TEST_EXPECT_MSG_EQ (triggerCopy.GetUlBandwidth (), ulBandwidth,
                          "Different UL Bandwidth found in deserialized header");
+  NS_TEST_EXPECT_MSG_EQ (triggerCopy.GetGuardInterval (), guardInterval,
+                         "Different Guard Interval found in deserialized header");
+  NS_TEST_EXPECT_MSG_EQ (triggerCopy.GetLtfType (), ltfType,
+                         "Different LTF Type found in deserialized header");
   NS_TEST_EXPECT_MSG_EQ (triggerCopy.GetApTxPower (), apTxPower,
                          "Different AP TX Power found in deserialized header");
   NS_TEST_EXPECT_MSG_EQ (triggerCopy.GetUlSpatialReuse (), ulSpatialReuse,
