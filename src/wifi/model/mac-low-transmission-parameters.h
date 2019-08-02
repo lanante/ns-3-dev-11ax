@@ -24,7 +24,11 @@
 #define MAC_LOW_TRANSMISSION_PARAMETERS_H
 
 #include "ns3/uinteger.h"
+#include "ns3/mac48-address.h"
 #include "block-ack-type.h"
+#include "mu-tx-ack-types.h"
+#include <map>
+#include <list>
 
 namespace ns3 {
 
@@ -35,6 +39,40 @@ namespace ns3 {
  * The ns3::MacLow::StartTransmission method expects
  * an instance of this class to describe how the packet
  * should be transmitted.
+ *
+ * For SU PPDUs, call:
+ * - EnableAck () if the frame is followed by a Normal Ack;
+ *
+ * - EnableBlockAck (BlockAckType) if the frame is followed by a Block Ack
+ * of the given type;
+ *
+ * - EnableBlockAckRequest (BlockAckReqType, BlockAckType) if the sender
+ * will subsequently transmit a Block Ack Request of the given type, followed
+ * by a Block Ack of the given type.
+ *
+ * For DL MU PPDUs using a sequence of Block Ack Requests/Block Ack responses, call:
+ * - EnableAck (address) if the station with the given address will reply with a
+ * Normal Ack a SIFS after the transmission of the DL MU PPDU;
+ *
+ * - EnableBlockAck (address) if the station with the given address will reply with a
+ * Block Ack of the given type a SIFS after the transmission of the DL MU PPDU;
+ *
+ * -EnableBlockAckRequest (address, BlockAckReqType, BlockAckType) if the sender
+ * will transmit a Block Ack Request of the given type to the station with the
+ * given address, which will reply with a Block Ack of the given type.
+ *
+ * For DL MU PPDUs using acknowledgment via a separate MU-BAR Trigger Frame, call:
+ * - EnableBlockAckRequest (address, BlockAckReqType, BlockAckType) to include a
+ * User Info subfield addressed to the station with the given address in the
+ * following MU-BAR Trigger Frame.
+ *
+ * For a MU-BAR Trigger Frame transmitted after a DL MU PPDU, call:
+ * - EnableBlockAck (address, BlockAckType) for each of the stations addressed
+ * by the MU-BAR Trigger Frame.
+ *
+ * For a DL MU PPDU with aggregated MU-BAR Trigger Frames, call:
+ * - EnableBlockAck (address, BlockAckType) for each of the stations addressed
+ * by the DL MU PPDU.
  */
 class MacLowTransmissionParameters
 {
@@ -77,6 +115,29 @@ public:
    */
   void EnableNextData (uint32_t size);
   /**
+   * For a multi-user transmission, record that the given station is expected to
+   * transmit a Normal Ack.
+   *
+   * \param address the MAC address of the station from which a response is expected
+   */
+  void EnableAck (Mac48Address address);
+  /**
+   * For a multi-user transmission, record that the given station is expected to
+   * transmit a Block Ack Response of the given type.
+   *
+   * \param address the MAC address of the station from which a response is expected
+   * \param type the Block Ack Response type
+   */
+  void EnableBlockAck (Mac48Address address, BlockAckType type);
+  /**
+   * For a multi-user transmission, schedule the transmission of a Block Ack Request
+   * of the given type to the given station.
+   *
+   * \param address the MAC address of the station to which a BAR has to be sent
+   * \param type the Block Ack Request type
+   */
+  void EnableBlockAckRequest (Mac48Address address, BlockAckType type);
+  /**
    * Do not wait for Ack after data transmission. Typically
    * used for Broadcast and multicast frames.
    */
@@ -93,6 +154,20 @@ public:
    * Do not attempt to send data burst after current transmission
    */
   void DisableNextData (void);
+  /**
+   * For a multi-user transmission, record that the given station is not expected to
+   * transmit a response.
+   *
+   * \param address the MAC address of the station from which a response is not expected
+   */
+  void DisableAck (Mac48Address address);
+  /**
+   * For a multi-user transmission, do not schedule the transmission of a Block Ack Request
+   * to the given station.
+   *
+   * \param address the MAC address of the station to which a BAR has not to be sent
+   */
+  void DisableBlockAckRequest (Mac48Address address);
   /**
    * \returns true if normal ACK protocol should be used, false
    *          otherwise.
@@ -137,6 +212,72 @@ public:
    * \returns the size specified by EnableNextData.
    */
   uint32_t GetNextPacketSize (void) const;
+  /**
+   * \param type the type of the ack sequence for the DL MU transmission.
+   *
+   * Record that this is a DL MU transmission and set the ack sequence type
+   * to the given type.
+   */
+  void SetDlMuAckSequenceType (DlMuAckSequenceType type);
+  /**
+   * \param type the type of the ack sequence for the UL MU transmission.
+   *
+   * Record that this is an UL MU transmission and set the ack sequence type
+   * to the given type.
+   */
+  void SetUlMuAckSequenceType (UlMuAckSequenceType type);
+  /**
+   * \returns true if the current transmission is followed by a DL MU ack sequence,
+   *          false otherwise.
+   */
+  bool HasDlMuAckSequence (void) const;
+  /**
+   * \returns true if the current transmission is followed by an UL MU ack sequence,
+   *          false otherwise.
+   */
+  bool HasUlMuAckSequence (void) const;
+  /**
+   * \return the type of the ack sequence for the DL MU transmission.
+   */
+  DlMuAckSequenceType GetDlMuAckSequenceType (void) const;
+  /**
+   * \return the type of the ack sequence for the UL MU transmission.
+   */
+  UlMuAckSequenceType GetUlMuAckSequenceType (void) const;
+  /**
+   * \return a list of stations from which a Normal Ack response is expected.
+   *
+   * This method is intended for DL MU or UL MU transmissions only.
+   */
+  std::list<Mac48Address> GetStationsReplyingWithNormalAck (void) const;
+  /**
+   * \return a list of stations from which a Block Ack response is expected.
+   *
+   * This method is intended for DL MU or UL MU transmissions only.
+   */
+  std::list<Mac48Address> GetStationsReplyingWithBlockAck (void) const;
+  /**
+   * \return a list of stations to which a Block Ack Request is going to be sent.
+   *
+   * This method is intended for DL MU or UL MU transmissions only.
+   */
+  std::list<Mac48Address> GetStationsSendBlockAckRequestTo (void) const;
+  /**
+   * For a multi-user transmission, return the type of Block Ack response
+   * expected from the given station.
+   *
+   * \param address the MAC address of the given station
+   * \returns the selected Block Ack response variant.
+   */
+  BlockAckType GetBlockAckType (Mac48Address address) const;
+  /**
+   * For a multi-user transmission, return the type of Block Ack Request
+   * to send to the given station.
+   *
+   * \param address the MAC address of the given station
+   * \returns the selected Block Ack Request variant.
+   */
+  BlockAckType GetBlockAckRequestType (Mac48Address address) const;
 
 private:
   friend std::ostream &operator << (std::ostream &os, const MacLowTransmissionParameters &params);
@@ -157,6 +298,11 @@ private:
   WaitAckType m_waitAck;                            //!< type of Ack to wait for
   SendBarType m_sendBar;                            //!< type of BAR to send
   bool m_sendRts;                                   //!< whether to send an RTS or not
+  /// Params for MU PPDUs
+  std::map<Mac48Address, WaitAckType> m_muWaitAck;  //!< wait block ack from multiple stations
+  std::map<Mac48Address, SendBarType> m_muSendBar;  //|< send bar to multiple stations
+  DlMuAckSequenceType m_dlMuAckType;                //!< Ack sequence type for DL MU
+  UlMuAckSequenceType m_ulMuAckType;                //!< Ack sequence type for UL MU
 };
 
 /**

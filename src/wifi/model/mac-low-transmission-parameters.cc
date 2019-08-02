@@ -28,7 +28,9 @@ MacLowTransmissionParameters::MacLowTransmissionParameters ()
   : m_nextSize (0),
     m_waitAck ({WaitAckType::NONE}),
     m_sendBar ({SendBarType::NONE}),
-    m_sendRts (false)
+    m_sendRts (false),
+    m_dlMuAckType (DlMuAckSequenceType::DL_NONE),
+    m_ulMuAckType (UlMuAckSequenceType::UL_NONE)
 {
 }
 
@@ -49,8 +51,10 @@ MacLowTransmissionParameters::EnableBlockAck (BlockAckType type)
 {
   m_waitAck = {WaitAckType::BLOCK_ACK, type};
 
-  // Reset m_sendBar
+  // Reset other member variables
   m_sendBar = {SendBarType::NONE};
+  m_muWaitAck.clear ();
+  m_muSendBar.clear ();
 }
 
 void
@@ -58,8 +62,10 @@ MacLowTransmissionParameters::EnableBlockAckRequest (BlockAckType type)
 {
   m_sendBar = {SendBarType::BLOCK_ACK_REQ, type};
 
-  // Reset m_waitAck
+  // Reset other member variables
   m_waitAck = {WaitAckType::NONE};
+  m_muWaitAck.clear ();
+  m_muSendBar.clear ();
 }
 
 void
@@ -67,8 +73,46 @@ MacLowTransmissionParameters::EnableAck (void)
 {
   m_waitAck = {WaitAckType::NORMAL};
 
-  // Reset m_sendBar
+  // Reset other member variables
   m_sendBar = {SendBarType::NONE};
+  m_muWaitAck.clear ();
+  m_muSendBar.clear ();
+}
+
+void
+MacLowTransmissionParameters::EnableBlockAck (Mac48Address address, BlockAckType type)
+{
+  m_muWaitAck[address] = {WaitAckType::BLOCK_ACK, type};
+
+  // Reset other member variables
+  m_muSendBar.erase (address);
+  m_waitAck = {WaitAckType::NONE};
+  m_sendBar = {SendBarType::NONE};
+  DisableRts ();  // FIXME when MU-RTS is implemented
+}
+
+void
+MacLowTransmissionParameters::EnableBlockAckRequest (Mac48Address address, BlockAckType type)
+{
+  m_muSendBar[address] = {SendBarType::BLOCK_ACK_REQ, type};
+
+  // Reset other member variables
+  m_muWaitAck.erase (address);
+  m_waitAck = {WaitAckType::NONE};
+  m_sendBar = {SendBarType::NONE};
+  DisableRts ();  // FIXME when MU-RTS is implemented
+}
+
+void
+MacLowTransmissionParameters::EnableAck (Mac48Address address)
+{
+  m_muWaitAck[address] = {WaitAckType::NORMAL};
+
+  // Reset other member variables
+  m_muSendBar.erase (address);
+  m_waitAck = {WaitAckType::NONE};
+  m_sendBar = {SendBarType::NONE};
+  DisableRts ();  // FIXME when MU-RTS is implemented
 }
 
 void
@@ -81,6 +125,18 @@ void
 MacLowTransmissionParameters::DisableBlockAckRequest (void)
 {
   m_sendBar = {SendBarType::NONE};
+}
+
+void
+MacLowTransmissionParameters::DisableAck (Mac48Address address)
+{
+  m_muWaitAck.erase (address);
+}
+
+void
+MacLowTransmissionParameters::DisableBlockAckRequest (Mac48Address address)
+{
+  m_muSendBar.erase (address);
 }
 
 void
@@ -146,6 +202,125 @@ MacLowTransmissionParameters::GetNextPacketSize (void) const
   return m_nextSize;
 }
 
+void
+MacLowTransmissionParameters::SetDlMuAckSequenceType (DlMuAckSequenceType type)
+{
+  m_dlMuAckType = type;
+
+  // Reset other member variables
+  m_ulMuAckType = UlMuAckSequenceType::UL_NONE;
+  m_waitAck = {WaitAckType::NONE};
+  m_sendBar = {SendBarType::NONE};
+  DisableRts ();  // FIXME when MU-RTS is implemented
+}
+
+void
+MacLowTransmissionParameters::SetUlMuAckSequenceType (UlMuAckSequenceType type)
+{
+  m_ulMuAckType = type;
+
+  // Reset other member variables
+  m_dlMuAckType = DlMuAckSequenceType::DL_NONE;
+  m_waitAck = {WaitAckType::NONE};
+  m_sendBar = {SendBarType::NONE};
+  DisableRts ();  // FIXME when MU-RTS is implemented
+}
+
+bool
+MacLowTransmissionParameters::HasDlMuAckSequence (void) const
+{
+  return (m_dlMuAckType != DlMuAckSequenceType::DL_NONE && (!m_muWaitAck.empty () || !m_muSendBar.empty ()));
+}
+
+bool
+MacLowTransmissionParameters::HasUlMuAckSequence (void) const
+{
+  return (m_ulMuAckType != UlMuAckSequenceType::UL_NONE && (!m_muWaitAck.empty () || !m_muSendBar.empty ()));
+}
+
+DlMuAckSequenceType
+MacLowTransmissionParameters::GetDlMuAckSequenceType (void) const
+{
+  if (HasDlMuAckSequence ())
+    {
+      return m_dlMuAckType;
+    }
+  NS_FATAL_ERROR ("Not a DL MU transmission");
+}
+
+UlMuAckSequenceType
+MacLowTransmissionParameters::GetUlMuAckSequenceType (void) const
+{
+  if (HasUlMuAckSequence ())
+    {
+      return m_ulMuAckType;
+    }
+  NS_FATAL_ERROR ("Not an UL MU transmission");
+}
+
+std::list<Mac48Address>
+MacLowTransmissionParameters::GetStationsReplyingWithNormalAck (void) const
+{
+  std::list<Mac48Address> ret;
+  for (auto& ackType : m_muWaitAck)
+    {
+      NS_ASSERT (ackType.second.m_type != WaitAckType::NONE);
+      if (ackType.second.m_type == WaitAckType::NORMAL)
+        {
+          ret.push_back (ackType.first);
+        }
+    }
+  return ret;
+}
+
+std::list<Mac48Address>
+MacLowTransmissionParameters::GetStationsReplyingWithBlockAck (void) const
+{
+  std::list<Mac48Address> ret;
+  for (auto& ackType : m_muWaitAck)
+    {
+      NS_ASSERT (ackType.second.m_type != WaitAckType::NONE);
+      if (ackType.second.m_type == WaitAckType::BLOCK_ACK)
+        {
+          ret.push_back (ackType.first);
+        }
+    }
+  return ret;
+}
+
+std::list<Mac48Address>
+MacLowTransmissionParameters::GetStationsSendBlockAckRequestTo (void) const
+{
+  std::list<Mac48Address> ret;
+  for (auto& sendBar : m_muSendBar)
+    {
+      ret.push_back (sendBar.first);
+    }
+  return ret;
+}
+
+BlockAckType
+MacLowTransmissionParameters::GetBlockAckType (Mac48Address address) const
+{
+  auto it = m_muWaitAck.find (address);
+  NS_ASSERT (it != m_muWaitAck.end ());
+
+  NS_ABORT_MSG_IF (it->second.m_type != WaitAckType::BLOCK_ACK,
+                   "Block ack is not used for station " << address);
+  return it->second.m_baType;
+}
+
+BlockAckType
+MacLowTransmissionParameters::GetBlockAckRequestType (Mac48Address address) const
+{
+  auto it = m_muSendBar.find (address);
+  NS_ASSERT (it != m_muSendBar.end ());
+
+  NS_ABORT_MSG_IF (it->second.m_type != SendBarType::BLOCK_ACK_REQ,
+                   "Block Ack Request must not be sent to station " << address);
+  return it->second.m_barType;
+}
+
 std::ostream &operator << (std::ostream &os, const MacLowTransmissionParameters &params)
 {
   os << "["
@@ -163,6 +338,14 @@ std::ostream &operator << (std::ostream &os, const MacLowTransmissionParameters 
   else if (params.m_sendBar.m_type == MacLowTransmissionParameters::SendBarType::BLOCK_ACK_REQ)
     {
       os << "bar=" << params.m_sendBar.m_barType;
+    }
+  else if (params.HasDlMuAckSequence ())
+    {
+      os << "DL ack";
+    }
+  else if (params.HasUlMuAckSequence ())
+    {
+      os << "UL ack";
     }
   else
     {
