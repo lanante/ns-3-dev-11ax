@@ -442,6 +442,10 @@ std::ostream & operator << ( std::ostream &os, const WifiTxVector &v)
      << " Ness: " << +v.GetNess ()
      << " MPDU aggregation: " << v.IsAggregation ()
      << " STBC: " << v.IsStbc ();
+  if (v.GetPreambleType () >= WIFI_PREAMBLE_HE_SU)
+    {
+      os << " BSS color: " << +v.GetBssColor ();
+    }
   if (v.IsMu ())
     {
       WifiTxVector::HeMuUserInfoMap userInfoMap = v.GetHeMuUserInfoMap ();
