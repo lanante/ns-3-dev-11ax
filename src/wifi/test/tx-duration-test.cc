@@ -246,9 +246,10 @@ TxDurationTest::CheckHeMuTxDuration (std::list<uint32_t> sizes, std::list<HeMuUs
                                      Time knownDuration)
 {
   NS_ASSERT (sizes.size () == userInfos.size () && sizes.size () > 1);
-  NS_ASSERT (channelWidth >= std::accumulate (std::begin (userInfos), std::end (userInfos), 0,
-                                              [](const uint16_t prevBw, const HeMuUserInfo &info)
-                                              { return prevBw + HeRu::GetBandwidth (info.ru.ruType); }));
+  NS_ABORT_MSG_IF (channelWidth < std::accumulate (std::begin (userInfos), std::end (userInfos), 0,
+                                                   [](const uint16_t prevBw, const HeMuUserInfo &info)
+                                                   { return prevBw + HeRu::GetBandwidth (info.ru.ruType); }),
+                   "Cannot accommodate all the RUs in the provided band"); //MU-MIMO (for which allocations use the same RU) is not supported
   WifiTxVector txVector;
   txVector.SetPreambleType (WIFI_PREAMBLE_HE_MU);
   txVector.SetChannelWidth (channelWidth);

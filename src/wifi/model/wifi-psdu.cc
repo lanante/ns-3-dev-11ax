@@ -228,7 +228,7 @@ WifiPsdu::GetMaxDistFromStartingSeq (uint16_t startingSeq) const
 {
   NS_LOG_FUNCTION (this << startingSeq);
 
-  uint16_t maxDistFromStartingSeq;
+  uint16_t maxDistFromStartingSeq = 0;
   bool foundFirst = false;
 
   for (auto& mpdu : m_mpduList)
