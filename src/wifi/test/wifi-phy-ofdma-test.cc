@@ -308,7 +308,7 @@ TestDlOfdmaReception::SendMuPpdu (uint16_t rxStaId1, uint16_t rxStaId2)
 {
   WifiPsduMap psdus;
   WifiTxVector txVector = WifiTxVector (WifiPhy::GetHeMcs7 (), 0, WIFI_PREAMBLE_HE_MU, 800, 1, 1, 0, m_channelWidth, false, false);
-  HeRu::RuType ruType;
+  HeRu::RuType ruType = HeRu::RU_106_TONE;
   if (m_channelWidth == 20)
     {
       ruType = HeRu::RU_106_TONE;
