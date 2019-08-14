@@ -57,7 +57,7 @@ public:
   /**
    * RU Specification. Stores the information carried by the RU Allocation
    * subfield of the User Info field of Trigger frames. Note that primary80MHz
-   * must be false if ruType is RU_2x996_TONE.
+   * must be true if ruType is RU_2x996_TONE.
    */
   typedef struct
   {
@@ -83,7 +83,8 @@ public:
    * given bandwidth. A subcarrier group is defined as one or more pairs
    * indicating the lowest frequency index and the highest frequency index.
    * Note that for channel width of 160 MHz the returned range is relative to
-   * an 80 MHz subchannel.
+   * the 160 MHz channel (i.e. -1012 to 1012). The index parameter is used to
+   * distinguish between primary and secondary 80 MHz subchannels.
    *
    * \param bw the bandwidth (MHz) of the HE PPDU (20, 40, 80, 160)
    * \param ruType the RU type (number of tones)
@@ -94,6 +95,8 @@ public:
 
   /**
    * Check whether the given RU overlaps with the given set of RUs.
+   * Note that for channel width of 160 MHz the returned range is relative to
+   * the 160 MHz channel (i.e. -1012 to 1012).
    *
    * \param bw the bandwidth (MHz) of the HE PPDU (20, 40, 80, 160)
    * \param ru the given RU allocation
@@ -104,9 +107,8 @@ public:
 
   /**
    * Check whether the given RU overlaps with the given tone ranges.
-   * Note that for channel width of 160 MHz the tone ranges are relative to
-   * to the whole interval (-1012, 1012), as used for HE-SIG-B content channel
-   * differentiation.
+   * Note that for channel width of 160 MHz the returned range is relative to
+   * the 160 MHz channel (i.e. -1012 to 1012).
    *
    * \param bw the bandwidth (MHz) of the HE PPDU (20, 40, 80, 160)
    * \param ru the given RU allocation
@@ -129,7 +131,7 @@ public:
   /// map (bandwidth, number of tones) pairs to the group of subcarrier ranges
   typedef std::map<BwTonesPair, std::vector<SubcarrierGroup> > SubcarrierGroups;
 
-  //!< Subcarrier groups for all RUs
+  //!< Subcarrier groups for all RUs (with indices being applicable to primary 80 MHz channel)
   static const SubcarrierGroups  m_heRuSubcarrierGroups;
 };
 

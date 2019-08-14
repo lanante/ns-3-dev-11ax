@@ -374,14 +374,7 @@ TestDlOfdmaPhyTransmission::SendMuPpdu (uint16_t rxStaId1, uint16_t rxStaId2)
     }
   
   HeRu::RuSpec ru1;
-  if (m_channelWidth == 160)
-    {
-      ru1.primary80MHz = true;
-    }
-  else
-    {
-      ru1.primary80MHz = false;
-    }
+  ru1.primary80MHz = true;
   ru1.ruType = ruType;
   ru1.index = 1;
   txVector.SetRu (ru1, rxStaId1);
@@ -389,16 +382,9 @@ TestDlOfdmaPhyTransmission::SendMuPpdu (uint16_t rxStaId1, uint16_t rxStaId2)
   txVector.SetNss (1, rxStaId1);
 
   HeRu::RuSpec ru2;
-  ru2.primary80MHz = false;
+  ru2.primary80MHz = (m_channelWidth == 160) ? false : true;
   ru2.ruType = ruType;
-  if (m_channelWidth == 160)
-    {
-      ru2.index = 1;
-    }
-  else
-    {
-      ru2.index = 2;
-    }
+  ru2.index = 2;
   txVector.SetRu (ru2, rxStaId2);
   txVector.SetMode (WifiPhy::GetHeMcs9 (), rxStaId2);
   txVector.SetNss (1, rxStaId2);
@@ -1662,14 +1648,7 @@ TestUlOfdmaPhyTransmission::SendHeTbPpdu (uint16_t txStaId, std::size_t index, s
       ru.primary80MHz = false;
     }
   ru.ruType = ruType;
-  if (m_channelWidth == 160)
-    {
-      ru.index = 1;
-    }
-  else
-    {
-      ru.index = index;
-    }
+  ru.index = index;
   txVector.SetRu (ru, txStaId);
   txVector.SetMode (WifiPhy::GetHeMcs7 (), txStaId);
   txVector.SetNss (1, txStaId);
