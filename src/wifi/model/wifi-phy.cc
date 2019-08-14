@@ -3471,12 +3471,6 @@ WifiPhy::GetRuBand (WifiTxVector txVector, uint16_t staId)
   HeRu::SubcarrierGroup group = HeRu::GetSubcarrierGroup (channelWidth, ru.ruType, ru.index);
   HeRu::SubcarrierRange range = std::make_pair (group.front ().first, group.back ().second);
   band = ConvertHeRuSubcarriers (channelWidth, range);
-  if (channelWidth == 160 && !ru.primary80MHz)
-    {
-      size_t offset = GetSecondary80MHzOffset ();
-      band.first = band.first + offset;
-      band.second = band.second + offset;
-    }
   return band;
 }
 
@@ -3486,13 +3480,6 @@ WifiPhy::ConvertHeRuSubcarriers (uint16_t channelWidth, HeRu::SubcarrierRange ra
   NS_ASSERT_MSG (false, "802.11ax can only be used with SpectrumWifiPhy");
   WifiSpectrumBand convertedSubcarriers;
   return convertedSubcarriers;
-}
-
-size_t
-WifiPhy::GetSecondary80MHzOffset (void)
-{
-  NS_ASSERT_MSG (false, "802.11ax can only be used with SpectrumWifiPhy");
-  return 0;
 }
 
 void

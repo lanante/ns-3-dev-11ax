@@ -228,11 +228,6 @@ private:
    */
   void UpdateInterferenceHelperBands (void);
 
-  /**
-   * This is a helper function to compute the offset of the secondary 80 MHz channel.
-   */
-  size_t GetSecondary80MHzOffset (void);
-
   Ptr<SpectrumChannel> m_channel;        //!< SpectrumChannel that this SpectrumWifiPhy is connected to
 
   Ptr<WifiSpectrumPhyInterface> m_wifiSpectrumPhyInterface; //!< Spectrum phy interface

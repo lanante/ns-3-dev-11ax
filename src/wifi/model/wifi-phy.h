@@ -1752,11 +1752,6 @@ protected:
   virtual WifiSpectrumBand ConvertHeRuSubcarriers (uint16_t channelWidth, HeRu::SubcarrierRange range) const;
 
   /**
-   * This is a helper function to compute the offset of the secondary 80 MHz channel.
-   */
-  virtual size_t GetSecondary80MHzOffset (void);
-
-  /**
    * Get the RU band used to transmit a PSDU to a given STA in a HE MU PPDU
    *
    * \param txVector the TXVECTOR used for the transmission

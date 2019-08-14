@@ -432,6 +432,10 @@ SpectrumWifiPhyFilterTest::RxCallback (Ptr<const Packet> p, RxPowerWattPerChanne
       expectedNumBands += 4 * (m_rxChannelWidth / 80); /* RU_242_TONE */
       expectedNumBands += 2 * (m_rxChannelWidth / 80); /* RU_484_TONE */
       expectedNumBands += 1 * (m_rxChannelWidth / 80); /* RU_996_TONE */
+      if (m_rxChannelWidth == 160)
+        {
+          ++expectedNumBands; /* RU_2x996_TONE */
+        }
     }
   NS_TEST_ASSERT_MSG_EQ (numBands, expectedNumBands, "Total number of bands handled by the receiver is incorrect");
 

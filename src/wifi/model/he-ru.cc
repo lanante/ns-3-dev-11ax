@@ -171,12 +171,40 @@ HeRu::GetNRus (uint8_t bw, RuType ruType)
 HeRu::SubcarrierGroup
 HeRu::GetSubcarrierGroup (uint8_t bw, RuType ruType, std::size_t index)
 {
+  if (ruType == HeRu::RU_2x996_TONE) //handle special case of RU covering 160 MHz channel
+    {
+      NS_ABORT_MSG_IF (bw != 160, "2x996 tone RU can only be used on 160 MHz band");
+      return {{-1012, -3}, {3, 1012}};
+    }
+
+  // Determine the shift to apply to tone indices for 160 MHz channel (i.e. -1012 to 1012), since
+  // m_heRuSubcarrierGroups contains indices for primary 80 MHz subchannel (i.e. from -500 to 500).
+  // The index is used to that aim.
+  std::size_t indexInPrimary80MHz = index;
+  std::size_t numRus = GetNRus (bw, ruType);
+  int16_t shift = (bw == 160) ? -512 : 0;
+  if (bw == 160 && index > (numRus / 2))
+    {
+      // The provided index is that of the secondary 80 MHz subchannel
+      indexInPrimary80MHz = index - (numRus / 2);
+      shift = 512;
+    }
+
   auto it = m_heRuSubcarrierGroups.find ({(bw == 160 ? 80 : bw), ruType});
 
   NS_ABORT_MSG_IF (it == m_heRuSubcarrierGroups.end (), "RU not found");
-  NS_ABORT_MSG_IF (!index || index > it->second.size (), "RU index not available");
+  NS_ABORT_MSG_IF (!indexInPrimary80MHz || indexInPrimary80MHz > it->second.size (), "RU index not available");
 
-  return it->second.at (index-1);
+  SubcarrierGroup group = it->second.at (indexInPrimary80MHz - 1);
+  if (bw == 160)
+    {
+      for (auto & range : group)
+        {
+          range.first += shift;
+          range.second += shift;
+        }
+    }
+  return group;
 }
 
 bool
@@ -189,18 +217,6 @@ HeRu::DoesOverlap (uint8_t bw, RuSpec ru, const std::vector<RuSpec> &v)
     }
 
   SubcarrierGroup groups = GetSubcarrierGroup (bw, ru.ruType, ru.index);
-  if (bw == 160)
-    {
-      // Translate 80 MHz indices obtained from GetSubcarrierGroup (i.e. from -500 to 500)
-      // into 160 MHz indices (i.e. -1012 to 1012) for HE-SIG-B content channel differentiation
-      int16_t shift = ru.primary80MHz ? -512 : 512;
-      for (auto & pair : groups)
-        {
-          pair.first += shift;
-          pair.second += shift;
-        }
-    }
-
   for (auto& p : v)
     {
       if (ru.primary80MHz != p.primary80MHz)
@@ -227,18 +243,6 @@ HeRu::DoesOverlap (uint8_t bw, RuSpec ru, const SubcarrierGroup &toneRanges)
         }
 
       SubcarrierGroup rangesRu = GetSubcarrierGroup (bw, ru.ruType, ru.index);
-      if (bw == 160)
-        {
-          // Translate 80 MHz indices obtained from GetSubcarrierGroup (i.e. from -500 to 500)
-          // into 160 MHz indices (i.e. -1012 to 1012) for HE-SIG-B content channel differentiation
-          int16_t shift = ru.primary80MHz ? -512 : 512;
-          for (auto & pair : rangesRu)
-            {
-              pair.first += shift;
-              pair.second += shift;
-            }
-        }
-
       for (auto& r : rangesRu)
         {
           if (range.second >= r.first && r.second >= range.first)
