@@ -180,6 +180,14 @@ public:
    */
   void SwitchToChannelSwitching (Time switchingDuration);
   /**
+   * Continue RX after the reception of an MPDU in an A-MPDU was successful.
+   *
+   * \param psdu the successfully received PSDU
+   * \param rxSignalInfo the info on the received signal (\see RxSignalInfo)
+   * \param txVector TXVECTOR of the PSDU
+   */
+  void ContinueRxNextMpdu (Ptr<WifiPsdu> psdu, RxSignalInfo rxSignalInfo, WifiTxVector txVector);
+  /**
    * Switch from RX after the reception was successful.
    *
    * \param psdu the successfully received PSDU

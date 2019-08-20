@@ -1770,6 +1770,8 @@ protected:
 
   EventId m_endPlcpRxEvent;            //!< the end of PLCP receive event
 
+  std::vector <EventId> m_endOfMpduEvents; //!< the end of MPDU events (only used for A-MPDUs)
+
   std::vector <EventId> m_endRxEvents; //!< the end of receive events (only one unless UL MU reception)
   std::vector <EventId> m_endPreambleDetectionEvents; //!< the end of preamble detection events
 
@@ -1920,6 +1922,23 @@ private:
                                                       Ptr<Event> event, uint16_t staId,
                                                       Time relativeMpduStart,
                                                       Time mpduDuration);
+  /**
+   * The last symbol of an MPDU in an A-MPDU has arrived.
+   *
+   * \param event the event holding incoming PPDU's information
+   * \param psdu the arriving MPDU formatted as a PSDU containing a normal MPDU
+   * \param mpduIndex the index of the MPDU within the A-MPDU
+   * \param relativeMpduStart the relative start time of the MPDU within the A-MPDU.
+   * \param mpduDuration the duration of the MPDU
+   */  
+  void EndOfMpdu (Ptr<Event> event, Ptr<const WifiPsdu> psdu, size_t mpduIndex, Time relativeStart, Time mpduDuration);
+
+  /**
+   * Schedule end of MPDUs events.
+   *
+   * \param event the event holding incoming PPDU's information
+   */
+  void ScheduleEndOfMpdus (Ptr<Event> event);
 
   /**
    * Get the PSDU addressed to that PHY in a PPDU (useful for MU PPDU).
@@ -2117,6 +2136,14 @@ private:
   Ptr<WifiRadioEnergyModel> m_wifiRadioEnergyModel; //!< Wifi radio energy model
   Ptr<ErrorModel> m_postReceptionErrorModel; //!< Error model for receive packet events
   Time m_timeLastPreambleDetected; //!< Record the time the last preamble was detected
+
+  /**
+   * A pair of a UID and STA_ID
+   */
+  typedef std::pair <uint64_t /* uid */, uint16_t /* staId */> UidStaIdPair;
+
+  std::map<UidStaIdPair, std::vector<bool> > m_statusPerMpduMap; //!< Map of the current reception status per MPDU that is filled in as long as MPDUs are being processed by the PHY in case of an A-MPDU
+  std::map<UidStaIdPair, SignalNoiseDbm> m_signalNoiseMap; //!< Map of the latest signal power and noise power in dBm (noise power includes the noise figure)
 
   bool m_ofdmaStarted; //!< Flag whether the reception of the OFDMA part has started (only used for UL-OFDMA)
 
