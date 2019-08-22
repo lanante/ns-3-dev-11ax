@@ -4703,6 +4703,37 @@ WifiPhy::GetBand (uint16_t /*bandWidth*/, uint8_t /*bandIndex*/)
   return band;
 }
 
+uint16_t
+WifiPhy::ConvertHeTbPpduDurationToLSigLength (Time ppduDuration, uint16_t frequency)
+{
+  uint8_t sigExtension = 0;
+  if (Is2_4Ghz (frequency))
+    {
+      sigExtension = 6;
+    }
+  uint8_t m = 2; //HE TB PPDU so m is set to 2
+  uint16_t length = ((ceil ((static_cast<double> (ppduDuration.GetNanoSeconds () - (20 * 1000) - (sigExtension * 1000)) / 1000) / 4.0) * 3) - 3 - m);
+  return length;
+}
+
+Time
+WifiPhy::ConvertLSigLengthToHeTbPpduDuration (uint16_t length, WifiTxVector txVector, uint16_t frequency)
+{
+  Time tSymbol = NanoSeconds (12800 + txVector.GetGuardInterval ());
+  Time preambleDuration = CalculatePlcpPreambleAndHeaderDuration (txVector);
+  uint8_t sigExtension = 0;
+  if (Is2_4Ghz (frequency))
+    {
+      sigExtension = 6;
+    }
+  uint8_t m = 2; //HE TB PPDU so m is set to 2
+  //Equation 27-11 of IEEE P802.11ax/D4.0
+  Time calculatedDuration = MicroSeconds (((ceil (static_cast<double> (length + 3 + m) / 3)) * 4) + 20 + sigExtension);
+  uint32_t nSymbols = floor (static_cast<double> ((calculatedDuration - preambleDuration).GetNanoSeconds () - (sigExtension * 1000)) / tSymbol.GetNanoSeconds ());
+  Time ppduDuration = preambleDuration + (nSymbols * tSymbol) + MicroSeconds (sigExtension);
+  return ppduDuration;
+}
+
 int64_t
 WifiPhy::AssignStreams (int64_t stream)
 {
