@@ -2731,7 +2731,16 @@ WifiPhy::Send (WifiPsduMap psdus, WifiTxVector txVector)
       return;
     }
   
-  Time txDuration = CalculateTxDuration (psdus, txVector, GetFrequency ());
+  Time txDuration;
+  if (txVector.GetPreambleType () == WIFI_PREAMBLE_HE_TB)
+    {
+      NS_ASSERT (txVector.GetLength () > 0);
+      txDuration = ConvertLSigLengthToHeTbPpduDuration (txVector.GetLength (), txVector, GetFrequency ());
+    }
+  else
+    {
+      txDuration = CalculateTxDuration (psdus, txVector, GetFrequency ());
+    }
 
   for (auto & endPreambleDetectionEvent : m_endPreambleDetectionEvents)
     {
