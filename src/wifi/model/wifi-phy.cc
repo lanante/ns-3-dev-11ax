@@ -2940,7 +2940,6 @@ WifiPhy::StartReceiveHeader (Ptr<Event> event)
     {
       NS_LOG_DEBUG ("Drop packet because PHY preamble detection failed");
       NotifyRxDrop (GetAddressedPsduInPpdu (m_currentEvent->GetPpdu ()), PREAMBLE_DETECT_FAILURE);
-      m_interference.NotifyRxEnd (Simulator::Now ());
       for (auto it = m_currentPreambleEvents.begin (); it != m_currentPreambleEvents.end (); ++it)
         {
           if (it->second == m_currentEvent)
@@ -2948,6 +2947,11 @@ WifiPhy::StartReceiveHeader (Ptr<Event> event)
               it = m_currentPreambleEvents.erase (it);
               break;
             }
+        }
+      if (m_currentPreambleEvents.empty())
+        {
+          //Do not erase events if there are still pending preamble events to be processed
+          m_interference.NotifyRxEnd (Simulator::Now ());
         }
       m_currentEvent = 0;
     }
