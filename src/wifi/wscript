@@ -238,6 +238,7 @@ def build(bld):
         'model/he-ru.h',
         'model/wifi-ack-policy-selector.h',
         'model/constant-wifi-ack-policy-selector.h',
+        'model/mu-tx-ack-types.h',
         'helper/wifi-radio-energy-model-helper.h',
         'helper/athstats-helper.h',
         'helper/wifi-helper.h',
