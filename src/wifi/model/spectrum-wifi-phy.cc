@@ -33,6 +33,7 @@
 #include "wifi-spectrum-signal-parameters.h"
 #include "wifi-spectrum-phy-interface.h"
 #include "wifi-utils.h"
+#include "wifi-net-device.h"
 
 namespace ns3 {
 
@@ -211,6 +212,7 @@ SpectrumWifiPhy::StartRx (Ptr<SpectrumSignalParameters> rxParams)
   Time rxDuration = rxParams->duration;
   Ptr<SpectrumValue> receivedSignalPsd = rxParams->psd;
   NS_LOG_DEBUG ("Received signal with PSD " << *receivedSignalPsd << " and duration " << rxDuration.As (Time::NS));
+
   uint32_t senderNodeId = 0;
   if (rxParams->txPhy && rxParams->txPhy->GetDevice ())
     {
@@ -287,6 +289,10 @@ SpectrumWifiPhy::StartRx (Ptr<SpectrumSignalParameters> rxParams)
 
   // Do no further processing if signal is too weak
   // Current implementation assumes constant rx power over the packet duration
+  Ptr<WifiNetDevice> wifiNetDevice = DynamicCast<WifiNetDevice> (GetDevice ());
+uint32_t currentNodeId=   wifiNetDevice->GetNode ()->GetId ();
+  NS_LOG_LOGIC ("Node "<< currentNodeId<<" Received signal from " <<senderNodeId<< " with Power " << WToDbm (totalRxPowerW) << "dBm and duration " << rxDuration.As (Time::NS));
+
   if (WToDbm (totalRxPowerW) < GetRxSensitivity ())
     {
       NS_LOG_INFO ("Received signal too weak to process: " << WToDbm (totalRxPowerW) << " dBm");
