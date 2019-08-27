@@ -5,8 +5,8 @@
 channelBssA=36
 channelBssB=36
 channelBssC=40
-loadBssA=50
-loadBssB=50
+loadBssA=20
+loadBssB=20
 loadBssC=50
 
 useDynamicChannelBonding=false
