@@ -34,7 +34,7 @@
 #include "wifi-spectrum-phy-interface.h"
 #include "wifi-utils.h"
 #include "wifi-net-device.h"
-
+ #include "ns3/simulator.h"
 namespace ns3 {
 
 NS_LOG_COMPONENT_DEFINE ("SpectrumWifiPhy");
@@ -291,7 +291,7 @@ SpectrumWifiPhy::StartRx (Ptr<SpectrumSignalParameters> rxParams)
   // Current implementation assumes constant rx power over the packet duration
   Ptr<WifiNetDevice> wifiNetDevice = DynamicCast<WifiNetDevice> (GetDevice ());
 uint32_t currentNodeId=   wifiNetDevice->GetNode ()->GetId ();
-  NS_LOG_LOGIC ("Node "<< currentNodeId<<" Received signal from " <<senderNodeId<< " with Power " << WToDbm (totalRxPowerW) << "dBm and duration " << rxDuration.As (Time::NS));
+  NS_LOG_LOGIC (ns3::Simulator::Now()<<"Node "<< currentNodeId<<" Received signal from " <<senderNodeId<< " with Power " << WToDbm (totalRxPowerW) << "dBm and duration " << rxDuration.As (Time::NS));
 
   if (WToDbm (totalRxPowerW) < GetRxSensitivity ())
     {
@@ -415,6 +415,10 @@ SpectrumWifiPhy::StartTx (Ptr<Packet> packet, WifiTxVector txVector, Time txDura
   NS_LOG_DEBUG ("Starting transmission with power " << WToDbm (txPowerWatts) << " dBm on channel " << +GetChannelNumber ());
   NS_LOG_DEBUG ("Starting transmission with integrated spectrum power " << WToDbm (Integral (*txPowerSpectrum)) << " dBm; spectrum model Uid: " << txPowerSpectrum->GetSpectrumModel ()->GetUid ());
   m_channel->StartTx (txParams);
+ Ptr<WifiNetDevice> wifiNetDevice = DynamicCast<WifiNetDevice> (GetDevice ());
+uint32_t currentNodeId=   wifiNetDevice->GetNode ()->GetId ();
+  NS_LOG_LOGIC (ns3::Simulator::Now()<<" Node "<< currentNodeId<<" is transmitting "<<txVector.GetMode ()); 
+
 }
 
 double

@@ -2739,7 +2739,9 @@ WifiPhy::StartReceiveHeader (Ptr<Event> event, Time rxDuration)
   uint16_t primaryChannelFrequency = GetCenterFrequency (GetFrequency (), GetChannelWidth (), primaryChannelWidth, GetSecondaryChannelOffset () == UPPER ? 0 : 1);
   InterferenceHelper::SnrPer snrPer = m_interference.CalculateLegacyPhyHeaderSnrPer (event, primaryChannelFrequency);
   double snr = snrPer.snr;
-  NS_LOG_DEBUG ("snr(dB)=" << RatioToDb (snrPer.snr) << ", per=" << snrPer.per);
+ Ptr<WifiNetDevice> wifiNetDevice = DynamicCast<WifiNetDevice> (GetDevice ());
+uint32_t currentNodeId=   wifiNetDevice->GetNode ()->GetId ();
+  NS_LOG_LOGIC ("NodeId "<<currentNodeId<<" snr(dB)=" << RatioToDb (snrPer.snr) << ", per=" << snrPer.per);
 
   if (!m_preambleDetectionModel || (m_preambleDetectionModel->IsPreambleDetected (event->GetRxPowerW (), snr, m_channelWidth)))
     {
@@ -4341,7 +4343,12 @@ WifiPhy::StartRx (Ptr<Event> event, Time rxDuration)
   double rxPowerW = event->GetRxPowerW ();
   NS_LOG_FUNCTION (this << event->GetPacket () << event->GetTxVector () << event << rxPowerW << rxDuration);
 
-  NS_LOG_DEBUG ("sync to signal (power=" << rxPowerW << "W)");
+
+ Ptr<WifiNetDevice> wifiNetDevice = DynamicCast<WifiNetDevice> (GetDevice ());
+uint32_t currentNodeId=   wifiNetDevice->GetNode ()->GetId ();
+
+
+ NS_LOG_LOGIC ("Node "<<currentNodeId<< " sync to signal (power=" << WToDbm(rxPowerW) << "dBm)");
   m_interference.NotifyRxStart (); //We need to notify it now so that it starts recording events
 
   if (!m_endPreambleDetectionEvent.IsRunning ())

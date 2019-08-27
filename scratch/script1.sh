@@ -1,18 +1,18 @@
 #!/bin/bash
 
-cd ../examples/wireless
+
 
 channelBssA=36
 channelBssB=36
 channelBssC=40
-loadBssA=54
-loadBssB=54
-loadBssC=54
+loadBssA=50
+loadBssB=50
+loadBssC=50
+
 useDynamicChannelBonding=false
-interBssDistance=7
+interBssDistance=5
 distance=10;
 export NS_LOG=SpectrumWifiPhy=logic
 
-../../waf --run "wifi-dcb --channelBssA=$channelBssA --channelBssB=$channelBssB --channelBssC=$channelBssC --useDynamicChannelBonding=$useDynamicChannelBonding --loadBssA=$loadBssA --loadBssB=$loadBssB --loadBssC=$loadBssC --interBssDistance=$interBssDistance --distance=$distance"
+../waf --run "wifi-dcb --loadBssC=$loadBssC  --loadBssA=$loadBssA --loadBssB=$loadBssB --channelBssA=$channelBssA --channelBssB=$channelBssB --channelBssC=$channelBssC --useDynamicChannelBonding=$useDynamicChannelBonding --interBssDistance=$interBssDistance --distance=$distance"
 
-cd ../../scratch
