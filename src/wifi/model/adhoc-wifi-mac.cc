@@ -172,9 +172,10 @@ AdhocWifiMac::SetLinkUpCallback (Callback<void> linkUp)
 }
 
 void
-AdhocWifiMac::Receive (Ptr<Packet> packet, const WifiMacHeader *hdr)
+AdhocWifiMac::Receive (Ptr<WifiMacQueueItem> mpdu)
 {
-  NS_LOG_FUNCTION (this << packet << hdr);
+  NS_LOG_FUNCTION (this << *mpdu);
+  const WifiMacHeader* hdr = &mpdu->GetHeader ();
   NS_ASSERT (!hdr->IsCtl ());
   Mac48Address from = hdr->GetAddr2 ();
   Mac48Address to = hdr->GetAddr1 ();
@@ -207,11 +208,11 @@ AdhocWifiMac::Receive (Ptr<Packet> packet, const WifiMacHeader *hdr)
       if (hdr->IsQosData () && hdr->IsQosAmsdu ())
         {
           NS_LOG_DEBUG ("Received A-MSDU from" << from);
-          DeaggregateAmsduAndForward (packet, hdr);
+          DeaggregateAmsduAndForward (mpdu);
         }
       else
         {
-          ForwardUp (packet, from, to);
+          ForwardUp (mpdu->GetPacket ()->Copy (), from, to);
         }
       return;
     }
@@ -219,7 +220,7 @@ AdhocWifiMac::Receive (Ptr<Packet> packet, const WifiMacHeader *hdr)
   //Invoke the receive handler of our parent class to deal with any
   //other frames. Specifically, this will handle Block Ack-related
   //Management Action frames.
-  RegularWifiMac::Receive (packet, hdr);
+  RegularWifiMac::Receive (mpdu);
 }
 
 } //namespace ns3
