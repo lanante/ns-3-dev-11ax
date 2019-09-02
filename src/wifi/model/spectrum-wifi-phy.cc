@@ -452,7 +452,7 @@ Ptr<SpectrumValue>
 SpectrumWifiPhy::GetTxPowerSpectralDensity (double txPowerW, Ptr<WifiPpdu> ppdu, bool isOfdma)
 {
   WifiTxVector txVector = ppdu->GetTxVector ();
-  uint16_t centerFrequency = GetCenterFrequencyForChannelWidth (txVector);
+  uint16_t centerFrequency = GetCenterFrequencyForChannelWidth (txVector.GetChannelWidth ());
   uint16_t channelWidth = txVector.GetChannelWidth ();
   NS_LOG_FUNCTION (centerFrequency << channelWidth << txPowerW);
   Ptr<SpectrumValue> v;
@@ -460,7 +460,16 @@ SpectrumWifiPhy::GetTxPowerSpectralDensity (double txPowerW, Ptr<WifiPpdu> ppdu,
     {
     case WIFI_MOD_CLASS_OFDM:
     case WIFI_MOD_CLASS_ERP_OFDM:
-      v = WifiSpectrumValueHelper::CreateOfdmTxPowerSpectralDensity (centerFrequency, channelWidth, txPowerW, GetGuardBandwidth (channelWidth), m_txMaskInnerBandMinimumRejection, m_txMaskOuterBandMinimumRejection, m_txMaskOuterBandMaximumRejection);
+      if (channelWidth >= 40)
+        {
+            NS_LOG_INFO ("non-HT duplicate");
+            v = WifiSpectrumValueHelper::CreateHtOfdmTxPowerSpectralDensity (centerFrequency, channelWidth, txPowerW, GetGuardBandwidth (channelWidth), m_txMaskInnerBandMinimumRejection, m_txMaskOuterBandMinimumRejection, m_txMaskOuterBandMaximumRejection);
+            //TODO: Create a CreateDuplicateOfdmTxPowerSpectralDensity function?
+        }
+      else
+        {
+            v = WifiSpectrumValueHelper::CreateOfdmTxPowerSpectralDensity (centerFrequency, channelWidth, txPowerW, GetGuardBandwidth (channelWidth), m_txMaskInnerBandMinimumRejection, m_txMaskOuterBandMinimumRejection, m_txMaskOuterBandMaximumRejection);
+        }
       break;
     case WIFI_MOD_CLASS_DSSS:
     case WIFI_MOD_CLASS_HR_DSSS:
@@ -490,12 +499,11 @@ SpectrumWifiPhy::GetTxPowerSpectralDensity (double txPowerW, Ptr<WifiPpdu> ppdu,
 }
 
 uint16_t
-SpectrumWifiPhy::GetCenterFrequencyForChannelWidth (WifiTxVector txVector) const
+SpectrumWifiPhy::GetCenterFrequencyForChannelWidth (uint16_t currentWidth) const
 {
-  NS_LOG_FUNCTION (this << txVector);
+  NS_LOG_FUNCTION (this << currentWidth);
   uint16_t centerFrequencyForSupportedWidth = GetFrequency ();
   uint16_t supportedWidth = GetChannelWidth ();
-  uint16_t currentWidth = txVector.GetChannelWidth ();
   if (currentWidth != supportedWidth)
     {
       if (supportedWidth == 40)
