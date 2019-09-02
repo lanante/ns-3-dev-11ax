@@ -278,7 +278,12 @@ public:
    * The PHY will never become WifiPhy::IDLE _before_ the delay returned by
    * this method but it could become really idle later.
    */
-  Time GetDelayUntilIdle (void);
+  Time GetDelayUntilIdle (void) const;
+
+  /**
+   * \return the delay since the secondary channel is determined idle.
+   */
+  Time GetDelaySinceSecondaryIsIdle (void) const;
 
   /**
    * Return the start time of the last received packet.
@@ -1658,7 +1663,18 @@ public:
    * \param wifiRadioEnergyModel the wifi radio energy model
    */
   void SetWifiRadioEnergyModel (const Ptr<WifiRadioEnergyModel> wifiRadioEnergyModel);
-
+  /**
+   * Set PCF Interframe Space (PIFS) of this PHY.
+   *
+   * \param pifs PIFS of this PHY
+   */
+  void SetPifs (Time pifs);
+  /**
+   * Return PCF Interframe Space (PIFS) of this PHY.
+   *
+   * \return PIFS
+   */
+  Time GetPifs (void) const;
   /**
    * \return the channel width
    */
@@ -2151,6 +2167,7 @@ private:
   Ptr<WifiRadioEnergyModel> m_wifiRadioEnergyModel; //!< Wifi radio energy model
   Ptr<ErrorModel> m_postReceptionErrorModel; //!< Error model for receive packet events
   Time m_timeLastPreambleDetected; //!< Record the time the last preamble was detected
+  Time m_pifs; //!< PCF Interframe Space (PIFS) duration
 
   bool m_ofdmaStarted; //!< Flag whether the reception of the OFDMA part has started (only used for UL-OFDMA)
 

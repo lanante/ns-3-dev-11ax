@@ -833,16 +833,28 @@ WifiPhy::SetPreambleDetectionModel (const Ptr<PreambleDetectionModel> model)
 }
 
 void
-WifiPhy::SetChannelBondingManager (const Ptr<ChannelBondingManager> manager)
-{
-  m_channelBondingManager = manager;
-  manager->SetPhy (this);
-}
-
-void
 WifiPhy::SetWifiRadioEnergyModel (const Ptr<WifiRadioEnergyModel> wifiRadioEnergyModel)
 {
   m_wifiRadioEnergyModel = wifiRadioEnergyModel;
+}
+
+void
+WifiPhy::SetChannelBondingManager (const Ptr<ChannelBondingManager> manager)
+{
+  m_channelBondingManager = manager;
+  m_channelBondingManager->SetPhy (this);
+}
+
+void
+WifiPhy::SetPifs (Time pifs)
+{
+  m_pifs = pifs;
+}
+
+Time
+WifiPhy::GetPifs (void) const
+{
+  return m_pifs;
 }
 
 double
@@ -3118,6 +3130,15 @@ WifiPhy::StartReceivePreamble (Ptr<WifiPpdu> ppdu, RxPowerWattPerChannelBand rxP
       if (WToDbm (rxPowerPrimaryChannelW) < GetRxSensitivity ())
         {
           NS_LOG_INFO ("Received signal in primary channel too weak to process: " << WToDbm (rxPowerPrimaryChannelW) << " dBm");
+          MaybeCcaBusyDuration (); //secondary channel shall maybe switch to CCA_BUSY
+          for (auto it = m_currentPreambleEvents.begin (); it != m_currentPreambleEvents.end (); ++it)
+          {
+            if (it->second == event)
+              {
+                it = m_currentPreambleEvents.erase (it);
+                break;
+              }
+          }
           return;
         }
     }
@@ -3212,7 +3233,16 @@ WifiPhy::MaybeCcaBusyDuration ()
   Time delayUntilCcaEnd = m_interference.GetEnergyDuration (m_ccaEdThresholdW, GetBand (primaryChannelWidth, GetSecondaryChannelOffset () == UPPER ? 0 : 1));
   if (!delayUntilCcaEnd.IsZero ())
     {
-      m_state->SwitchMaybeToCcaBusy (delayUntilCcaEnd);
+      m_state->SwitchMaybeToCcaBusy (delayUntilCcaEnd, false);
+    }
+  if (GetChannelWidth () >= 40)
+    {
+      uint16_t secondaryChannelWidth = primaryChannelWidth;
+      delayUntilCcaEnd = m_interference.GetEnergyDuration (m_ccaEdThresholdSecondaryW, GetBand (secondaryChannelWidth, GetSecondaryChannelOffset () == UPPER ? 1 : 0));
+      if (!delayUntilCcaEnd.IsZero ())
+        {
+          m_state->SwitchMaybeToCcaBusy (delayUntilCcaEnd, true);
+        }
     }
 }
 
@@ -4591,7 +4621,7 @@ WifiPhy::IsStateOff (void) const
 }
 
 Time
-WifiPhy::GetDelayUntilIdle (void)
+WifiPhy::GetDelayUntilIdle (void) const
 {
   return m_state->GetDelayUntilIdle ();
 }
@@ -4600,6 +4630,12 @@ Time
 WifiPhy::GetLastRxStartTime (void) const
 {
   return m_state->GetLastRxStartTime ();
+}
+
+Time
+WifiPhy::GetDelaySinceSecondaryIsIdle (void) const
+{
+  return m_state->GetDelaySinceSecondaryIsIdle ();
 }
 
 void

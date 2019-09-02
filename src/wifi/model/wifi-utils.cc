@@ -334,4 +334,53 @@ IsHe (WifiPreamble preamble)
    return (preamble == WIFI_PREAMBLE_HE_SU || preamble == WIFI_PREAMBLE_HE_MU || preamble == WIFI_PREAMBLE_HE_TB || preamble == WIFI_PREAMBLE_HE_ER_SU);
 }
 
+uint16_t
+GetCenterFrequency (uint16_t operatingFrequency, uint16_t operatingChannelWidth, uint16_t channelWidth, uint8_t index)
+{
+  if (operatingChannelWidth == 160)
+    {
+      if (channelWidth == 20)
+        {
+          return (operatingFrequency - 70 + (index * 20));
+        }
+      else if (channelWidth == 40)
+        {
+          return (operatingFrequency - 60 + (index * 40));
+        }
+      else if (channelWidth == 80)
+        {
+          return (operatingFrequency - 40 + (index * 80));
+        }
+    }
+  else if (operatingChannelWidth == 80)
+    {
+      if (channelWidth == 20)
+        {
+          return (operatingFrequency - 30 + (index * 20));
+        }
+      else if (channelWidth == 40)
+        {
+          return (operatingFrequency - 20 + (index * 40));
+        }
+    }
+  else if (operatingChannelWidth == 40)
+    {
+      if (Is2_4Ghz (operatingFrequency))
+        {
+          if (channelWidth < 40)
+            {
+              return (index == 0) ? operatingFrequency : (operatingFrequency + 20);
+            }
+        }
+      else
+        {
+          if (channelWidth == 20)
+            {
+              return (index == 0) ? (operatingFrequency - 10) : (operatingFrequency + 10);
+            }
+        }
+    }
+  return operatingFrequency;
+}
+
 } //namespace ns3
