@@ -48,6 +48,20 @@ uint16_t
 ConstantThresholdChannelBondingManager::GetUsableChannelWidth (void)
 {
   NS_LOG_FUNCTION (this);
+  if (m_phy->GetChannelWidth () == 40)
+    {
+      if (m_phy->GetDelaySinceSecondaryIsIdle () >= m_phy->GetPifs ())
+        {
+          NS_LOG_DEBUG ("Secondary channel is idle for at least PIFS: transmission on 40 MHz allowed");
+          return 40;
+        }
+      else
+        {
+          NS_LOG_DEBUG ("Secondary channel is idle for less than PIFS: transmission on 40 MHz not allowed");
+          return 20;
+        }
+    }
+  //TODO: handle 80 and 160 MHZ
   return m_phy->GetChannelWidth ();
 }
 
