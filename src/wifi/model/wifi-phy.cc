@@ -2651,9 +2651,10 @@ WifiPhy::SendPacket (Ptr<const Packet> packet, WifiTxVector txVector)
     }
   WifiPhyTag tag (txVector.GetPreambleType (), txVector.GetMode ().GetModulationClass (), isFrameComplete);
   newPacket->AddPacketTag (tag);
-
+  Ptr<WifiNetDevice> wifiNetDevice = DynamicCast<WifiNetDevice> (GetDevice ());
+uint32_t currentNodeId=   wifiNetDevice->GetNode ()->GetId ();
+  std::cout<<Simulator::Now ()<<" "<<currentNodeId<<" "<<txDuration<<std::endl;
   StartTx (newPacket, txVector, txDuration);
-
   m_channelAccessRequested = false;
   m_powerRestricted = false;
 }
