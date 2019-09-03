@@ -97,18 +97,19 @@ WifiOfdmMaskSlopesTestCase::WifiOfdmMaskSlopesTestCase (const char* str, WifiPhy
   uint16_t freq = 5170 + (bw / 2); // so as to have 5180/5190/5210/5250 for 20/40/80/160
   double refTxPowerW = 1; // have to work in dBr when comparing though
   m_tolerance = tol; // in dB
+  double outerBandMaximumRejection = -40; // in dBr
 
   switch (standard)
     {
     case WIFI_PHY_STANDARD_80211_5MHZ:
       NS_ASSERT (bw == 5);
       freq = 5860;
-      m_actualSpectrum = WifiSpectrumValueHelper::CreateOfdmTxPowerSpectralDensity (freq, bw, refTxPowerW, bw);
+      m_actualSpectrum = WifiSpectrumValueHelper::CreateOfdmTxPowerSpectralDensity (freq, bw, refTxPowerW, bw, -20.0, -28.0, outerBandMaximumRejection);
       break;
     case WIFI_PHY_STANDARD_80211_10MHZ:
       NS_ASSERT (bw == 10);
       freq = 5860;
-      m_actualSpectrum = WifiSpectrumValueHelper::CreateOfdmTxPowerSpectralDensity (freq, bw, refTxPowerW, bw);
+      m_actualSpectrum = WifiSpectrumValueHelper::CreateOfdmTxPowerSpectralDensity (freq, bw, refTxPowerW, bw, -20.0, -28.0, outerBandMaximumRejection);
       break;
 
     // 11g and 11a
@@ -118,32 +119,34 @@ WifiOfdmMaskSlopesTestCase::WifiOfdmMaskSlopesTestCase (const char* str, WifiPhy
     case WIFI_PHY_STANDARD_80211a:
     case WIFI_PHY_STANDARD_holland:
       NS_ASSERT (bw == 20);
-      m_actualSpectrum = WifiSpectrumValueHelper::CreateOfdmTxPowerSpectralDensity (freq, bw, refTxPowerW, bw);
+      m_actualSpectrum = WifiSpectrumValueHelper::CreateOfdmTxPowerSpectralDensity (freq, bw, refTxPowerW, bw, -20.0, -28.0, outerBandMaximumRejection);
       break;
 
     // 11n
     case WIFI_PHY_STANDARD_80211n_2_4GHZ:
       freq = 2402 + (bw / 2); //so as to have 2412/2422 for 20/40
+      outerBandMaximumRejection = -45;
     // no break on purpose
     case WIFI_PHY_STANDARD_80211n_5GHZ:
       NS_ASSERT (bw == 20 || bw == 40);
-      m_actualSpectrum = WifiSpectrumValueHelper::CreateHtOfdmTxPowerSpectralDensity (freq, bw, refTxPowerW, bw);
+      m_actualSpectrum = WifiSpectrumValueHelper::CreateHtOfdmTxPowerSpectralDensity (freq, bw, refTxPowerW, bw, -20.0, -28.0, outerBandMaximumRejection);
       break;
 
     // 11ac
     case WIFI_PHY_STANDARD_80211ac:
       NS_ASSERT (bw == 20 || bw == 40 || bw == 80 || bw == 160);
-      m_actualSpectrum = WifiSpectrumValueHelper::CreateHtOfdmTxPowerSpectralDensity (freq, bw, refTxPowerW, bw);
+      m_actualSpectrum = WifiSpectrumValueHelper::CreateHtOfdmTxPowerSpectralDensity (freq, bw, refTxPowerW, bw, -20.0, -28.0, outerBandMaximumRejection);
       break;
 
     // 11ax
     case WIFI_PHY_STANDARD_80211ax_2_4GHZ:
       NS_ASSERT (bw != 160); // not enough space in 2.4 GHz bands
       freq = 2402 + (bw / 2); //so as to have 2412/2422 for 20/40
+      outerBandMaximumRejection = -45;
     // no break on purpose
     case WIFI_PHY_STANDARD_80211ax_5GHZ:
       NS_ASSERT (bw == 20 || bw == 40 || bw == 80 || bw == 160);
-      m_actualSpectrum = WifiSpectrumValueHelper::CreateHeOfdmTxPowerSpectralDensity (freq, bw, refTxPowerW, bw);
+      m_actualSpectrum = WifiSpectrumValueHelper::CreateHeOfdmTxPowerSpectralDensity (freq, bw, refTxPowerW, bw, -20.0, -28.0, outerBandMaximumRejection);
       break;
 
     // other
