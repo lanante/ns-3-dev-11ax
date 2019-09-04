@@ -11,13 +11,13 @@ export standard=11ac
 obssPdLevel=-82
 #export NS_LOG=WifiPhy=logic
 
-#for k in 1 2 3 4 5 6 7 8 9 10; do
-#for i in 1 2 3 4 5 6 7 8 9 10; do
-#for j in 1 2 3 4; do
-RngRunpar=1
-nBsspar=1
+for k in 1 2 3 4 5 6 7 8 9 10; do
+for i in 1 2 3 4 5 6 7 8 9 10; do
+for j in 2 3 4; do
+RngRunpar=$k
+nBsspar=$j
 MCSpar=0
-npar=20
+npar=$i
 durpar=5
 obsspdpar=-82
 ampdusizepar=4000
@@ -62,11 +62,11 @@ export d=10
 export sigma=3.5
 export bianchi=1
 export n=${npar}
-export enableObssPd=1
-export test=${Res}_${nBss}_${MCS}_${d}_${RngRun}
+export enableObssPd=0
+export test=${Res}_${nBss}_${r}_${d}_${n}_${RngRun}
 run_one &
 wait
 
-#done
-#done 
-#done
+done
+done 
+done
