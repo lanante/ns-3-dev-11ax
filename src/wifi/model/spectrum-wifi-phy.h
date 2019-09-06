@@ -80,8 +80,13 @@ public:
 
   /**
    * \param ppdu the PPDU to send
+   * \param txPowerLevel the power level to use
+   *
+   * Note that now that the content of the TXVECTOR is stored in the WifiPpdu through PHY headers,
+   * the calling method has to specify the TX power level to use upon transmission.
+   * Indeed the TXVECTOR obtained from WifiPpdu does not have this information set.
    */
-  void StartTx (Ptr<WifiPpdu> ppdu);
+  void StartTx (Ptr<WifiPpdu> ppdu, uint8_t txPowerLevel);
   /**
    * Get the center frequency of the channel corresponding the current TxVector rather than
    * that of the supported channel width.

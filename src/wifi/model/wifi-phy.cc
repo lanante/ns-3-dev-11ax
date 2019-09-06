@@ -2801,7 +2801,7 @@ WifiPhy::Send (WifiPsduMap psdus, WifiTxVector txVector)
       ppdu->SetTruncatedTx ();
     }
 
-  StartTx (ppdu);
+  StartTx (ppdu, txVector.GetTxPowerLevel ()); //now that the content of the TXVECTOR is stored in the WifiPpdu through PHY headers, the method calling StartTx has to specify the TX power level to use upon transmission
 
   m_channelAccessRequested = false;
   m_powerRestricted = false;

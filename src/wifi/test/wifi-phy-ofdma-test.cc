@@ -77,8 +77,9 @@ public:
 
   /**
    * \param ppdu the PPDU to send
+   * \param txPowerLevel the power level to use
    */
-  void StartTx (Ptr<WifiPpdu> ppdu) override;
+  void StartTx (Ptr<WifiPpdu> ppdu, uint8_t txPowerLevel) override;
 
   /**
    * Set the global PPDU UID counter.
@@ -158,10 +159,10 @@ OfdmaSpectrumWifiPhy::SetTriggerFrameUid (uint64_t uid)
 }
 
 void
-OfdmaSpectrumWifiPhy::StartTx (Ptr<WifiPpdu> ppdu)
+OfdmaSpectrumWifiPhy::StartTx (Ptr<WifiPpdu> ppdu, uint8_t txPowerLevel)
 {
   m_phyTxPpduUidTrace (ppdu->GetUid ());
-  SpectrumWifiPhy::StartTx (ppdu);
+  SpectrumWifiPhy::StartTx (ppdu, txPowerLevel);
 }
 
 std::map <uint64_t, Ptr<Event> > &
