@@ -85,7 +85,7 @@ struct HePreambleParameters
 /// RxSignalInfo structure containing info on the received signal
 struct RxSignalInfo
 {
-  double snr;  ///< SNR in dB
+  double snr;  ///< SNR in linear scale
   double rssi; ///< RSSI in dBm
 };
 

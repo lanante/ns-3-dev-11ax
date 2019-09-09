@@ -5039,7 +5039,7 @@ std::ostream& operator<< (std::ostream& os, WifiPhyState state)
 
 std::ostream& operator<< (std::ostream& os, RxSignalInfo rxSignalInfo)
 {
-  os << "SNR:" << rxSignalInfo.snr << " dB"
+  os << "SNR:" << RatioToDb (rxSignalInfo.snr) << " dB"
      << ", RSSI:" << rxSignalInfo.rssi << " dBm";
   return os;
 }
