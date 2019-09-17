@@ -157,14 +157,25 @@ int main (int argc, char *argv[])
   NodeContainer wifiApNodes;
   wifiApNodes.Create (2);
 
-  SpectrumWifiPhyHelper phy = SpectrumWifiPhyHelper::Default ();
+  /*SpectrumWifiPhyHelper phy = SpectrumWifiPhyHelper::Default ();
   Ptr<MultiModelSpectrumChannel> channel = CreateObject<MultiModelSpectrumChannel> ();
   Ptr<FriisPropagationLossModel> lossModel = CreateObject<FriisPropagationLossModel> ();
   lossModel->SetFrequency (5.180e9);
   channel->AddPropagationLossModel (lossModel);
   Ptr<ConstantSpeedPropagationDelayModel> delayModel = CreateObject<ConstantSpeedPropagationDelayModel> ();
   channel->SetPropagationDelayModel (delayModel);
-  phy.SetChannel (channel);
+  phy.SetChannel (channel);*/
+
+  SpectrumWifiPhyHelper phy = SpectrumWifiPhyHelper::Default ();
+  Ptr<MultiModelSpectrumChannel> channel = CreateObject<MultiModelSpectrumChannel> ();
+	Ptr<LogDistancePropagationLossModel> lossModel = CreateObject<LogDistancePropagationLossModel> ();
+  lossModel ->SetAttribute ("ReferenceDistance", DoubleValue (1));
+  lossModel ->SetAttribute ("Exponent", DoubleValue (3.5));
+ lossModel ->SetAttribute ("ReferenceLoss", DoubleValue (50));
+      channel->AddPropagationLossModel (lossModel); 
+phy.SetChannel (channel);
+
+
 
   WifiHelper wifi;
   wifi.SetStandard (WIFI_PHY_STANDARD_80211n_5GHZ);
