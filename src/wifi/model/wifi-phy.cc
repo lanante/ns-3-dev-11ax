@@ -2916,6 +2916,7 @@ WifiPhy::StartReceiveHeader (Ptr<Event> event)
         {
           NS_LOG_DEBUG ("Packet reception could not be started because not enough RX antennas");
           NotifyRxDrop (GetAddressedPsduInPpdu (m_currentEvent->GetPpdu ()), UNSUPPORTED_SETTINGS);
+          m_interference.NotifyRxEnd (Simulator::Now ());
           m_currentEvent = 0;
           m_currentPreambleEvents.clear ();
           MaybeCcaBusyDuration ();
@@ -2926,6 +2927,7 @@ WifiPhy::StartReceiveHeader (Ptr<Event> event)
         {
           NS_LOG_DEBUG ("Packet reception could not be started because not enough channel width");
           NotifyRxDrop (GetAddressedPsduInPpdu (m_currentEvent->GetPpdu ()), UNSUPPORTED_SETTINGS);
+          m_interference.NotifyRxEnd (Simulator::Now ());
           m_currentEvent = 0;
           m_currentPreambleEvents.clear ();
           MaybeCcaBusyDuration ();
@@ -2999,7 +3001,6 @@ WifiPhy::ContinueReceiveHeader (Ptr<Event> event)
     {
       NS_LOG_DEBUG ("Abort reception because legacy PHY header reception failed");
       AbortCurrentReception (L_SIG_FAILURE);
-      m_currentEvent = 0;
       m_currentPreambleEvents.clear ();
     }
 }
@@ -3099,7 +3100,6 @@ WifiPhy::StartReceivePreamble (Ptr<WifiPpdu> ppdu, RxPowerWattPerChannelBand rxP
         }
       break;
     case WifiPhyState::RX:
-      NS_ASSERT (m_currentEvent != 0);
       if (m_frameCaptureModel != 0
           && m_frameCaptureModel->IsInCaptureWindow (m_timeLastPreambleDetected)
           && m_frameCaptureModel->CaptureNewFrame (m_currentEvent, event))
@@ -3112,6 +3112,16 @@ WifiPhy::StartReceivePreamble (Ptr<WifiPpdu> ppdu, RxPowerWattPerChannelBand rxP
         {
           NS_LOG_DEBUG ("Drop packet because already in Rx");
           NotifyRxDrop (GetAddressedPsduInPpdu (ppdu), NOT_ALLOWED);
+          if (m_currentEvent == 0)
+            {
+              /*
+               * We are here because the non-legacy PHY header has not been successfully received.
+               * The PHY is kept in RX state for the duration of the PPDU, but EndReceive function is
+               * not called when the reception of the PPDU is finished, which is responsible to clear
+               * m_currentPreambleEvents. As a result, m_currentPreambleEvents should be cleared here.
+               */
+              m_currentPreambleEvents.clear ();
+            }
           if (endRx > Simulator::Now () + m_state->GetDelayUntilIdle ())
             {
               //that packet will be noise _after_ the reception of the currently-received packet.
@@ -3268,6 +3278,7 @@ WifiPhy::StartReceivePayload (Ptr<Event> event)
             {
               NS_LOG_DEBUG ("Drop packet because it was sent using an unsupported mode (" << txMode << ")");
               NotifyRxDrop (GetAddressedPsduInPpdu (event->GetPpdu ()), UNSUPPORTED_SETTINGS);
+              m_interference.NotifyRxEnd (m_currentEvent->GetEndTime ());
               m_currentEvent = 0;
               m_currentPreambleEvents.clear ();
             }
@@ -3276,6 +3287,8 @@ WifiPhy::StartReceivePayload (Ptr<Event> event)
         {
           NS_ASSERT (ppdu->IsMu ());
           NS_LOG_DEBUG ("No PSDU addressed to that PHY in the received MU PPDU");
+          m_interference.NotifyRxEnd (m_currentEvent->GetEndTime ());
+          m_currentEvent = 0;
           m_currentPreambleEvents.clear ();
         }
       if (modulation == WIFI_MOD_CLASS_HE)
@@ -3290,6 +3303,7 @@ WifiPhy::StartReceivePayload (Ptr<Event> event)
     {
       NS_LOG_DEBUG ("Drop packet because non-legacy PHY header reception failed");
       NotifyRxDrop (GetAddressedPsduInPpdu (event->GetPpdu ()), SIG_A_FAILURE);
+      m_interference.NotifyRxEnd (m_currentEvent->GetEndTime ());
       m_currentEvent = 0;
       m_currentPreambleEvents.clear ();
     }
@@ -3443,7 +3457,6 @@ if (std::count(statusPerMpduIt->second.begin (), statusPerMpduIt->second.end (),
         {
           //We got the last PPDU of the UL-OFDMA transmission
           m_interference.NotifyRxEnd (Simulator::Now ());
-          MaybeCcaBusyDuration ();
           m_signalNoiseMap.clear ();
           m_statusPerMpduMap.clear ();
           for (const auto & endOfMpduEvent : m_endOfMpduEvents)
@@ -3452,6 +3465,7 @@ if (std::count(statusPerMpduIt->second.begin (), statusPerMpduIt->second.end (),
             }
           m_endOfMpduEvents.clear ();
           Reset ();
+          MaybeCcaBusyDuration ();
         }
     }
   else
