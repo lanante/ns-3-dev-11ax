@@ -466,13 +466,6 @@ TestStaticChannelBonding::RxCallback (std::string context, Ptr<const Packet> p, 
           double expectedRxPowerMin = - 3 /* half band */ - 50 /* loss */ - 1 /* precision */;
           NS_TEST_EXPECT_MSG_GT (WToDbm (it->second), expectedRxPowerMin, "Received power for BSS 3 RX PHY is too low");
         }
-
-      band = m_rxPhyBss3->GetBand(40, 0);
-      it = rxPowersW.find (band);
-      NS_ASSERT (it != rxPowersW.end ());
-      NS_LOG_INFO ("BSS 3 received packet with size " << size << " and power in 40 MHz band: " << WToDbm (it->second));
-      double expectedRxPowerMin = - 50 /* loss */ - 1 /* precision */;
-      NS_TEST_EXPECT_MSG_GT (WToDbm (it->second), expectedRxPowerMin, "Received power for BSS 3 RX PHY is too low");
     }
   else if (context == "BSS4") //RX is in BSS 4
     {
@@ -525,13 +518,6 @@ TestStaticChannelBonding::RxCallback (std::string context, Ptr<const Packet> p, 
           double expectedRxPowerMin = - 3 /* half band */ - 50 /* loss */ - 1 /* precision */;
           NS_TEST_EXPECT_MSG_GT (WToDbm (it->second), expectedRxPowerMin, "Received power for BSS 4 RX PHY is too low");
         }
-
-      band = m_rxPhyBss3->GetBand(40, 0);
-      it = rxPowersW.find (band);
-      NS_ASSERT (it != rxPowersW.end ());
-      NS_LOG_INFO ("BSS 4 received packet with size " << size << " and power in 40 MHz band: " << WToDbm (it->second));
-      double expectedRxPowerMin = - 50 /* loss */ - 1 /* precision */;
-      NS_TEST_EXPECT_MSG_GT (WToDbm (it->second), expectedRxPowerMin, "Received power for BSS 4 RX PHY is too low");
     }
 }
 
@@ -985,7 +971,7 @@ TestStaticChannelBonding::DoRun (void)
   Simulator::Schedule (Seconds (9.0) + MicroSeconds (165.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::IDLE, 2);
   Simulator::Schedule (Seconds (9.0) + MicroSeconds (165.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::IDLE, 4);
   Simulator::Schedule (Seconds (9.5), &TestStaticChannelBonding::VerifyResultsForBss, this, false, false, 2); // PHY header failed failed for BSS 2, so reception was aborted
-  Simulator::Schedule (Seconds (9.5), &TestStaticChannelBonding::VerifyResultsForBss, this, false, false, 4); // PHY header failed failed for BSS 4, so reception was aborted
+  Simulator::Schedule (Seconds (9.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, false, 4); // PHY header passed but payload failed for BSS 4
 
   //CASE 7: verify reception on channel 38 (BSS 3) when channels 36 (BSS 1) and 40 (BSS 2) are used at the same time
   Simulator::Schedule (Seconds (9.9), &TestStaticChannelBonding::Reset, this);
@@ -1006,7 +992,6 @@ TestStaticChannelBonding::DoRun (void)
   Simulator::Schedule (Seconds (10.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, false, 2); // PHY header passed but payload failed for BSS 2
   Simulator::Schedule (Seconds (10.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, false, 3); // PHY header passed but payload failed for BSS 3
 
-
   //CASE 8: verify reception on channel 38 (BSS 4) when channels 36 (BSS 1) and 40 (BSS 2) are used at the same time
   Simulator::Schedule (Seconds (10.9), &TestStaticChannelBonding::Reset, this);
   Simulator::Schedule (Seconds (11.0), &TestStaticChannelBonding::SendPacket, this, 4);
@@ -1024,7 +1009,7 @@ TestStaticChannelBonding::DoRun (void)
   Simulator::Schedule (Seconds (11.0) + MicroSeconds (165.0), &TestStaticChannelBonding::CheckPhyState, this, WifiPhyState::IDLE, 4);
   Simulator::Schedule (Seconds (11.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, false, 1); // PHY header passed but payload failed for BSS 1
   Simulator::Schedule (Seconds (11.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, false, 2); // PHY header passed but payload failed for BSS 2
-  Simulator::Schedule (Seconds (11.5), &TestStaticChannelBonding::VerifyResultsForBss, this, false, false, 4); // PHY header failed failed for BSS 4, so reception was aborted
+  Simulator::Schedule (Seconds (11.5), &TestStaticChannelBonding::VerifyResultsForBss, this, true, false, 4); // PHY header passed but payload failed for BSS 4
 
   Simulator::Run ();
   Simulator::Destroy ();

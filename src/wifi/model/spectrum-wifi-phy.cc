@@ -151,21 +151,6 @@ SpectrumWifiPhy::UpdateInterferenceHelperBands (void)
     }
   else
     {
-      for (uint8_t i = 0; i < (channelWidth / 160); i++)
-        {
-          WifiSpectrumBand band = GetBand (160, i);
-          m_interference.AddBand (band);
-        }
-      for (uint8_t i = 0; i < (channelWidth / 80); i++)
-        {
-          WifiSpectrumBand band = GetBand (80, i);
-          m_interference.AddBand (band);
-        }
-      for (uint8_t i = 0; i < (channelWidth / 40); i++)
-        {
-          WifiSpectrumBand band = GetBand (40, i);
-          m_interference.AddBand (band);
-        }
       for (uint8_t i = 0; i < (channelWidth / 20); i++)
         {
           WifiSpectrumBand band = GetBand (20, i);
@@ -290,42 +275,6 @@ SpectrumWifiPhy::StartRx (Ptr<SpectrumSignalParameters> rxParams)
       totalRxPowerW += rxPowerPerBandW;
       rxPowerW.insert ({filteredBand, rxPowerPerBandW});
       NS_LOG_DEBUG ("Signal power received after antenna gain for " << channelWidth << " MHz channel: " << rxPowerPerBandW << " W (" << WToDbm (rxPowerPerBandW) << " dBm)");
-    }
-
-  for (uint8_t i = 0; i < (channelWidth / 160); i++)
-    {
-      NS_ASSERT (channelWidth >= 160);
-      WifiSpectrumBand filteredBand = GetBand (160, i);
-      Ptr<SpectrumValue> filter = WifiSpectrumValueHelper::CreateRfFilter (GetFrequency (), channelWidth, GetBandBandwidth (), GetGuardBandwidth (channelWidth), filteredBand);
-      SpectrumValue filteredSignal = (*filter) * (*receivedSignalPsd);
-      NS_LOG_DEBUG ("Signal power received (watts) before antenna gain for 160 MHz channel band " << +i << ": " << Integral (filteredSignal));
-      double rxPowerPerBandW = Integral (filteredSignal) * DbToRatio (GetRxGain ());
-      rxPowerW.insert ({filteredBand, rxPowerPerBandW});
-      NS_LOG_DEBUG ("Signal power received after antenna gain for 160 MHz channel band " << +i << ": " << rxPowerPerBandW << " W (" << WToDbm (rxPowerPerBandW) << " dBm)");
-    }
-
-  for (uint8_t i = 0; i < (channelWidth / 80); i++)
-    {
-      NS_ASSERT (channelWidth >= 80);
-      WifiSpectrumBand filteredBand = GetBand (80, i);
-      Ptr<SpectrumValue> filter = WifiSpectrumValueHelper::CreateRfFilter (GetFrequency (), channelWidth, GetBandBandwidth (), GetGuardBandwidth (channelWidth), filteredBand);
-      SpectrumValue filteredSignal = (*filter) * (*receivedSignalPsd);
-      NS_LOG_DEBUG ("Signal power received (watts) before antenna gain for 80 MHz channel band " << +i << ": " << Integral (filteredSignal));
-      double rxPowerPerBandW = Integral (filteredSignal) * DbToRatio (GetRxGain ());
-      rxPowerW.insert ({filteredBand, rxPowerPerBandW});
-      NS_LOG_DEBUG ("Signal power received after antenna gain for 80 MHz channel band " << +i << ": " << rxPowerPerBandW << " W (" << WToDbm (rxPowerPerBandW) << " dBm)");
-    }
-
-  for (uint8_t i = 0; i < (channelWidth / 40); i++)
-    {
-      NS_ASSERT (channelWidth >= 40);
-      WifiSpectrumBand filteredBand = GetBand (40, i);
-      Ptr<SpectrumValue> filter = WifiSpectrumValueHelper::CreateRfFilter (GetFrequency (), channelWidth, GetBandBandwidth (), GetGuardBandwidth (channelWidth), filteredBand);
-      SpectrumValue filteredSignal = (*filter) * (*receivedSignalPsd);
-      NS_LOG_DEBUG ("Signal power received (watts) before antenna gain for 40 MHz channel band " << +i << ": " << Integral (filteredSignal));
-      double rxPowerPerBandW = Integral (filteredSignal) * DbToRatio (GetRxGain ());
-      rxPowerW.insert ({filteredBand, rxPowerPerBandW});
-      NS_LOG_DEBUG ("Signal power received after antenna gain for 40 MHz channel band " << +i << ": " << rxPowerPerBandW << " W (" << WToDbm (rxPowerPerBandW) << " dBm)");
     }
 
   for (uint8_t i = 0; i < (channelWidth / 20); i++)

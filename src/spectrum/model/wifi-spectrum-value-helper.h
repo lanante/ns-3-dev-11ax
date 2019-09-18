@@ -32,6 +32,10 @@ namespace ns3 {
  * typedef for a pair of start and stop sub-band indexes
  */
 typedef std::pair<uint32_t, uint32_t> WifiSpectrumBand;
+/**
+ * typedef for a vector of pairs of start and stop sub-band indexes
+ */
+typedef std::vector<WifiSpectrumBand> WifiSpectrumBands;
 
 /**
  * \ingroup spectrum

@@ -408,7 +408,7 @@ SpectrumWifiPhyFilterTest::RxCallback (Ptr<const Packet> p, RxPowerWattPerChanne
     }
 
   size_t numBands = rxPowersW.size ();
-  size_t expectedNumBands = std::max (1, (m_rxChannelWidth / 20) + (m_rxChannelWidth / 40) + (m_rxChannelWidth / 80) + (m_rxChannelWidth / 160));
+  size_t expectedNumBands = std::max (1, (m_rxChannelWidth / 20));
   if (m_rxChannelWidth == 20)
     {
       expectedNumBands += 9; /* RU_26_TONE */
@@ -440,10 +440,25 @@ SpectrumWifiPhyFilterTest::RxCallback (Ptr<const Packet> p, RxPowerWattPerChanne
   NS_TEST_ASSERT_MSG_EQ (numBands, expectedNumBands, "Total number of bands handled by the receiver is incorrect");
 
   uint16_t channelWidth = std::min (m_txChannelWidth, m_rxChannelWidth);
-  WifiSpectrumBand band = m_rxPhy->GetBand (channelWidth, 0);
-  auto it = rxPowersW.find (band);
-  NS_LOG_INFO ("powerW total band: " << it->second << " (" << WToDbm (it->second) << " dBm)");
-  int totalRxPower = static_cast<int> (WToDbm (it->second) + 0.5);
+  double totalPowerW = 0.0;
+  WifiSpectrumBand band;
+  if (channelWidth <= 20)
+    {
+      band = m_rxPhy->GetBand (channelWidth);
+      auto it = rxPowersW.find (band);
+      totalPowerW = it->second;
+    }
+  else
+    {
+      for (uint8_t i = 0; i < (channelWidth / 20); i++)
+        {
+          band = m_rxPhy->GetBand (20, i);
+          auto it = rxPowersW.find (band);
+          totalPowerW += it->second;
+        }
+    }
+  NS_LOG_INFO ("powerW total: " << totalPowerW << " (" << WToDbm (totalPowerW) << " dBm)");
+  int totalRxPower = static_cast<int> (WToDbm (totalPowerW) + 0.5);
   int expectedTotalRxPower;
   if (m_txChannelWidth <= m_rxChannelWidth)
     {
@@ -456,11 +471,10 @@ SpectrumWifiPhyFilterTest::RxCallback (Ptr<const Packet> p, RxPowerWattPerChanne
       expectedTotalRxPower = 16 - static_cast<int> (RatioToDb (m_txChannelWidth / m_rxChannelWidth));
     }
   NS_TEST_ASSERT_MSG_EQ (totalRxPower, expectedTotalRxPower, "Total received power is not correct");
-
   if ((m_txChannelWidth <= m_rxChannelWidth) && (channelWidth >= 20))
     {
       band = m_rxPhy->GetBand (20, 0); //primary 20 MHz
-      it = rxPowersW.find (band);
+      auto it = rxPowersW.find (band);
       NS_LOG_INFO ("powerW in primary 20 MHz channel: " << it->second << " (" << WToDbm (it->second) << " dBm)");
       int rxPowerPrimaryChannel20 = static_cast<int> (WToDbm (it->second) + 0.5);
       int expectedRxPowerPrimaryChannel20 = 16 - static_cast<int> (RatioToDb (channelWidth / 20));

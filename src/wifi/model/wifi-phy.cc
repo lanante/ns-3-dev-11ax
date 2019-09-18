@@ -3444,10 +3444,13 @@ WifiPhy::EndOfMpdu (Ptr<Event> event, Ptr<const WifiPsdu> psdu, size_t mpduIndex
   uint16_t staId = GetStaId (ppdu);
   uint16_t channelWidth = std::min (GetChannelWidth (), event->GetTxVector ().GetChannelWidth ());
   WifiSpectrumBand band;
+  WifiSpectrumBands bands;
+  double snr;
   if (txVector.IsMu ())
     {
       band = GetRuBand (txVector, staId);
       channelWidth = HeRu::GetBandwidth (txVector.GetRu (staId).ruType);
+      snr = m_interference.CalculateSnr (event, channelWidth, band);
     }
   else
     {
@@ -3457,9 +3460,20 @@ WifiPhy::EndOfMpdu (Ptr<Event> event, Ptr<const WifiPsdu> psdu, size_t mpduIndex
           index = GetSecondaryChannelOffset () == UPPER ? 0 : 1;
         }
       band = GetBand (channelWidth, index);
+      if (channelWidth <= 20)
+        {
+          bands.push_back (band);
+        }
+      else
+        {
+          for (uint8_t i = 0; i < (channelWidth / 20); i++)
+            {
+              band = GetBand ((channelWidth > 20) ? 20 : channelWidth, i);
+              bands.push_back (band);
+            }
+        }
+      snr = m_interference.CalculateEffectiveSnr (event, channelWidth, bands);
     }
-  double snr = m_interference.CalculateSnr (event, channelWidth, band);
-
   std::pair<bool, SignalNoiseDbm> rxInfo = GetReceptionStatus (psdu, event, staId, relativeStart, mpduDuration);
   NS_LOG_DEBUG ("Extracted MPDU #" << mpduIndex << ": duration: " << mpduDuration.GetNanoSeconds () << "ns" <<
                 ", correct reception: " << rxInfo.first << ", Signal/Noise: " << rxInfo.second.signal << "/" << rxInfo.second.noise << "dBm");
@@ -3493,10 +3507,13 @@ WifiPhy::EndReceive (Ptr<Event> event)
   uint16_t staId = GetStaId (ppdu);
   uint16_t channelWidth = std::min (GetChannelWidth (), event->GetTxVector ().GetChannelWidth ());
   WifiSpectrumBand band;
+  WifiSpectrumBands bands;
+  double snr;
   if (txVector.IsMu ())
     {
       band = GetRuBand (txVector, staId);
       channelWidth = HeRu::GetBandwidth (txVector.GetRu (staId).ruType);
+      snr = m_interference.CalculateSnr (event, channelWidth, band);
     }
   else
     {
@@ -3506,9 +3523,20 @@ WifiPhy::EndReceive (Ptr<Event> event)
           index = GetSecondaryChannelOffset () == UPPER ? 0 : 1;
         }
       band = GetBand (channelWidth, index);
+      if (channelWidth <= 20)
+        {
+          bands.push_back (band);
+        }
+      else
+        {
+          for (uint8_t i = 0; i < (channelWidth / 20); i++)
+            {
+              band = GetBand ((channelWidth > 20) ? 20 : channelWidth, i);
+              bands.push_back (band);
+            }
+        }
+      snr = m_interference.CalculateEffectiveSnr (event, channelWidth, bands);
     }
-  double snr = m_interference.CalculateSnr (event, channelWidth, band);
-
   Ptr<const WifiPsdu> psdu = GetAddressedPsduInPpdu (ppdu);
   auto signalNoiseIt = m_signalNoiseMap.find (std::make_pair (ppdu->GetUid (), staId));
   NS_ASSERT (signalNoiseIt != m_signalNoiseMap.end ());
@@ -3589,10 +3617,12 @@ WifiPhy::GetReceptionStatus (Ptr<const WifiPsdu> psdu, Ptr<Event> event, uint16_
   uint16_t channelWidth = std::min (GetChannelWidth (), event->GetTxVector ().GetChannelWidth ());
   WifiTxVector txVector = event->GetTxVector ();
   WifiSpectrumBand band;
+  WifiSpectrumBands bands;
   if (txVector.IsMu ())
     {
       band = GetRuBand (txVector, staId);
       channelWidth = HeRu::GetBandwidth (txVector.GetRu (staId).ruType);
+      bands.push_back (band);
     }
   else
     {
@@ -3602,8 +3632,20 @@ WifiPhy::GetReceptionStatus (Ptr<const WifiPsdu> psdu, Ptr<Event> event, uint16_
           index = GetSecondaryChannelOffset () == UPPER ? 0 : 1;
         }
       band = GetBand (channelWidth, index);
+      if (channelWidth <= 20)
+        {
+          bands.push_back (band);
+        }
+      else
+        {
+          for (uint8_t i = 0; i < (channelWidth / 20); i++)
+            {
+              band = GetBand ((channelWidth > 20) ? 20 : channelWidth, i);
+              bands.push_back (band);
+            }
+        }
     }
-  InterferenceHelper::SnrPer snrPer = m_interference.CalculatePayloadSnrPer (event, channelWidth, band, staId, std::make_pair (relativeMpduStart, relativeMpduStart + mpduDuration));
+  InterferenceHelper::SnrPer snrPer = m_interference.CalculatePayloadSnrPer (event, channelWidth, bands, staId, std::make_pair (relativeMpduStart, relativeMpduStart + mpduDuration));
 
   WifiMode mode = event->GetTxVector ().GetMode (staId);
   NS_LOG_DEBUG ("rate=" << (mode.GetDataRate (event->GetTxVector (), staId)) <<

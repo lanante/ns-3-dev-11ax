@@ -138,7 +138,7 @@ std::ostream & operator << (std::ostream &os, const Event &event)
  *       short period of time.
  ****************************************************************/
 
-InterferenceHelper::NiChange::NiChange (double power, Ptr<Event> event)
+InterferenceHelper::NiChange::NiChange (double power, Ptr<const Event> event)
   : m_power (power),
     m_event (event)
 {
@@ -156,7 +156,7 @@ InterferenceHelper::NiChange::AddPower (double power)
   m_power += power;
 }
 
-Ptr<Event>
+Ptr<const Event>
 InterferenceHelper::NiChange::GetEvent (void) const
 {
   return m_event;
@@ -336,7 +336,73 @@ InterferenceHelper::CalculateSnr (double signal, double noiseInterference, uint1
 }
 
 double
-InterferenceHelper::CalculateNoiseInterferenceW (Ptr<Event> event, NiChangesPerBand *nis, WifiSpectrumBand band) const
+InterferenceHelper::CalculateEffectiveSnr (std::map<WifiSpectrumBand, double> signals, std::map<WifiSpectrumBand, double> noiseInterferences, uint16_t channelWidth, WifiMode mode) const
+{
+  NS_LOG_FUNCTION (this << channelWidth);
+  NS_ASSERT (signals.size () == noiseInterferences.size ());
+  double effectiveSnr = 0.0;
+  std::vector<double> snrPerBand;
+  uint16_t bandWidth = (channelWidth > 20) ? 20 : channelWidth;
+  for (auto const & bandSignalPair : signals)
+    {
+      auto band = bandSignalPair.first;
+      double signal = bandSignalPair.second;
+      double noiseInterference = noiseInterferences.find (band)->second;
+      double snr = CalculateSnr (signal, noiseInterference, bandWidth);
+      snrPerBand.push_back (snr);
+    }
+  double minSnr = *(std::min_element (snrPerBand.begin (), snrPerBand.end ()));
+  double beta = GetBetaFactorForEffectiveSnrCalculation (mode);
+  effectiveSnr = minSnr + (beta * std::log (signals.size ()));
+  return effectiveSnr;
+}
+
+double
+InterferenceHelper::GetBetaFactorForEffectiveSnrCalculation (WifiMode mode) const
+{
+  double betaFactor = 0.0;
+  WifiModulationClass modulation = mode.GetModulationClass ();
+  if (modulation == WIFI_MOD_CLASS_HT || modulation == WIFI_MOD_CLASS_VHT || modulation == WIFI_MOD_CLASS_HE)
+    {
+      uint8_t mcs = mode.GetMcsValue ();
+      if (modulation == WIFI_MOD_CLASS_HT)
+       {
+         mcs %= 8;
+       }
+      switch (mcs)
+        {
+        case 0:
+          betaFactor = 0.15;
+          break;
+        case 1:
+        case 2:
+        case 3:
+          betaFactor = 0.5;
+          break;
+        case 4:
+          betaFactor = 5;
+          break;
+        case 5:
+          betaFactor = 12;
+          break;
+        case 6:
+        case 7:
+        case 8:
+        case 9:
+        case 10:
+        case 11:
+          betaFactor = 15;
+          break;
+        default:
+          NS_FATAL_ERROR ("Unknown MCS " << +mode.GetMcsValue ());
+          break;
+        }
+    }
+  return betaFactor;
+}
+
+double
+InterferenceHelper::CalculateNoiseInterferenceW (Ptr<const Event> event, NiChangesPerBand *nis, WifiSpectrumBand band) const
 {
   NS_LOG_FUNCTION (this << band.first << band.second);
   auto firstPower_it = m_firstPowerPerBand.find (band);
@@ -349,19 +415,33 @@ InterferenceHelper::CalculateNoiseInterferenceW (Ptr<Event> event, NiChangesPerB
     {
       noiseInterferenceW = it->second.GetPower () - event->GetRxPowerW (band);
     }
-  it = ni_it->second.find (event->GetStartTime ());
-  NS_ASSERT (it != ni_it->second.end ());
-  for (; it != ni_it->second.end () && it->second.GetEvent () != event; ++it);
-  NiChanges ni;
-  ni.emplace (event->GetStartTime (), NiChange (0, event));
-  while (++it != ni_it->second.end () && it->second.GetEvent () != event)
-    {
-      ni.insert (*it);
-    }
-  ni.emplace (event->GetEndTime (), NiChange (0, event));
-  nis->insert ({band, ni});
+  WifiSpectrumBands bands;
+  bands.push_back (band);
+  CalculateNoiseInterferenceWPerBand (event, nis, bands);
   NS_ASSERT_MSG (noiseInterferenceW >= 0, "CalculateNoiseInterferenceW returns negative value " << noiseInterferenceW);
   return noiseInterferenceW;
+}
+
+void
+InterferenceHelper::CalculateNoiseInterferenceWPerBand (Ptr<const Event> event, NiChangesPerBand *nis, WifiSpectrumBands bands) const
+{
+  NS_LOG_FUNCTION (this);
+  for (auto const & band : bands)
+    {
+      auto ni_it = m_niChangesPerBand.find (band);
+      NS_ASSERT (ni_it != m_niChangesPerBand.end ());
+      auto it = ni_it->second.find (event->GetStartTime ());
+      NS_ASSERT (it != ni_it->second.end ());
+      for (; it != ni_it->second.end () && it->second.GetEvent () != event; ++it);
+      NiChanges ni;
+      ni.emplace (event->GetStartTime (), NiChange (0, event));
+      while (++it != ni_it->second.end () && it->second.GetEvent () != event)
+        {
+          ni.insert (*it);
+        }
+      ni.emplace (event->GetEndTime (), NiChange (0, event));
+      nis->insert ({band, ni});
+    }
 }
 
 double
@@ -402,13 +482,13 @@ InterferenceHelper::CalculatePayloadChunkSuccessRate (double snir, Time duration
 
 double
 InterferenceHelper::CalculatePayloadPer (Ptr<const Event> event, uint16_t channelWidth,
-                                         NiChangesPerBand *nis, WifiSpectrumBand band,
+                                         NiChangesPerBand *nis, WifiSpectrumBands bands,
                                          uint16_t staId, std::pair<Time, Time> window) const
 {
-  NS_LOG_FUNCTION (this << staId << channelWidth << band.first << band.second << window.first << window.second);
+  NS_LOG_FUNCTION (this << staId << channelWidth << window.first << window.second);
   const WifiTxVector txVector = event->GetTxVector ();
   double psr = 1.0; /* Packet Success Rate */
-  auto ni_it = nis->find (band)->second;
+  auto ni_it = nis->find (bands.front ())->second;
   auto j = ni_it.begin ();
   Time previous = j->first;
   WifiMode payloadMode = txVector.GetMode (staId);
@@ -428,14 +508,21 @@ InterferenceHelper::CalculatePayloadPer (Ptr<const Event> event, uint16_t channe
     }
   Time windowStart = plcpPayloadStart + window.first;
   Time windowEnd = plcpPayloadStart + window.second;
-  double noiseInterferenceW = m_firstPowerPerBand.find (band)->second;
-  double powerW = event->GetRxPowerW (band);
+  //Keep power and noise+interference per band to compute effective SNR in case channel bonding is used
+  std::map<WifiSpectrumBand, double> powerPerBandW;
+  std::map<WifiSpectrumBand, double> noiseInterferencePerBandW;
+  for (auto const & band : bands)
+    {
+      powerPerBandW.insert({band, event->GetRxPowerW (band)});
+      noiseInterferencePerBandW.insert({band, m_firstPowerPerBand.find (band)->second});
+    }
   while (++j != ni_it.end ())
     {
       Time current = j->first;
       NS_LOG_DEBUG ("previous= " << previous << ", current=" << current);
       NS_ASSERT (current >= previous);
-      double snr = CalculateSnr (powerW, noiseInterferenceW, channelWidth);
+      double snr = CalculateEffectiveSnr (powerPerBandW, noiseInterferencePerBandW, channelWidth, payloadMode);
+
       //Case 1: Both previous and current point to the windowed payload
       if (previous >= windowStart)
         {
@@ -448,7 +535,16 @@ InterferenceHelper::CalculatePayloadPer (Ptr<const Event> event, uint16_t channe
           psr *= CalculatePayloadChunkSuccessRate (snr, current - windowStart, txVector, staId);
           NS_LOG_DEBUG ("previous is before windowed payload and current is in the windowed payload: mode=" << payloadMode << ", psr=" << psr);
         }
-      noiseInterferenceW = j->second.GetPower () - powerW;
+      auto iteratorDistance = std::distance(ni_it.begin (), j);
+      for (auto const & band : bands)
+        {
+          //Update noise+interference for each band
+          auto it = nis->find (band)->second.begin();
+          std::advance (it, iteratorDistance);
+          //TODO: can we instead store an iterator per band instead of iterating for each NiChange?
+          NS_ASSERT (it->first == current);
+          noiseInterferencePerBandW.find (band)->second = it->second.GetPower () - event->GetRxPowerW (band);
+        }
       previous = j->first;
       if (previous > windowEnd)
         {
@@ -844,20 +940,28 @@ InterferenceHelper::CalculateNonLegacyPhyHeaderPer (Ptr<const Event> event, NiCh
 }
 
 struct InterferenceHelper::SnrPer
-InterferenceHelper::CalculatePayloadSnrPer (Ptr<Event> event, uint16_t channelWidth, WifiSpectrumBand band,
-                                            uint16_t staId, std::pair<Time, Time> relativeMpduStartStop) const
+InterferenceHelper::CalculatePayloadSnrPer (Ptr<Event> event, uint16_t channelWidth,
+                                            WifiSpectrumBands bands, uint16_t staId,
+                                            std::pair<Time, Time> relativeMpduStartStop) const
 {
-  NS_LOG_FUNCTION (this << band.first << band.second);
+  NS_LOG_FUNCTION (this);
   NiChangesPerBand ni;
-  double noiseInterferenceW = CalculateNoiseInterferenceW (event, &ni, band);
-  double snr = CalculateSnr (event->GetRxPowerW (band),
-                             noiseInterferenceW,
-                             channelWidth);
+  double snr;
+  if (event->GetPpdu ()->IsMu())
+    {
+      double noiseInterferenceW = CalculateNoiseInterferenceW (event, &ni, bands.front ());
+      snr = CalculateSnr (event->GetRxPowerW (bands.front ()), noiseInterferenceW, channelWidth);
+    }
+  else
+    {
+      CalculateNoiseInterferenceWPerBand (event, &ni, bands);
+      snr = CalculateEffectiveSnr (event, channelWidth, bands);
+    }
 
   /* calculate the SNIR at the start of the MPDU (located through windowing) and accumulate
    * all SNIR changes in the snir vector.
    */
-  double per = CalculatePayloadPer (event, channelWidth, &ni, band, staId, relativeMpduStartStop);
+  double per = CalculatePayloadPer (event, channelWidth, &ni, bands, staId, relativeMpduStartStop);
 
   struct SnrPer snrPer;
   snrPer.snr = snr;
@@ -874,6 +978,21 @@ InterferenceHelper::CalculateSnr (Ptr<Event> event, uint16_t channelWidth, WifiS
                              noiseInterferenceW,
                              channelWidth);
   return snr;
+}
+
+double
+InterferenceHelper::CalculateEffectiveSnr (Ptr<Event> event, uint16_t channelWidth, WifiSpectrumBands bands) const
+{
+  std::map<WifiSpectrumBand, double> powerPerBandW;
+  std::map<WifiSpectrumBand, double> noiseInterferencePerBandW;
+  for (auto const & band : bands)
+    {
+      powerPerBandW.insert({band, event->GetRxPowerW (band)});
+      NiChangesPerBand ni;
+      double noiseInterferenceW = CalculateNoiseInterferenceW (event, &ni, band);
+      noiseInterferencePerBandW.insert({band, noiseInterferenceW});
+    }
+  return CalculateEffectiveSnr (powerPerBandW, noiseInterferencePerBandW, channelWidth, event->GetTxVector ().GetMode (SU_STA_ID));
 }
 
 struct InterferenceHelper::SnrPer
