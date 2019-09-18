@@ -2902,7 +2902,7 @@ WifiPhy::StartReceiveHeader (Ptr<Event> event)
       uint8_t nss = txVector.GetNssMax();
       if (txVector.GetPreambleType () == WIFI_PREAMBLE_HE_MU)
         {
-          uint16_t staId = GetStaId ();
+          uint16_t staId = GetStaId (m_currentEvent->GetPpdu ());
           for (auto info : txVector.GetHeMuUserInfoMap ())
             {
               if (info.first == staId)
@@ -3240,15 +3240,7 @@ WifiPhy::StartReceivePayload (Ptr<Event> event)
       Ptr<const WifiPsdu> psdu = GetAddressedPsduInPpdu (ppdu);
       if (psdu)
         {
-          uint16_t staId;
-          if (ppdu->IsUlMu ())
-            {
-              staId = ppdu->GetStaId ();
-            }
-          else
-            {
-              staId = GetStaId ();
-            }
+          uint16_t staId = GetStaId (ppdu);
           WifiTxVector txVector = event->GetTxVector ();
           WifiMode txMode = txVector.GetMode (staId);
           if (IsModeSupported (txMode) || IsMcsSupported (txMode))
@@ -3310,15 +3302,7 @@ WifiPhy::ScheduleEndOfMpdus (Ptr<Event> event)
   Ptr<const WifiPpdu> ppdu = event->GetPpdu ();
   Ptr<const WifiPsdu> psdu = GetAddressedPsduInPpdu (ppdu);
   WifiTxVector txVector = event->GetTxVector ();
-  uint16_t staId;
-  if (ppdu->IsUlMu ())
-    {
-      staId = ppdu->GetStaId ();
-    }
-  else
-    {
-      staId = GetStaId ();
-    }
+  uint16_t staId = GetStaId (ppdu);
   Time endOfMpduDuration = NanoSeconds (0);
   Time relativeStart = NanoSeconds (0);
   Time psduDuration = ppdu->GetTxDuration () - CalculatePlcpPreambleAndHeaderDuration (txVector);
@@ -3356,17 +3340,7 @@ WifiPhy::EndOfMpdu (Ptr<Event> event, Ptr<const WifiPsdu> psdu, size_t mpduIndex
   NS_LOG_FUNCTION (this << *event << mpduIndex << relativeStart << mpduDuration);
   Ptr<const WifiPpdu> ppdu = event->GetPpdu ();
   WifiTxVector txVector = event->GetTxVector ();
-
-  uint16_t staId;
-  if (ppdu->IsUlMu ())
-    {
-      staId = ppdu->GetStaId ();
-    }
-  else
-    {
-      staId = GetStaId ();
-    }
-
+  uint16_t staId = GetStaId (ppdu);
   uint16_t channelWidth = std::min (GetChannelWidth (), event->GetTxVector ().GetChannelWidth ());
   WifiSpectrumBand band;
   if (txVector.IsMu ())
@@ -3410,17 +3384,7 @@ WifiPhy::EndReceive (Ptr<Event> event)
   Time psduDuration = ppdu->GetTxDuration () - CalculatePlcpPreambleAndHeaderDuration (txVector);
   NS_LOG_FUNCTION (this << *event << psduDuration);
   NS_ASSERT (event->GetEndTime () == Simulator::Now ());
-
-  uint16_t staId;
-  if (ppdu->IsUlMu ())
-    {
-      staId = ppdu->GetStaId ();
-    }
-  else
-    {
-      staId = GetStaId ();
-    }
-
+  uint16_t staId = GetStaId (ppdu);
   uint16_t channelWidth = std::min (GetChannelWidth (), event->GetTxVector ().GetChannelWidth ());
   WifiSpectrumBand band;
   if (txVector.IsMu ())
@@ -4944,25 +4908,32 @@ WifiPhy::GetAddressedPsduInPpdu (Ptr<const WifiPpdu> ppdu) const
               bssColor = bssColorAttribute.Get ();
             }
         }
-      uint16_t staId = GetStaId ();
-      psdu = ppdu->GetPsdu (bssColor, staId);
+      psdu = ppdu->GetPsdu (bssColor, GetStaId (ppdu));
     }
     return psdu;
 }
 
 uint16_t
-WifiPhy::GetStaId (void) const
+WifiPhy::GetStaId (const Ptr<const WifiPpdu> ppdu) const
 {
-  Ptr<WifiNetDevice> device = DynamicCast<WifiNetDevice> (GetDevice ());
-  if (device)
+  uint16_t staId = SU_STA_ID;
+  if (ppdu->IsUlMu ())
     {
-      Ptr<StaWifiMac> mac = DynamicCast<StaWifiMac> (device->GetMac ());
-      if (mac && mac->IsAssociated ())
+      staId = ppdu->GetStaId ();
+    }
+  else if (ppdu->IsDlMu ())
+    {
+      Ptr<WifiNetDevice> device = DynamicCast<WifiNetDevice> (GetDevice ());
+      if (device)
         {
-          return mac->GetAssociationId ();
+          Ptr<StaWifiMac> mac = DynamicCast<StaWifiMac> (device->GetMac ());
+          if (mac && mac->IsAssociated ())
+            {
+              return mac->GetAssociationId ();
+            }
         }
     }
-  return SU_STA_ID;
+  return staId;
 }
 
 WifiSpectrumBand

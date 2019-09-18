@@ -457,7 +457,7 @@ SpectrumWifiPhy::GetTxPowerSpectralDensity (double txPowerW, Ptr<WifiPpdu> ppdu,
     case WIFI_MOD_CLASS_HE:
       if (isOfdma)
         {
-          WifiSpectrumBand band = GetRuBand (txVector, GetStaId ());
+          WifiSpectrumBand band = GetRuBand (txVector, GetStaId (ppdu));
           v = WifiSpectrumValueHelper::CreateHeMuOfdmTxPowerSpectralDensity (centerFrequency, channelWidth, txPowerW, GetGuardBandwidth (channelWidth), band);
         }
       else
