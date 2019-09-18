@@ -151,21 +151,6 @@ SpectrumWifiPhy::UpdateInterferenceHelperBands (void)
     }
   else
     {
-      for (uint8_t i = 0; i < (channelWidth / 160); i++)
-        {
-          WifiSpectrumBand band = GetBand (160, i);
-          m_interference.AddBand (band);
-        }
-      for (uint8_t i = 0; i < (channelWidth / 80); i++)
-        {
-          WifiSpectrumBand band = GetBand (80, i);
-          m_interference.AddBand (band);
-        }
-      for (uint8_t i = 0; i < (channelWidth / 40); i++)
-        {
-          WifiSpectrumBand band = GetBand (40, i);
-          m_interference.AddBand (band);
-        }
       for (uint8_t i = 0; i < (channelWidth / 20); i++)
         {
           WifiSpectrumBand band = GetBand (20, i);
@@ -280,6 +265,9 @@ SpectrumWifiPhy::StartRx (Ptr<SpectrumSignalParameters> rxParams)
   double totalRxPowerW = 0;
   RxPowerWattPerChannelBand rxPowerW;
 
+  // Since we are using an unordered_map, the order the power is inserted should be respected
+  // (i.e. legacy band followed by 11n/ac/ax 20 MHz bands followed by 802.11ax RU bands).
+  // This way, we can compute the total RX power by doing a sum over the bands, starting from the first one.
   if ((channelWidth == 5) || (channelWidth == 10))
     {
       WifiSpectrumBand filteredBand = GetBand (channelWidth);
@@ -288,44 +276,8 @@ SpectrumWifiPhy::StartRx (Ptr<SpectrumSignalParameters> rxParams)
       NS_LOG_DEBUG ("Signal power received (watts) before antenna gain: " << Integral (filteredSignal));
       double rxPowerPerBandW = Integral (filteredSignal) * DbToRatio (GetRxGain ());
       totalRxPowerW += rxPowerPerBandW;
-      rxPowerW.insert ({filteredBand, rxPowerPerBandW});
+      rxPowerW.push_back (std::make_pair (filteredBand, rxPowerPerBandW));
       NS_LOG_DEBUG ("Signal power received after antenna gain for " << channelWidth << " MHz channel: " << rxPowerPerBandW << " W (" << WToDbm (rxPowerPerBandW) << " dBm)");
-    }
-
-  for (uint8_t i = 0; i < (channelWidth / 160); i++)
-    {
-      NS_ASSERT (channelWidth >= 160);
-      WifiSpectrumBand filteredBand = GetBand (160, i);
-      Ptr<SpectrumValue> filter = WifiSpectrumValueHelper::CreateRfFilter (GetFrequency (), channelWidth, GetBandBandwidth (), GetGuardBandwidth (channelWidth), filteredBand);
-      SpectrumValue filteredSignal = (*filter) * (*receivedSignalPsd);
-      NS_LOG_DEBUG ("Signal power received (watts) before antenna gain for 160 MHz channel band " << +i << ": " << Integral (filteredSignal));
-      double rxPowerPerBandW = Integral (filteredSignal) * DbToRatio (GetRxGain ());
-      rxPowerW.insert ({filteredBand, rxPowerPerBandW});
-      NS_LOG_DEBUG ("Signal power received after antenna gain for 160 MHz channel band " << +i << ": " << rxPowerPerBandW << " W (" << WToDbm (rxPowerPerBandW) << " dBm)");
-    }
-
-  for (uint8_t i = 0; i < (channelWidth / 80); i++)
-    {
-      NS_ASSERT (channelWidth >= 80);
-      WifiSpectrumBand filteredBand = GetBand (80, i);
-      Ptr<SpectrumValue> filter = WifiSpectrumValueHelper::CreateRfFilter (GetFrequency (), channelWidth, GetBandBandwidth (), GetGuardBandwidth (channelWidth), filteredBand);
-      SpectrumValue filteredSignal = (*filter) * (*receivedSignalPsd);
-      NS_LOG_DEBUG ("Signal power received (watts) before antenna gain for 80 MHz channel band " << +i << ": " << Integral (filteredSignal));
-      double rxPowerPerBandW = Integral (filteredSignal) * DbToRatio (GetRxGain ());
-      rxPowerW.insert ({filteredBand, rxPowerPerBandW});
-      NS_LOG_DEBUG ("Signal power received after antenna gain for 80 MHz channel band " << +i << ": " << rxPowerPerBandW << " W (" << WToDbm (rxPowerPerBandW) << " dBm)");
-    }
-
-  for (uint8_t i = 0; i < (channelWidth / 40); i++)
-    {
-      NS_ASSERT (channelWidth >= 40);
-      WifiSpectrumBand filteredBand = GetBand (40, i);
-      Ptr<SpectrumValue> filter = WifiSpectrumValueHelper::CreateRfFilter (GetFrequency (), channelWidth, GetBandBandwidth (), GetGuardBandwidth (channelWidth), filteredBand);
-      SpectrumValue filteredSignal = (*filter) * (*receivedSignalPsd);
-      NS_LOG_DEBUG ("Signal power received (watts) before antenna gain for 40 MHz channel band " << +i << ": " << Integral (filteredSignal));
-      double rxPowerPerBandW = Integral (filteredSignal) * DbToRatio (GetRxGain ());
-      rxPowerW.insert ({filteredBand, rxPowerPerBandW});
-      NS_LOG_DEBUG ("Signal power received after antenna gain for 40 MHz channel band " << +i << ": " << rxPowerPerBandW << " W (" << WToDbm (rxPowerPerBandW) << " dBm)");
     }
 
   for (uint8_t i = 0; i < (channelWidth / 20); i++)
@@ -336,7 +288,7 @@ SpectrumWifiPhy::StartRx (Ptr<SpectrumSignalParameters> rxParams)
       NS_LOG_DEBUG ("Signal power received (watts) before antenna gain for 20 MHz channel band " << +i << ": " << Integral (filteredSignal));
       double rxPowerPerBandW = Integral (filteredSignal) * DbToRatio (GetRxGain ());
       totalRxPowerW += rxPowerPerBandW;
-      rxPowerW.insert ({filteredBand, rxPowerPerBandW});
+      rxPowerW.push_back (std::make_pair (filteredBand, rxPowerPerBandW));
       NS_LOG_DEBUG ("Signal power received after antenna gain for 20 MHz channel band " << +i << ": " << rxPowerPerBandW << " W (" << WToDbm (rxPowerPerBandW) << " dBm)");
     }
   
@@ -355,7 +307,7 @@ SpectrumWifiPhy::StartRx (Ptr<SpectrumSignalParameters> rxParams)
               NS_LOG_DEBUG ("Signal power received (watts) before antenna gain for RU with type " << ruType << " and range (" << range.first << "; " << range.second << ") -> (" << band.first << "; " << band.second <<  "): " << Integral (filteredSignal));
               double rxPowerPerBandW = Integral (filteredSignal) * DbToRatio (GetRxGain ());
               NS_LOG_DEBUG ("Signal power received after antenna gain for RU with type " << ruType << " and range (" << range.first << "; " << range.second << ") -> (" << band.first << "; " << band.second <<  "): " << rxPowerPerBandW << " W (" << WToDbm (rxPowerPerBandW) << " dBm)");
-              rxPowerW.insert ({band, rxPowerPerBandW});
+              rxPowerW.push_back (std::make_pair (band, rxPowerPerBandW));
             }
         }
     }

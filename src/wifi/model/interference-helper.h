@@ -21,10 +21,11 @@
 #ifndef INTERFERENCE_HELPER_H
 #define INTERFERENCE_HELPER_H
 
+#include <map>
+#include <unordered_map>
 #include "ns3/nstime.h"
 #include "ns3/wifi-spectrum-value-helper.h"
 #include "wifi-tx-vector.h"
-#include <map>
 
 namespace ns3 {
 
@@ -33,9 +34,9 @@ class WifiPsdu;
 class ErrorRateModel;
 
 /**
- * A map of the received power (Watts) for each band
+ * A vector of the received power (Watts) for each band
  */
-typedef std::map <WifiSpectrumBand, double> RxPowerWattPerChannelBand;
+typedef std::vector <std::pair <WifiSpectrumBand, double> > RxPowerWattPerChannelBand;
 
 /**
  * \ingroup wifi
@@ -232,14 +233,15 @@ public:
    *
    * \param event the event corresponding to the first time the corresponding PPDU arrives
    * \param channelWidth the channel width used to transmit the PSDU (in MHz)
-   * \param band identify the band used by the PSDU
+   * \param bands identify the band(s) used by the PSDU. If channel bonding is used, this corresponds to each 20 MHz bonded channel.
    * \param staId the station ID of the PSDU (only used for MU)
    * \param relativeMpduStartStop the time window (pair of start and end times) of PLCP payload to focus on
    *
    * \return struct of SNR and PER (with PER being evaluated over the provided time window)
    */
-  struct InterferenceHelper::SnrPer CalculatePayloadSnrPer (Ptr<Event> event, uint16_t channelWidth, WifiSpectrumBand band,
-                                                            uint16_t staId, std::pair<Time, Time> relativeMpduStartStop) const;
+  struct InterferenceHelper::SnrPer CalculatePayloadSnrPer (Ptr<Event> event, uint16_t channelWidth,
+                                                            WifiSpectrumBands bands, uint16_t staId,
+                                                            std::pair<Time, Time> relativeMpduStartStop) const;
   /**
    * Calculate the SNIR for the event (starting from now until the event end).
    *
@@ -247,9 +249,28 @@ public:
    * \param channelWidth the channel width (in MHz)
    * \param band identify the band used by the PSDU
    *
-   * \return the SNR for the PPDU
+   * \return the SNIR for the PPDU
    */
   double CalculateSnr (Ptr<Event> event, uint16_t channelWidth, WifiSpectrumBand band) const;
+  /**
+   * Calculate the effective SNIR for the event (starting from now until the event end).
+   * If channel bonding is not used, this is equal to the SNIR.
+   *
+   * \param event the event corresponding to the first time the corresponding PPDU arrives
+   * \param channelWidth the channel width (in MHz)
+   * \param bands identify the bonded bands used by the PSDU
+   *
+   * \return the effective SNIR for the PPDU
+   */
+  double CalculateEffectiveSnr (Ptr<Event> event, uint16_t channelWidth, WifiSpectrumBands bands) const;
+  /**
+   * Calculate the beta factor calibration used to compute the effective SNR
+   * 
+   * \param mode the mode used for the transmission
+   * 
+   * \return the beta factor calibration used to compute the effective SNR
+   */
+  double GetBetaFactorForEffectiveSnrCalculation (WifiMode mode) const;
   /**
    * Calculate the SNIR at the start of the legacy PHY header and accumulate
    * all SNIR changes in the snir vector.
@@ -308,7 +329,7 @@ public:
      * \param power the power
      * \param event causes this NI change
      */
-    NiChange (double power, Ptr<Event> event);
+    NiChange (double power, Ptr<const Event> event);
     /**
      * Return the power
      *
@@ -326,12 +347,12 @@ public:
      *
      * \return the event
      */
-    Ptr<Event> GetEvent (void) const;
+    Ptr<const Event> GetEvent (void) const;
 
 
 private:
     double m_power; ///< power
-    Ptr<Event> m_event; ///< event
+    Ptr<const Event> m_event; ///< event
   };
 
   /**
@@ -361,17 +382,38 @@ private:
    *
    * \return noise and interference power
    */
-  double CalculateNoiseInterferenceW (Ptr<Event> event, NiChangesPerBand *nis, WifiSpectrumBand band) const;
+  double CalculateNoiseInterferenceW (Ptr<const Event> event, NiChangesPerBand *nis, WifiSpectrumBand band) const;
   /**
-   * Calculate SNR (linear ratio) from the given signal power and noise+interference power.
+   * Calculate noise and interference power in W per band.
+   *
+   * \param event
+   * \param nis
+   * \param bands
+   *
+   */
+  void CalculateNoiseInterferenceWPerBand (Ptr<const Event> event, NiChangesPerBand *nis, WifiSpectrumBands bands) const;
+  /**
+   * Calculate SNIR (linear ratio) from the given signal power and noise+interference power.
    *
    * \param signal signal power (W)
    * \param noiseInterference noise and interference power (W)
    * \param channelWidth signal width (MHz)
    *
-   * \return SNR in linear ratio
+   * \return the SNIR in linear ratio
    */
   double CalculateSnr (double signal, double noiseInterference, uint16_t channelWidth) const;
+  /**
+   * Calculate effective SNIR (linear ratio) from the given signal powers and noise+interference powers for each bonded channel.
+   * If channel bonding is not used, this is equal to the SNIR.
+   *
+   * \param signals signal powers (W) per bonded channel
+   * \param noiseInterferences noise and interference powers (W) per bonded channel
+   * \param channelWidth signal width of the whole channel (MHz)
+   * \param mode the mode used for the transmission
+   *
+   * \return the effective SNIR in linear ratio
+   */
+  double CalculateEffectiveSnr (std::map<WifiSpectrumBand, double> signals, std::map<WifiSpectrumBand, double> noiseInterferences, uint16_t channelWidth, WifiMode mode) const;
   /**
    * Calculate the success rate of the chunk given the SINR, duration, and Wi-Fi mode.
    * The duration and mode are used to calculate how many bits are present in the chunk.
@@ -404,13 +446,15 @@ private:
    * \param event
    * \param channelWidth the channel width used to transmit the PSDU (in MHz)
    * \param nis
-   * \param band identify the band used by the PSDU
+   * \param totalBand identify the total band used by the PSDU
+   * \param bands identify the band(s) used by the PSDU. If channel bonding is used, this corresponds to each 20 MHz bonded channel.
    * \param staId the station ID of the PSDU (only used for MU)
    * \param window time window (pair of start and end times) of PLCP payload to focus on
    *
    * \return the error rate of the payload
    */
-  double CalculatePayloadPer (Ptr<const Event> event, uint16_t channelWidth, NiChangesPerBand *nis, WifiSpectrumBand band,
+  double CalculatePayloadPer (Ptr<const Event> event, uint16_t channelWidth,
+                              NiChangesPerBand *nis, WifiSpectrumBands bands,
                               uint16_t staId, std::pair<Time, Time> window) const;
   /**
    * Calculate the error rate of the legacy PHY header. The legacy PHY header
