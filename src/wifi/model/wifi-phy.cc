@@ -3181,15 +3181,15 @@ WifiPhy::StartReceiveOfdmaPayload (Ptr<WifiPpdu> ppdu, RxPowerWattPerChannelBand
   WifiTxVector txVector = ppdu->GetTxVector ();
   Time payloadDuration = ppdu->GetTxDuration () - CalculatePlcpPreambleAndHeaderDuration (txVector);
   Ptr<Event> event = m_interference.Add (ppdu, txVector, payloadDuration, rxPowersW, !m_ofdmaStarted);
-  m_endRxEvents.push_back (Simulator::Schedule (payloadDuration, &WifiPhy::EndReceive, this, event));
-  m_ofdmaStarted = true;
-  m_signalNoiseMap.insert ({std::make_pair (ppdu->GetUid (), ppdu->GetStaId ()), SignalNoiseDbm ()});
-  m_statusPerMpduMap.insert ({std::make_pair (ppdu->GetUid (), ppdu->GetStaId ()), std::vector<bool> ()});
   Ptr<const WifiPsdu> psdu = GetAddressedPsduInPpdu (ppdu);
   if (psdu->GetNMpdus () > 1)
     {
       ScheduleEndOfMpdus (event);
     }
+  m_endRxEvents.push_back (Simulator::Schedule (payloadDuration, &WifiPhy::EndReceive, this, event));
+  m_ofdmaStarted = true;
+  m_signalNoiseMap.insert ({std::make_pair (ppdu->GetUid (), ppdu->GetStaId ()), SignalNoiseDbm ()});
+  m_statusPerMpduMap.insert ({std::make_pair (ppdu->GetUid (), ppdu->GetStaId ()), std::vector<bool> ()});
 }
 
 void
