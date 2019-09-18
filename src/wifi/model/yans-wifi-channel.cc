@@ -134,7 +134,7 @@ YansWifiChannel::Receive (Ptr<YansWifiPhy> phy, Ptr<WifiPpdu> ppdu, double rxPow
       return;
     }
   RxPowerWattPerChannelBand rxPowerW;
-  rxPowerW.insert ({std::make_pair (0, 0), (DbmToW (rxPowerDbm + phy->GetRxGain ()))}); //dummy band for YANS
+  rxPowerW.push_back (std::make_pair (std::make_pair (0, 0), (DbmToW (rxPowerDbm + phy->GetRxGain ())))); //dummy band for YANS
   phy->StartReceivePreamble (ppdu, rxPowerW);
 }
 
