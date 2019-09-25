@@ -187,6 +187,18 @@ protected:
    */
   WifiSpectrumBand GetBand (uint16_t bandWidth, uint8_t bandIndex = 0);
 
+  /**
+   * Perform run-time spectrum model change
+   */
+  virtual void ResetSpectrumModel (void);
+
+  /**
+   * This function is called to update the bands handled by the InterferenceHelper.
+   */
+  void UpdateInterferenceHelperBands (void);
+
+  mutable Ptr<const SpectrumModel> m_rxSpectrumModel;       //!< receive spectrum model
+
 
 private:
   /**
@@ -224,20 +236,10 @@ private:
    */
   void Transmit (Ptr<WifiSpectrumSignalParameters> txParams);
 
-  /**
-   * Perform run-time spectrum model change
-   */
-  void ResetSpectrumModel (void);
-  /**
-   * This function is called to update the bands handled by the InterferenceHelper.
-   */
-  void UpdateInterferenceHelperBands (void);
-
   Ptr<SpectrumChannel> m_channel; //!< SpectrumChannel that this SpectrumWifiPhy is connected to
 
   Ptr<WifiSpectrumPhyInterface> m_wifiSpectrumPhyInterface; //!< Spectrum phy interface
   Ptr<AntennaModel> m_antenna;                              //!< antenna model
-  mutable Ptr<const SpectrumModel> m_rxSpectrumModel;       //!< receive spectrum model
   bool m_disableWifiReception;                              //!< forces this Phy to fail to sync on any signal
   TracedCallback<bool, uint32_t, double, Time> m_signalCb;  //!< Signal callback
 
