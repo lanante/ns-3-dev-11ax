@@ -34,6 +34,8 @@
 #include "ns3/multi-model-spectrum-channel.h"
 #include "ns3/constant-position-mobility-model.h"
 #include "ns3/constant-threshold-channel-bonding-manager.h"
+#include "ns3/waveform-generator.h"
+#include "ns3/non-communicating-net-device.h"
 
 using namespace ns3;
 
@@ -44,7 +46,17 @@ class BondingTestSpectrumWifiPhy : public SpectrumWifiPhy
 public:
   using SpectrumWifiPhy::SpectrumWifiPhy;
   using SpectrumWifiPhy::GetBand;
+  using SpectrumWifiPhy::ResetSpectrumModel;
+  void ResetSpectrumModel (void) override;
 };
+
+void
+BondingTestSpectrumWifiPhy::ResetSpectrumModel (void)
+{
+  uint16_t channelWidth = GetChannelWidth ();
+  m_rxSpectrumModel = WifiSpectrumValueHelper::GetSpectrumModel (GetFrequency (), channelWidth, GetBandBandwidth (), GetGuardBandwidth (channelWidth));
+  UpdateInterferenceHelperBands ();
+}
 
 /**
  * \ingroup wifi-test
@@ -1312,16 +1324,396 @@ TestDynamicChannelBonding::DoRun (void)
  * \ingroup wifi-test
  * \ingroup tests
  *
+ * \brief effective SNR calculations
+ */
+class TestEffectiveSnrCalculations : public TestCase
+{
+public:
+  TestEffectiveSnrCalculations ();
+  virtual ~TestEffectiveSnrCalculations ();
+
+private:
+  virtual void DoSetup (void);
+  virtual void DoRun (void);
+
+  struct InterferenceInfo
+  {
+    uint16_t frequency; ///< Interference frequency in MHz
+    uint16_t channelWidth; ///< Interference channel width in MHz
+    double powerDbm; ///< Interference power in dBm
+    InterferenceInfo(uint16_t freq, uint16_t width, double pow) : frequency (freq), channelWidth (width), powerDbm (pow) {}
+  };
+
+  /**
+   * Run one function
+   */
+  void RunOne (void);
+
+  /**
+   * Generate interference function
+   * \param phy the PHY to use to generate the interference
+   * \param interference the structure holding the interference info
+   */
+  void GenerateInterference (Ptr<WaveformGenerator> phy, InterferenceInfo interference);
+  /**
+   * Stop interference function
+   * \param phy the PHY to stop
+   */
+  void StopInterference (Ptr<WaveformGenerator> phy);
+
+  /**
+   * Send packet function
+   */
+  void SendPacket (void);
+
+  /**
+   * Callback triggered when a packet has been successfully received
+   * \param p the received packet
+   * \param snr the signal to noise ratio
+   * \param mode the mode used for the transmission
+   * \param preamble the preamble used for the transmission
+   */
+  void RxOkCallback (Ptr<const Packet> p, double snr, WifiMode mode, WifiPreamble preamble);
+
+  /**
+   * Callback triggered when a packet has been unsuccessfully received
+   * \param p the packet
+   * \param snr the signal to noise ratio
+   */
+  void RxErrorCallback (Ptr<const Packet> p, double snr);
+
+  Ptr<BondingTestSpectrumWifiPhy> m_rxPhy = 0; ///< Rx Phy
+  Ptr<BondingTestSpectrumWifiPhy> m_txPhy = 0; ///< Tx Phy
+  std::vector<Ptr<WaveformGenerator> > m_interferersPhys; ///< Interferers Phys
+  uint16_t m_signalFrequency; ///< Signal frequency in MHz
+  uint16_t m_signalChannelWidth; ///< Signal channel width in MHz
+  double m_expectedSnrDb; ///< Expected SNR in dB
+  uint32_t m_rxCount; ///< Counter for both RxOk and RxError callbacks
+
+  std::vector<InterferenceInfo> m_interferences;
+};
+
+TestEffectiveSnrCalculations::TestEffectiveSnrCalculations ()
+  : TestCase ("Effective SNR calculations test"),
+    m_signalFrequency (5180),
+    m_signalChannelWidth (20),
+    m_rxCount (0)
+{
+}
+
+TestEffectiveSnrCalculations::~TestEffectiveSnrCalculations ()
+{
+  m_rxPhy = 0;
+  m_txPhy = 0;
+  for (auto it = m_interferersPhys.begin (); it != m_interferersPhys.end (); it++)
+    {
+      *it = 0;
+    }
+  m_interferersPhys.clear ();
+}
+
+void
+TestEffectiveSnrCalculations::GenerateInterference (Ptr<WaveformGenerator> phy, TestEffectiveSnrCalculations::InterferenceInfo interference)
+{
+  NS_LOG_INFO ("GenerateInterference: PHY=" << phy << " frequency=" << interference.frequency << " channelWidth=" << interference.channelWidth << " powerDbm=" << interference.powerDbm);
+  BandInfo bandInfo;
+  bandInfo.fc = interference.frequency * 1e6;
+  bandInfo.fl = bandInfo.fc - (((interference.channelWidth / 2) + 1) * 1e6);
+  bandInfo.fh = bandInfo.fc + (((interference.channelWidth / 2) - 1) * 1e6);
+  Bands bands;
+  bands.push_back (bandInfo);
+
+  Ptr<SpectrumModel> spectrumInterference = Create<SpectrumModel> (bands);
+  Ptr<SpectrumValue> interferencePsd = Create<SpectrumValue> (spectrumInterference);
+  *interferencePsd = DbmToW (interference.powerDbm) / ((interference.channelWidth - 1) * 1e6);
+
+  Time interferenceDuration = MilliSeconds (100);
+
+  phy->SetTxPowerSpectralDensity (interferencePsd);
+  phy->SetPeriod (interferenceDuration);
+  phy->Start ();
+
+  Simulator::Schedule (interferenceDuration, &TestEffectiveSnrCalculations::StopInterference, this, phy);
+}
+
+void
+TestEffectiveSnrCalculations::StopInterference (Ptr<WaveformGenerator> phy)
+{
+  phy->Stop();
+}
+
+void
+TestEffectiveSnrCalculations::SendPacket (void)
+{
+  WifiTxVector txVector = WifiTxVector (WifiPhy::GetVhtMcs7 (), 0, WIFI_PREAMBLE_VHT_SU, 800, 1, 1, 0, m_signalChannelWidth, false, false);
+
+  Ptr<Packet> pkt = Create<Packet> (1000);
+  WifiMacHeader hdr;
+  hdr.SetType (WIFI_MAC_QOSDATA);
+
+  Ptr<WifiPsdu> psdu = Create<WifiPsdu> (pkt, hdr);
+  m_txPhy->Send (WifiPsduMap ({std::make_pair (SU_STA_ID, psdu)}), txVector);
+}
+
+void
+TestEffectiveSnrCalculations::RxOkCallback (Ptr<const Packet> p, double snr, WifiMode mode, WifiPreamble preamble)
+{
+  NS_LOG_INFO ("RxOkCallback: SNR=" << RatioToDb (snr) << " dB expected_SNR=" << m_expectedSnrDb << " dB");
+  m_rxCount++;
+  NS_TEST_EXPECT_MSG_EQ_TOL (RatioToDb (snr), m_expectedSnrDb, 0.1, "SNR is different than expected");
+}
+
+void
+TestEffectiveSnrCalculations::RxErrorCallback (Ptr<const Packet> p, double snr)
+{
+  NS_LOG_INFO ("RxErrorCallback: SNR=" << RatioToDb (snr) << " dB expected_SNR=" << m_expectedSnrDb << " dB");
+  m_rxCount++;
+  NS_TEST_EXPECT_MSG_EQ_TOL (RatioToDb (snr), m_expectedSnrDb, 0.1, "SNR is different than expected");
+}
+
+void
+TestEffectiveSnrCalculations::DoSetup (void)
+{
+  LogLevel logLevel = (LogLevel)(LOG_PREFIX_TIME | LOG_PREFIX_NODE | LOG_LEVEL_ALL);
+  LogComponentEnable ("WifiChannelBondingTest", logLevel);
+
+  Ptr<MultiModelSpectrumChannel> channel = CreateObject<MultiModelSpectrumChannel> ();
+
+  Ptr<MatrixPropagationLossModel> lossModel = CreateObject<MatrixPropagationLossModel> ();
+  lossModel->SetDefaultLoss (0); // set default loss to 0 dB for simplicity, so RX power = TX power
+  channel->AddPropagationLossModel (lossModel);
+
+  Ptr<ConstantSpeedPropagationDelayModel> delayModel = CreateObject<ConstantSpeedPropagationDelayModel> ();
+  channel->SetPropagationDelayModel (delayModel);
+
+  Ptr<ErrorRateModel> error = CreateObject<NistErrorRateModel> ();
+
+  m_rxPhy = CreateObject<BondingTestSpectrumWifiPhy> ();
+  Ptr<ConstantPositionMobilityModel> rxMobility = CreateObject<ConstantPositionMobilityModel> ();
+  rxMobility->SetPosition (Vector (1.0, 0.0, 0.0));
+  m_rxPhy->SetMobility (rxMobility);
+  m_rxPhy->ConfigureStandard (WIFI_PHY_STANDARD_80211ac);
+  m_rxPhy->CreateWifiSpectrumPhyInterface (nullptr);
+  m_rxPhy->SetChannel (channel);
+  m_rxPhy->SetErrorRateModel (error);
+  m_rxPhy->SetChannelNumber (50); // to support up to 160 MHz signals
+  m_rxPhy->Initialize ();
+
+  m_txPhy = CreateObject<BondingTestSpectrumWifiPhy> ();
+  Ptr<ConstantPositionMobilityModel> txMobility = CreateObject<ConstantPositionMobilityModel> ();
+  txMobility->SetPosition (Vector (0.0, 0.0, 0.0));
+  m_txPhy->SetMobility (txMobility);
+  m_txPhy->ConfigureStandard (WIFI_PHY_STANDARD_80211ac);
+  m_txPhy->CreateWifiSpectrumPhyInterface (nullptr);
+  m_txPhy->SetChannel (channel);
+  m_txPhy->SetErrorRateModel (error);
+  m_txPhy->SetChannelNumber (50); // to support up to 160 MHz signals
+  m_txPhy->Initialize ();
+
+  for (unsigned int i = 0; i < (160 / 20); i++)
+    {
+      Ptr<Node> interfererNode = CreateObject<Node> ();
+      Ptr<NonCommunicatingNetDevice> interfererDev = CreateObject<NonCommunicatingNetDevice> ();
+      Ptr<WaveformGenerator> phy = CreateObject<WaveformGenerator> ();
+      phy->SetDevice (interfererDev);
+      phy->SetChannel (channel);
+      phy->SetDutyCycle (1);
+      interfererNode->AddDevice (interfererDev);
+      m_interferersPhys.push_back (phy);
+    }
+
+  m_rxPhy->GetState()->TraceConnectWithoutContext ("RxOk", MakeCallback (&TestEffectiveSnrCalculations::RxOkCallback, this));
+  m_rxPhy->GetState()->TraceConnectWithoutContext ("RxError", MakeCallback (&TestEffectiveSnrCalculations::RxErrorCallback, this));
+}
+
+void
+TestEffectiveSnrCalculations::RunOne (void)
+{
+  RngSeedManager::SetSeed (1);
+  RngSeedManager::SetRun (1);
+  int64_t streamNumber = 0;
+  m_rxPhy->AssignStreams (streamNumber);
+  m_txPhy->AssignStreams (streamNumber);
+
+  m_txPhy->SetTxPowerStart (18);
+  m_txPhy->SetTxPowerEnd (18);
+
+  Simulator::Schedule (Seconds (1.0), &TestEffectiveSnrCalculations::SendPacket, this);
+  unsigned i = 0;
+  for (auto const& interference : m_interferences)
+    {
+      Simulator::Schedule (Seconds (1.0) + MicroSeconds (40) + MicroSeconds (i), &TestEffectiveSnrCalculations::GenerateInterference, this, m_interferersPhys.at (i), interference);
+      i++;
+    }
+
+  Simulator::Run ();
+
+  m_interferences.clear ();
+}
+
+void
+TestEffectiveSnrCalculations::DoRun (void)
+{
+  // Case 1: 20 MHz transmission: Reference case
+  {
+    m_signalFrequency = 5180;
+    m_signalChannelWidth = 20;
+    m_interferences.push_back (TestEffectiveSnrCalculations::InterferenceInfo (5180, 20, 15));
+    // SNR eff = SNR = 18 - 15 = 3 dB
+    m_expectedSnrDb = 3;
+    RunOne ();
+  }
+
+  // Case 2: 40 MHz transmission: I1 = I2
+  {
+    m_signalFrequency = 5190;
+    m_signalChannelWidth = 40;
+    m_interferences.push_back (TestEffectiveSnrCalculations::InterferenceInfo (5190, 40, 15));
+    // SNR eff,m = min ((18 - 3) - (15 - 3), (18 - 3) - (15 - 3)) = min (3 dB, 3 dB) = 3 dB = 2
+    // SNR eff = 2 + (15 * ln(2)) = 12.5 = 10.9 dB
+    m_expectedSnrDb = 10.9;
+    RunOne ();
+  }
+
+  // Case 3: 40 MHz transmission: I2 = 0
+  {
+    m_signalFrequency = 5190;
+    m_signalChannelWidth = 40;
+    m_interferences.push_back (TestEffectiveSnrCalculations::InterferenceInfo (5180, 20, 12));
+    // SNR eff,m = min ((18 - 3) - 12, (18 - 3) - (-94)) min (3 dB, 109 dB) = 3 dB = 2
+    // SNR eff = 2 + (15 * ln(2)) = 12.4 = 10.9 dB
+    m_expectedSnrDb = 10.9;
+    RunOne ();
+  }
+
+  // Case 4: 40 MHz transmission: I2 = 1/2 I1
+  {
+    m_signalFrequency = 5190;
+    m_signalChannelWidth = 40;
+    m_interferences.push_back (TestEffectiveSnrCalculations::InterferenceInfo (5180, 20, 12));
+    m_interferences.push_back (TestEffectiveSnrCalculations::InterferenceInfo (5200, 20, 9));
+    // SNR eff,m = min ((18 - 3) - 12, (18 - 3) - 9) = min (3 dB, 6 dB) = 3 dB = 2
+    // SNR eff = 2 + (15 * ln(2)) = 12.4 = 10.9 dB
+    m_expectedSnrDb = 10.9;
+    RunOne ();
+  }
+
+  // Case 5: 80 MHz transmission: I1 = I2 = I3 = I4
+  {
+    m_signalFrequency = 5210;
+    m_signalChannelWidth = 80;
+    m_interferences.push_back (TestEffectiveSnrCalculations::InterferenceInfo (5210, 80, 15));
+    // SNR eff,m = min ((18 - 6) - (15 - 6), (18 - 6) - (15 - 6), (18 - 6) - (15 - 6), (18 - 6) - (15 - 6)) = min (3 dB, 3 dB, 3 dB, 3 dB) = 3 dB = 2
+    // SNR eff = 2 + (15 * ln(4)) = 22.8 = 13.6 dB
+    m_expectedSnrDb = 13.6;
+    RunOne ();
+  }
+
+  // Case 6: 80 MHz transmission: I2 = I3 = I4 = 0
+  {
+    m_signalFrequency = 5210;
+    m_signalChannelWidth = 80;
+    m_interferences.push_back (TestEffectiveSnrCalculations::InterferenceInfo (5180, 20, 9));
+    // SNR eff,m = min ((18 - 6) - 9, (18 - 6) - (-94), (18 - 6) - (-94), (18 - 6) - (-94)) = min (3 dB, 106 dB, 106 dB, 106 dB) = 3 dB = 2
+    // SNR eff = 2 + (15 * ln(4)) = 22.8 = 13.6 dB
+    m_expectedSnrDb = 13.6;
+    RunOne ();
+  }
+
+  // Case 7: 80 MHz transmission: I2 = 1/2 I1, I3 = I4 = 0
+  {
+    m_signalFrequency = 5210;
+    m_signalChannelWidth = 80;
+    m_interferences.push_back (TestEffectiveSnrCalculations::InterferenceInfo (5180, 20, 9));
+    m_interferences.push_back (TestEffectiveSnrCalculations::InterferenceInfo (5200, 20, 6));
+    // SNR eff,m = min ((18 - 6) - 9, (18 - 6) - 6, (18 - 6) - (-94), (18 - 6) - (-94)) = min (3 dB, 6 dB, 106 dB, 106 dB) = 3 dB = 2
+    // SNR eff = 2 + (15 * ln(4)) = 22.8 = 13.6 dB
+    m_expectedSnrDb = 13.6;
+    RunOne ();
+  }
+
+  // Case 8: 80 MHz transmission: I2 = I3 = I4 = 1/2 I1
+  {
+    m_signalFrequency = 5210;
+    m_signalChannelWidth = 80;
+    m_interferences.push_back (TestEffectiveSnrCalculations::InterferenceInfo (5180, 20, 9));
+    m_interferences.push_back (TestEffectiveSnrCalculations::InterferenceInfo (5200, 20, 6));
+    m_interferences.push_back (TestEffectiveSnrCalculations::InterferenceInfo (5220, 20, 6));
+    m_interferences.push_back (TestEffectiveSnrCalculations::InterferenceInfo (5240, 20, 6));
+    // SNR eff,m = min ((18 - 6) - 9, (18 - 6) - 6, (18 - 6) - 6, (18 - 6) - 6) = min (3 dB, 6 dB, 6 dB, 6 dB) = 3 dB = 2
+    // SNR eff = 2 + (15 * ln(4)) = 22.8 = 13.6 dB
+    m_expectedSnrDb = 13.6;
+    RunOne ();
+  }
+
+  // Case 9: 160 MHz transmission: I1 = I2 = I3 = I4 = I5 = I6 = I7 = I8
+  {
+    m_signalFrequency = 5250;
+    m_signalChannelWidth = 160;
+    m_interferences.push_back (TestEffectiveSnrCalculations::InterferenceInfo (5250, 160, 15));
+    // SNR eff,m = min ((18 - 9) - (15 - 9), (18 - 9) - (15 - 9), (18 - 9) - (15 - 9), (18 - 9) - (15 - 9), (18 - 9) - (15 - 9), (18 - 9) - (15 - 9), (18 - 9) - (15 - 9), (18 - 9) - (15 - 9))
+    //           = min (3 dB, 3 dB, 3 dB, 3 dB, 3 dB, 3 dB, 3 dB, 3 dB) = 3 dB = 2
+    // SNR eff = 2 + (15 * ln(8)) = 33.2 = 15.2 dB
+    m_expectedSnrDb = 15.2;
+    RunOne ();
+  }
+
+  // Case 10: 160 MHz transmission: I2 = I3 = I4 = I5 = I6 = I7 = I8 = 0
+  {
+    m_signalFrequency = 5250;
+    m_signalChannelWidth = 160;
+    m_interferences.push_back (TestEffectiveSnrCalculations::InterferenceInfo (5180, 20, 6));
+    // SNR eff,m = min ((18 - 9) - 6, (18 - 9) - (-94), (18 - 9) - (-94), (18 - 9) - (-94), (18 - 9) - (-94), (18 - 9) - (-94), (18 - 9) - (-94), (18 - 9) - (-94))
+    //           = min (3 dB, 103 dB, 103 dB, 103 dB, 103 dB, 103 dB, 103 dB, 103 dB) = 3 dB = 2
+    // SNR eff = 2 + (15 * ln(8)) = 33.2 = 15.2 dB
+    m_expectedSnrDb = 15.2;
+    RunOne ();
+  }
+
+  // Case 11: 160 MHz transmission: I2 = I3 = I4 = 1/2 I1, I5 = I6 = I7 = I8 = 0
+  {
+    m_signalFrequency = 5250;
+    m_signalChannelWidth = 160;
+    m_interferences.push_back (TestEffectiveSnrCalculations::InterferenceInfo (5180, 20, 6));
+    m_interferences.push_back (TestEffectiveSnrCalculations::InterferenceInfo (5200, 20, 3));
+    m_interferences.push_back (TestEffectiveSnrCalculations::InterferenceInfo (5220, 20, 3));
+    m_interferences.push_back (TestEffectiveSnrCalculations::InterferenceInfo (5240, 20, 3));
+    // SNR eff,m = min ((18 - 9) - 6, (18 - 9) - 3, (18 - 9) - 3, (18 - 9) - 3, (18 - 9) - (-94), (18 - 9) - (-94), (18 - 9) - (-94), (18 - 9) - (-94))
+    //           = min (3 dB, 6 dB, 6 dB, 6 dB, 103 dB, 103 dB, 103 dB, 103 dB) = 3 dB = 2
+    // SNR eff = 2 + (15 * ln(8)) = 33.2 = 15.2 dB
+    m_expectedSnrDb = 15.2;
+    RunOne ();
+  }
+
+  // Case 12: 160 MHz transmission: I2 = I3 = I4 = I5 = I6 = I7 = I8 = 1/2 I1
+  {
+    m_signalFrequency = 5250;
+    m_signalChannelWidth = 160;
+    m_interferences.push_back (TestEffectiveSnrCalculations::InterferenceInfo (5180, 20, 6));
+    m_interferences.push_back (TestEffectiveSnrCalculations::InterferenceInfo (5200, 20, 3));
+    m_interferences.push_back (TestEffectiveSnrCalculations::InterferenceInfo (5220, 20, 3));
+    m_interferences.push_back (TestEffectiveSnrCalculations::InterferenceInfo (5240, 20, 3));
+    m_interferences.push_back (TestEffectiveSnrCalculations::InterferenceInfo (5260, 20, 3));
+    m_interferences.push_back (TestEffectiveSnrCalculations::InterferenceInfo (5280, 20, 3));
+    m_interferences.push_back (TestEffectiveSnrCalculations::InterferenceInfo (5300, 20, 3));
+    m_interferences.push_back (TestEffectiveSnrCalculations::InterferenceInfo (5320, 20, 3));
+    // SNR eff,m = min ((18 - 9) - 6, (18 - 9) - 3, (18 - 9) - 3, (18 - 9) - 3, (18 - 9) - 3, (18 - 9) - 3, (18 - 9) - 3, (18 - 9) - 3)
+    //           = min (3 dB, 6 dB, 6 dB, 6 dB, 6 dB, 6 dB, 6 dB, 6 dB) = 3 dB = 2
+    // SNR eff = 2 + (15 * ln(8)) = 33.2 = 15.2 dB
+    m_expectedSnrDb = 15.2;
+    RunOne ();
+  }
+
+  NS_TEST_EXPECT_MSG_EQ (m_rxCount, 12, "12 packets should have been received!");
+
+  Simulator::Destroy ();
+}
+
+/**
+ * \ingroup wifi-test
+ * \ingroup tests
+ *
  * \brief wifi channel bonding test suite
- *
- * In this test, we have two 802.11n transmitters and two 802.11n receivers.
- * A BSS is composed of one transmitter and one receiver.
- *
- * The first BSS supports channel bonding of two 20 MHz channels (36 Primary + 40 Secondary).
- * The second BSS operates on channel 40 with a channel width of 20 MHz.
- *
- * We verify the channel width selected by dynamic channel manager: if the secondary channel is idle for at least PIFS,
- * it can be used for transmission, otherwise the transmitter shall limit its channel width to 20 MHz.
  */
 class WifiChannelBondingTestSuite : public TestSuite
 {
@@ -1334,6 +1726,7 @@ WifiChannelBondingTestSuite::WifiChannelBondingTestSuite ()
 {
   AddTestCase (new TestStaticChannelBonding, TestCase::QUICK);
   AddTestCase (new TestDynamicChannelBonding, TestCase::QUICK);
+  AddTestCase (new TestEffectiveSnrCalculations, TestCase::QUICK);
 }
 
 static WifiChannelBondingTestSuite wifiChannelBondingTestSuite; ///< the test suite
