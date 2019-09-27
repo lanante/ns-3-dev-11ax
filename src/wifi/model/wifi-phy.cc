@@ -2742,6 +2742,11 @@ WifiPhy::Send (WifiPsduMap psdus, WifiTxVector txVector)
       txDuration = CalculateTxDuration (psdus, txVector, GetFrequency ());
     }
 
+  if (!m_endPreambleDetectionEvents.empty () || m_currentEvent != 0)
+    {
+      MaybeCcaBusyDuration (); //needed to keep busy state afterwards
+    }
+
   for (auto & endPreambleDetectionEvent : m_endPreambleDetectionEvents)
     {
       endPreambleDetectionEvent.Cancel ();
