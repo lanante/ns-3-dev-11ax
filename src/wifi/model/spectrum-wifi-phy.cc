@@ -620,15 +620,20 @@ SpectrumWifiPhy::GetBand (uint16_t bandWidth, uint8_t bandIndex)
   uint32_t bandBandwidth = GetBandBandwidth ();
   size_t numBandsInChannel = static_cast<size_t> (channelWidth * 1e6 / bandBandwidth);
   size_t numBandsInBand = static_cast<size_t> (bandWidth * 1e6 / bandBandwidth);
-  if (channelWidth % bandBandwidth != 0)
+  if (numBandsInBand % 2 == 0)
     {
-      numBandsInChannel += 1;
+      numBandsInChannel += 1; // symmetry around center frequency
     }
   size_t totalNumBands = GetRxSpectrumModel ()->GetNumBands ();
   NS_ASSERT_MSG ((numBandsInChannel % 2 == 1) && (totalNumBands % 2 == 1), "Should have odd number of bands");
   NS_ASSERT_MSG ((bandIndex * bandWidth) < channelWidth, "Band index is out of bound");
   WifiSpectrumBand band;
   band.first = ((totalNumBands - numBandsInChannel) / 2) + (bandIndex * numBandsInBand);
+  if (band.first >= totalNumBands / 2)
+    {
+      //step past DC
+      band.first += 1;
+    }
   band.second = band.first + numBandsInBand - 1;
   return band;
 }
