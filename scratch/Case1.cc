@@ -27,6 +27,7 @@ void AddClient (ApplicationContainer &clientApps, Ipv4Address address, Ptr<Node>
 {
   UdpClientHelper client (address, port);
   client.SetAttribute ("Interval", TimeValue (interval ));
+  client.SetAttribute ("MaxPackets", UintegerValue (4294967295u));
   client.SetAttribute ("PacketSize", UintegerValue (payloadSize));
   clientApps.Add (client.Install (node));
 }
@@ -52,7 +53,7 @@ int main (int argc, char *argv[])
   std::string secondaryChannelBssA = "";
   std::string secondaryChannelBssB = "";
   std::string secondaryChannelBssC = "UPPER";
-
+  std::string mcs = "HtMcs0";
   double ccaEdThresholdPrimaryBssA = -62.0;
   double ccaEdThresholdSecondaryBssA = -62.0;
   double ccaEdThresholdPrimaryBssB = -62.0;
@@ -65,7 +66,7 @@ int main (int argc, char *argv[])
   double maxExpectedThroughputBssA = 0; //Mbit/s
   double minExpectedThroughputBssB = 0; //Mbit/s
   double maxExpectedThroughputBssB = 0; //Mbit/s
-uint16_t n=1;
+uint16_t n=4;
 uint16_t i=0;
   CommandLine cmd;
   cmd.AddValue ("payloadSize", "Payload size in bytes", payloadSize);
@@ -95,6 +96,7 @@ uint16_t i=0;
   cmd.AddValue ("maxExpectedThroughputBssA", "Maximum expected throughput for BSS A", maxExpectedThroughputBssA);
   cmd.AddValue ("minExpectedThroughputBssB", "Minimum expected throughput for BSS B", minExpectedThroughputBssB);
   cmd.AddValue ("maxExpectedThroughputBssB", "Maximum expected throughput for BSS B", maxExpectedThroughputBssB);
+  cmd.AddValue ("mcs", "MCS", mcs);
   cmd.Parse (argc, argv);
 
   /*LogComponentEnableAll (LOG_PREFIX_TIME);
@@ -109,7 +111,7 @@ uint16_t i=0;
   Config::SetDefault ("ns3::SpectrumWifiPhy::TxMaskOuterBandMaximumRejection", DoubleValue (txMaskOuterBandMaximumRejection));
 
   NodeContainer wifiStaNodesA,wifiStaNodesB,wifiStaNodesC;
-  wifiStaNodesA.Create (2);
+  wifiStaNodesA.Create (n);
   wifiStaNodesB.Create (n);
   wifiStaNodesC.Create (n);
   NodeContainer wifiApNodes;
@@ -137,7 +139,7 @@ phy.SetChannel (channel);
 
   WifiHelper wifi;
   wifi.SetStandard (WIFI_PHY_STANDARD_80211n_5GHZ);
-  wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode", StringValue ("HtMcs7"), "ControlMode", StringValue ("HtMcs0"));
+  wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode", StringValue (mcs), "ControlMode", StringValue ("HtMcs0"));
   if (useDynamicChannelBonding)
     {
       wifi.SetChannelBondingManager ("ns3::ConstantThresholdChannelBondingManager");
@@ -171,7 +173,7 @@ for (i=0;i<n;i++) {
   Ptr<WifiNetDevice> wifiStaDeviceAPtr = staDeviceAPtr->GetObject <WifiNetDevice> ();
   wifiStaDeviceAPtr->GetPhy ()->SetChannelNumber (channelBssA);
 }
-i=0;
+
 
   mac.SetType ("ns3::ApWifiMac",
                "Ssid", SsidValue (ssid),
@@ -202,11 +204,11 @@ i=0;
   staDeviceB = wifi.Install (phy, mac, wifiStaNodesB);
 
 Ptr<NetDevice> staDeviceBPtr;
-//for (i=0;i<n;i++) {
+for (i=0;i<n;i++) {
    staDeviceBPtr= staDeviceB.Get (i);
   Ptr<WifiNetDevice> wifiStaDeviceBPtr = staDeviceBPtr->GetObject <WifiNetDevice> ();
   wifiStaDeviceBPtr->GetPhy ()->SetChannelNumber (channelBssB);
-//}
+}
 
   mac.SetType ("ns3::ApWifiMac",
                "Ssid", SsidValue (ssid),
@@ -237,11 +239,11 @@ Ptr<NetDevice> staDeviceBPtr;
   staDeviceC= wifi.Install (phy, mac, wifiStaNodesC);
 
 Ptr<NetDevice> staDeviceCPtr;
-//for (i=0;i<n;i++) {
+for (i=0;i<n;i++) {
    staDeviceCPtr= staDeviceC.Get (i);
   Ptr<WifiNetDevice> wifiStaDeviceCPtr = staDeviceCPtr->GetObject <WifiNetDevice> ();
   wifiStaDeviceCPtr->GetPhy ()->SetChannelNumber (channelBssC);
-//}
+}
 
   mac.SetType ("ns3::ApWifiMac",
                "Ssid", SsidValue (ssid),
@@ -268,19 +270,44 @@ Ptr<NetDevice> staDeviceCPtr;
   positionAlloc->Add (Vector (interBssDistance, 0.0, 0.0));
   positionAlloc->Add (Vector (interBssDistance*2, 0.0, 0.0));
 
+
+
   // Set position for STAs
-  positionAlloc->Add (Vector (0.0, distance, 0.0));
-  positionAlloc->Add (Vector (0.0, distance*2, 0.0));
- // positionAlloc->Add (Vector (0.0, distance*3, 0.0));
+  int64_t streamNumber = 100;
+Ptr<UniformDiscPositionAllocator> unitDiscPositionAllocator1 = CreateObject<UniformDiscPositionAllocator> ();
+      unitDiscPositionAllocator1->AssignStreams (streamNumber);
+      // AP1 is at origin (x=x1, y=y1), with radius Rho=r
+      unitDiscPositionAllocator1->SetX (0);
+      unitDiscPositionAllocator1->SetY (0);
+      unitDiscPositionAllocator1->SetRho (distance);
+      for (uint32_t i = 0; i < n; i++)
+        {
+          Vector v = unitDiscPositionAllocator1->GetNext ();
+          positionAlloc->Add (v);
+        }
+Ptr<UniformDiscPositionAllocator> unitDiscPositionAllocator2= CreateObject<UniformDiscPositionAllocator> ();
+      unitDiscPositionAllocator2->AssignStreams (streamNumber+1);
+      // AP2 is at origin (x=x2, y=y2), with radius Rho=r
+      unitDiscPositionAllocator2->SetX (interBssDistance);
+      unitDiscPositionAllocator2->SetY (0);
+      unitDiscPositionAllocator2->SetRho (distance);
+      for (uint32_t i = 0; i < n; i++)
+        {
+          Vector v = unitDiscPositionAllocator2->GetNext ();
+          positionAlloc->Add (v);
+        }
+Ptr<UniformDiscPositionAllocator> unitDiscPositionAllocator3 = CreateObject<UniformDiscPositionAllocator> ();
+      unitDiscPositionAllocator3->AssignStreams (streamNumber+2);
+      // AP3 is at origin (x=x3, y=y3), with radius Rho=r
+      unitDiscPositionAllocator3->SetX (interBssDistance*2);
+      unitDiscPositionAllocator3->SetY (0);
+      unitDiscPositionAllocator3->SetRho (distance);
+      for (uint32_t i = 0; i < n; i++)
+        {
+          Vector v = unitDiscPositionAllocator3->GetNext ();
+          positionAlloc->Add (v);
+        }
 
-  positionAlloc->Add (Vector (interBssDistance, distance, 0.0));
-  //positionAlloc->Add (Vector (interBssDistance, distance*2, 0.0));
-  //positionAlloc->Add (Vector (interBssDistance, distance*3, 0.0));
-
-
-  positionAlloc->Add (Vector (interBssDistance*2, distance, 0.0));
-  //positionAlloc->Add (Vector (interBssDistance*2, distance*2, 0.0));
-  //positionAlloc->Add (Vector (interBssDistance*2, distance*3, 0.0));
 
 
   mobility.SetPositionAllocator (positionAlloc);
@@ -321,44 +348,31 @@ Ptr<NetDevice> staDeviceCPtr;
   uint16_t port = 9;
 
   UdpServerHelper serverA (port);
-ApplicationContainer serverAppA1,serverAppA2;
+ApplicationContainer serverAppA;
 ApplicationContainer clientAppA ;
-//UdpClientHelper clientA;
-//for (i=0;i<n;i++){
-
-   serverAppA1= serverA.Install (wifiStaNodesA.Get (0));
-  serverAppA1.Start (Seconds (0.0));
-  serverAppA1.Stop (Seconds (simulationTime + 1));
-
-
+   serverAppA= serverA.Install (wifiStaNodesA.Get (0));
+  serverAppA.Start (Seconds (0.0));
+  serverAppA.Stop (Seconds (simulationTime + 1));
  
-Time intervalDownlink = MicroSeconds (loadBssA*8*payloadSize/100000);
-AddClient (clientAppA, StaInterfaceA.GetAddress (0), wifiStaNodesA.Get (0), port, Time(intervalDownlink), payloadSize);
-AddClient (clientAppA, StaInterfaceA.GetAddress (0), wifiStaNodesA.Get (1), port, Time(intervalDownlink), payloadSize);
+for (i=0;i<n;i++){
+AddClient (clientAppA, StaInterfaceA.GetAddress (i), wifiStaNodesA.Get (i), port, Seconds(loadBssA), payloadSize);
+}
+  clientAppA.Start (Seconds (1.0));
+  clientAppA.Stop (Seconds (simulationTime + 1));
 
-   serverAppA2= serverA.Install (wifiStaNodesA.Get (1));
-  serverAppA2.Start (Seconds (0.0));
-  serverAppA2.Stop (Seconds (simulationTime + 1));
-
-
-
-//}
 
 
 
   UdpServerHelper serverB (port);
 ApplicationContainer serverAppB;
 ApplicationContainer clientAppB ;
-//for (i=0;i<n;i++){
-   serverAppB= serverB.Install (wifiStaNodesB.Get (i));
+   serverAppB= serverB.Install (wifiStaNodesB.Get (0));
   serverAppB.Start (Seconds (0.0));
   serverAppB.Stop (Seconds (simulationTime + 1));
-  UdpClientHelper clientB (StaInterfaceB.GetAddress (i), port);
-  clientB.SetAttribute ("MaxPackets", UintegerValue (4294967295u));
-  clientB.SetAttribute ("Interval", TimeValue (Time (Seconds (loadBssB)))); //packets/s
-  clientB.SetAttribute ("PacketSize", UintegerValue (payloadSize));
-//}
-  clientAppB= clientB.Install (wifiApNodes.Get (1));
+ 
+for (i=0;i<n;i++){
+AddClient (clientAppB, StaInterfaceB.GetAddress (i), wifiStaNodesB.Get (i), port, Seconds(loadBssB), payloadSize);
+}
   clientAppB.Start (Seconds (1.0));
   clientAppB.Stop (Seconds (simulationTime + 1));
 
@@ -368,17 +382,13 @@ ApplicationContainer clientAppB ;
   UdpServerHelper serverC (port);
 ApplicationContainer serverAppC;
 ApplicationContainer clientAppC ;
-
-//for (i=0;i<n;i++){
-   serverAppC= serverC.Install (wifiStaNodesC.Get (i));
+   serverAppC= serverB.Install (wifiStaNodesC.Get (0));
   serverAppC.Start (Seconds (0.0));
   serverAppC.Stop (Seconds (simulationTime + 1));
-  UdpClientHelper clientC (StaInterfaceC.GetAddress (i), port);
-  clientC.SetAttribute ("MaxPackets", UintegerValue (4294967295u));
-  clientC.SetAttribute ("Interval", TimeValue (Time (Seconds (loadBssC)))); //packets/s
-  clientC.SetAttribute ("PacketSize", UintegerValue (payloadSize));
-//}
-  clientAppC= clientC.Install (wifiApNodes.Get (2));
+ 
+for (i=0;i<n;i++){
+AddClient (clientAppC, StaInterfaceC.GetAddress (i), wifiStaNodesC.Get (i), port, Seconds(loadBssC), payloadSize);
+}
   clientAppC.Start (Seconds (1.0));
   clientAppC.Stop (Seconds (simulationTime + 1));
 
@@ -389,7 +399,7 @@ ApplicationContainer clientAppC ;
   Simulator::Run ();
 
   // Show results
-  uint64_t totalPacketsThroughA = DynamicCast<UdpServer> (serverAppA1.Get (0))->GetReceived ();
+  uint64_t totalPacketsThroughA = DynamicCast<UdpServer> (serverAppA.Get (0))->GetReceived ();
   uint64_t totalPacketsThroughB = DynamicCast<UdpServer> (serverAppB.Get (0))->GetReceived ();
   uint64_t totalPacketsThroughC = DynamicCast<UdpServer> (serverAppC.Get (0))->GetReceived ();
   Simulator::Destroy ();
