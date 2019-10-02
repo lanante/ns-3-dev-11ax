@@ -82,15 +82,13 @@ PacketRx (std::string context, const Ptr<const Packet> p, const Address &srcAddr
 int main (int argc, char *argv[])
 {
   uint32_t payloadSize = 1472; //bytes
-  double simulationTime = 5; //seconds
+  double simulationTime = 20; //seconds
   double distance = 10; //meters
   double interBssDistance = 50; //meters
   double txMaskInnerBandMinimumRejection = -40.0; //dBr
   double txMaskOuterBandMinimumRejection = -56.0; //dBr
   double txMaskOuterBandMaximumRejection = -80.0; //dBr
-  double loadBssA = 0.00002; //packets/s
-  double loadBssB = 0.00002; //packets/s
- double loadBssC = 0.00002; //packets/s
+
   bool useDynamicChannelBonding = true;
   uint16_t channelBssA = 36;
   uint16_t channelBssB = 40;
@@ -105,13 +103,19 @@ int main (int argc, char *argv[])
   double ccaEdThresholdSecondaryBssB = -62.0;
   double ccaEdThresholdPrimaryBssC = -62.0;
   double ccaEdThresholdSecondaryBssC = -62.0;
-
+double aggregateDownlinkAMbps=0;
+double aggregateDownlinkBMbps=0;
+double aggregateDownlinkCMbps=0;
+double aggregateUplinkAMbps=0;
+double aggregateUplinkBMbps=0;
+double aggregateUplinkCMbps=0;
   bool verifyResults = 0; //used for regression
   double minExpectedThroughputBssA = 0; //Mbit/s
   double maxExpectedThroughputBssA = 0; //Mbit/s
   double minExpectedThroughputBssB = 0; //Mbit/s
   double maxExpectedThroughputBssB = 0; //Mbit/s
 uint16_t n=2;
+  uint32_t maxMissedBeacons = 4294967295;
   CommandLine cmd;
   cmd.AddValue ("payloadSize", "Payload size in bytes", payloadSize);
   cmd.AddValue ("simulationTime", "Simulation time in seconds", simulationTime);
@@ -134,11 +138,11 @@ uint16_t n=2;
   cmd.AddValue ("ccaEdThresholdPrimaryBssC", "The energy detection threshold on the primary channel for BSS C", ccaEdThresholdPrimaryBssC);
   cmd.AddValue ("ccaEdThresholdSecondaryBssC", "The energy detection threshold on the secondary channel for BSS C", ccaEdThresholdSecondaryBssC);
   cmd.AddValue ("uplinkA", "Aggregate uplink load, BSS-A(Mbps)", aggregateUplinkAMbps);
-  cmd.AddValue ("downlinkA", "Aggregate downlink load, BSS-A (Mbps)", aggregateDownAlinkMbps);
+  cmd.AddValue ("downlinkA", "Aggregate downlink load, BSS-A (Mbps)", aggregateDownlinkAMbps);
  cmd.AddValue ("uplinkB", "Aggregate uplink load, BSS-B(Mbps)", aggregateUplinkBMbps);
-  cmd.AddValue ("downlinkB", "Aggregate downlink load, BSS-B (Mbps)", aggregateDownBlinkMbps); 
+  cmd.AddValue ("downlinkB", "Aggregate downlink load, BSS-B (Mbps)", aggregateDownlinkBMbps); 
 cmd.AddValue ("uplinkC", "Aggregate uplink load, BSS-C(Mbps)", aggregateUplinkCMbps);
-  cmd.AddValue ("downlinkC", "Aggregate downlink load, BSS-C (Mbps)", aggregateDownClinkMbps);
+  cmd.AddValue ("downlinkC", "Aggregate downlink load, BSS-C (Mbps)", aggregateDownlinkCMbps);
 
   cmd.AddValue ("n", "The number of STAs per BSS", n);
   cmd.AddValue ("mcs", "MCS", mcs);
@@ -161,11 +165,13 @@ cmd.AddValue ("uplinkC", "Aggregate uplink load, BSS-C(Mbps)", aggregateUplinkCM
   Config::SetDefault ("ns3::SpectrumWifiPhy::TxMaskOuterBandMaximumRejection", DoubleValue (txMaskOuterBandMaximumRejection));
 
   NodeContainer wifiStaNodesA,wifiStaNodesB,wifiStaNodesC;
+  NodeContainer wifiApNodes;
+  wifiApNodes.Create (3);
   wifiStaNodesA.Create (n);
   wifiStaNodesB.Create (n);
   wifiStaNodesC.Create (n);
-  NodeContainer wifiApNodes;
-  wifiApNodes.Create (3);
+
+
 
 
   uint32_t numNodes = 3 * (n + 1);
@@ -173,11 +179,11 @@ cmd.AddValue ("uplinkC", "Aggregate uplink load, BSS-C(Mbps)", aggregateUplinkCM
   bytesReceived = std::vector<uint64_t> (numNodes);
 
   double perNodeUplinkAMbps = aggregateUplinkAMbps / n;
-  double perNodeDownlinkMbps = aggregateDownlinkAMbps / n;
-  double perNodeUplinkAMbps = aggregateUplinkAMbps / n;
-  double perNodeDownlinkMbps = aggregateDownlinkAMbps / n;
-  double perNodeUplinkAMbps = aggregateUplinkAMbps / n;
-  double perNodeDownlinkMbps = aggregateDownlinkAMbps / n;
+  double perNodeDownlinkAMbps = aggregateDownlinkAMbps / n;
+  double perNodeUplinkBMbps = aggregateUplinkAMbps / n;
+  double perNodeDownlinkBMbps = aggregateDownlinkBMbps / n;
+  double perNodeUplinkCMbps = aggregateUplinkAMbps / n;
+  double perNodeDownlinkCMbps = aggregateDownlinkCMbps / n;
 
   Time intervalUplinkA = MicroSeconds (payloadSize * 8 / perNodeUplinkAMbps);
   Time intervalDownlinkA = MicroSeconds (payloadSize * 8 / perNodeDownlinkAMbps);
@@ -187,14 +193,6 @@ cmd.AddValue ("uplinkC", "Aggregate uplink load, BSS-C(Mbps)", aggregateUplinkCM
   Time intervalDownlinkC = MicroSeconds (payloadSize * 8 / perNodeDownlinkCMbps);
 
 
-  /*SpectrumWifiPhyHelper phy = SpectrumWifiPhyHelper::Default ();
-  Ptr<MultiModelSpectrumChannel> channel = CreateObject<MultiModelSpectrumChannel> ();
-  Ptr<FriisPropagationLossModel> lossModel = CreateObject<FriisPropagationLossModel> ();
-  lossModel->SetFrequency (5.180e9);
-  channel->AddPropagationLossModel (lossModel);
-  Ptr<ConstantSpeedPropagationDelayModel> delayModel = CreateObject<ConstantSpeedPropagationDelayModel> ();
-  channel->SetPropagationDelayModel (delayModel);
-  phy.SetChannel (channel);*/
 
   SpectrumWifiPhyHelper phy = SpectrumWifiPhyHelper::Default ();
   Ptr<MultiModelSpectrumChannel> channel = CreateObject<MultiModelSpectrumChannel> ();
@@ -207,8 +205,8 @@ phy.SetChannel (channel);
 
 
   WifiHelper wifi;
-  wifi.SetStandard (WIFI_PHY_STANDARD_80211n_5GHZ);
-  wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode", StringValue (mcs), "ControlMode", StringValue ("HtMcs0"));
+  wifi.SetStandard (WIFI_PHY_STANDARD_80211ac);
+  wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode", StringValue (mcs), "ControlMode", StringValue ("VhtMcs0"));
   if (useDynamicChannelBonding)
     {
       wifi.SetChannelBondingManager ("ns3::ConstantThresholdChannelBondingManager");
@@ -233,6 +231,7 @@ phy.SetChannel (channel);
     }
 
   mac.SetType ("ns3::StaWifiMac",
+               "MaxMissedBeacons", UintegerValue (maxMissedBeacons),
                "Ssid", SsidValue (ssid));
   staDeviceA = wifi.Install (phy, mac, wifiStaNodesA);
 
@@ -269,6 +268,7 @@ for (uint16_t i=0;i<n;i++) {
     }
 
   mac.SetType ("ns3::StaWifiMac",
+               "MaxMissedBeacons", UintegerValue (maxMissedBeacons),
                "Ssid", SsidValue (ssid));
   staDeviceB = wifi.Install (phy, mac, wifiStaNodesB);
 
@@ -305,6 +305,7 @@ for (uint16_t i=0;i<n;i++) {
     }
 
   mac.SetType ("ns3::StaWifiMac",
+               "MaxMissedBeacons", UintegerValue (maxMissedBeacons),
                "Ssid", SsidValue (ssid));
   staDeviceC = wifi.Install (phy, mac, wifiStaNodesC);
 
@@ -411,6 +412,12 @@ NodeContainer allNodes = NodeContainer (wifiApNodes, wifiStaNodesA, wifiStaNodes
 
 
   // Setting applications
+
+ApplicationContainer uplinkServerApps;
+ApplicationContainer downlinkServerApps;
+ApplicationContainer uplinkClientApps;
+ApplicationContainer downlinkClientApps;
+
   uint16_t uplinkPortA = 9;
   uint16_t downlinkPortA = 10;
   UdpServerHelper uplinkServerA (uplinkPortA);
@@ -423,55 +430,113 @@ NodeContainer allNodes = NodeContainer (wifiApNodes, wifiStaNodesA, wifiStaNodes
   uint16_t downlinkPortC = 14;
   UdpServerHelper uplinkServerC (uplinkPortC);
   UdpServerHelper downlinkServerC (downlinkPortC);
+
+ for (uint32_t i = 0; i < n; i++)
+        {
+          if (aggregateUplinkAMbps > 0)
+            {
+              AddClient (uplinkClientApps, ApInterfaceA.GetAddress (0), wifiStaNodesA.Get (i), uplinkPortA, intervalUplinkA, payloadSize) ;
+            }
+          if (aggregateDownlinkAMbps > 0)
+            {
+              AddClient (downlinkClientApps, StaInterfaceA.GetAddress (i), wifiApNodes.Get(0), downlinkPortA, intervalDownlinkA, payloadSize);
+              AddServer (downlinkServerApps, downlinkServerA, wifiStaNodesA.Get (i));
+            }
+        }
+      if (aggregateUplinkAMbps > 0)
+      {
+        AddServer (uplinkServerApps, uplinkServerA, wifiApNodes.Get(0));
+      }
+
+   for (uint32_t i = 0; i < n; i++)
+        {
+          if (aggregateUplinkBMbps > 0)
+            {
+              AddClient (uplinkClientApps, ApInterfaceB.GetAddress (0), wifiStaNodesB.Get (i), uplinkPortB, intervalUplinkB, payloadSize);
+            }
+          if (aggregateDownlinkBMbps > 0)
+            {
+              AddClient (downlinkClientApps, StaInterfaceB.GetAddress (i), wifiApNodes.Get(1), downlinkPortB, intervalDownlinkB, payloadSize);
+              AddServer (downlinkServerApps, downlinkServerB, wifiStaNodesB.Get (i));
+
+            }
+        }
+      if (aggregateUplinkBMbps > 0)
+      {
+        AddServer (uplinkServerApps, uplinkServerB, wifiApNodes.Get(1));
+      }
+
+  // BSS 3
+
       for (uint32_t i = 0; i < n; i++)
         {
-AddClient (uplinkClientApps, ApInterfaceA.GetAddress (0), stasA.Get (i), uplinkPortA, intervalUplinkA, payloadSize);
-AddClient (downlinkClientApps, StaInterfaceA.GetAddress (i), ap1, downlinkPortA, intervalDownlinkA, payloadSize);
-AddServer (downlinkServerApps, downlinkServerA, stasA.Get (i));
-}
+          if (aggregateUplinkCMbps > 0)
+            {
+              AddClient (uplinkClientApps, ApInterfaceC.GetAddress (0), wifiStaNodesC.Get (i), uplinkPortC, intervalUplinkC, payloadSize);
+            }
+          if (aggregateDownlinkCMbps > 0)
+            {
+              AddClient (downlinkClientApps, StaInterfaceC.GetAddress (i), wifiApNodes.Get(2), downlinkPortC, intervalDownlinkC, payloadSize);
+              AddServer (downlinkServerApps, downlinkServerC,wifiStaNodesC.Get (i));
+            }
+        }
+      if (aggregateUplinkCMbps > 0)
+      {
+        AddServer (uplinkServerApps, uplinkServerC, wifiApNodes.Get(2));
+      }
 
 
 
   Config::Connect ("/NodeList/*/ApplicationList/*/$ns3::UdpServer/RxWithAddresses", MakeCallback (&PacketRx));
-
+/*
 phy.EnablePcap ("staA_pcap", staDeviceA);
 phy.EnablePcap ("apA_pcap", apDeviceA);
 phy.EnablePcap ("staB_pcap", staDeviceB);
 phy.EnablePcap ("apB_pcap", apDeviceB);
 phy.EnablePcap ("staC_pcap", staDeviceC);
 phy.EnablePcap ("apC_pcap", apDeviceC);
-
+*/
 
 
 
   Simulator::Stop (Seconds (simulationTime + 1));
   Simulator::Run ();
 
-  // Show results
-  uint64_t totalPacketsThroughA=DynamicCast<UdpServer> (serverAppA.Get (0))->GetReceived ();
-  uint64_t totalPacketsThroughB=DynamicCast<UdpServer> (serverAppB.Get (0))->GetReceived ();
-  uint64_t totalPacketsThroughC=DynamicCast<UdpServer> (serverAppC.Get (0))->GetReceived ();
 
+
+
+
+  Simulator::Destroy ();
+  // allocate in the order of AP_A, STAs_A, AP_B, STAs_B
+  std::string filename =  "Tput_"+mcs+".csv";
+  std::ofstream TputFile;
+  TputFile.open (filename.c_str (), std::ofstream::out | std::ofstream::app);
+  TputFile.setf (std::ios_base::fixed);
+  TputFile.flush ();
+  if (!TputFile.is_open ())
+    {
+      NS_LOG_ERROR ("Can't open file " << filename);
+      return 1;
+    }
+
+      TputFile << ccaEdThresholdSecondaryBssC<<std::endl;
   double rxThroughputPerNode[numNodes];
   // output for all nodes
   for (uint32_t k = 0; k < numNodes; k++)
     {
+
+
       double bitsReceived = bytesReceived[k] * 8;
       rxThroughputPerNode[k] = static_cast<double> (bitsReceived) / 1e6 / simulationTime;
       std::cout << "Node " << k << ", pkts " << packetsReceived[k] << ", bytes " << bytesReceived[k] << ", throughput [MMb/s] " << rxThroughputPerNode[k] << std::endl;
+if (k<3)
+{
+      TputFile << rxThroughputPerNode[k] << std::endl;
+}
     }
 
-
-  Simulator::Destroy ();
-
-  double throughput = totalPacketsThroughA * payloadSize * 8 / (simulationTime * 1000000.0);
-  std::cout << "Throughput for BSS A: " << throughput << " Mbit/s" << '\n';
-
-  throughput = totalPacketsThroughB * payloadSize * 8 / (simulationTime * 1000000.0);
-  std::cout << "Throughput for BSS B: " << throughput << " Mbit/s" << '\n';
-
-  throughput = totalPacketsThroughC * payloadSize * 8 / (simulationTime * 1000000.0);
-  std::cout << "Throughput for BSS C: " << throughput << " Mbit/s" << '\n';
+TputFile << std::endl;
+TputFile.close ();
 
  
   return 0;
