@@ -1,33 +1,23 @@
 channelBssA=36
-channelBssB=40
-channelBssC=38
-loadBssA=100
-loadBssB=100
-loadBssC=100
+channelBssB=36
+channelBssC=36
+loadBssA=70
+loadBssB=70
+loadBssC=70
 payloadSize=1472
 
 intervalA=$(bc -l <<< $payloadSize*8/$loadBssA/1000000)
 intervalB=$(bc -l <<< $payloadSize*8/$loadBssB/1000000)
 intervalC=$(bc -l <<< $payloadSize*8/$loadBssC/1000000)
-mcs=HtMcs7
-
-#intervalA=0.01
-#intervalB=0.01
-#intervalC=0.01
-
-
-
-
-echo 
-
-useDynamicChannelBonding=true
-interBssDistance=5
+mcs=HtMcs0
+ccaEdThresholdPrimary=-62
+ccaEdThresholdSecondary=-62
+useDynamicChannelBonding=false
+interBssDistance=5000
 distance=10;
-n=10
+n=1
 #export NS_LOG=SpectrumWifiPhy=logic
 
-../waf --run "Case1 --loadBssA=$intervalA --loadBssB=$intervalB --loadBssC=$intervalC --useDynamicChannelBonding=$useDynamicChannelBonding --mcs=$mcs --n=$n"
+../waf --run "Case1 --loadBssA=$intervalA --loadBssB=$intervalB --loadBssC=$intervalC --useDynamicChannelBonding=$useDynamicChannelBonding --mcs=$mcs --n=$n --interBssDistance=$interBssDistance --distance=$distance --ccaEdThresholdPrimaryBssA=$ccaEdThresholdPrimary --ccaEdThresholdPrimaryBssB=$ccaEdThresholdPrimary --ccaEdThresholdPrimaryBssC=$ccaEdThresholdPrimary --ccaEdThresholdSecondaryBssA=$ccaEdThresholdSecondary --ccaEdThresholdSecondaryBssB=$ccaEdThresholdSecondary --ccaEdThresholdSecondaryBssC=$ccaEdThresholdSecondary --channelBssA=$channelBssA --channelBssB=$channelBssB --channelBssC=$channelBssC "
 
-
-#../waf --run "wifi-dcb-2 --loadBssC=$loadBssC  --loadBssA=$loadBssA --loadBssB=$loadBssB --channelBssA=$channelBssA --channelBssB=$channelBssB --channelBssC=$channelBssC --useDynamicChannelBonding=$useDynamicChannelBonding --interBssDistance=$interBssDistance --distance=$distance"
 

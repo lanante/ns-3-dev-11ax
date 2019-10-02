@@ -1,22 +1,4 @@
-/* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/*
- * Copyright (c) 2019 University of Washington
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation;
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * Author: Sébastien Deronne <sebastien.deronne@gmail.com>
- */
+
 
 #include "ns3/command-line.h"
 #include "ns3/config.h"
@@ -37,24 +19,10 @@
 #include "ns3/propagation-loss-model.h"
 #include "ns3/wifi-net-device.h"
 
-// for tracking packets and bytes received. will be reallocated once we finalize number of nodes
-std::vector<uint64_t> packetsReceived (0);
-std::vector<uint64_t> bytesReceived (0);
-
 using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("WifiChannelBonding");
-// Parse context strings of the form "/NodeList/3/DeviceList/1/Mac/Assoc"
-// to extract the NodeId
-uint32_t
-ContextToNodeId (std::string context)
-{
-  std::string sub = context.substr (10);  // skip "/NodeList/"
-  uint32_t pos = sub.find ("/Device");
-  uint32_t nodeId = atoi (sub.substr (0, pos).c_str ());
-  NS_LOG_DEBUG ("Found NodeId " << nodeId);
-  return nodeId;
-}
+
 void AddClient (ApplicationContainer &clientApps, Ipv4Address address, Ptr<Node> node, uint16_t port, Time interval, uint32_t payloadSize)
 {
   UdpClientHelper client (address, port);
@@ -63,15 +31,7 @@ void AddClient (ApplicationContainer &clientApps, Ipv4Address address, Ptr<Node>
   client.SetAttribute ("PacketSize", UintegerValue (payloadSize));
   clientApps.Add (client.Install (node));
 }
-void
-PacketRx (std::string context, const Ptr<const Packet> p, const Address &srcAddress, const Address &destAddress)
-{
-  uint32_t nodeId = ContextToNodeId (context);
-  uint32_t pktSize = p->GetSize ();
-      bytesReceived[nodeId] += pktSize;
-      packetsReceived[nodeId]++;
 
-}
 
 
 int main (int argc, char *argv[])
@@ -92,7 +52,7 @@ int main (int argc, char *argv[])
   uint16_t channelBssC = 38;
   std::string secondaryChannelBssA = "";
   std::string secondaryChannelBssB = "";
-  std::string secondaryChannelBssC = "";
+  std::string secondaryChannelBssC = "UPPER";
   std::string mcs = "HtMcs0";
   double ccaEdThresholdPrimaryBssA = -62.0;
   double ccaEdThresholdSecondaryBssA = -62.0;
@@ -106,7 +66,8 @@ int main (int argc, char *argv[])
   double maxExpectedThroughputBssA = 0; //Mbit/s
   double minExpectedThroughputBssB = 0; //Mbit/s
   double maxExpectedThroughputBssB = 0; //Mbit/s
-uint16_t n=2;
+uint16_t n=4;
+uint16_t i=0;
   CommandLine cmd;
   cmd.AddValue ("payloadSize", "Payload size in bytes", payloadSize);
   cmd.AddValue ("simulationTime", "Simulation time in seconds", simulationTime);
@@ -117,17 +78,14 @@ uint16_t n=2;
   cmd.AddValue ("txMaskOuterBandMaximumRejection", "Maximum rejection in dBr for the outer band of the transmit spectrum mask", txMaskOuterBandMaximumRejection);
   cmd.AddValue ("channelBssA", "The selected channel for BSS A", channelBssA);
   cmd.AddValue ("channelBssB", "The selected channel for BSS B", channelBssB);
-  cmd.AddValue ("channelBssC", "The selected channel for BSS C", channelBssC);
   cmd.AddValue ("secondaryChannelBssA", "The secondary channel position for BSS A: UPPER or LOWER", secondaryChannelBssA);
   cmd.AddValue ("secondaryChannelBssB", "The secondary channel position for BSS B: UPPER or LOWER", secondaryChannelBssB);
-  cmd.AddValue ("secondaryChannelBssC", "The secondary channel position for BSS C: UPPER or LOWER", secondaryChannelBssC);
+
   cmd.AddValue ("useDynamicChannelBonding", "Enable/disable use of dynamic channel bonding", useDynamicChannelBonding);
   cmd.AddValue ("ccaEdThresholdPrimaryBssA", "The energy detection threshold on the primary channel for BSS A", ccaEdThresholdPrimaryBssA);
   cmd.AddValue ("ccaEdThresholdSecondaryBssA", "The energy detection threshold on the secondary channel for BSS A", ccaEdThresholdSecondaryBssA);
   cmd.AddValue ("ccaEdThresholdPrimaryBssB", "The energy detection threshold on the primary channel for BSS B", ccaEdThresholdPrimaryBssB);
   cmd.AddValue ("ccaEdThresholdSecondaryBssB", "The energy detection threshold on the secondary channel for BSS B", ccaEdThresholdSecondaryBssB);
-  cmd.AddValue ("ccaEdThresholdPrimaryBssC", "The energy detection threshold on the primary channel for BSS C", ccaEdThresholdPrimaryBssC);
-  cmd.AddValue ("ccaEdThresholdSecondaryBssC", "The energy detection threshold on the secondary channel for BSS C", ccaEdThresholdSecondaryBssC);
   cmd.AddValue ("loadBssA", "The number of packets per second for BSS A", loadBssA);
   cmd.AddValue ("loadBssB", "The number of packets per second for BSS B", loadBssB);
   cmd.AddValue ("loadBssC", "The number of packets per second for BSS C", loadBssC);
@@ -138,6 +96,7 @@ uint16_t n=2;
   cmd.AddValue ("maxExpectedThroughputBssA", "Maximum expected throughput for BSS A", maxExpectedThroughputBssA);
   cmd.AddValue ("minExpectedThroughputBssB", "Minimum expected throughput for BSS B", minExpectedThroughputBssB);
   cmd.AddValue ("maxExpectedThroughputBssB", "Maximum expected throughput for BSS B", maxExpectedThroughputBssB);
+
   cmd.Parse (argc, argv);
 
   /*LogComponentEnableAll (LOG_PREFIX_TIME);
@@ -157,11 +116,6 @@ uint16_t n=2;
   wifiStaNodesC.Create (n);
   NodeContainer wifiApNodes;
   wifiApNodes.Create (3);
-
-
-  uint32_t numNodes = 3 * (n + 1);
-  packetsReceived = std::vector<uint64_t> (numNodes);
-  bytesReceived = std::vector<uint64_t> (numNodes);
 
 
   /*SpectrumWifiPhyHelper phy = SpectrumWifiPhyHelper::Default ();
@@ -214,8 +168,7 @@ phy.SetChannel (channel);
   staDeviceA = wifi.Install (phy, mac, wifiStaNodesA);
 
 Ptr<NetDevice> staDeviceAPtr;
-for (uint16_t i=0;i<n;i++) {
-
+for (i=0;i<n;i++) {
    staDeviceAPtr= staDeviceA.Get (i);
   Ptr<WifiNetDevice> wifiStaDeviceAPtr = staDeviceAPtr->GetObject <WifiNetDevice> ();
   wifiStaDeviceAPtr->GetPhy ()->SetChannelNumber (channelBssA);
@@ -247,12 +200,11 @@ for (uint16_t i=0;i<n;i++) {
 
   mac.SetType ("ns3::StaWifiMac",
                "Ssid", SsidValue (ssid));
+
   staDeviceB = wifi.Install (phy, mac, wifiStaNodesB);
 
-
 Ptr<NetDevice> staDeviceBPtr;
-for (uint16_t i=0;i<n;i++) {
-
+for (i=0;i<n;i++) {
    staDeviceBPtr= staDeviceB.Get (i);
   Ptr<WifiNetDevice> wifiStaDeviceBPtr = staDeviceBPtr->GetObject <WifiNetDevice> ();
   wifiStaDeviceBPtr->GetPhy ()->SetChannelNumber (channelBssB);
@@ -283,11 +235,11 @@ for (uint16_t i=0;i<n;i++) {
 
   mac.SetType ("ns3::StaWifiMac",
                "Ssid", SsidValue (ssid));
-  staDeviceC = wifi.Install (phy, mac, wifiStaNodesC);
+
+  staDeviceC= wifi.Install (phy, mac, wifiStaNodesC);
 
 Ptr<NetDevice> staDeviceCPtr;
-for (uint16_t i=0;i<n;i++) {
-
+for (i=0;i<n;i++) {
    staDeviceCPtr= staDeviceC.Get (i);
   Ptr<WifiNetDevice> wifiStaDeviceCPtr = staDeviceCPtr->GetObject <WifiNetDevice> ();
   wifiStaDeviceCPtr->GetPhy ()->SetChannelNumber (channelBssC);
@@ -359,13 +311,17 @@ Ptr<UniformDiscPositionAllocator> unitDiscPositionAllocator3 = CreateObject<Unif
 
 
   mobility.SetPositionAllocator (positionAlloc);
-NodeContainer allNodes = NodeContainer (wifiApNodes, wifiStaNodesA, wifiStaNodesB, wifiStaNodesC);
-  mobility.Install (allNodes);
+  mobility.Install (wifiApNodes);
+  mobility.Install (wifiStaNodesA);
+  mobility.Install (wifiStaNodesB);
+  mobility.Install (wifiStaNodesC);
 
   // Internet stack
   InternetStackHelper stack;
-  stack.Install (allNodes);
-
+  stack.Install (wifiApNodes);
+  stack.Install (wifiStaNodesA);
+  stack.Install (wifiStaNodesB);
+  stack.Install (wifiStaNodesC);
 
   Ipv4AddressHelper address;
   address.SetBase ("192.168.1.0", "255.255.255.0");
@@ -387,15 +343,15 @@ NodeContainer allNodes = NodeContainer (wifiApNodes, wifiStaNodesA, wifiStaNodes
   ApInterfaceC = address.Assign (apDeviceC);
 
 
-  // Setting applications
+
+ // Setting applications
   uint16_t port = 9;
 
   UdpServerHelper serverA (port);
 ApplicationContainer serverAppA;
 ApplicationContainer clientAppA ;
 
- 
-for (uint16_t i=0;i<n;i++){
+for (i=0;i<n;i++){
    serverAppA= serverA.Install (wifiStaNodesA.Get (i));
   serverAppA.Start (Seconds (0.0));
   serverAppA.Stop (Seconds (simulationTime + 1));
@@ -412,8 +368,8 @@ ApplicationContainer serverAppB;
 ApplicationContainer clientAppB ;
 
  
-for (uint16_t i=0;i<n;i++){
-   serverAppB= serverA.Install (wifiStaNodesB.Get (i));
+for (i=0;i<n;i++){
+   serverAppB= serverB.Install (wifiStaNodesB.Get (i));
   serverAppB.Start (Seconds (0.0));
   serverAppB.Stop (Seconds (simulationTime + 1));
 AddClient (clientAppB, StaInterfaceB.GetAddress (i), wifiApNodes.Get (1), port, Seconds(loadBssB), payloadSize);
@@ -429,8 +385,8 @@ ApplicationContainer serverAppC;
 ApplicationContainer clientAppC ;
 
  
-for (uint16_t i=0;i<n;i++){
-   serverAppC= serverC.Install (wifiStaNodesC.Get (i));
+for (i=0;i<n;i++){
+   serverAppC= serverB.Install (wifiStaNodesC.Get (i));
   serverAppC.Start (Seconds (0.0));
   serverAppC.Stop (Seconds (simulationTime + 1));
 AddClient (clientAppC, StaInterfaceC.GetAddress (i), wifiApNodes.Get (2), port, Seconds(loadBssC), payloadSize);
@@ -439,36 +395,15 @@ AddClient (clientAppC, StaInterfaceC.GetAddress (i), wifiApNodes.Get (2), port, 
   clientAppC.Stop (Seconds (simulationTime + 1));
 
 
-  Config::Connect ("/NodeList/*/ApplicationList/*/$ns3::UdpServer/RxWithAddresses", MakeCallback (&PacketRx));
-
-phy.EnablePcap ("staA_pcap", staDeviceA);
-phy.EnablePcap ("apA_pcap", apDeviceA);
-phy.EnablePcap ("staB_pcap", staDeviceB);
-phy.EnablePcap ("apB_pcap", apDeviceB);
-phy.EnablePcap ("staC_pcap", staDeviceC);
-phy.EnablePcap ("apC_pcap", apDeviceC);
-
-
 
 
   Simulator::Stop (Seconds (simulationTime + 1));
   Simulator::Run ();
 
   // Show results
-  uint64_t totalPacketsThroughA=DynamicCast<UdpServer> (serverAppA.Get (0))->GetReceived ();
-  uint64_t totalPacketsThroughB=DynamicCast<UdpServer> (serverAppB.Get (0))->GetReceived ();
-  uint64_t totalPacketsThroughC=DynamicCast<UdpServer> (serverAppC.Get (0))->GetReceived ();
-
-  double rxThroughputPerNode[numNodes];
-  // output for all nodes
-  for (uint32_t k = 0; k < numNodes; k++)
-    {
-      double bitsReceived = bytesReceived[k] * 8;
-      rxThroughputPerNode[k] = static_cast<double> (bitsReceived) / 1e6 / simulationTime;
-      std::cout << "Node " << k << ", pkts " << packetsReceived[k] << ", bytes " << bytesReceived[k] << ", throughput [MMb/s] " << rxThroughputPerNode[k] << std::endl;
-    }
-
-
+  uint64_t totalPacketsThroughA = DynamicCast<UdpServer> (serverAppA.Get (0))->GetReceived ();
+  uint64_t totalPacketsThroughB = DynamicCast<UdpServer> (serverAppB.Get (0))->GetReceived ();
+  uint64_t totalPacketsThroughC = DynamicCast<UdpServer> (serverAppC.Get (0))->GetReceived ();
   Simulator::Destroy ();
 
   double throughput = totalPacketsThroughA * payloadSize * 8 / (simulationTime * 1000000.0);
@@ -480,6 +415,6 @@ phy.EnablePcap ("apC_pcap", apDeviceC);
   throughput = totalPacketsThroughC * payloadSize * 8 / (simulationTime * 1000000.0);
   std::cout << "Throughput for BSS C: " << throughput << " Mbit/s" << '\n';
 
- 
+
   return 0;
 }

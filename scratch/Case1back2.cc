@@ -37,24 +37,58 @@
 #include "ns3/propagation-loss-model.h"
 #include "ns3/wifi-net-device.h"
 
-// for tracking packets and bytes received. will be reallocated once we finalize number of nodes
-std::vector<uint64_t> packetsReceived (0);
-std::vector<uint64_t> bytesReceived (0);
+// This is an example to evaluate 802.11n channel bonding performance.
+// It defines 2 independent Wi-Fi networks, made each of one access
+// point (AP) and one station (STA). Each station continuously transmits
+// data packets to its respective AP.
+//
+// The parameters that can be configured are:
+//   - the channel number the network is operating on;
+//   - the maximum supported channel width per network;
+//   - whether the secondary channel is upper or lower than the primary channel;
+//   - transmit mask points used for the simulation;
+//   - whether dynamic channel bonding is used;
+//   - the distance between AP and STA and the distance between the two networks;
+//   - CCA-ED per network for both primary and secondary channels;
+//   - the packet size and the number of packets generated per second;
+//   - the time the simulation will run.
+//
+// One can run a scenario where each network occupies its 20 MHz band, i.e. network A
+// uses channel 36 whereas network B is configured to use channel 40:
+//     ./waf --run "wifi-channel-bonding --channelBssA=36 --channelBssB=40 --useDynamicChannelBonding=false"
+// The output gives:
+//     Throughput for BSS A: 59.5465 Mbit/s
+//     Throughput for BSS B: 59.4782 Mbit/s
+// The throughput per network is maximum and not affected by the presence of the other network,
+// since they are operating on different channels.
+//
+// One can run a scenario where a 40 MHz channel is used for network A, while keeping network B as previously:
+//     ./waf --run "wifi-channel-bonding --channelBssA=38 --channelBssB=40 --useDynamicChannelBonding=false"
+// The output gives:
+//     Throughput for BSS A: 80.0815 Mbit/s
+//     Throughput for BSS B: 17.0681 Mbit/s
+// Since dynamic channel bonding is disabled, network A will always transmit on 40 MHz, regardless of
+// CCA on the secondary channel. As a result, the two networks will suffer from collisions from each others.
+//
+// One can run the previous scenario with dynamic channel bonding enabled:
+//     ./waf --run "wifi-channel-bonding --channelBssA=38 --channelBssB=40 --useDynamicChannelBonding=true"
+// The output gives:
+//     Throughput for BSS A: 59.6266 Mbit/s
+//     Throughput for BSS B: 59.3746 Mbit/s
+// We can see the benefit of using a dynamic channel bonding. Since activity is detected on the secondary channel,
+// network A limits its channel width to 20 MHz and this gives a better share of the spectrum.
+//
+// One can run a scenario where both networks make use of channel bonding:
+//     ./waf --run "wifi-channel-bonding --channelBssA=38 --channelBssB=38 --useDynamicChannelBonding=false"
+//     Throughput for BSS A: 60.3073 Mbit/s
+//     Throughput for BSS B: 62.288 Mbit/s
+// The channel is shared with the two networks as they operate on the same channel, but since they can use both
+// a 40 Mhz channel, the maximum throughput is almost doubled.
 
 using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("WifiChannelBonding");
-// Parse context strings of the form "/NodeList/3/DeviceList/1/Mac/Assoc"
-// to extract the NodeId
-uint32_t
-ContextToNodeId (std::string context)
-{
-  std::string sub = context.substr (10);  // skip "/NodeList/"
-  uint32_t pos = sub.find ("/Device");
-  uint32_t nodeId = atoi (sub.substr (0, pos).c_str ());
-  NS_LOG_DEBUG ("Found NodeId " << nodeId);
-  return nodeId;
-}
+
 void AddClient (ApplicationContainer &clientApps, Ipv4Address address, Ptr<Node> node, uint16_t port, Time interval, uint32_t payloadSize)
 {
   UdpClientHelper client (address, port);
@@ -62,15 +96,6 @@ void AddClient (ApplicationContainer &clientApps, Ipv4Address address, Ptr<Node>
   client.SetAttribute ("MaxPackets", UintegerValue (4294967295u));
   client.SetAttribute ("PacketSize", UintegerValue (payloadSize));
   clientApps.Add (client.Install (node));
-}
-void
-PacketRx (std::string context, const Ptr<const Packet> p, const Address &srcAddress, const Address &destAddress)
-{
-  uint32_t nodeId = ContextToNodeId (context);
-  uint32_t pktSize = p->GetSize ();
-      bytesReceived[nodeId] += pktSize;
-      packetsReceived[nodeId]++;
-
 }
 
 
@@ -92,7 +117,7 @@ int main (int argc, char *argv[])
   uint16_t channelBssC = 38;
   std::string secondaryChannelBssA = "";
   std::string secondaryChannelBssB = "";
-  std::string secondaryChannelBssC = "";
+  std::string secondaryChannelBssC = "UPPER";
   std::string mcs = "HtMcs0";
   double ccaEdThresholdPrimaryBssA = -62.0;
   double ccaEdThresholdSecondaryBssA = -62.0;
@@ -117,7 +142,7 @@ uint16_t n=2;
   cmd.AddValue ("txMaskOuterBandMaximumRejection", "Maximum rejection in dBr for the outer band of the transmit spectrum mask", txMaskOuterBandMaximumRejection);
   cmd.AddValue ("channelBssA", "The selected channel for BSS A", channelBssA);
   cmd.AddValue ("channelBssB", "The selected channel for BSS B", channelBssB);
-  cmd.AddValue ("channelBssC", "The selected channel for BSS C", channelBssC);
+  cmd.AddValue ("channelBssC", "The selected channel for BSS B", channelBssC);
   cmd.AddValue ("secondaryChannelBssA", "The secondary channel position for BSS A: UPPER or LOWER", secondaryChannelBssA);
   cmd.AddValue ("secondaryChannelBssB", "The secondary channel position for BSS B: UPPER or LOWER", secondaryChannelBssB);
   cmd.AddValue ("secondaryChannelBssC", "The secondary channel position for BSS C: UPPER or LOWER", secondaryChannelBssC);
@@ -127,7 +152,7 @@ uint16_t n=2;
   cmd.AddValue ("ccaEdThresholdPrimaryBssB", "The energy detection threshold on the primary channel for BSS B", ccaEdThresholdPrimaryBssB);
   cmd.AddValue ("ccaEdThresholdSecondaryBssB", "The energy detection threshold on the secondary channel for BSS B", ccaEdThresholdSecondaryBssB);
   cmd.AddValue ("ccaEdThresholdPrimaryBssC", "The energy detection threshold on the primary channel for BSS C", ccaEdThresholdPrimaryBssC);
-  cmd.AddValue ("ccaEdThresholdSecondaryBssC", "The energy detection threshold on the secondary channel for BSS C", ccaEdThresholdSecondaryBssC);
+  cmd.AddValue ("ccaEdThresholdSecondaryBssC", "The energy detection threshold on the secondary channel for BSS C", ccaEdThresholdSecondaryBssB);
   cmd.AddValue ("loadBssA", "The number of packets per second for BSS A", loadBssA);
   cmd.AddValue ("loadBssB", "The number of packets per second for BSS B", loadBssB);
   cmd.AddValue ("loadBssC", "The number of packets per second for BSS C", loadBssC);
@@ -157,12 +182,6 @@ uint16_t n=2;
   wifiStaNodesC.Create (n);
   NodeContainer wifiApNodes;
   wifiApNodes.Create (3);
-
-
-  uint32_t numNodes = 3 * (n + 1);
-  packetsReceived = std::vector<uint64_t> (numNodes);
-  bytesReceived = std::vector<uint64_t> (numNodes);
-
 
   /*SpectrumWifiPhyHelper phy = SpectrumWifiPhyHelper::Default ();
   Ptr<MultiModelSpectrumChannel> channel = CreateObject<MultiModelSpectrumChannel> ();
@@ -359,13 +378,17 @@ Ptr<UniformDiscPositionAllocator> unitDiscPositionAllocator3 = CreateObject<Unif
 
 
   mobility.SetPositionAllocator (positionAlloc);
-NodeContainer allNodes = NodeContainer (wifiApNodes, wifiStaNodesA, wifiStaNodesB, wifiStaNodesC);
-  mobility.Install (allNodes);
+  mobility.Install (wifiApNodes);
+  mobility.Install (wifiStaNodesA);
+  mobility.Install (wifiStaNodesB);
+  mobility.Install (wifiStaNodesC);
 
   // Internet stack
   InternetStackHelper stack;
-  stack.Install (allNodes);
-
+  stack.Install (wifiApNodes);
+  stack.Install (wifiStaNodesA);
+  stack.Install (wifiStaNodesB);
+  stack.Install (wifiStaNodesC);
 
   Ipv4AddressHelper address;
   address.SetBase ("192.168.1.0", "255.255.255.0");
@@ -438,17 +461,12 @@ AddClient (clientAppC, StaInterfaceC.GetAddress (i), wifiApNodes.Get (2), port, 
   clientAppC.Start (Seconds (1.0));
   clientAppC.Stop (Seconds (simulationTime + 1));
 
-
-  Config::Connect ("/NodeList/*/ApplicationList/*/$ns3::UdpServer/RxWithAddresses", MakeCallback (&PacketRx));
-
 phy.EnablePcap ("staA_pcap", staDeviceA);
 phy.EnablePcap ("apA_pcap", apDeviceA);
 phy.EnablePcap ("staB_pcap", staDeviceB);
 phy.EnablePcap ("apB_pcap", apDeviceB);
 phy.EnablePcap ("staC_pcap", staDeviceC);
 phy.EnablePcap ("apC_pcap", apDeviceC);
-
-
 
 
   Simulator::Stop (Seconds (simulationTime + 1));
@@ -459,14 +477,6 @@ phy.EnablePcap ("apC_pcap", apDeviceC);
   uint64_t totalPacketsThroughB=DynamicCast<UdpServer> (serverAppB.Get (0))->GetReceived ();
   uint64_t totalPacketsThroughC=DynamicCast<UdpServer> (serverAppC.Get (0))->GetReceived ();
 
-  double rxThroughputPerNode[numNodes];
-  // output for all nodes
-  for (uint32_t k = 0; k < numNodes; k++)
-    {
-      double bitsReceived = bytesReceived[k] * 8;
-      rxThroughputPerNode[k] = static_cast<double> (bitsReceived) / 1e6 / simulationTime;
-      std::cout << "Node " << k << ", pkts " << packetsReceived[k] << ", bytes " << bytesReceived[k] << ", throughput [MMb/s] " << rxThroughputPerNode[k] << std::endl;
-    }
 
 
   Simulator::Destroy ();
@@ -480,6 +490,6 @@ phy.EnablePcap ("apC_pcap", apDeviceC);
   throughput = totalPacketsThroughC * payloadSize * 8 / (simulationTime * 1000000.0);
   std::cout << "Throughput for BSS C: " << throughput << " Mbit/s" << '\n';
 
- 
+
   return 0;
 }
