@@ -63,6 +63,11 @@ void AddClient (ApplicationContainer &clientApps, Ipv4Address address, Ptr<Node>
   client.SetAttribute ("PacketSize", UintegerValue (payloadSize));
   clientApps.Add (client.Install (node));
 }
+void AddServer (ApplicationContainer &serverApps, UdpServerHelper &server, Ptr<Node> node)
+{
+  serverApps.Add (server.Install (node));
+}
+
 void
 PacketRx (std::string context, const Ptr<const Packet> p, const Address &srcAddress, const Address &destAddress)
 {
@@ -128,9 +133,13 @@ uint16_t n=2;
   cmd.AddValue ("ccaEdThresholdSecondaryBssB", "The energy detection threshold on the secondary channel for BSS B", ccaEdThresholdSecondaryBssB);
   cmd.AddValue ("ccaEdThresholdPrimaryBssC", "The energy detection threshold on the primary channel for BSS C", ccaEdThresholdPrimaryBssC);
   cmd.AddValue ("ccaEdThresholdSecondaryBssC", "The energy detection threshold on the secondary channel for BSS C", ccaEdThresholdSecondaryBssC);
-  cmd.AddValue ("loadBssA", "The number of packets per second for BSS A", loadBssA);
-  cmd.AddValue ("loadBssB", "The number of packets per second for BSS B", loadBssB);
-  cmd.AddValue ("loadBssC", "The number of packets per second for BSS C", loadBssC);
+  cmd.AddValue ("uplinkA", "Aggregate uplink load, BSS-A(Mbps)", aggregateUplinkAMbps);
+  cmd.AddValue ("downlinkA", "Aggregate downlink load, BSS-A (Mbps)", aggregateDownAlinkMbps);
+ cmd.AddValue ("uplinkB", "Aggregate uplink load, BSS-B(Mbps)", aggregateUplinkBMbps);
+  cmd.AddValue ("downlinkB", "Aggregate downlink load, BSS-B (Mbps)", aggregateDownBlinkMbps); 
+cmd.AddValue ("uplinkC", "Aggregate uplink load, BSS-C(Mbps)", aggregateUplinkCMbps);
+  cmd.AddValue ("downlinkC", "Aggregate downlink load, BSS-C (Mbps)", aggregateDownClinkMbps);
+
   cmd.AddValue ("n", "The number of STAs per BSS", n);
   cmd.AddValue ("mcs", "MCS", mcs);
   cmd.AddValue ("verifyResults", "Enable/disable results verification at the end of the simulation", verifyResults);
@@ -162,6 +171,20 @@ uint16_t n=2;
   uint32_t numNodes = 3 * (n + 1);
   packetsReceived = std::vector<uint64_t> (numNodes);
   bytesReceived = std::vector<uint64_t> (numNodes);
+
+  double perNodeUplinkAMbps = aggregateUplinkAMbps / n;
+  double perNodeDownlinkMbps = aggregateDownlinkAMbps / n;
+  double perNodeUplinkAMbps = aggregateUplinkAMbps / n;
+  double perNodeDownlinkMbps = aggregateDownlinkAMbps / n;
+  double perNodeUplinkAMbps = aggregateUplinkAMbps / n;
+  double perNodeDownlinkMbps = aggregateDownlinkAMbps / n;
+
+  Time intervalUplinkA = MicroSeconds (payloadSize * 8 / perNodeUplinkAMbps);
+  Time intervalDownlinkA = MicroSeconds (payloadSize * 8 / perNodeDownlinkAMbps);
+  Time intervalUplinkB = MicroSeconds (payloadSize * 8 / perNodeUplinkBMbps);
+  Time intervalDownlinkB = MicroSeconds (payloadSize * 8 / perNodeDownlinkBMbps);
+  Time intervalUplinkC = MicroSeconds (payloadSize * 8 / perNodeUplinkCMbps);
+  Time intervalDownlinkC = MicroSeconds (payloadSize * 8 / perNodeDownlinkCMbps);
 
 
   /*SpectrumWifiPhyHelper phy = SpectrumWifiPhyHelper::Default ();
@@ -388,55 +411,25 @@ NodeContainer allNodes = NodeContainer (wifiApNodes, wifiStaNodesA, wifiStaNodes
 
 
   // Setting applications
-  uint16_t port = 9;
-
-  UdpServerHelper serverA (port);
-ApplicationContainer serverAppA;
-ApplicationContainer clientAppA ;
-
- 
-for (uint16_t i=0;i<n;i++){
-   serverAppA= serverA.Install (wifiStaNodesA.Get (i));
-  serverAppA.Start (Seconds (0.0));
-  serverAppA.Stop (Seconds (simulationTime + 1));
-AddClient (clientAppA, StaInterfaceA.GetAddress (i), wifiApNodes.Get (0), port, Seconds(loadBssA), payloadSize);
+  uint16_t uplinkPortA = 9;
+  uint16_t downlinkPortA = 10;
+  UdpServerHelper uplinkServerA (uplinkPortA);
+  UdpServerHelper downlinkServerA (downlinkPortA);
+  uint16_t uplinkPortB = 11;
+  uint16_t downlinkPortB = 12;
+  UdpServerHelper uplinkServerB (uplinkPortB);
+  UdpServerHelper downlinkServerB (downlinkPortB);
+  uint16_t uplinkPortC = 13;
+  uint16_t downlinkPortC = 14;
+  UdpServerHelper uplinkServerC (uplinkPortC);
+  UdpServerHelper downlinkServerC (downlinkPortC);
+      for (uint32_t i = 0; i < n; i++)
+        {
+AddClient (uplinkClientApps, ApInterfaceA.GetAddress (0), stasA.Get (i), uplinkPortA, intervalUplinkA, payloadSize);
+AddClient (downlinkClientApps, StaInterfaceA.GetAddress (i), ap1, downlinkPortA, intervalDownlinkA, payloadSize);
+AddServer (downlinkServerApps, downlinkServerA, stasA.Get (i));
 }
-  clientAppA.Start (Seconds (1.0));
-  clientAppA.Stop (Seconds (simulationTime + 1));
 
-
-
-
-  UdpServerHelper serverB (port);
-ApplicationContainer serverAppB;
-ApplicationContainer clientAppB ;
-
- 
-for (uint16_t i=0;i<n;i++){
-   serverAppB= serverA.Install (wifiStaNodesB.Get (i));
-  serverAppB.Start (Seconds (0.0));
-  serverAppB.Stop (Seconds (simulationTime + 1));
-AddClient (clientAppB, StaInterfaceB.GetAddress (i), wifiApNodes.Get (1), port, Seconds(loadBssB), payloadSize);
-}
-  clientAppB.Start (Seconds (1.0));
-  clientAppB.Stop (Seconds (simulationTime + 1));
-
-
-
-
-  UdpServerHelper serverC (port);
-ApplicationContainer serverAppC;
-ApplicationContainer clientAppC ;
-
- 
-for (uint16_t i=0;i<n;i++){
-   serverAppC= serverC.Install (wifiStaNodesC.Get (i));
-  serverAppC.Start (Seconds (0.0));
-  serverAppC.Stop (Seconds (simulationTime + 1));
-AddClient (clientAppC, StaInterfaceC.GetAddress (i), wifiApNodes.Get (2), port, Seconds(loadBssC), payloadSize);
-}
-  clientAppC.Start (Seconds (1.0));
-  clientAppC.Stop (Seconds (simulationTime + 1));
 
 
   Config::Connect ("/NodeList/*/ApplicationList/*/$ns3::UdpServer/RxWithAddresses", MakeCallback (&PacketRx));
