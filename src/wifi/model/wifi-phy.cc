@@ -3465,7 +3465,6 @@ if (std::count(statusPerMpduIt->second.begin (), statusPerMpduIt->second.end (),
             }
           m_endOfMpduEvents.clear ();
           Reset ();
-          MaybeCcaBusyDuration ();
         }
     }
   else
@@ -3482,6 +3481,7 @@ if (std::count(statusPerMpduIt->second.begin (), statusPerMpduIt->second.end (),
         }
       m_endOfMpduEvents.clear ();
     }
+  MaybeCcaBusyDuration ();
 }
 
 std::pair<bool, SignalNoiseDbm>
