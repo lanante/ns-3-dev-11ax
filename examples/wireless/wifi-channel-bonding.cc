@@ -57,31 +57,31 @@
 // uses channel 36 whereas network B is configured to use channel 40:
 //     ./waf --run "wifi-channel-bonding --channelBssA=36 --channelBssB=40 --useDynamicChannelBonding=false"
 // The output gives:
-//     Throughput for BSS A: 59.5465 Mbit/s
-//     Throughput for BSS B: 59.4782 Mbit/s
+//     Throughput for BSS A: 59.5571 Mbit/s
+//     Throughput for BSS B: 59.5253 Mbit/s
 // The throughput per network is maximum and not affected by the presence of the other network,
 // since they are operating on different channels.
 //
 // One can run a scenario where a 40 MHz channel is used for network A, while keeping network B as previously:
 //     ./waf --run "wifi-channel-bonding --channelBssA=38 --channelBssB=40 --useDynamicChannelBonding=false"
 // The output gives:
-//     Throughput for BSS A: 80.0815 Mbit/s
-//     Throughput for BSS B: 17.0681 Mbit/s
-// Since dynamic channel bonding is disabled, network A will always transmit on 40 MHz, regardless of
-// CCA on the secondary channel. As a result, the two networks will suffer from collisions from each others.
+//     Throughput for BSS A: 53.5985 Mbit/s
+//     Throughput for BSS B: 33.6134 Mbit/s
+// Since this makes use of static channel bonding, network A will have to share channel 40 together with network B.
+// But as network A makes use of 40 MHz channel when it transmits, it gets a higher throughput than network B that is not using channel bonding.
 //
 // One can run the previous scenario with dynamic channel bonding enabled:
 //     ./waf --run "wifi-channel-bonding --channelBssA=38 --channelBssB=40 --useDynamicChannelBonding=true"
 // The output gives:
-//     Throughput for BSS A: 59.6266 Mbit/s
-//     Throughput for BSS B: 59.3746 Mbit/s
+//     Throughput for BSS A: 59.6973 Mbit/s
+//     Throughput for BSS B: 59.3075 Mbit/s
 // We can see the benefit of using a dynamic channel bonding. Since activity is detected on the secondary channel,
 // network A limits its channel width to 20 MHz and this gives a better share of the spectrum.
 //
 // One can run a scenario where both networks make use of channel bonding:
 //     ./waf --run "wifi-channel-bonding --channelBssA=38 --channelBssB=38 --useDynamicChannelBonding=false"
-//     Throughput for BSS A: 60.3073 Mbit/s
-//     Throughput for BSS B: 62.288 Mbit/s
+//     Throughput for BSS A: 62.9086 Mbit/s
+//     Throughput for BSS B: 59.7502 Mbit/s
 // The channel is shared with the two networks as they operate on the same channel, but since they can use both
 // a 40 Mhz channel, the maximum throughput is almost doubled.
 
@@ -92,7 +92,7 @@ NS_LOG_COMPONENT_DEFINE ("WifiChannelBonding");
 int main (int argc, char *argv[])
 {
   uint32_t payloadSize = 1472; //bytes
-  double simulationTime = 5; //seconds
+  double simulationTime = 10; //seconds
   double distance = 10; //meters
   double interBssDistance = 50; //meters
   double txMaskInnerBandMinimumRejection = -40.0; //dBr

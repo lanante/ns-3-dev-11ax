@@ -108,19 +108,20 @@ ConvertGuardIntervalToNanoSeconds (WifiMode mode, bool htShortGuardInterval, Tim
 uint16_t
 GetChannelWidthForTransmission (WifiMode mode, uint16_t maxChannelWidth)
 {
-  WifiModulationClass modulationClass = mode.GetModulationClass ();
-  if (maxChannelWidth > 20
-      && (modulationClass == WifiModulationClass::WIFI_MOD_CLASS_OFDM // all non-HT OFDM control and management frames
-          || modulationClass == WifiModulationClass::WIFI_MOD_CLASS_ERP_OFDM)) // special case of beacons at 2.4 GHz
+  return maxChannelWidth;
+  //WifiModulationClass modulationClass = mode.GetModulationClass ();
+  if ((maxChannelWidth == 0 || maxChannelWidth > 20)
+      /*&& (modulationClass == WifiModulationClass::WIFI_MOD_CLASS_OFDM // all non-HT OFDM control and management frames
+          || modulationClass == WifiModulationClass::WIFI_MOD_CLASS_ERP_OFDM)*/) // special case of beacons at 2.4 GHz
     {
       return 20;
     }
   //at 2.4 GHz basic rate can be non-ERP DSSS
-  if (modulationClass == WifiModulationClass::WIFI_MOD_CLASS_DSSS
+  /*if (modulationClass == WifiModulationClass::WIFI_MOD_CLASS_DSSS
       || modulationClass == WifiModulationClass::WIFI_MOD_CLASS_HR_DSSS)
     {
       return 22;
-    }
+    }*/
   return maxChannelWidth;
 }
 

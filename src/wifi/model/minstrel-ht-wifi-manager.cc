@@ -847,12 +847,12 @@ MinstrelHtWifiManager::DoGetDataTxVector (WifiRemoteStation *st)
       McsGroup group = m_minstrelGroups[groupId];
 
       // Check consistency of rate selected.
-      if ((group.sgi && !GetShortGuardIntervalSupported (station)) || group.chWidth > GetChannelWidth (station)  ||  group.streams > GetNumberOfSupportedStreams (station))
+      if ((group.sgi && !GetShortGuardIntervalSupported (station)) || group.chWidth > GetChannelWidthSupported (station)  ||  group.streams > GetNumberOfSupportedStreams (station))
         {
           NS_FATAL_ERROR ("Inconsistent group selected. Group: (" << +group.streams <<
                          "," << +group.sgi << "," << group.chWidth << ")" <<
-                         " Station capabilities: (" << GetNumberOfSupportedStreams (station) <<
-                         "," << GetShortGuardIntervalSupported (station) << "," << GetChannelWidth (station) << ")");
+                         " Station capabilities: (" << +GetNumberOfSupportedStreams (station) <<
+                         "," << GetShortGuardIntervalSupported (station) << "," << GetChannelWidthSupported (station) << ")");
         }
       WifiMode mode = GetMcsSupported (station, mcsIndex);
       uint64_t dataRate = mode.GetDataRate (group.chWidth, group.sgi ? 400 : 800, group.streams);
@@ -937,7 +937,7 @@ MinstrelHtWifiManager::DoGetRtsTxVector (WifiRemoteStation *st)
       NS_ASSERT (rateFound);
 
       return WifiTxVector (rtsRate, GetDefaultTxPowerLevel (), GetPreambleForTransmission (rtsRate.GetModulationClass (), GetShortPreambleEnabled (), UseGreenfieldForDestination (GetAddress (station))),
-                           800, 1, 1, 0, GetChannelWidthForTransmission (rtsRate, GetChannelWidth (station)), GetAggregation (station), false);
+                           800, 1, 1, 0, GetChannelWidthForTransmission (rtsRate, GetChannelWidthSupported (station)), GetAggregation (station), false);
     }
 }
 
@@ -1441,7 +1441,7 @@ MinstrelHtWifiManager::RateInit (MinstrelHtWifiRemoteStation *station)
           if (!(!GetVhtSupported (station) && m_minstrelGroups[groupId].isVht)                    ///Is VHT supported by the receiver?
               && (m_minstrelGroups[groupId].isVht || !GetVhtSupported (station) || !m_useVhtOnly) ///If it is an HT MCS, check if VHT only is disabled
               && !(!GetShortGuardIntervalSupported (station) && m_minstrelGroups[groupId].sgi)             ///Is SGI supported by the receiver?
-              && (GetChannelWidth (station) >= m_minstrelGroups[groupId].chWidth)                 ///Is channel width supported by the receiver?
+              && (GetChannelWidthSupported (station) >= m_minstrelGroups[groupId].chWidth)                 ///Is channel width supported by the receiver?
               && (GetNumberOfSupportedStreams (station) >= m_minstrelGroups[groupId].streams))    ///Are streams supported by the receiver?
             {
               NS_LOG_DEBUG ("Group " << +groupId << ": (" << +m_minstrelGroups[groupId].streams <<

@@ -25,7 +25,7 @@
 #include "ns3/double.h"
 #include "ns3/string.h"
 #include "ns3/log.h"
-#include "ns3/yans-wifi-helper.h"
+#include "ns3/spectrum-wifi-helper.h"
 #include "ns3/ssid.h"
 #include "ns3/mobility-helper.h"
 #include "ns3/internet-stack-helper.h"
@@ -35,7 +35,7 @@
 #include "ns3/on-off-helper.h"
 #include "ns3/ipv4-global-routing-helper.h"
 #include "ns3/packet-sink.h"
-#include "ns3/yans-wifi-channel.h"
+#include "ns3/multi-model-spectrum-channel.h"
 
 // This is a simple example in order to show how to configure an IEEE 802.11ax Wi-Fi network.
 //
@@ -125,9 +125,14 @@ int main (int argc, char *argv[])
               NodeContainer wifiApNode;
               wifiApNode.Create (1);
 
-              YansWifiChannelHelper channel = YansWifiChannelHelper::Default ();
-              YansWifiPhyHelper phy = YansWifiPhyHelper::Default ();
-              phy.SetChannel (channel.Create ());
+              SpectrumWifiPhyHelper phy = SpectrumWifiPhyHelper::Default ();
+              Ptr<MultiModelSpectrumChannel> channel = CreateObject<MultiModelSpectrumChannel> ();
+              Ptr<FriisPropagationLossModel> lossModel = CreateObject<FriisPropagationLossModel> ();
+              lossModel->SetFrequency (5e9);
+              channel->AddPropagationLossModel (lossModel);
+              Ptr<ConstantSpeedPropagationDelayModel> delayModel = CreateObject<ConstantSpeedPropagationDelayModel> ();
+              channel->SetPropagationDelayModel (delayModel);
+              phy.SetChannel (channel);
 
               WifiMacHelper mac;
               WifiHelper wifi;
@@ -237,8 +242,6 @@ int main (int argc, char *argv[])
                   clientApp.Start (Seconds (1.0));
                   clientApp.Stop (Seconds (simulationTime + 1));
                 }
-
-              Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
 
               Simulator::Stop (Seconds (simulationTime + 1));
               Simulator::Run ();

@@ -332,6 +332,10 @@ WifiTxVector::IsValid (void) const
           return (modeName != "VhtMcs9");
         }
     }
+  if (m_channelWidth == 0)
+    {
+      return false;
+    }
   return true;
 }
 
