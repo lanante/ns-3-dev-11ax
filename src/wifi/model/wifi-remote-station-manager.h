@@ -795,16 +795,13 @@ public:
                    RxSignalInfo rxSignalInfo, WifiMode txMode);
 
   /**
-   * \param address remote address
    * \param header MAC header
    * \param packet the packet to send
-   * \param txVector the TXVECTOR of the packet to send
    *
    * \return true if we want to use an RTS/CTS handshake for this
    *         packet before sending it, false otherwise.
    */
-  bool NeedRts (Mac48Address address, const WifiMacHeader *header,
-                Ptr<const Packet> packet, WifiTxVector txVector);
+  bool NeedRts (const WifiMacHeader *header, Ptr<const Packet> packet);
   /**
    * Return if we need to do Cts-to-self before sending a DATA.
    *
