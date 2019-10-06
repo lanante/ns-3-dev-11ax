@@ -65,23 +65,23 @@
 // One can run a scenario where a 40 MHz channel is used for network A, while keeping network B as previously:
 //     ./waf --run "wifi-channel-bonding --channelBssA=38 --channelBssB=40 --useDynamicChannelBonding=false"
 // The output gives:
-//     Throughput for BSS A: 53.5985 Mbit/s
-//     Throughput for BSS B: 33.6134 Mbit/s
+//     Throughput for BSS A: 52.3408 Mbit/s
+//     Throughput for BSS B: 34.4236 Mbit/s
 // Since this makes use of static channel bonding, network A will have to share channel 40 together with network B.
 // But as network A makes use of 40 MHz channel when it transmits, it gets a higher throughput than network B that is not using channel bonding.
 //
 // One can run the previous scenario with dynamic channel bonding enabled:
 //     ./waf --run "wifi-channel-bonding --channelBssA=38 --channelBssB=40 --useDynamicChannelBonding=true"
 // The output gives:
-//     Throughput for BSS A: 59.6973 Mbit/s
+//     Throughput for BSS A: 59.7762 Mbit/s
 //     Throughput for BSS B: 59.3075 Mbit/s
 // We can see the benefit of using a dynamic channel bonding. Since activity is detected on the secondary channel,
 // network A limits its channel width to 20 MHz and this gives a better share of the spectrum.
 //
 // One can run a scenario where both networks make use of channel bonding:
 //     ./waf --run "wifi-channel-bonding --channelBssA=38 --channelBssB=38 --useDynamicChannelBonding=false"
-//     Throughput for BSS A: 62.9086 Mbit/s
-//     Throughput for BSS B: 59.7502 Mbit/s
+//     Throughput for BSS A: 66.167 Mbit/s
+//     Throughput for BSS B: 64.0944 Mbit/s
 // The channel is shared with the two networks as they operate on the same channel, but since they can use both
 // a 40 Mhz channel, the maximum throughput is almost doubled.
 
@@ -93,8 +93,8 @@ int main (int argc, char *argv[])
 {
   uint32_t payloadSize = 1472; //bytes
   double simulationTime = 10; //seconds
-  double distance = 10; //meters
-  double interBssDistance = 50; //meters
+  double distance = 1; //meters
+  double interBssDistance = 5; //meters
   double txMaskInnerBandMinimumRejection = -40.0; //dBr
   double txMaskOuterBandMinimumRejection = -56.0; //dBr
   double txMaskOuterBandMaximumRejection = -80.0; //dBr
@@ -159,8 +159,10 @@ int main (int argc, char *argv[])
 
   SpectrumWifiPhyHelper phy = SpectrumWifiPhyHelper::Default ();
   Ptr<MultiModelSpectrumChannel> channel = CreateObject<MultiModelSpectrumChannel> ();
-  Ptr<FriisPropagationLossModel> lossModel = CreateObject<FriisPropagationLossModel> ();
-  lossModel->SetFrequency (5.180e9);
+  Ptr<LogDistancePropagationLossModel> lossModel = CreateObject<LogDistancePropagationLossModel> ();
+  lossModel ->SetAttribute ("ReferenceDistance", DoubleValue (1));
+  lossModel ->SetAttribute ("Exponent", DoubleValue (3.5));
+  lossModel ->SetAttribute ("ReferenceLoss", DoubleValue (50));
   channel->AddPropagationLossModel (lossModel);
   Ptr<ConstantSpeedPropagationDelayModel> delayModel = CreateObject<ConstantSpeedPropagationDelayModel> ();
   channel->SetPropagationDelayModel (delayModel);
