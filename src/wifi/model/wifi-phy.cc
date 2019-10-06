@@ -944,35 +944,35 @@ WifiPhy::ConfigureDefaultsForStandard (WifiPhyStandard standard)
       NS_ASSERT (GetChannelNumber () == 36);
       break;
     case WIFI_PHY_STANDARD_80211n_2_4GHZ:
-      m_ccaEdThresholdSecondaryW = -62.0;
+      //m_ccaEdThresholdSecondaryW = -62.0;
       SetChannelWidth (20);
       SetFrequency (2412);
       // Channel number should be aligned by SetFrequency () to 1
       NS_ASSERT (GetChannelNumber () == 1);
       break;
     case WIFI_PHY_STANDARD_80211n_5GHZ:
-      m_ccaEdThresholdSecondaryW = -62.0;
+      //m_ccaEdThresholdSecondaryW = -62.0;
       SetChannelWidth (20);
       SetFrequency (5180);
       // Channel number should be aligned by SetFrequency () to 36
       NS_ASSERT (GetChannelNumber () == 36);
       break;
     case WIFI_PHY_STANDARD_80211ac:
-      m_ccaEdThresholdSecondaryW = -72.0;
+      //m_ccaEdThresholdSecondaryW = -72.0;
       SetChannelWidth (80);
       SetFrequency (5210);
       // Channel number should be aligned by SetFrequency () to 42
       NS_ASSERT (GetChannelNumber () == 42);
       break;
     case WIFI_PHY_STANDARD_80211ax_2_4GHZ:
-      m_ccaEdThresholdSecondaryW = -72.0;
+      //m_ccaEdThresholdSecondaryW = -72.0;
       SetChannelWidth (20);
       SetFrequency (2412);
       // Channel number should be aligned by SetFrequency () to 1
       NS_ASSERT (GetChannelNumber () == 1);
       break;
     case WIFI_PHY_STANDARD_80211ax_5GHZ:
-      m_ccaEdThresholdSecondaryW = -72.0;
+      //m_ccaEdThresholdSecondaryW = -72.0;
       SetChannelWidth (80);
       SetFrequency (5210);
       // Channel number should be aligned by SetFrequency () to 42

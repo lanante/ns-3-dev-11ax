@@ -77,9 +77,9 @@ cpp_examples = [
     ("wifi-backward-compatibility --apVersion=80211a --staVersion=80211ac --simulationTime=1", "True", "False"),
     ("wifi-backward-compatibility --apVersion=80211a --staVersion=80211ac --apRaa=Ideal --staRaa=Ideal --simulationTime=1", "True", "False"),
     ("wifi-channel-bonding --channelBssA=36 --channelBssB=40 --useDynamicChannelBonding=false --verifyResults=1 --minExpectedThroughputBssA=59 --maxExpectedThroughputBssA=60 --minExpectedThroughputBssB=59 --maxExpectedThroughputBssB=60", "True", "False"),
-    ("wifi-channel-bonding --channelBssA=38 --channelBssB=40 --useDynamicChannelBonding=false --verifyResults=1 --minExpectedThroughputBssA=53 --maxExpectedThroughputBssA=54 --minExpectedThroughputBssB=33 --maxExpectedThroughputBssB=34", "True", "False"),
+    ("wifi-channel-bonding --channelBssA=38 --channelBssB=40 --useDynamicChannelBonding=false --verifyResults=1 --minExpectedThroughputBssA=52 --maxExpectedThroughputBssA=53 --minExpectedThroughputBssB=34 --maxExpectedThroughputBssB=35", "True", "False"),
     ("wifi-channel-bonding --channelBssA=38 --channelBssB=40 --useDynamicChannelBonding=true --verifyResults=1 --minExpectedThroughputBssA=59 --maxExpectedThroughputBssA=60 --minExpectedThroughputBssB=59 --maxExpectedThroughputBssB=60", "True", "False"),
-    ("wifi-channel-bonding --channelBssA=38 --channelBssB=38 --useDynamicChannelBonding=false --verifyResults=1 --minExpectedThroughputBssA=59 --maxExpectedThroughputBssA=63 --minExpectedThroughputBssB=59 --maxExpectedThroughputBssB=63", "True", "False"),
+    ("wifi-channel-bonding --channelBssA=38 --channelBssB=38 --useDynamicChannelBonding=false --verifyResults=1 --minExpectedThroughputBssA=64 --maxExpectedThroughputBssA=67 --minExpectedThroughputBssB=64 --maxExpectedThroughputBssB=67", "True", "False"),
 ]
 
 # A list of Python examples to run in order to ensure that they remain
