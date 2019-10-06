@@ -657,6 +657,7 @@ WifiHelper::WifiHelper ()
     m_selectQueueCallback (&SelectQueueByDSField)
 {
   SetRemoteStationManager ("ns3::ArfWifiManager");
+  SetChannelBondingManager ("ns3::StaticChannelBondingManager");
   SetAckPolicySelectorForAc (AC_BE, "ns3::ConstantWifiAckPolicySelector");
   SetAckPolicySelectorForAc (AC_BK, "ns3::ConstantWifiAckPolicySelector");
   SetAckPolicySelectorForAc (AC_VI, "ns3::ConstantWifiAckPolicySelector");
@@ -941,6 +942,7 @@ WifiHelper::EnableLogComponents (void)
   LogComponentEnable ("RrpaaWifiManager", LOG_LEVEL_ALL);
   LogComponentEnable ("SimpleFrameCaptureModel", LOG_LEVEL_ALL);
   LogComponentEnable ("SpectrumWifiPhy", LOG_LEVEL_ALL);
+  LogComponentEnable ("StaticChannelBondingManager", LOG_LEVEL_ALL);
   LogComponentEnable ("StaWifiMac", LOG_LEVEL_ALL);
   LogComponentEnable ("SupportedRates", LOG_LEVEL_ALL);
   LogComponentEnable ("ThresholdPreambleDetectionModel", LOG_LEVEL_ALL);

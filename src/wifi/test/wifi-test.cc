@@ -46,6 +46,7 @@
 #include "ns3/ht-configuration.h"
 #include "ns3/wifi-ppdu.h"
 #include "ns3/wifi-psdu.h"
+#include "ns3/static-channel-bonding-manager.h"
 
 using namespace ns3;
 
@@ -1644,6 +1645,8 @@ Bug2831TestCase::DoRun (void)
   m_apPhy->ConfigureStandard (WIFI_PHY_STANDARD_80211ax_5GHZ);
   m_apPhy->SetChannelNumber (36);
   m_apPhy->SetChannelWidth (20);
+  Ptr<StaticChannelBondingManager> apChannelBondingManager = CreateObject<StaticChannelBondingManager> ();
+  m_apPhy->SetChannelBondingManager (apChannelBondingManager);
 
   Ptr<ConstantPositionMobilityModel> staMobility = CreateObject<ConstantPositionMobilityModel> ();
   staMobility->SetPosition (Vector (1.0, 0.0, 0.0));
@@ -1657,6 +1660,8 @@ Bug2831TestCase::DoRun (void)
   m_staPhy->ConfigureStandard (WIFI_PHY_STANDARD_80211ax_5GHZ);
   m_staPhy->SetChannelNumber (36);
   m_staPhy->SetChannelWidth (20);
+  Ptr<StaticChannelBondingManager> staChannelBondingManager = CreateObject<StaticChannelBondingManager> ();
+  m_staPhy->SetChannelBondingManager (staChannelBondingManager);
 
   apMac->SetAddress (Mac48Address::Allocate ());
   apDev->SetMac (apMac);

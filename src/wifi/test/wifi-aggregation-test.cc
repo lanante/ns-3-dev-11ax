@@ -499,6 +499,7 @@ HeAggregationTest::DoRunSubTest (uint16_t bufferSize)
   m_phy = CreateObject<YansWifiPhy> ();
   m_phy->SetDevice (m_device);
   m_phy->ConfigureStandard (WIFI_PHY_STANDARD_80211ax_5GHZ);
+  m_phy->SetChannelWidth (20);
   m_device->SetPhy (m_phy);
 
   /*
