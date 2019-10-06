@@ -524,11 +524,7 @@ Txop::NotifyAccessGranted (void)
         }
       else
         {
-          WifiTxVector dataTxVector = m_stationManager->GetDataTxVector (m_currentHdr.GetAddr1 (),
-                                                                         &m_currentHdr, m_currentPacket);
-
-          if (m_stationManager->NeedRts (m_currentHdr.GetAddr1 (), &m_currentHdr,
-                                         m_currentPacket, dataTxVector)
+          if (m_stationManager->NeedRts (&m_currentHdr, m_currentPacket)
               && !m_low->IsCfPeriod ())
             {
               m_currentParams.EnableRts ();
