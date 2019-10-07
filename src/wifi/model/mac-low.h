@@ -568,9 +568,10 @@ private:
    *
    * \param to the MAC address of the CTS receiver
    * \param rtsTxMode the mode of the RTS used by the sender
+   * \param channelWidth the channel width (in MHz) of the RTS used by the sender
    * \return TXVECTOR for the CTS
    */
-  WifiTxVector GetCtsTxVector (Mac48Address to, WifiMode rtsTxMode) const;
+  WifiTxVector GetCtsTxVector (Mac48Address to, WifiMode rtsTxMode, uint16_t channelWidth) const;
   /**
    * Return a TXVECTOR for the ACK frame given the destination and the mode of the DATA
    * used by the sender.
@@ -579,6 +580,7 @@ private:
    *
    * \param to the MAC address of the ACK receiver
    * \param dataTxMode the mode of the DATA used by the sender
+   * \param channelWidth the channel width (in MHz) of the DATA used by the sender
    * \return TXVECTOR for the ACK
    */
   WifiTxVector GetAckTxVector (Mac48Address to, WifiMode dataTxMode, uint16_t channelWidth) const;
@@ -601,9 +603,10 @@ private:
    *
    * \param to the MAC address of the CTS receiver
    * \param rtsTxMode the mode of the RTS used by the sender
+   * \param channelWidth the channel width (in MHz) of the RTS used by the sender
    * \return TXVECTOR for the CTS
    */
-  WifiTxVector GetCtsTxVectorForRts (Mac48Address to, WifiMode rtsTxMode) const;
+  WifiTxVector GetCtsTxVectorForRts (Mac48Address to, WifiMode rtsTxMode, uint16_t channelWidth) const;
   /**
    * Return a TXVECTOR for the Block ACK frame given the destination and the mode of the DATA
    * used by the sender.
@@ -612,6 +615,7 @@ private:
    *
    * \param to the MAC address of the Block ACK receiver
    * \param dataTxMode the mode of the DATA used by the sender
+   * \param channelWidth the channel width (in MHz) of the RTS used by the sender
    * \return TXVECTOR for the Block ACK
    */
   WifiTxVector GetAckTxVectorForData (Mac48Address to, WifiMode dataTxMode, uint16_t channelWidth) const;

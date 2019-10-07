@@ -87,15 +87,6 @@ public:
    * Indeed the TXVECTOR obtained from WifiPpdu does not have this information set.
    */
   void StartTx (Ptr<WifiPpdu> ppdu, uint8_t txPowerLevel);
-  /**
-   * Get the center frequency of the channel corresponding the current TxVector rather than
-   * that of the supported channel width.
-   * Consider that this "primary channel" is on the lower part for the time being.
-   *
-   * \param currentWidth the channel width (in MHz)
-   * \return the center frequency corresponding to the channel width to be used
-   */
-  uint16_t GetCenterFrequencyForChannelWidth (uint16_t currentWidth) const;
 
   /**
    * Method to encapsulate the creation of the WifiSpectrumPhyInterface

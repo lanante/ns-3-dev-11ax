@@ -21,6 +21,8 @@
 #include <algorithm>
 #include "ns3/log.h"
 #include "ns3/test.h"
+#include "ns3/uinteger.h"
+#include "ns3/string.h"
 #include "ns3/double.h"
 #include "ns3/pointer.h"
 #include "ns3/rng-seed-manager.h"
@@ -36,6 +38,7 @@
 #include "ns3/constant-threshold-channel-bonding-manager.h"
 #include "ns3/waveform-generator.h"
 #include "ns3/non-communicating-net-device.h"
+#include "ns3/mobility-helper.h"
 
 using namespace ns3;
 
@@ -1710,6 +1713,116 @@ TestEffectiveSnrCalculations::DoRun (void)
 }
 
 /**
+ * todo
+ */
+
+class TestStaticChannelBondingChannelAccess : public TestCase
+{
+public:
+  TestStaticChannelBondingChannelAccess ();
+  virtual ~TestStaticChannelBondingChannelAccess ();
+
+private:
+  virtual void DoRun (void);
+
+  /**
+   * Triggers the arrival of a burst of 1000 Byte-long packets in the source device
+   * \param sourceDevice pointer to the source NetDevice
+   * \param destination address of the destination device
+   */
+  void SendPacket (Ptr<NetDevice> sourceDevice, Address& destination) const;
+};
+
+TestStaticChannelBondingChannelAccess::TestStaticChannelBondingChannelAccess ()
+  : TestCase ("Test case for channel access when static channel bonding")
+{
+}
+
+TestStaticChannelBondingChannelAccess::~TestStaticChannelBondingChannelAccess ()
+{
+}
+
+void
+TestStaticChannelBondingChannelAccess::SendPacket (Ptr<NetDevice> sourceDevice, Address& destination) const
+{
+  Ptr<Packet> pkt = Create<Packet> (1000);  // 1000 dummy bytes of data
+  sourceDevice->Send (pkt, destination, 0);
+}
+
+void
+TestStaticChannelBondingChannelAccess::DoRun (void)
+{
+  NodeContainer wifiNodesBss1;
+  wifiNodesBss1.Create (2);
+
+  NodeContainer wifiNodesBss2;
+  wifiNodesBss2.Create (2);
+
+  SpectrumWifiPhyHelper spectrumPhy = SpectrumWifiPhyHelper::Default ();
+  Ptr<MultiModelSpectrumChannel> spectrumChannel = CreateObject<MultiModelSpectrumChannel> ();
+  Ptr<FriisPropagationLossModel> lossModel = CreateObject<FriisPropagationLossModel> ();
+  lossModel->SetFrequency (5.190e9);
+  spectrumChannel->AddPropagationLossModel (lossModel);
+
+  Ptr<ConstantSpeedPropagationDelayModel> delayModel
+    = CreateObject<ConstantSpeedPropagationDelayModel> ();
+  spectrumChannel->SetPropagationDelayModel (delayModel);
+
+  spectrumPhy.SetChannel (spectrumChannel);
+  spectrumPhy.SetErrorRateModel ("ns3::NistErrorRateModel");
+  spectrumPhy.Set ("Frequency", UintegerValue (5190));
+  spectrumPhy.Set ("ChannelWidth", UintegerValue (40));
+  spectrumPhy.Set ("TxPowerStart", DoubleValue (10));
+  spectrumPhy.Set ("TxPowerEnd", DoubleValue (10));
+
+  WifiHelper wifi;
+  wifi.EnableLogComponents ();
+  wifi.SetStandard (WIFI_PHY_STANDARD_80211n_5GHZ);
+  wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager",
+                                "DataMode", StringValue ("HtMcs7"),
+                                "ControlMode", StringValue ("HtMcs7"));
+
+  WifiMacHelper mac;
+  mac.SetType ("ns3::AdhocWifiMac");
+
+  NetDeviceContainer bss1Devices;
+  bss1Devices = wifi.Install (spectrumPhy, mac, wifiNodesBss1);
+
+  spectrumPhy.Set ("Frequency", UintegerValue (5200));
+  spectrumPhy.Set ("ChannelWidth", UintegerValue (20));
+  spectrumPhy.Set ("TxPowerStart", DoubleValue (10));
+  spectrumPhy.Set ("TxPowerEnd", DoubleValue (10));
+
+  wifi.SetStandard (WIFI_PHY_STANDARD_80211n_5GHZ);
+  wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager",
+                                "DataMode", StringValue ("HtMcs7"),
+                                "ControlMode", StringValue ("HtMcs7"));
+
+  NetDeviceContainer bss2Devices;
+  bss2Devices = wifi.Install (spectrumPhy, mac, wifiNodesBss2);
+
+  MobilityHelper mobility;
+  Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator> ();
+  positionAlloc->Add (Vector (0.0, 0.0, 0.0));
+  positionAlloc->Add (Vector (1.0, 0.0, 0.0));
+  positionAlloc->Add (Vector (10.0, 0.0, 0.0));
+  positionAlloc->Add (Vector (11.0, 0.0, 0.0));
+  mobility.SetPositionAllocator (positionAlloc);
+
+  mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
+  mobility.Install (wifiNodesBss1);
+  mobility.Install (wifiNodesBss2);
+
+  Simulator::Schedule (Seconds (1.0), &TestStaticChannelBondingChannelAccess::SendPacket, this, bss2Devices.Get (0), bss2Devices.Get (1)->GetAddress ());
+  Simulator::Schedule (Seconds (1.0) + MicroSeconds (10), &TestStaticChannelBondingChannelAccess::SendPacket, this, bss1Devices.Get (0), bss1Devices.Get (1)->GetAddress ());
+
+  Simulator::Stop (Seconds (2.0));
+  Simulator::Run ();
+
+  Simulator::Destroy ();
+}
+
+/**
  * \ingroup wifi-test
  * \ingroup tests
  *
@@ -1724,9 +1837,10 @@ public:
 WifiChannelBondingTestSuite::WifiChannelBondingTestSuite ()
   : TestSuite ("wifi-channel-bonding", UNIT)
 {
-  AddTestCase (new TestStaticChannelBonding, TestCase::QUICK);
-  AddTestCase (new TestDynamicChannelBonding, TestCase::QUICK);
-  AddTestCase (new TestEffectiveSnrCalculations, TestCase::QUICK);
+  //AddTestCase (new TestStaticChannelBondingSnr, TestCase::QUICK);
+  AddTestCase (new TestStaticChannelBondingChannelAccess, TestCase::QUICK);
+  //AddTestCase (new TestDynamicChannelBonding, TestCase::QUICK);
+  //AddTestCase (new TestEffectiveSnrCalculations, TestCase::QUICK);
 }
 
 static WifiChannelBondingTestSuite wifiChannelBondingTestSuite; ///< the test suite

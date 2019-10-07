@@ -568,6 +568,16 @@ QosTxop::NotifyAccessGranted (void)
           m_currentHdr = peekedItem->GetHeader ();
           m_currentPacket = peekedItem->GetPacket ();
           m_currentPacketTimestamp = Simulator::Now ();
+          WifiTxVector txVector = m_low->GetDataTxVector (Create<const WifiMacQueueItem> (m_currentPacket, m_currentHdr));
+            {
+              NS_LOG_DEBUG ("Not allowed to transmit on bonded channel(s)");
+              m_cwTrace = GetCw ();
+              m_backoff = m_rng->GetInteger (0, GetCw ());
+              m_backoffTrace (m_backoff);
+              StartBackoffNow (m_backoff);
+              RestartAccessIfNeeded ();
+              return;
+            }
         }
       else
         {
@@ -575,6 +585,17 @@ QosTxop::NotifyAccessGranted (void)
           if (peekedItem == 0)
             {
               NS_LOG_DEBUG ("no packets available for transmission");
+              return;
+            }
+          WifiTxVector txVector = m_low->GetDataTxVector (peekedItem);
+          if (txVector.GetChannelWidth () == 0)
+            {
+              NS_LOG_DEBUG ("Not allowed to transmit on bonded channel(s)");
+              m_cwTrace = GetCw ();
+              m_backoff = m_rng->GetInteger (0, GetCw ());
+              m_backoffTrace (m_backoff);
+              StartBackoffNow (m_backoff);
+              RestartAccessIfNeeded ();
               return;
             }
           // check if a Block Ack agreement needs to be established
@@ -612,8 +633,7 @@ QosTxop::NotifyAccessGranted (void)
                 }
 
                 // dequeue the peeked item if it fits within the TXOP duration, if any
-                item = DequeuePeekedFrame (peekedItem, m_low->GetDataTxVector (peekedItem),
-                                          !NeedFragmentation (), 0, ppduDurationLimit);
+                item = DequeuePeekedFrame (peekedItem, txVector, !NeedFragmentation (), 0, ppduDurationLimit);
             }
 
           if (item == 0)
@@ -629,6 +649,21 @@ QosTxop::NotifyAccessGranted (void)
         }
       NS_ASSERT (m_currentPacket != 0);
     }
+  else
+    {
+      WifiTxVector txVector = m_low->GetDataTxVector (Create<const WifiMacQueueItem> (m_currentPacket, m_currentHdr));
+      if (txVector.GetChannelWidth () == 0)
+        {
+          NS_LOG_DEBUG ("Not allowed to transmit on bonded channel(s)");
+          m_cwTrace = GetCw ();
+          m_backoff = m_rng->GetInteger (0, GetCw ());
+          m_backoffTrace (m_backoff);
+          StartBackoffNow (m_backoff);
+          RestartAccessIfNeeded ();
+          return;
+        }
+    }
+
   Ptr<WifiMacQueueItem> mpdu = Create <WifiMacQueueItem> (m_currentPacket, m_currentHdr,
                                                           m_currentPacketTimestamp);
   m_currentParams = GetTransmissionParameters (mpdu);
@@ -1679,6 +1714,18 @@ QosTxop::SendAddBaRequest (Mac48Address dest, uint8_t tid, uint16_t startSeq,
   m_currentParams.EnableAck ();
   m_currentParams.DisableRts ();
   m_currentParams.DisableNextData ();
+
+  WifiTxVector txVector = m_low->GetDataTxVector (Create<const WifiMacQueueItem> (m_currentPacket, m_currentHdr));
+  if (txVector.GetChannelWidth () == 0)
+    {
+      NS_LOG_DEBUG ("Not allowed to transmit on bonded channel(s)");
+      m_cwTrace = GetCw ();
+      m_backoff = m_rng->GetInteger (0, GetCw ());
+      m_backoffTrace (m_backoff);
+      StartBackoffNow (m_backoff);
+      RestartAccessIfNeeded ();
+      return;
+    }
 
   m_low->StartTransmission (Create<WifiMacQueueItem> (m_currentPacket, m_currentHdr), m_currentParams, this);
 }

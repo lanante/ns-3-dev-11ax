@@ -1474,8 +1474,9 @@ WifiPhy::GetChannelWidth (void) const
 uint16_t
 WifiPhy::GetUsableChannelWidth (void)
 {
-  if (m_channelBondingManager)
+  if (GetChannelWidth () >= 40)
     {
+      NS_ASSERT_MSG (m_channelBondingManager, "Channel bonding can only be used if a channel bonding manager has been set!");
       return m_channelBondingManager->GetUsableChannelWidth ();
     }
   return GetChannelWidth ();
@@ -1631,6 +1632,25 @@ uint8_t
 WifiPhy::GetChannelNumber (void) const
 {
   return m_channelNumber;
+}
+
+uint16_t
+WifiPhy::GetCenterFrequencyForChannelWidth (uint16_t currentWidth) const
+{
+  NS_LOG_FUNCTION (this << currentWidth);
+  uint16_t centerFrequencyForSupportedWidth = GetFrequency ();
+  uint16_t supportedWidth = GetChannelWidth ();
+  if (currentWidth != supportedWidth)
+    {
+      if (supportedWidth == 40)
+        {
+           return GetCenterFrequency (GetFrequency (), supportedWidth, currentWidth, GetSecondaryChannelOffset () == UPPER ? 0 : 1);
+        }
+      //TODO: 80 and 160 MHz
+      uint16_t startingFrequency = centerFrequencyForSupportedWidth - (supportedWidth / 2);
+      return startingFrequency + (currentWidth / 2); // primary channel is in the lower part (for the time being)
+    }
+  return centerFrequencyForSupportedWidth;
 }
 
 bool
@@ -2876,7 +2896,7 @@ WifiPhy::Send (WifiPsduMap psdus, WifiTxVector txVector)
       uid = m_globalPpduUid++;
     }
   m_previouslyRxPpduUid = UINT64_MAX; //reset to use it only once
-  Ptr<WifiPpdu> ppdu = Create<WifiPpdu> (psdus, txVector, txDuration, GetFrequency (), uid);
+  Ptr<WifiPpdu> ppdu = Create<WifiPpdu> (psdus, txVector, txDuration, GetCenterFrequencyForChannelWidth (txVector.GetChannelWidth ()), uid);
 
   if (m_wifiRadioEnergyModel != 0 && m_wifiRadioEnergyModel->GetMaximumTimeInState (WifiPhyState::TX) < txDuration)
     {
@@ -3128,6 +3148,23 @@ WifiPhy::StartReceivePreamble (Ptr<WifiPpdu> ppdu, RxPowerWattPerChannelBand rxP
       if (WToDbm (rxPowerPrimaryChannelW) < GetRxSensitivity ())
         {
           NS_LOG_INFO ("Received signal in primary channel too weak to process: " << WToDbm (rxPowerPrimaryChannelW) << " dBm");
+          //TODO: drop packet?
+          MaybeCcaBusyDuration (); //secondary channel shall maybe switch to CCA_BUSY
+          for (auto it = m_currentPreambleEvents.begin (); it != m_currentPreambleEvents.end (); ++it)
+          {
+            if (it->second == event)
+              {
+                it = m_currentPreambleEvents.erase (it);
+                break;
+              }
+          }
+          return;
+        }
+      if ((txVector.GetChannelWidth () < GetChannelWidth ()) && (ppdu->GetFrequency () != GetCenterFrequencyForChannelWidth (txVector.GetChannelWidth ())))
+        {
+          //TODO: extend to 80 and 160 MHz
+          NS_LOG_INFO ("Received 20 MHz PPDU in the secondary 20 MHz channel: do not proceed with reception");
+          //TODO: drop packet?
           MaybeCcaBusyDuration (); //secondary channel shall maybe switch to CCA_BUSY
           for (auto it = m_currentPreambleEvents.begin (); it != m_currentPreambleEvents.end (); ++it)
           {
