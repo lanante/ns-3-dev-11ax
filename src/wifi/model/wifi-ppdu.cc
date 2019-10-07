@@ -503,11 +503,18 @@ WifiPpdu::GetUid (void) const
   return m_uid;
 }
 
+uint16_t
+WifiPpdu::GetFrequency (void) const
+{
+  return m_frequency;
+}
+
 void
 WifiPpdu::Print (std::ostream& os) const
 {
   os << "preamble=" << m_preamble
      << ", modulation=" << m_modulation
+     << ", frequency= " << m_frequency
      << ", truncatedTx=" << (m_truncatedTx ? "Y" : "N")
      << ", uid=" << m_uid;
   IsMu () ? (os << ", " << m_psdus) : (os << ", PSDU=" << m_psdus.at (SU_STA_ID));

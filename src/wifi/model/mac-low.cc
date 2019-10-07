@@ -1254,7 +1254,7 @@ MacLow::GetBlockAckRequestDuration (WifiTxVector blockAckReqTxVector, BlockAckTy
 Time
 MacLow::GetCtsDuration (Mac48Address to, WifiTxVector rtsTxVector) const
 {
-  WifiTxVector ctsTxVector = GetCtsTxVectorForRts (to, rtsTxVector.GetMode ());
+  WifiTxVector ctsTxVector = GetCtsTxVectorForRts (to, rtsTxVector.GetMode (), rtsTxVector.GetChannelWidth ());
   return GetCtsDuration (ctsTxVector);
 }
 
@@ -1276,7 +1276,12 @@ WifiTxVector
 MacLow::GetDataTxVector (Ptr<const WifiMacQueueItem> item) const
 {
   Mac48Address to = item->GetHeader ().GetAddr1 ();
-  return m_stationManager->GetDataTxVector (to, &item->GetHeader (), item->GetPacket ());
+  bool usePrimaryChannelOnly = false;
+  if (item->GetHeader ().IsMgt ())
+    {
+      usePrimaryChannelOnly = true;
+    }
+  return m_stationManager->GetDataTxVector (to, &item->GetHeader (), item->GetPacket (), usePrimaryChannelOnly);
 }
 
 Time
@@ -1450,7 +1455,7 @@ MacLow::GetControlAnswerMode (WifiMode reqMode) const
 }
 
 WifiTxVector
-MacLow::GetCtsTxVector (Mac48Address to, WifiMode rtsTxMode) const
+MacLow::GetCtsTxVector (Mac48Address to, WifiMode rtsTxMode, uint16_t channelWidth) const
 {
   NS_ASSERT (!to.IsGroup ());
   WifiMode ctsMode = GetControlAnswerMode (rtsTxMode);
@@ -1458,7 +1463,7 @@ MacLow::GetCtsTxVector (Mac48Address to, WifiMode rtsTxMode) const
   v.SetMode (ctsMode);
   v.SetPreambleType (GetPreambleForTransmission (ctsMode.GetModulationClass (), m_stationManager->GetShortPreambleEnabled (), m_stationManager->UseGreenfieldForDestination (to)));
   v.SetTxPowerLevel (m_stationManager->GetDefaultTxPowerLevel ());
-  v.SetChannelWidth (GetChannelWidthForTransmission (ctsMode, m_phy->GetUsableChannelWidth ()));
+  v.SetChannelWidth (channelWidth);
    uint16_t ctsTxGuardInterval = ConvertGuardIntervalToNanoSeconds (ctsMode, m_phy->GetShortGuardInterval (), m_phy->GetGuardInterval ());
   v.SetGuardInterval (ctsTxGuardInterval);
   v.SetNss (1);
@@ -1498,9 +1503,9 @@ uint16_t blockAckTxGuardInterval = ConvertGuardIntervalToNanoSeconds (blockAckMo
 }
 
 WifiTxVector
-MacLow::GetCtsTxVectorForRts (Mac48Address to, WifiMode rtsTxMode) const
+MacLow::GetCtsTxVectorForRts (Mac48Address to, WifiMode rtsTxMode, uint16_t channelWidth) const
 {
-  return GetCtsTxVector (to, rtsTxMode);
+  return GetCtsTxVector (to, rtsTxMode, channelWidth);
 }
 
 WifiTxVector
@@ -2078,7 +2083,7 @@ MacLow::SendCtsAfterRts (Mac48Address source, Time duration, WifiTxVector rtsTxV
   /* send a CTS when you receive a RTS
    * right after SIFS.
    */
-  WifiTxVector ctsTxVector = GetCtsTxVector (source, rtsTxVector.GetMode ());
+  WifiTxVector ctsTxVector = GetCtsTxVector (source, rtsTxVector.GetMode (), rtsTxVector.GetChannelWidth ());
   WifiMacHeader cts;
   cts.SetType (WIFI_MAC_CTL_CTS);
   cts.SetDsNotFrom ();

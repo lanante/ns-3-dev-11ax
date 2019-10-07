@@ -492,6 +492,24 @@ Txop::NotifyAccessGranted (void)
                     ", to=" << m_currentHdr.GetAddr1 () <<
                     ", seq=" << m_currentHdr.GetSequenceControl ());
     }
+  WifiTxVector txVector = m_stationManager->GetDataTxVector (m_currentHdr.GetAddr1 (), &m_currentHdr, m_currentPacket);
+  if (GetCw () == 0)
+    {
+      //This is the beacon TXOP: allowed to transmit beacons on the primary channel
+    }
+  if (txVector.GetChannelWidth () == 0)
+    {
+    if (GetCw () != 0)
+      {
+        NS_LOG_DEBUG ("Not allowed to transmit on bonded channel(s)");
+        m_cwTrace = GetCw ();
+        m_backoff = m_rng->GetInteger (0, GetCw ());
+        m_backoffTrace (m_backoff);
+        StartBackoffNow (m_backoff);
+        RestartAccessIfNeeded ();
+        return;
+      }
+    }
   if (m_currentHdr.GetAddr1 ().IsGroup ())
     {
       m_currentParams.DisableRts ();

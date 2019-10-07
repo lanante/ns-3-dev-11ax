@@ -132,6 +132,12 @@ public:
   uint64_t GetUid (void) const;
 
   /**
+   * Get the center frequency to transmit the PPDU.
+   * \return the center frequency to transmit the PPDU
+   */
+  uint16_t GetFrequency (void) const;
+
+  /**
    * \brief Print the PPDU contents.
    * \param os output stream in which the data should be printed.
    */

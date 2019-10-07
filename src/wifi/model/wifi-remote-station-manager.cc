@@ -542,9 +542,9 @@ WifiRemoteStationManager::PrepareForQueue (Mac48Address address, const WifiMacHe
 }
 
 WifiTxVector
-WifiRemoteStationManager::GetDataTxVector (Mac48Address address, const WifiMacHeader *header, Ptr<const Packet> packet)
+WifiRemoteStationManager::GetDataTxVector (Mac48Address address, const WifiMacHeader *header, Ptr<const Packet> packet, bool usePrimaryChannelOnly)
 {
-  NS_LOG_FUNCTION (this << address << *header << packet);
+  NS_LOG_FUNCTION (this << address << *header << packet << usePrimaryChannelOnly);
   if (!header->IsMgt () && address.IsGroup ())
     {
       WifiMode mode = GetNonUnicastMode ();
@@ -552,7 +552,16 @@ WifiRemoteStationManager::GetDataTxVector (Mac48Address address, const WifiMacHe
       v.SetMode (mode);
       v.SetPreambleType (GetPreambleForTransmission (mode.GetModulationClass (), GetShortPreambleEnabled (), UseGreenfieldForDestination (address)));
       v.SetTxPowerLevel (m_defaultTxPowerLevel);
-      v.SetChannelWidth (GetChannelWidthForTransmission (mode, m_wifiPhy->GetUsableChannelWidth ()));
+      uint16_t channelWidth;
+      if (usePrimaryChannelOnly)
+        {
+          channelWidth = (m_wifiPhy->GetChannelWidth () >= 40) ? 20 : m_wifiPhy->GetChannelWidth ();
+        }
+      else
+        {
+          channelWidth = m_wifiPhy->GetUsableChannelWidth ();
+        }
+      v.SetChannelWidth (channelWidth /*GetChannelWidthForTransmission (mode, m_wifiPhy->GetUsableChannelWidth ())*/);
       v.SetGuardInterval (ConvertGuardIntervalToNanoSeconds (mode, DynamicCast<WifiNetDevice> (m_wifiPhy->GetDevice ())));
       v.SetNTx (1);
       v.SetNss (1);
@@ -582,7 +591,16 @@ WifiRemoteStationManager::GetDataTxVector (Mac48Address address, const WifiMacHe
         }
       txVector.SetMode (mgtMode);
       txVector.SetPreambleType (GetPreambleForTransmission (mgtMode.GetModulationClass (), GetShortPreambleEnabled (), UseGreenfieldForDestination (address)));
-      txVector.SetChannelWidth (GetChannelWidthForTransmission (mgtMode, m_wifiPhy->GetUsableChannelWidth ()));
+      uint16_t channelWidth;
+      if (usePrimaryChannelOnly)
+        {
+          channelWidth = (m_wifiPhy->GetChannelWidth () >= 40) ? 20 : m_wifiPhy->GetChannelWidth ();
+        }
+      else
+        {
+          channelWidth = m_wifiPhy->GetUsableChannelWidth ();
+        }
+      txVector.SetChannelWidth (channelWidth /*GetChannelWidthForTransmission (mode, m_wifiPhy->GetUsableChannelWidth ())*/);
       txVector.SetGuardInterval (ConvertGuardIntervalToNanoSeconds (mgtMode, DynamicCast<WifiNetDevice> (m_wifiPhy->GetDevice ())));
     }
   else
@@ -811,7 +829,7 @@ WifiRemoteStationManager::NeedRts (const WifiMacHeader *header, Ptr<const Packet
 {
   NS_LOG_FUNCTION (this << *header << packet);
   Mac48Address address = header->GetAddr1 ();
-  WifiTxVector txVector = GetDataTxVector (address, header, packet);
+  WifiTxVector txVector = GetDataTxVector (address, header, packet, true);
   WifiMode mode = txVector.GetMode ();
   if (address.IsGroup ())
     {
@@ -1563,6 +1581,12 @@ Mac48Address
 WifiRemoteStationManager::GetAddress (const WifiRemoteStation *station) const
 {
   return station->m_state->m_address;
+}
+
+uint16_t
+WifiRemoteStationManager::GetChannelWidthSupported (const WifiRemoteStation *station) const
+{
+  return station->m_state->m_channelWidth;
 }
 
 uint16_t

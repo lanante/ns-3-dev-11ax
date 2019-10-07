@@ -1760,6 +1760,16 @@ protected:
   void Reset (void);
 
   /**
+   * Get the center frequency of the channel corresponding the current TxVector rather than
+   * that of the supported channel width.
+   * Consider that this "primary channel" is on the lower part for the time being.
+   *
+   * \param currentWidth the channel width (in MHz)
+   * \return the center frequency corresponding to the channel width to be used
+   */
+  uint16_t GetCenterFrequencyForChannelWidth (uint16_t currentWidth) const;
+
+  /**
    * The default implementation does nothing and returns true.  This method
    * is typically called internally by SetChannelNumber ().
    *

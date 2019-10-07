@@ -677,7 +677,7 @@ public:
    * \return the TXVECTOR to use to send this packet
    */
   WifiTxVector GetDataTxVector (Mac48Address address, const WifiMacHeader *header,
-                                Ptr<const Packet> packet);
+                                Ptr<const Packet> packet, bool usePrimaryChannelOnly = false);
   /**
    * \param address remote address
    * \param header MAC header
@@ -1024,13 +1024,21 @@ protected:
    */
   Mac48Address GetAddress (const WifiRemoteStation *station) const;
   /**
-   * Return the maximum channel width that can be used to transmit to a station.
+   * Return the maximum channel width that can be used to transmit to a station at the moment of the request.
    *
    * \param station the station being queried
    *
-   * \return the maximum channel width in MHz that can be used to transmit to a station
+   * \return the maximum channel width in MHz that can be used to transmit to a station at the moment of the request
    */
   uint16_t GetChannelWidth (const WifiRemoteStation *station) const;
+  /**
+   * Return the channel width supported by the station.
+   *
+   * \param address the address of the station
+   *
+   * \return the channel width supported by the station
+   */
+  uint16_t GetChannelWidthSupported (const WifiRemoteStation *station) const;
   /**
    * Return whether the given station supports HT/VHT short guard interval.
    *

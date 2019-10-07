@@ -450,25 +450,6 @@ SpectrumWifiPhy::GetTxPowerSpectralDensity (double txPowerW, Ptr<WifiPpdu> ppdu,
   return v;
 }
 
-uint16_t
-SpectrumWifiPhy::GetCenterFrequencyForChannelWidth (uint16_t currentWidth) const
-{
-  NS_LOG_FUNCTION (this << currentWidth);
-  uint16_t centerFrequencyForSupportedWidth = GetFrequency ();
-  uint16_t supportedWidth = GetChannelWidth ();
-  if (currentWidth != supportedWidth)
-    {
-      if (supportedWidth == 40)
-        {
-           return GetCenterFrequency (GetFrequency (), supportedWidth, currentWidth, GetSecondaryChannelOffset () == UPPER ? 0 : 1);
-        }
-      //TODO: 80 and 160 MHz
-      uint16_t startingFrequency = centerFrequencyForSupportedWidth - (supportedWidth / 2);
-      return startingFrequency + (currentWidth / 2); // primary channel is in the lower part (for the time being)
-    }
-  return centerFrequencyForSupportedWidth;
-}
-
 void
 SpectrumWifiPhy::StartTx (Ptr<WifiPpdu> ppdu, uint8_t txPowerLevel)
 {
@@ -598,6 +579,7 @@ SpectrumWifiPhy::GetGuardBandwidth (uint16_t currentChannelWidth) const
 WifiSpectrumBand
 SpectrumWifiPhy::GetBand (uint16_t bandWidth, uint8_t bandIndex)
 {
+  bandWidth = (bandWidth == 22) ? 20 : bandWidth;
   uint16_t channelWidth = GetChannelWidth ();
   uint32_t bandBandwidth = GetBandBandwidth ();
   size_t numBandsInChannel = static_cast<size_t> (channelWidth * 1e6 / bandBandwidth);
