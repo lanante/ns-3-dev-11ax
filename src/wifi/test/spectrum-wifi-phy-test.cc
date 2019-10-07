@@ -16,6 +16,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#include <algorithm>
 #include "ns3/test.h"
 #include "ns3/constant-position-mobility-model.h"
 #include "ns3/spectrum-wifi-helper.h"

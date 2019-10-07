@@ -18,6 +18,7 @@
  * Author: Sébastien Deronne <sebastien.deronne@gmail.com>
  */
 
+#include <algorithm>
 #include "ns3/log.h"
 #include "ns3/test.h"
 #include "ns3/uinteger.h"
