@@ -77,8 +77,8 @@ cpp_examples = [
     ("wifi-backward-compatibility --apVersion=80211a --staVersion=80211ac --simulationTime=1", "True", "False"),
     ("wifi-backward-compatibility --apVersion=80211a --staVersion=80211ac --apRaa=Ideal --staRaa=Ideal --simulationTime=1", "True", "False"),
     ("wifi-channel-bonding --channelBssA=36 --channelBssB=40 --useDynamicChannelBonding=false --verifyResults=1 --minExpectedThroughputBssA=59 --maxExpectedThroughputBssA=60 --minExpectedThroughputBssB=59 --maxExpectedThroughputBssB=60", "True", "False"),
-    ("wifi-channel-bonding --channelBssA=38 --channelBssB=40 --useDynamicChannelBonding=false --verifyResults=1 --minExpectedThroughputBssA=65 --maxExpectedThroughputBssA=66 --minExpectedThroughputBssB=28 --maxExpectedThroughputBssB=29", "True", "False"),
-    ("wifi-channel-bonding --channelBssA=38 --channelBssB=40 --useDynamicChannelBonding=true --verifyResults=1 --minExpectedThroughputBssA=62 --maxExpectedThroughputBssA=63 --minExpectedThroughputBssB=57 --maxExpectedThroughputBssB=58", "True", "False"),
+    ("wifi-channel-bonding --channelBssA=38 --channelBssB=40 --useDynamicChannelBonding=false --verifyResults=1 --minExpectedThroughputBssA=67 --maxExpectedThroughputBssA=68 --minExpectedThroughputBssB=26 --maxExpectedThroughputBssB=27", "True", "False"),
+    ("wifi-channel-bonding --channelBssA=38 --channelBssB=40 --useDynamicChannelBonding=true --verifyResults=1 --minExpectedThroughputBssA=59 --maxExpectedThroughputBssA=60 --minExpectedThroughputBssB=59 --maxExpectedThroughputBssB=60", "True", "False"),
     ("wifi-channel-bonding --channelBssA=38 --channelBssB=38 --useDynamicChannelBonding=false --verifyResults=1 --minExpectedThroughputBssA=64 --maxExpectedThroughputBssA=67 --minExpectedThroughputBssB=64 --maxExpectedThroughputBssB=67", "True", "False"),
 ]
 
