@@ -2981,41 +2981,6 @@ WifiPhy::StartReceiveHeader (Ptr<Event> event)
 
       WifiTxVector txVector = m_currentEvent->GetTxVector ();
 
-      uint8_t nss = txVector.GetNssMax();
-      if (txVector.GetPreambleType () == WIFI_PREAMBLE_HE_MU)
-        {
-          uint16_t staId = GetStaId (m_currentEvent->GetPpdu ());
-          for (auto info : txVector.GetHeMuUserInfoMap ())
-            {
-              if (info.first == staId)
-                {
-                  nss = info.second.nss; //no need to look at other PSDUs
-                  break;
-                }
-            }
-        }
-      if (nss > GetMaxSupportedRxSpatialStreams ())
-        {
-          NS_LOG_DEBUG ("Packet reception could not be started because not enough RX antennas");
-          NotifyRxDrop (GetAddressedPsduInPpdu (m_currentEvent->GetPpdu ()), UNSUPPORTED_SETTINGS);
-          m_interference.NotifyRxEnd (Simulator::Now ());
-          m_currentEvent = 0;
-          m_currentPreambleEvents.clear ();
-          MaybeCcaBusyDuration ();
-          return;
-        }
-
-      if ((txVector.GetChannelWidth () >= 40) && (txVector.GetChannelWidth () > GetChannelWidth ()))
-        {
-          NS_LOG_DEBUG ("Packet reception could not be started because not enough channel width");
-          NotifyRxDrop (GetAddressedPsduInPpdu (m_currentEvent->GetPpdu ()), UNSUPPORTED_SETTINGS);
-          m_interference.NotifyRxEnd (Simulator::Now ());
-          m_currentEvent = 0;
-          m_currentPreambleEvents.clear ();
-          MaybeCcaBusyDuration ();
-          return;
-        }
-
       if (txVector.GetPreambleType () == WIFI_PREAMBLE_HT_GF)
         {
           //No legacy PHY header for HT GF
@@ -3372,7 +3337,38 @@ WifiPhy::StartReceivePayload (Ptr<Event> event)
           uint16_t staId = GetStaId (ppdu);
           WifiTxVector txVector = event->GetTxVector ();
           WifiMode txMode = txVector.GetMode (staId);
-          if (IsModeSupported (txMode) || IsMcsSupported (txMode))
+          uint8_t nss = txVector.GetNssMax();
+          if (txVector.GetPreambleType () == WIFI_PREAMBLE_HE_MU)
+            {
+              uint16_t staId = GetStaId (m_currentEvent->GetPpdu ());
+              for (auto info : txVector.GetHeMuUserInfoMap ())
+                {
+                  if (info.first == staId)
+                    {
+                      nss = info.second.nss; //no need to look at other PSDUs
+                      break;
+                    }
+                }
+            }
+          if (nss > GetMaxSupportedRxSpatialStreams ())
+            {
+              NS_LOG_DEBUG ("Packet reception could not be started because not enough RX antennas");
+              AbortCurrentReception (UNSUPPORTED_SETTINGS);
+              MaybeCcaBusyDuration ();
+            }
+          else if ((txVector.GetChannelWidth () >= 40) && (txVector.GetChannelWidth () > GetChannelWidth ()))
+            {
+              NS_LOG_DEBUG ("Packet reception could not be started because not enough channel width");
+              AbortCurrentReception (UNSUPPORTED_SETTINGS);
+              MaybeCcaBusyDuration ();
+            }
+          else if (!IsModeSupported (txMode) && !IsMcsSupported (txMode))
+            {
+              NS_LOG_DEBUG ("Drop packet because it was sent using an unsupported mode (" << txMode << ")");
+              AbortCurrentReception (UNSUPPORTED_SETTINGS);
+              MaybeCcaBusyDuration ();
+            }
+          else
             {
               NS_LOG_DEBUG ("Receiving PSDU");
               m_signalNoiseMap.insert ({std::make_pair (ppdu->GetUid (), staId), SignalNoiseDbm ()});
@@ -3392,14 +3388,6 @@ WifiPhy::StartReceivePayload (Ptr<Event> event)
                 {
                   m_endRxEvents.push_back (Simulator::Schedule (payloadDuration, &WifiPhy::EndReceive, this, event));
                 }
-            }
-          else //mode is not allowed
-            {
-              NS_LOG_DEBUG ("Drop packet because it was sent using an unsupported mode (" << txMode << ")");
-              NotifyRxDrop (GetAddressedPsduInPpdu (event->GetPpdu ()), UNSUPPORTED_SETTINGS);
-              m_interference.NotifyRxEnd (m_currentEvent->GetEndTime ());
-              m_currentEvent = 0;
-              m_currentPreambleEvents.clear ();
             }
         }
       else
@@ -4994,7 +4982,6 @@ WifiPhy::SwitchMaybeToCcaBusy (void)
           m_state->SwitchMaybeToCcaBusy (delayUntilCcaEnd, true);
         }
     }
-
 }
 
 void
