@@ -28,6 +28,7 @@
 #include "wifi-phy-state.h"
 #include "wifi-preamble.h"
 #include "wifi-ppdu.h"
+#include "ns3/wifi-spectrum-value-helper.h"
 
 namespace ns3 {
 
@@ -72,6 +73,7 @@ public:
   static TypeId GetTypeId (void);
 
   WifiPhyStateHelper ();
+  virtual ~WifiPhyStateHelper ();
 
   /**
    * Set a callback for a successful reception.
@@ -102,25 +104,19 @@ public:
    *
    * \return the current state of WifiPhy
    */
-  WifiPhyState GetState (void) const;
-  /**
-   * Check whether the secondary channel is determined busy.
-   *
-   * \return true if the secondary channel is determined busy, false otherwise
-   */
-  bool IsSecondaryChannelIdle (void) const;
+  WifiPhyState GetState (WifiSpectrumBand band = WifiSpectrumBand ()) const;
   /**
    * Check whether the current state is CCA busy.
    *
    * \return true if the current state is CCA busy, false otherwise
    */
-  bool IsStateCcaBusy (void) const;
+  bool IsStateCcaBusy (WifiSpectrumBand band) const;
   /**
    * Check whether the current state is IDLE.
    *
    * \return true if the current state is IDLE, false otherwise
    */
-  bool IsStateIdle (void) const;
+  bool IsStateIdle (WifiSpectrumBand band) const;
   /**
    * Check whether the current state is RX.
    *
@@ -156,13 +152,13 @@ public:
    *
    * \return the delay before the state is back to IDLE
    */
-  Time GetDelayUntilIdle (void) const;
+  Time GetDelayUntilIdle (WifiSpectrumBand band) const;
   /**
    * Return the time since the secondary channel is determined idle.
    *
    * \return the delay since the secondary channel is determined idle
    */
-  Time GetDelaySinceSecondaryIsIdle (void) const;
+  Time GetDelaySinceIdle (WifiSpectrumBand band) const;
   /**
    * Return the time the last RX start.
    *
@@ -178,19 +174,20 @@ public:
    * \param txPowerDbm the nominal tx power in dBm
    * \param txVector the tx vector for the transmission
    */
-  void SwitchToTx (Time txDuration, WifiPsduMap psdus, double txPowerDbm, WifiTxVector txVector);
+  void SwitchToTx (Time txDuration, WifiPsduMap psdus, double txPowerDbm, WifiTxVector txVector, WifiSpectrumBand primaryBand);
   /**
    * Switch state to RX for the given duration.
    *
    * \param rxDuration the duration of the RX
    */
-  void SwitchToRx (Time rxDuration);
+  void SwitchToRx (Time rxDuration, WifiSpectrumBand primaryBand);
   /**
    * Switch state to channel switching for the given duration.
    *
    * \param switchingDuration the duration of required to switch the channel
+   * \param primaryBand identifies the primary channel
    */
-  void SwitchToChannelSwitching (Time switchingDuration);
+  void SwitchToChannelSwitching (Time switchingDuration, WifiSpectrumBand primaryBand);
   /**
    * Continue RX after the reception of an MPDU in an A-MPDU was successful.
    *
@@ -221,13 +218,16 @@ public:
    * Switch to CCA busy.
    *
    * \param duration the duration of CCA busy state
-   * \param secondaryChannel whether only the secondary channel is switching to CCA busy state
+   * \param band the band for which the CCA busy state is triggered
+   * \param isPrimaryChannel flag whether the band corresponds to the primary channel
    */
-  void SwitchMaybeToCcaBusy (Time duration, bool secondaryChannel = false);
+  void SwitchMaybeToCcaBusy (Time duration, WifiSpectrumBand band, bool isPrimaryChannel);
   /**
    * Switch to sleep mode.
+   * 
+   * \param primaryBand identifies the primary channel
    */
-  void SwitchToSleep (void);
+  void SwitchToSleep (WifiSpectrumBand primaryBand);
   /**
    * Switch from sleep mode.
    *
@@ -242,8 +242,10 @@ public:
   void SwitchFromRxAbort (bool failure);
   /**
    * Switch to off mode.
+   * 
+   * \param primaryBand identifies the primary channel
    */
-  void SwitchToOff (void);
+  void SwitchToOff (WifiSpectrumBand primaryBand);
   /**
    * Switch from off mode.
    *
@@ -291,6 +293,12 @@ public:
                                     WifiPreamble preamble, uint8_t power);
 
 
+protected:
+  // Inherited
+  virtual void DoInitialize (void);
+  virtual void DoDispose (void);
+
+
 private:
   /**
    * typedef for a list of WifiPhyListeners
@@ -303,8 +311,10 @@ private:
 
   /**
    * Log the ideal and CCA states.
+   * 
+   * \param primaryBand identifies the primary channel
    */
-  void LogPreviousIdleAndCcaBusyStates (void);
+  void LogPreviousIdleAndCcaBusyStates (WifiSpectrumBand primaryBand);
 
   /**
    * Notify all WifiPhyListener that the transmission has started for the given duration.
@@ -370,15 +380,15 @@ private:
   bool m_isOff; ///< switched off
   Time m_endTx; ///< end transmit
   Time m_endRx; ///< end receive
-  Time m_endCcaBusy; ///< end CCA busy
-  Time m_endSecondaryBusy; ///< end secondary channel busy
   Time m_endSwitching; ///< end switching
   Time m_startTx; ///< start transmit
   Time m_startRx; ///< start receive
-  Time m_startCcaBusy; ///< start CCA busy
   Time m_startSwitching; ///< start switching
   Time m_startSleep; ///< start sleep
   Time m_previousStateChangeTime; ///< previous state change time
+
+  std::map<WifiSpectrumBand, Time> m_startCcaBusy; ///< start CCA busy per channel
+  std::map<WifiSpectrumBand, Time> m_endCcaBusy; ///< end CCA busy per channel
 
   Listeners m_listeners; ///< listeners
   TracedCallback<Ptr<const Packet>, double, WifiMode, WifiPreamble> m_rxOkTrace; ///< receive OK trace callback

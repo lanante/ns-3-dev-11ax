@@ -330,14 +330,14 @@ SpectrumWifiPhy::StartRx (Ptr<SpectrumSignalParameters> rxParams)
     {
       NS_LOG_INFO ("Received non Wi-Fi signal");
       m_interference.AddForeignSignal (rxDuration, rxPowerW);
-      SwitchMaybeToCcaBusy ();
+      MaybeCcaBusy ();
       return;
     }
   if (wifiRxParams && m_disableWifiReception)
     {
       NS_LOG_INFO ("Received Wi-Fi signal but blocked from syncing");
       m_interference.AddForeignSignal (rxDuration, rxPowerW);
-      SwitchMaybeToCcaBusy ();
+      MaybeCcaBusy ();
       return;
     }
 

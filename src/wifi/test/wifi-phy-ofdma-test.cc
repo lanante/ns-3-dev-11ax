@@ -522,11 +522,7 @@ TestDlOfdmaPhyTransmission::CheckPhyState (Ptr<OfdmaSpectrumWifiPhy> phy, WifiPh
 void
 TestDlOfdmaPhyTransmission::DoCheckPhyState (Ptr<OfdmaSpectrumWifiPhy> phy, WifiPhyState expectedState)
 {
-  WifiPhyState currentState;
-  PointerValue ptr;
-  phy->GetAttribute ("State", ptr);
-  Ptr <WifiPhyStateHelper> state = DynamicCast <WifiPhyStateHelper> (ptr.Get<WifiPhyStateHelper> ());
-  currentState = state->GetState ();
+  WifiPhyState currentState = phy->GetPhyState ();
   NS_LOG_FUNCTION (this << currentState);
   NS_TEST_ASSERT_MSG_EQ (currentState, expectedState, "PHY State " << currentState << " does not match expected state " << expectedState << " at " << Simulator::Now ());
 }
@@ -1780,11 +1776,7 @@ TestUlOfdmaPhyTransmission::CheckPhyState (Ptr<OfdmaSpectrumWifiPhy> phy, WifiPh
 void
 TestUlOfdmaPhyTransmission::DoCheckPhyState (Ptr<OfdmaSpectrumWifiPhy> phy, WifiPhyState expectedState)
 {
-  WifiPhyState currentState;
-  PointerValue ptr;
-  phy->GetAttribute ("State", ptr);
-  Ptr <WifiPhyStateHelper> state = DynamicCast <WifiPhyStateHelper> (ptr.Get<WifiPhyStateHelper> ());
-  currentState = state->GetState ();
+  WifiPhyState currentState = phy->GetPhyState ();
   NS_LOG_FUNCTION (this << currentState);
   NS_TEST_ASSERT_MSG_EQ (currentState, expectedState, "PHY State " << currentState << " does not match expected state " << expectedState << " at " << Simulator::Now ());
 }
