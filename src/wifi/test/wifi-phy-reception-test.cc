@@ -22,18 +22,17 @@
 #include "ns3/test.h"
 #include "ns3/double.h"
 #include "ns3/pointer.h"
+#include "ns3/simulator.h"
+#include "ns3/packet.h"
 #include "ns3/rng-seed-manager.h"
-#include "ns3/spectrum-wifi-helper.h"
 #include "ns3/wifi-spectrum-value-helper.h"
 #include "ns3/spectrum-wifi-phy.h"
 #include "ns3/nist-error-rate-model.h"
 #include "ns3/wifi-mac-header.h"
-#include "ns3/ampdu-tag.h"
 #include "ns3/wifi-spectrum-signal-parameters.h"
 #include "ns3/wifi-utils.h"
 #include "ns3/threshold-preamble-detection-model.h"
 #include "ns3/simple-frame-capture-model.h"
-#include "ns3/wifi-psdu.h"
 #include "ns3/wifi-mac-queue-item.h"
 #include "ns3/mpdu-aggregator.h"
 #include "ns3/wifi-psdu.h"
@@ -149,11 +148,7 @@ TestThresholdPreambleDetectionWithoutFrameCapture::CheckPhyState (WifiPhyState e
 void
 TestThresholdPreambleDetectionWithoutFrameCapture::DoCheckPhyState (WifiPhyState expectedState)
 {
-  WifiPhyState currentState;
-  PointerValue ptr;
-  m_phy->GetAttribute ("State", ptr);
-  Ptr <WifiPhyStateHelper> state = DynamicCast <WifiPhyStateHelper> (ptr.Get<WifiPhyStateHelper> ());
-  currentState = state->GetState ();
+  WifiPhyState currentState = m_phy->GetPhyState ();
   NS_LOG_FUNCTION (this << currentState);
   NS_TEST_ASSERT_MSG_EQ (currentState, expectedState, "PHY State " << currentState << " does not match expected state " << expectedState << " at " << Simulator::Now ());
 }
@@ -487,11 +482,7 @@ TestThresholdPreambleDetectionWithFrameCapture::CheckPhyState (WifiPhyState expe
 void
 TestThresholdPreambleDetectionWithFrameCapture::DoCheckPhyState (WifiPhyState expectedState)
 {
-  WifiPhyState currentState;
-  PointerValue ptr;
-  m_phy->GetAttribute ("State", ptr);
-  Ptr <WifiPhyStateHelper> state = DynamicCast <WifiPhyStateHelper> (ptr.Get<WifiPhyStateHelper> ());
-  currentState = state->GetState ();
+  WifiPhyState currentState = m_phy->GetPhyState ();
   NS_LOG_FUNCTION (this << currentState);
   NS_TEST_ASSERT_MSG_EQ (currentState, expectedState, "PHY State " << currentState << " does not match expected state " << expectedState << " at " << Simulator::Now ());
 }
@@ -1057,11 +1048,7 @@ TestPhyHeadersReception::CheckPhyState (WifiPhyState expectedState)
 void
 TestPhyHeadersReception::DoCheckPhyState (WifiPhyState expectedState)
 {
-  WifiPhyState currentState;
-  PointerValue ptr;
-  m_phy->GetAttribute ("State", ptr);
-  Ptr <WifiPhyStateHelper> state = DynamicCast <WifiPhyStateHelper> (ptr.Get<WifiPhyStateHelper> ());
-  currentState = state->GetState ();
+  WifiPhyState currentState = m_phy->GetPhyState ();
   NS_LOG_FUNCTION (this << currentState);
   NS_TEST_ASSERT_MSG_EQ (currentState, expectedState, "PHY State " << currentState << " does not match expected state " << expectedState << " at " << Simulator::Now ());
 }

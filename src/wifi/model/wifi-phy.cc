@@ -453,6 +453,7 @@ WifiPhy::DoDispose (void)
   m_endPreambleDetectionEvents.clear ();
   m_device = 0;
   m_mobility = 0;
+  m_state->Dispose ();
   m_state = 0;
   m_wifiRadioEnergyModel = 0;
   m_postReceptionErrorModel = 0;
@@ -467,6 +468,7 @@ WifiPhy::DoInitialize (void)
 {
   NS_LOG_FUNCTION (this);
   m_isConstructed = true;
+  m_state->Initialize ();
   if (m_frequencyChannelNumberInitialized == true)
     {
       NS_LOG_DEBUG ("Frequency already initialized");
@@ -1718,7 +1720,9 @@ WifiPhy::DoChannelSwitch (uint8_t nch)
 switchChannel:
 
   NS_LOG_DEBUG ("switching channel " << +GetChannelNumber () << " -> " << +nch);
-  m_state->SwitchToChannelSwitching (GetChannelSwitchDelay ());
+  uint16_t primaryChannelWidth = GetChannelWidth () >= 40 ? 20 : GetChannelWidth ();
+  auto primaryBand = GetBand (primaryChannelWidth, GetSecondaryChannelOffset () == UPPER ? 0 : 1);
+  m_state->SwitchToChannelSwitching (GetChannelSwitchDelay (), primaryBand);
   m_interference.EraseEvents ();
   /*
    * Needed here to be able to correctly sensed the medium for the first
@@ -1793,7 +1797,9 @@ WifiPhy::DoFrequencySwitch (uint16_t frequency)
 switchFrequency:
 
   NS_LOG_DEBUG ("switching frequency " << GetFrequency () << " -> " << frequency);
-  m_state->SwitchToChannelSwitching (GetChannelSwitchDelay ());
+  uint16_t primaryChannelWidth = GetChannelWidth () >= 40 ? 20 : GetChannelWidth ();
+  auto primaryBand = GetBand (primaryChannelWidth, GetSecondaryChannelOffset () == UPPER ? 0 : 1);
+  m_state->SwitchToChannelSwitching (GetChannelSwitchDelay (), primaryBand);
   m_interference.EraseEvents ();
   /*
    * Needed here to be able to correctly sensed the medium for the first
@@ -1827,9 +1833,13 @@ WifiPhy::SetSleepMode (void)
       break;
     case WifiPhyState::CCA_BUSY:
     case WifiPhyState::IDLE:
+    {
       NS_LOG_DEBUG ("setting sleep mode");
-      m_state->SwitchToSleep ();
+      uint16_t primaryChannelWidth = GetChannelWidth () >= 40 ? 20 : GetChannelWidth ();
+      auto primaryBand = GetBand (primaryChannelWidth, GetSecondaryChannelOffset () == UPPER ? 0 : 1);
+      m_state->SwitchToSleep (primaryBand);
       break;
+    }
     case WifiPhyState::SLEEP:
       NS_LOG_DEBUG ("already in sleep mode");
       break;
@@ -1856,7 +1866,9 @@ WifiPhy::SetOffMode (void)
       endPreambleDetectionEvent.Cancel ();
     }
   m_endPreambleDetectionEvents.clear ();
-  m_state->SwitchToOff ();
+  uint16_t primaryChannelWidth = GetChannelWidth () >= 40 ? 20 : GetChannelWidth ();
+  auto primaryBand = GetBand (primaryChannelWidth, GetSecondaryChannelOffset () == UPPER ? 0 : 1);
+  m_state->SwitchToOff (primaryBand);
 }
 
 void
@@ -2811,14 +2823,14 @@ WifiPhy::Send (WifiPsduMap psdus, WifiTxVector txVector)
    *    prevent it.
    *  - we are idle
    */
-  NS_ASSERT (!m_state->IsStateTx () && !m_state->IsStateSwitching ());
+  NS_ASSERT (!IsStateTx () && !IsStateSwitching ());
 
   if (txVector.GetNssMax () > GetMaxSupportedTxSpatialStreams ())
     {
       NS_FATAL_ERROR ("Unsupported number of spatial streams!");
     }
 
-  if (m_state->IsStateSleep ())
+  if (IsStateSleep ())
     {
       NS_LOG_DEBUG ("Dropping packet because in sleep mode");
       for (auto const& psdu : psdus)
@@ -2841,7 +2853,7 @@ WifiPhy::Send (WifiPsduMap psdus, WifiTxVector txVector)
 
   if (!m_endPreambleDetectionEvents.empty () || m_currentEvent != 0)
     {
-      MaybeCcaBusyDuration (); //needed to keep busy state afterwards
+      MaybeCcaBusy (); //needed to keep busy state afterwards
     }
 
   for (auto & endPreambleDetectionEvent : m_endPreambleDetectionEvents)
@@ -2858,7 +2870,7 @@ WifiPhy::Send (WifiPsduMap psdus, WifiTxVector txVector)
       endRxEvent.Cancel ();
     }
   m_endRxEvents.clear ();
-  if (m_state->IsStateRx ())
+  if (IsStateRx ())
     {
       m_interference.NotifyRxEnd (Simulator::Now ());
     }
@@ -2876,9 +2888,11 @@ WifiPhy::Send (WifiPsduMap psdus, WifiTxVector txVector)
 
   NotifyTxBegin (psdus, DbmToW (GetTxPowerForTransmission (txVector) + GetTxGain ()));
   NotifyMonitorSniffTx (psdus.begin ()->second, GetFrequency (), txVector); //TODO: fix for MU
-  m_state->SwitchToTx (txDuration, psdus, GetPowerDbm (txVector.GetTxPowerLevel ()), txVector);
+  uint16_t primaryChannelWidth = GetChannelWidth () >= 40 ? 20 : GetChannelWidth ();
+  auto primaryBand = GetBand (primaryChannelWidth, GetSecondaryChannelOffset () == UPPER ? 0 : 1);
+  m_state->SwitchToTx (txDuration, psdus, GetPowerDbm (txVector.GetTxPowerLevel ()), txVector, primaryBand);
 
-  if (m_state->GetState () == WifiPhyState::OFF)
+  if (IsStateOff ())
     {
       NS_LOG_DEBUG ("Transmission canceled because device is OFF");
       return;
@@ -2994,7 +3008,9 @@ WifiPhy::StartReceiveHeader (Ptr<Event> event)
             }
         }
   
-      m_state->SwitchToRx (headerPayloadDuration);
+      uint16_t primaryChannelWidth = GetChannelWidth () >= 40 ? 20 : GetChannelWidth ();
+      auto primaryBand = GetBand (primaryChannelWidth, GetSecondaryChannelOffset () == UPPER ? 0 : 1);
+      m_state->SwitchToRx (headerPayloadDuration, primaryBand);
       NotifyRxBegin (GetAddressedPsduInPpdu (m_currentEvent->GetPpdu ()), m_currentEvent->GetRxPowerWPerBand ());
 
       m_timeLastPreambleDetected = Simulator::Now ();
@@ -3035,7 +3051,7 @@ WifiPhy::StartReceiveHeader (Ptr<Event> event)
     }
   // Like CCA-SD, CCA-ED is governed by the 4μs CCA window to flag CCA-BUSY
   // for any received signal greater than the CCA-ED threshold.
-  MaybeCcaBusyDuration ();
+  MaybeCcaBusy ();
 }
 
 void
@@ -3069,6 +3085,7 @@ WifiPhy::ContinueReceiveHeader (Ptr<Event> event)
       NS_LOG_DEBUG ("Abort reception because legacy PHY header reception failed");
       AbortCurrentReception (L_SIG_FAILURE);
       m_currentPreambleEvents.clear ();
+      MaybeCcaBusy ();
     }
 }
 
@@ -3149,7 +3166,7 @@ WifiPhy::StartReceivePreamble (Ptr<WifiPpdu> ppdu, RxPowerWattPerChannelBand rxP
         {
           NS_LOG_INFO ("Received signal in primary channel too weak to process: " << WToDbm (rxPowerPrimaryChannelW) << " dBm");
           //TODO: drop packet?
-          MaybeCcaBusyDuration (); //secondary channel shall maybe switch to CCA_BUSY
+          MaybeCcaBusy (); //secondary channel shall maybe switch to CCA_BUSY
           for (auto it = m_currentPreambleEvents.begin (); it != m_currentPreambleEvents.end (); ++it)
           {
             if (it->second == event)
@@ -3165,7 +3182,7 @@ WifiPhy::StartReceivePreamble (Ptr<WifiPpdu> ppdu, RxPowerWattPerChannelBand rxP
           //TODO: extend to 80 and 160 MHz
           NS_LOG_INFO ("Received 20 MHz PPDU in the secondary 20 MHz channel: do not proceed with reception");
           //TODO: drop packet?
-          MaybeCcaBusyDuration (); //secondary channel shall maybe switch to CCA_BUSY
+          MaybeCcaBusy (); //secondary channel shall maybe switch to CCA_BUSY
           for (auto it = m_currentPreambleEvents.begin (); it != m_currentPreambleEvents.end (); ++it)
           {
             if (it->second == event)
@@ -3204,10 +3221,10 @@ WifiPhy::StartReceivePreamble (Ptr<WifiPpdu> ppdu, RxPowerWattPerChannelBand rxP
        * busy due to other devices' tramissions started before the end of
        * the switching.
        */
-      if (endRx > Simulator::Now () + m_state->GetDelayUntilIdle ())
+      if (endRx > Simulator::Now () + GetDelayUntilIdle ())
         {
           //that packet will be noise _after_ the completion of the channel switching.
-          MaybeCcaBusyDuration ();
+          MaybeCcaBusy ();
           return;
         }
       break;
@@ -3234,10 +3251,10 @@ WifiPhy::StartReceivePreamble (Ptr<WifiPpdu> ppdu, RxPowerWattPerChannelBand rxP
                */
               m_currentPreambleEvents.clear ();
             }
-          if (endRx > Simulator::Now () + m_state->GetDelayUntilIdle ())
+          if (endRx > Simulator::Now () + GetDelayUntilIdle ())
             {
               //that packet will be noise _after_ the reception of the currently-received packet.
-              MaybeCcaBusyDuration ();
+              MaybeCcaBusy ();
               return;
             }
         }
@@ -3245,10 +3262,10 @@ WifiPhy::StartReceivePreamble (Ptr<WifiPpdu> ppdu, RxPowerWattPerChannelBand rxP
     case WifiPhyState::TX:
       NS_LOG_DEBUG ("Drop packet because already in Tx");
       NotifyRxDrop (GetAddressedPsduInPpdu (ppdu), NOT_ALLOWED);
-      if (endRx > Simulator::Now () + m_state->GetDelayUntilIdle ())
+      if (endRx > Simulator::Now () + GetDelayUntilIdle ())
         {
           //that packet will be noise _after_ the transmission of the currently-transmitted packet.
-          MaybeCcaBusyDuration ();
+          MaybeCcaBusy ();
           return;
         }
       break;
@@ -3266,26 +3283,36 @@ WifiPhy::StartReceivePreamble (Ptr<WifiPpdu> ppdu, RxPowerWattPerChannelBand rxP
     }
 }
 
+Time
+WifiPhy::GetDelayUntilCcaEnd (double ccaThreshold, WifiSpectrumBand band)
+{
+  return m_interference.GetEnergyDuration (ccaThreshold, band);
+}
+
 void
-WifiPhy::MaybeCcaBusyDuration ()
+WifiPhy::MaybeCcaBusy ()
 {
   //We are here because we have received the first bit of a packet and we are
   //not going to be able to synchronize on it
   //In this model, CCA becomes busy when the aggregation of all signals as
   //tracked by the InterferenceHelper class is higher than the CcaBusyThreshold
   uint16_t primaryChannelWidth = GetChannelWidth () >= 40 ? 20 : GetChannelWidth ();
-  Time delayUntilCcaEnd = m_interference.GetEnergyDuration (m_ccaEdThresholdW, GetBand (primaryChannelWidth, GetSecondaryChannelOffset () == UPPER ? 0 : 1));
+  auto primaryBand = GetBand (primaryChannelWidth, GetSecondaryChannelOffset () == UPPER ? 0 : 1);
+  Time delayUntilCcaEnd = GetDelayUntilCcaEnd (m_ccaEdThresholdW, primaryBand);
   if (!delayUntilCcaEnd.IsZero ())
     {
-      m_state->SwitchMaybeToCcaBusy (delayUntilCcaEnd, false);
+      NS_LOG_DEBUG ("Calling SwitchMaybeToCcaBusy for the primary channel for " << delayUntilCcaEnd.As (Time::S));
+      m_state->SwitchMaybeToCcaBusy (delayUntilCcaEnd, primaryBand, true);
     }
   if (GetChannelWidth () >= 40)
     {
       uint16_t secondaryChannelWidth = primaryChannelWidth;
-      delayUntilCcaEnd = m_interference.GetEnergyDuration (m_ccaEdThresholdSecondaryW, GetBand (secondaryChannelWidth, GetSecondaryChannelOffset () == UPPER ? 1 : 0));
+      auto secondaryBand = GetBand (secondaryChannelWidth, GetSecondaryChannelOffset () == UPPER ? 1 : 0);
+      delayUntilCcaEnd = GetDelayUntilCcaEnd (m_ccaEdThresholdSecondaryW, secondaryBand);
       if (!delayUntilCcaEnd.IsZero ())
         {
-          m_state->SwitchMaybeToCcaBusy (delayUntilCcaEnd, true);
+          NS_LOG_DEBUG ("Calling SwitchMaybeToCcaBusy for the secondary channel for " << delayUntilCcaEnd.As (Time::S));
+          m_state->SwitchMaybeToCcaBusy (delayUntilCcaEnd, secondaryBand, false);
         }
     }
 }
@@ -3391,19 +3418,19 @@ WifiPhy::StartReceivePayload (Ptr<Event> event)
             {
               NS_LOG_DEBUG ("Packet reception could not be started because not enough RX antennas");
               AbortCurrentReception (UNSUPPORTED_SETTINGS);
-              MaybeCcaBusyDuration ();
+              MaybeCcaBusy ();
             }
           else if ((txVector.GetChannelWidth () >= 40) && (txVector.GetChannelWidth () > GetChannelWidth ()))
             {
               NS_LOG_DEBUG ("Packet reception could not be started because not enough channel width");
               AbortCurrentReception (UNSUPPORTED_SETTINGS);
-              MaybeCcaBusyDuration ();
+              MaybeCcaBusy ();
             }
           else if (!IsModeSupported (txMode) && !IsMcsSupported (txMode))
             {
               NS_LOG_DEBUG ("Drop packet because it was sent using an unsupported mode (" << txMode << ")");
               AbortCurrentReception (UNSUPPORTED_SETTINGS);
-              MaybeCcaBusyDuration ();
+              MaybeCcaBusy ();
             }
           else
             {
@@ -3663,7 +3690,7 @@ if (std::count(statusPerMpduIt->second.begin (), statusPerMpduIt->second.end (),
         }
       m_endOfMpduEvents.clear ();
     }
-  MaybeCcaBusyDuration ();
+  MaybeCcaBusy ();
 }
 
 std::pair<bool, SignalNoiseDbm>
@@ -4936,15 +4963,19 @@ WifiPhy::GetHeMcs (uint8_t mcs)
 }
 
 bool
-WifiPhy::IsStateCcaBusy (void) const
+WifiPhy::IsStateCcaBusy (void)
 {
-  return m_state->IsStateCcaBusy ();
+  uint16_t primaryChannelWidth = GetChannelWidth () >= 40 ? 20 : GetChannelWidth ();
+  auto primaryBand = GetBand (primaryChannelWidth, GetSecondaryChannelOffset () == UPPER ? 0 : 1);
+  return m_state->IsStateCcaBusy (primaryBand);
 }
 
 bool
-WifiPhy::IsStateIdle (void) const
+WifiPhy::IsStateIdle (void)
 {
-  return m_state->IsStateIdle ();
+  uint16_t primaryChannelWidth = GetChannelWidth () >= 40 ? 20 : GetChannelWidth ();
+  auto primaryBand = GetBand (primaryChannelWidth, GetSecondaryChannelOffset () == UPPER ? 0 : 1);
+  return m_state->IsStateIdle (primaryBand);
 }
 
 bool
@@ -4978,9 +5009,11 @@ WifiPhy::IsStateOff (void) const
 }
 
 Time
-WifiPhy::GetDelayUntilIdle (void) const
+WifiPhy::GetDelayUntilIdle (void)
 {
-  return m_state->GetDelayUntilIdle ();
+  uint16_t primaryChannelWidth = GetChannelWidth () >= 40 ? 20 : GetChannelWidth ();
+  auto primaryBand = GetBand (primaryChannelWidth, GetSecondaryChannelOffset () == UPPER ? 0 : 1);
+  return m_state->GetDelayUntilIdle (primaryBand);
 }
 
 Time
@@ -4990,35 +5023,25 @@ WifiPhy::GetLastRxStartTime (void) const
 }
 
 Time
-WifiPhy::GetDelaySinceSecondaryIsIdle (void) const
+WifiPhy::GetDelaySinceSecondaryIsIdle (void)
 {
-  return m_state->GetDelaySinceSecondaryIsIdle ();
+  auto secondaryBand = GetBand (20, GetSecondaryChannelOffset () == UPPER ? 1 : 0);
+  return m_state->GetDelaySinceIdle (secondaryBand);
 }
 
-void
-WifiPhy::SwitchMaybeToCcaBusy (void)
+bool
+WifiPhy::IsSecondaryStateIdle (void)
 {
-  //We are here because we have received the first bit of a packet and we are
-  //not going to be able to synchronize on it
-  //In this model, CCA becomes busy when the aggregation of all signals as
-  //tracked by the InterferenceHelper class is higher than the CcaBusyThreshold
+  auto secondaryBand = GetBand (20, GetSecondaryChannelOffset () == UPPER ? 1 : 0);
+  return m_state->IsStateIdle (secondaryBand);
+}
+
+WifiPhyState
+WifiPhy::GetPhyState (void)
+{
   uint16_t primaryChannelWidth = GetChannelWidth () >= 40 ? 20 : GetChannelWidth ();
-  Time delayUntilCcaEnd = m_interference.GetEnergyDuration (m_ccaEdThresholdW, GetBand (primaryChannelWidth, GetSecondaryChannelOffset () == UPPER ? 0 : 1));
-  if (!delayUntilCcaEnd.IsZero ())
-    {
-      NS_LOG_DEBUG ("Calling SwitchMaybeToCcaBusy for the primary channel for " << delayUntilCcaEnd.As (Time::S));
-      m_state->SwitchMaybeToCcaBusy (delayUntilCcaEnd, false);
-    }
-  if (GetChannelWidth () >= 40)
-    {
-      uint16_t secondaryChannelWidth = primaryChannelWidth;
-      delayUntilCcaEnd = m_interference.GetEnergyDuration (m_ccaEdThresholdSecondaryW, GetBand (secondaryChannelWidth, GetSecondaryChannelOffset () == UPPER ? 1 : 0));
-      if (!delayUntilCcaEnd.IsZero ())
-        {
-          NS_LOG_DEBUG ("Calling SwitchMaybeToCcaBusy for the secondary channel for " << delayUntilCcaEnd.As (Time::S));
-          m_state->SwitchMaybeToCcaBusy (delayUntilCcaEnd, true);
-        }
-    }
+  auto primaryBand = GetBand (primaryChannelWidth, GetSecondaryChannelOffset () == UPPER ? 0 : 1);
+  return m_state->GetState (primaryBand);
 }
 
 void

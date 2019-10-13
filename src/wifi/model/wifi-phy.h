@@ -251,11 +251,11 @@ public:
   /**
    * \return true of the current state of the PHY layer is WifiPhy::IDLE, false otherwise.
    */
-  bool IsStateIdle (void) const;
+  bool IsStateIdle (void);
   /**
    * \return true of the current state of the PHY layer is WifiPhy::CCA_BUSY, false otherwise.
    */
-  bool IsStateCcaBusy (void) const;
+  bool IsStateCcaBusy (void);
   /**
    * \return true of the current state of the PHY layer is WifiPhy::RX, false otherwise.
    */
@@ -278,17 +278,33 @@ public:
   bool IsStateOff (void) const;
 
   /**
+   * \return the PHY state.
+   * In case channel bonding is used, this returns the state of the primary channel.
+   */
+  WifiPhyState GetPhyState (void);
+
+  /**
+   * \return true if the secondary channel is WifiPhy::IDLE, false otherwise.
+   */
+  bool IsSecondaryStateIdle (void);
+
+  /**
+   * todo
+   */
+  Time GetDelayUntilCcaEnd (double ccaThreshold, WifiSpectrumBand band);
+
+  /**
    * \return the predicted delay until this PHY can become WifiPhy::IDLE.
    *
    * The PHY will never become WifiPhy::IDLE _before_ the delay returned by
    * this method but it could become really idle later.
    */
-  Time GetDelayUntilIdle (void) const;
+  Time GetDelayUntilIdle (void);
 
   /**
-   * \return the delay since the secondary channel is determined idle.
+   * \return the delay since the secondary channel is WifiPhy::IDLE.
    */
-  Time GetDelaySinceSecondaryIsIdle (void) const;
+  Time GetDelaySinceSecondaryIsIdle (void);
 
   /**
    * Return the start time of the last received packet.
@@ -1754,6 +1770,14 @@ protected:
   virtual void DoInitialize (void);
   virtual void DoDispose (void);
 
+  /**
+   * Check if PHY state should move to CCA busy state based on current
+   * state of interference tracker.  In this model, CCA becomes busy when
+   * the aggregation of all signals as tracked by the InterferenceHelper
+   * class is higher than the CcaEdThreshold
+   */
+  void MaybeCcaBusy (void);
+
   /*
    * Reset data upon end of TX or RX
    */
@@ -1789,14 +1813,6 @@ protected:
    * \see SetFrequency
    */
   bool DoFrequencySwitch (uint16_t frequency);
-
-  /**
-   * Check if Phy state should move to CCA busy state based on current
-   * state of interference tracker.  In this model, CCA becomes busy when
-   * the aggregation of all signals as tracked by the InterferenceHelper
-   * class is higher than the CcaEdThreshold
-   */
-  void SwitchMaybeToCcaBusy (void);
 
   /**
    * Return the STA ID that has been assigned to the station this PHY belongs to.
@@ -1970,11 +1986,6 @@ private:
    *
    */
   void AbortCurrentReception (WifiPhyRxfailureReason reason);
-
-  /**
-   * Eventually switch to CCA busy
-   */
-  void MaybeCcaBusyDuration (void);
 
   /**
    * Starting receiving the PPDU after having detected the medium is idle or after a reception switch.

@@ -283,52 +283,48 @@ TestStaticChannelBondingSnr::VerifyResultsForBss (bool expectedReception, bool e
 void
 TestStaticChannelBondingSnr::CheckPhyState (WifiPhyState expectedState, uint8_t bss)
 {
-  WifiPhyState currentState;
-  PointerValue ptr;
+  Ptr<BondingTestSpectrumWifiPhy> phy;
   if (bss == 1)
     {
-      m_rxPhyBss1->GetAttribute ("State", ptr);
+      phy = m_rxPhyBss1;
     }
   else if (bss == 2)
     {
-      m_rxPhyBss2->GetAttribute ("State", ptr);
+      phy = m_rxPhyBss2;
     }
   else if (bss == 3)
     {
-      m_rxPhyBss3->GetAttribute ("State", ptr);
+      phy = m_rxPhyBss3;
     }
   else if (bss == 4)
     {
-      m_rxPhyBss4->GetAttribute ("State", ptr);
+      phy = m_rxPhyBss4;
     }
-  Ptr <WifiPhyStateHelper> state = DynamicCast <WifiPhyStateHelper> (ptr.Get<WifiPhyStateHelper> ());
-  currentState = state->GetState ();
+  WifiPhyState currentState = phy->GetPhyState ();
   NS_TEST_ASSERT_MSG_EQ (currentState, expectedState, "PHY State " << currentState << " does not match expected state " << expectedState << " at " << Simulator::Now ());
 }
 
 void
 TestStaticChannelBondingSnr::CheckSecondaryChannelStatus (bool expectedIdle, uint8_t bss)
 {
-  bool currentlyIdle;
-  PointerValue ptr;
+  Ptr<BondingTestSpectrumWifiPhy> phy;
   if (bss == 1)
     {
-      m_rxPhyBss1->GetAttribute ("State", ptr);
+      phy = m_rxPhyBss1;
     }
   else if (bss == 2)
     {
-      m_rxPhyBss2->GetAttribute ("State", ptr);
+      phy = m_rxPhyBss2;
     }
   else if (bss == 3)
     {
-      m_rxPhyBss3->GetAttribute ("State", ptr);
+      phy = m_rxPhyBss3;
     }
   else if (bss == 4)
     {
-      m_rxPhyBss4->GetAttribute ("State", ptr);
+      phy = m_rxPhyBss4;
     }
-  Ptr <WifiPhyStateHelper> state = DynamicCast <WifiPhyStateHelper> (ptr.Get<WifiPhyStateHelper> ());
-  currentlyIdle = state->IsSecondaryChannelIdle ();
+  bool currentlyIdle = phy->IsSecondaryStateIdle ();
   NS_TEST_ASSERT_MSG_EQ (currentlyIdle, expectedIdle, "Secondary channel status " << currentlyIdle << " does not match expected status " << expectedIdle << " at " << Simulator::Now ());
 }
 
@@ -1767,24 +1763,16 @@ TestStaticChannelBondingChannelAccess::SendPacket (Ptr<NetDevice> sourceDevice, 
 void
 TestStaticChannelBondingChannelAccess::CheckPhyState (WifiPhyState expectedState, Ptr<NetDevice> device)
 {
-  WifiPhyState currentState;
-  PointerValue ptr;
   Ptr<WifiNetDevice> wifiDevicePtr = device->GetObject <WifiNetDevice> ();
-  wifiDevicePtr->GetPhy ()->GetAttribute ("State", ptr);
-  Ptr <WifiPhyStateHelper> state = DynamicCast <WifiPhyStateHelper> (ptr.Get<WifiPhyStateHelper> ());
-  currentState = state->GetState ();
+  WifiPhyState currentState = wifiDevicePtr->GetPhy ()->GetPhyState ();
   NS_TEST_ASSERT_MSG_EQ (currentState, expectedState, "PHY State " << currentState << " does not match expected state " << expectedState << " at " << Simulator::Now ());
 }
 
 void
 TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus (bool expectedIdle, Ptr<NetDevice> device)
 {
-  bool currentlyIdle;
-  PointerValue ptr;
   Ptr<WifiNetDevice> wifiDevicePtr = device->GetObject <WifiNetDevice> ();
-  wifiDevicePtr->GetPhy ()->GetAttribute ("State", ptr);
-  Ptr <WifiPhyStateHelper> state = DynamicCast <WifiPhyStateHelper> (ptr.Get<WifiPhyStateHelper> ());
-  currentlyIdle = state->IsSecondaryChannelIdle ();
+  bool currentlyIdle = wifiDevicePtr->GetPhy ()->IsSecondaryStateIdle ();
   NS_TEST_ASSERT_MSG_EQ (currentlyIdle, expectedIdle, "Secondary channel status " << currentlyIdle << " does not match expected status " << expectedIdle << " at " << Simulator::Now ());
 }
 
