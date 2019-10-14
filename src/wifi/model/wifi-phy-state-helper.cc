@@ -654,7 +654,10 @@ WifiPhyStateHelper::SwitchMaybeToCcaBusy (Time duration, WifiSpectrumBand band, 
           itStartCca->second = now;
         }
     }
-  m_stateLogger (now, duration, WifiPhyState::CCA_BUSY);
+  if (isPrimaryChannel)
+    {
+      m_stateLogger (now, duration, WifiPhyState::CCA_BUSY);
+    }
 }
 
 void
@@ -690,23 +693,34 @@ WifiPhyStateHelper::SwitchToSleep (WifiSpectrumBand primaryBand)
 }
 
 void
-WifiPhyStateHelper::SwitchFromSleep (Time duration)
+WifiPhyStateHelper::SwitchFromSleep (Time duration, WifiSpectrumBand band, bool isPrimaryChannel)
 {
-  NS_LOG_FUNCTION (this << duration);
+  NS_LOG_FUNCTION (this << duration << band.first << band.second << isPrimaryChannel);
   NS_ASSERT (IsStateSleep ());
   Time now = Simulator::Now ();
-  m_stateLogger (m_startSleep, now - m_startSleep, WifiPhyState::SLEEP);
-  m_previousStateChangeTime = now;
   m_sleeping = false;
-  NotifyWakeup ();
-  //update m_endCcaBusy after the sleep period
-  for (auto & endCcaBusy : m_endCcaBusy)
+  if (isPrimaryChannel)
     {
-      endCcaBusy.second = std::max (endCcaBusy.second, now + duration);
-      if (endCcaBusy.second > now)
-        {
-          NotifyMaybeCcaBusyStart (endCcaBusy.second - now);
-        }
+      m_stateLogger (m_startSleep, now - m_startSleep, WifiPhyState::SLEEP);
+      m_previousStateChangeTime = now;
+      NotifyWakeup ();
+    }
+  //update endCcaBusy after the sleep period
+  auto it = m_endCcaBusy.find (band);
+  Time endCca;
+  if (it == m_endCcaBusy.end ())
+    {
+      endCca = now + duration;
+      m_endCcaBusy.insert ({band, endCca});
+    }
+  else
+    {
+      endCca = std::max (it->second, now + duration);
+      it->second = endCca;
+    }
+  if (isPrimaryChannel && (endCca > now))
+    {
+      NotifyMaybeCcaBusyStart (endCca - now);
     }
 }
 
@@ -773,22 +787,33 @@ WifiPhyStateHelper::SwitchToOff (WifiSpectrumBand primaryBand)
 }
 
 void
-WifiPhyStateHelper::SwitchFromOff (Time duration)
+WifiPhyStateHelper::SwitchFromOff (Time duration, WifiSpectrumBand band, bool isPrimaryChannel)
 {
-  NS_LOG_FUNCTION (this << duration);
+  NS_LOG_FUNCTION (this << duration << band.first << band.second << isPrimaryChannel);
   NS_ASSERT (IsStateOff ());
   Time now = Simulator::Now ();
-  m_previousStateChangeTime = now;
   m_isOff = false;
-  NotifyOn ();
-  //update m_endCcaBusy after the off period
-  for (auto & endCcaBusy : m_endCcaBusy)
+  if (isPrimaryChannel)
     {
-      endCcaBusy.second = std::max (endCcaBusy.second, now + duration);
-      if (endCcaBusy.second > now)
-        {
-          NotifyMaybeCcaBusyStart (endCcaBusy.second - now);
-        }
+      m_previousStateChangeTime = now;
+      NotifyWakeup ();
+    }
+  //update endCcaBusy after the off period
+  auto it = m_endCcaBusy.find (band);
+  Time endCca;
+  if (it == m_endCcaBusy.end ())
+    {
+      endCca = now + duration;
+      m_endCcaBusy.insert ({band, endCca});
+    }
+  else
+    {
+      endCca = std::max (it->second, now + duration);
+      it->second = endCca;
+    }
+  if (isPrimaryChannel && (endCca > now))
+    {
+      NotifyMaybeCcaBusyStart (endCca - now);
     }
 }
 

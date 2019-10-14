@@ -36,6 +36,7 @@
 #include "ns3/ipv4-global-routing-helper.h"
 #include "ns3/packet-sink.h"
 #include "ns3/yans-wifi-channel.h"
+#include "ns3/wifi-utils.h"
 
 // This is a simple example in order to show how to configure an IEEE 802.11ac Wi-Fi network.
 //
@@ -155,6 +156,7 @@ int main (int argc, char *argv[])
 
               // Set channel width
               Config::Set ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Phy/ChannelWidth", UintegerValue (channelWidth));
+              Config::Set ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Phy/Frequency", UintegerValue (GetCenterFrequency (5250, 160, channelWidth, 0))); //see issue #96
 
               // Set guard interval
               Config::Set ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/HtConfiguration/ShortGuardIntervalSupported", BooleanValue (sgi));

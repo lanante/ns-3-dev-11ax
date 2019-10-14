@@ -36,6 +36,7 @@
 #include "ns3/ipv4-global-routing-helper.h"
 #include "ns3/packet-sink.h"
 #include "ns3/multi-model-spectrum-channel.h"
+#include "ns3/wifi-utils.h"
 
 // This is a simple example in order to show how to configure an IEEE 802.11ax Wi-Fi network.
 //
@@ -173,6 +174,10 @@ int main (int argc, char *argv[])
 
               // Set channel width, guard interval and MPDU buffer size
               Config::Set ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Phy/ChannelWidth", UintegerValue (channelWidth));
+              if (frequency == 5.0)
+                {
+                  Config::Set ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Phy/Frequency", UintegerValue (GetCenterFrequency (5250, 160, channelWidth, 0))); //see issue #96
+                }
               Config::Set ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/HeConfiguration/GuardInterval", TimeValue (NanoSeconds (gi)));
               Config::Set ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/HeConfiguration/MpduBufferSize", UintegerValue (useExtendedBlockAck ? 256 : 64));
 

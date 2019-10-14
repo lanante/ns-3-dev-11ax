@@ -233,7 +233,7 @@ public:
    *
    * \param duration the duration of CCA busy state
    */
-  void SwitchFromSleep (Time duration);
+  void SwitchFromSleep (Time duration, WifiSpectrumBand band, bool isPrimaryChannel);
   /**
    * Abort current reception
    *
@@ -251,7 +251,7 @@ public:
    *
    * \param duration the duration of CCA busy state
    */
-  void SwitchFromOff (Time duration);
+  void SwitchFromOff (Time duration, WifiSpectrumBand band, bool isPrimaryChannel);
 
   /**
    * TracedCallback signature for state changes.

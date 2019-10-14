@@ -534,43 +534,55 @@ void
 SpectrumWifiPhyFilterTest::RunOne (void)
 {
   m_txPhy->SetChannelWidth (m_txChannelWidth);
+  uint8_t txChannel;
   uint16_t txFrequency;
   switch (m_txChannelWidth)
     {
     case 20:
     default:
+      txChannel = 36;
       txFrequency = 5180;
       break;
     case 40:
+      txChannel = 38;
       txFrequency = 5190;
       break;
     case 80:
+      txChannel = 42;
       txFrequency = 5210;
       break;
     case 160:
+      txChannel = 50;
       txFrequency = 5250;
       break;
     }
+  m_txPhy->SetChannelNumber (txChannel);
   m_txPhy->SetFrequency (txFrequency);
 
   m_rxPhy->SetChannelWidth (m_rxChannelWidth);
+  uint8_t rxChannel;
   uint16_t rxFrequency;
   switch (m_rxChannelWidth)
     {
     case 20:
     default:
+      rxChannel = 36;
       rxFrequency = 5180;
       break;
     case 40:
+      rxChannel = 38;
       rxFrequency = 5190;
       break;
     case 80:
+      rxChannel = 42;
       rxFrequency = 5210;
       break;
     case 160:
+      rxChannel = 50;
       rxFrequency = 5250;
       break;
     }
+  m_rxPhy->SetChannelNumber (rxChannel);
   m_rxPhy->SetFrequency (rxFrequency);
 
   Simulator::Schedule (Seconds (1), &SpectrumWifiPhyFilterTest::SendPpdu, this);
