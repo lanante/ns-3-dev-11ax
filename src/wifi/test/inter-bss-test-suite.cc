@@ -433,6 +433,8 @@ TestInterBssConstantObssPdAlgo::RunOne (void)
   wifi.SetObssPdAlgorithm ("ns3::ConstantObssPdAlgorithm",
                            "ObssPdLevel", DoubleValue (m_obssPdLevelDbm));
 
+  wifi.SetChannelBondingManager ("ns3::ConstantThresholdChannelBondingManager"); //Make sure that transmission occurs once primary channel gets access
+
   WifiMacHelper mac;
   Ssid ssid = Ssid ("ns-3-ssid");
   mac.SetType ("ns3::StaWifiMac",

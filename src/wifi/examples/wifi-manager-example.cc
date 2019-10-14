@@ -56,6 +56,7 @@
 #include "ns3/packet-socket-server.h"
 #include "ns3/ht-configuration.h"
 #include "ns3/he-configuration.h"
+#include "ns3/wifi-utils.h"
 
 using namespace ns3;
 
@@ -419,6 +420,8 @@ int main (int argc, char *argv[])
     {
       wifiPhyPtrServer->SetChannelWidth (serverSelectedStandard.m_width);
       wifiPhyPtrClient->SetChannelWidth (clientSelectedStandard.m_width);
+      wifiPhyPtrServer->SetFrequency (GetCenterFrequency (5250, 160, serverSelectedStandard.m_width, 0)); //see issue #96
+      wifiPhyPtrClient->SetFrequency (GetCenterFrequency (5250, 160, clientSelectedStandard.m_width, 0)); //see issue #96
       Ptr<HtConfiguration> clientHtConfiguration = wndClient->GetHtConfiguration ();
       clientHtConfiguration->SetShortGuardIntervalSupported (clientShortGuardInterval == 400);
       Ptr<HtConfiguration> serverHtConfiguration = wndServer->GetHtConfiguration ();
@@ -429,6 +432,8 @@ int main (int argc, char *argv[])
     {
       wifiPhyPtrServer->SetChannelWidth (serverSelectedStandard.m_width);
       wifiPhyPtrClient->SetChannelWidth (clientSelectedStandard.m_width);
+      wifiPhyPtrServer->SetFrequency (GetCenterFrequency (5250, 160, serverSelectedStandard.m_width, 0)); //see issue #96
+      wifiPhyPtrClient->SetFrequency (GetCenterFrequency (5250, 160, clientSelectedStandard.m_width, 0)); //see issue #96
       wndServer->GetHeConfiguration ()->SetGuardInterval (NanoSeconds (clientShortGuardInterval));
       wndClient->GetHeConfiguration ()->SetGuardInterval (NanoSeconds (clientShortGuardInterval));
     }

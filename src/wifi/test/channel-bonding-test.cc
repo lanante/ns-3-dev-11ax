@@ -50,17 +50,7 @@ class BondingTestSpectrumWifiPhy : public SpectrumWifiPhy
 public:
   using SpectrumWifiPhy::SpectrumWifiPhy;
   using SpectrumWifiPhy::GetBand;
-  using SpectrumWifiPhy::ResetSpectrumModel;
-  void ResetSpectrumModel (void) override;
 };
-
-void
-BondingTestSpectrumWifiPhy::ResetSpectrumModel (void)
-{
-  uint16_t channelWidth = GetChannelWidth ();
-  m_rxSpectrumModel = WifiSpectrumValueHelper::GetSpectrumModel (GetFrequency (), channelWidth, GetBandBandwidth (), GetGuardBandwidth (channelWidth));
-  UpdateInterferenceHelperBands ();
-}
 
 /**
  * \ingroup wifi-test
@@ -659,9 +649,9 @@ TestStaticChannelBondingSnr::DoSetup (void)
   m_rxPhyBss1->CreateWifiSpectrumPhyInterface (nullptr);
   m_rxPhyBss1->SetChannel (channel);
   m_rxPhyBss1->SetErrorRateModel (error);
+  m_rxPhyBss1->SetChannelWidth (20);
   m_rxPhyBss1->SetChannelNumber (36);
   m_rxPhyBss1->SetFrequency (5180);
-  m_rxPhyBss1->SetChannelWidth (20);
   m_rxPhyBss1->SetTxPowerStart (0.0);
   m_rxPhyBss1->SetTxPowerEnd (0.0);
   m_rxPhyBss1->SetRxSensitivity (-91.0);
@@ -678,9 +668,9 @@ TestStaticChannelBondingSnr::DoSetup (void)
   m_txPhyBss1->CreateWifiSpectrumPhyInterface (nullptr);
   m_txPhyBss1->SetChannel (channel);
   m_txPhyBss1->SetErrorRateModel (error);
+  m_txPhyBss1->SetChannelWidth (20);
   m_txPhyBss1->SetChannelNumber (36);
   m_txPhyBss1->SetFrequency (5180);
-  m_txPhyBss1->SetChannelWidth (20);
   m_txPhyBss1->SetTxPowerStart (0.0);
   m_txPhyBss1->SetTxPowerEnd (0.0);
   m_txPhyBss1->SetRxSensitivity (-91.0);
@@ -697,9 +687,9 @@ TestStaticChannelBondingSnr::DoSetup (void)
   m_rxPhyBss2->CreateWifiSpectrumPhyInterface (nullptr);
   m_rxPhyBss2->SetChannel (channel);
   m_rxPhyBss2->SetErrorRateModel (error);
+  m_rxPhyBss2->SetChannelWidth (20);
   m_rxPhyBss2->SetChannelNumber (40);
   m_rxPhyBss2->SetFrequency (5200);
-  m_rxPhyBss2->SetChannelWidth (20);
   m_rxPhyBss2->SetTxPowerStart (0.0);
   m_rxPhyBss2->SetTxPowerEnd (0.0);
   m_rxPhyBss2->SetRxSensitivity (-91.0);
@@ -716,9 +706,9 @@ TestStaticChannelBondingSnr::DoSetup (void)
   m_txPhyBss2->CreateWifiSpectrumPhyInterface (nullptr);
   m_txPhyBss2->SetChannel (channel);
   m_txPhyBss2->SetErrorRateModel (error);
+  m_txPhyBss2->SetChannelWidth (20);
   m_txPhyBss2->SetChannelNumber (40);
   m_txPhyBss2->SetFrequency (5200);
-  m_txPhyBss2->SetChannelWidth (20);
   m_txPhyBss2->SetTxPowerStart (0.0);
   m_txPhyBss2->SetTxPowerEnd (0.0);
   m_txPhyBss2->SetRxSensitivity (-91.0);
@@ -735,10 +725,10 @@ TestStaticChannelBondingSnr::DoSetup (void)
   m_rxPhyBss3->CreateWifiSpectrumPhyInterface (nullptr);
   m_rxPhyBss3->SetChannel (channel);
   m_rxPhyBss3->SetErrorRateModel (error);
-  m_rxPhyBss3->SetChannelNumber (38);
-  m_rxPhyBss3->SetFrequency (5190);
   m_rxPhyBss3->SetChannelWidth (40);
-  m_rxPhyBss3->SetSecondaryChannelOffset (UPPER);
+  m_rxPhyBss3->SetChannelNumber (38);
+  m_rxPhyBss3->SetPrimaryChannelNumber (36);
+  m_rxPhyBss3->SetFrequency (5190);
   m_rxPhyBss3->SetTxPowerStart (0.0);
   m_rxPhyBss3->SetTxPowerEnd (0.0);
   m_rxPhyBss3->SetRxSensitivity (-91.0);
@@ -755,10 +745,10 @@ TestStaticChannelBondingSnr::DoSetup (void)
   m_txPhyBss3->CreateWifiSpectrumPhyInterface (nullptr);
   m_txPhyBss3->SetChannel (channel);
   m_txPhyBss3->SetErrorRateModel (error);
-  m_txPhyBss3->SetChannelNumber (38);
-  m_txPhyBss3->SetFrequency (5190);
   m_txPhyBss3->SetChannelWidth (40);
-  m_txPhyBss3->SetSecondaryChannelOffset (UPPER);
+  m_txPhyBss3->SetChannelNumber (38);
+  m_txPhyBss3->SetPrimaryChannelNumber (36);
+  m_txPhyBss3->SetFrequency (5190);
   m_txPhyBss3->SetTxPowerStart (0.0);
   m_txPhyBss3->SetTxPowerEnd (0.0);
   m_txPhyBss3->SetRxSensitivity (-91.0);
@@ -775,10 +765,10 @@ TestStaticChannelBondingSnr::DoSetup (void)
   m_rxPhyBss4->CreateWifiSpectrumPhyInterface (nullptr);
   m_rxPhyBss4->SetChannel (channel);
   m_rxPhyBss4->SetErrorRateModel (error);
-  m_rxPhyBss4->SetChannelNumber (38);
-  m_rxPhyBss4->SetFrequency (5190);
   m_rxPhyBss4->SetChannelWidth (40);
-  m_rxPhyBss4->SetSecondaryChannelOffset (LOWER);
+  m_rxPhyBss4->SetChannelNumber (38);
+  m_rxPhyBss4->SetPrimaryChannelNumber (40);
+  m_rxPhyBss4->SetFrequency (5190);
   m_rxPhyBss4->SetTxPowerStart (0.0);
   m_rxPhyBss4->SetTxPowerEnd (0.0);
   m_rxPhyBss4->SetRxSensitivity (-91.0);
@@ -795,10 +785,10 @@ TestStaticChannelBondingSnr::DoSetup (void)
   m_txPhyBss4->CreateWifiSpectrumPhyInterface (nullptr);
   m_txPhyBss4->SetChannel (channel);
   m_txPhyBss4->SetErrorRateModel (error);
-  m_txPhyBss4->SetChannelNumber (38);
-  m_txPhyBss4->SetFrequency (5190);
   m_txPhyBss4->SetChannelWidth (40);
-  m_txPhyBss4->SetSecondaryChannelOffset (LOWER);
+  m_txPhyBss4->SetChannelNumber (38);
+  m_rxPhyBss4->SetPrimaryChannelNumber (40);
+  m_txPhyBss4->SetFrequency (5190);
   m_txPhyBss4->SetTxPowerStart (0.0);
   m_txPhyBss4->SetTxPowerEnd (0.0);
   m_txPhyBss4->SetRxSensitivity (-91.0);
@@ -1151,10 +1141,10 @@ TestDynamicChannelBonding::DoSetup (void)
   m_rxPhyBss1->CreateWifiSpectrumPhyInterface (nullptr);
   m_rxPhyBss1->SetChannel (channel);
   m_rxPhyBss1->SetErrorRateModel (error);
-  m_rxPhyBss1->SetChannelNumber (38);
-  m_rxPhyBss1->SetFrequency (5190);
   m_rxPhyBss1->SetChannelWidth (40);
-  m_rxPhyBss1->SetSecondaryChannelOffset (UPPER);
+  m_rxPhyBss1->SetChannelNumber (38);
+  m_rxPhyBss1->SetPrimaryChannelNumber (36);
+  m_rxPhyBss1->SetFrequency (5190);
   m_rxPhyBss1->SetTxPowerStart (0.0);
   m_rxPhyBss1->SetTxPowerEnd (0.0);
   m_rxPhyBss1->SetRxSensitivity (-91.0);
@@ -1171,10 +1161,10 @@ TestDynamicChannelBonding::DoSetup (void)
   m_txPhyBss1->CreateWifiSpectrumPhyInterface (nullptr);
   m_txPhyBss1->SetChannel (channel);
   m_txPhyBss1->SetErrorRateModel (error);
-  m_txPhyBss1->SetChannelNumber (38);
-  m_txPhyBss1->SetFrequency (5190);
   m_txPhyBss1->SetChannelWidth (40);
-  m_txPhyBss1->SetSecondaryChannelOffset (UPPER);
+  m_txPhyBss1->SetChannelNumber (38);
+  m_txPhyBss1->SetPrimaryChannelNumber (36);
+  m_txPhyBss1->SetFrequency (5190);
   m_txPhyBss1->SetTxPowerStart (0.0);
   m_txPhyBss1->SetTxPowerEnd (0.0);
   m_txPhyBss1->SetRxSensitivity (-91.0);
@@ -1195,9 +1185,9 @@ TestDynamicChannelBonding::DoSetup (void)
   m_rxPhyBss2->CreateWifiSpectrumPhyInterface (nullptr);
   m_rxPhyBss2->SetChannel (channel);
   m_rxPhyBss2->SetErrorRateModel (error);
+  m_rxPhyBss2->SetChannelWidth (20);
   m_rxPhyBss2->SetChannelNumber (40);
   m_rxPhyBss2->SetFrequency (5200);
-  m_rxPhyBss2->SetChannelWidth (20);
   m_rxPhyBss2->SetTxPowerStart (0.0);
   m_rxPhyBss2->SetTxPowerEnd (0.0);
   m_rxPhyBss2->SetRxSensitivity (-91.0);
@@ -1214,9 +1204,9 @@ TestDynamicChannelBonding::DoSetup (void)
   m_txPhyBss2->CreateWifiSpectrumPhyInterface (nullptr);
   m_txPhyBss2->SetChannel (channel);
   m_txPhyBss2->SetErrorRateModel (error);
+  m_txPhyBss2->SetChannelWidth (20);
   m_txPhyBss2->SetChannelNumber (40);
   m_txPhyBss2->SetFrequency (5200);
-  m_txPhyBss2->SetChannelWidth (20);
   m_txPhyBss2->SetTxPowerStart (0.0);
   m_txPhyBss2->SetTxPowerEnd (0.0);
   m_txPhyBss2->SetRxSensitivity (-91.0);
@@ -1237,10 +1227,10 @@ TestDynamicChannelBonding::DoSetup (void)
   m_rxPhyBss3->CreateWifiSpectrumPhyInterface (nullptr);
   m_rxPhyBss3->SetChannel (channel);
   m_rxPhyBss3->SetErrorRateModel (error);
-  m_rxPhyBss3->SetChannelNumber (38);
-  m_rxPhyBss3->SetFrequency (5190);
   m_rxPhyBss3->SetChannelWidth (40);
-  m_rxPhyBss3->SetSecondaryChannelOffset (LOWER);
+  m_rxPhyBss3->SetChannelNumber (38);
+  m_rxPhyBss3->SetPrimaryChannelNumber (40);
+  m_rxPhyBss3->SetFrequency (5190);
   m_rxPhyBss3->SetTxPowerStart (0.0);
   m_rxPhyBss3->SetTxPowerEnd (0.0);
   m_rxPhyBss3->SetRxSensitivity (-91.0);
@@ -1257,10 +1247,10 @@ TestDynamicChannelBonding::DoSetup (void)
   m_txPhyBss3->CreateWifiSpectrumPhyInterface (nullptr);
   m_txPhyBss3->SetChannel (channel);
   m_txPhyBss3->SetErrorRateModel (error);
-  m_txPhyBss3->SetChannelNumber (38);
-  m_txPhyBss3->SetFrequency (5190);
   m_txPhyBss3->SetChannelWidth (40);
-  m_txPhyBss3->SetSecondaryChannelOffset (LOWER);
+  m_txPhyBss3->SetChannelNumber (38);
+  m_txPhyBss3->SetPrimaryChannelNumber (40);
+  m_txPhyBss3->SetFrequency (5190);
   m_txPhyBss3->SetTxPowerStart (0.0);
   m_txPhyBss3->SetTxPowerEnd (0.0);
   m_txPhyBss3->SetRxSensitivity (-91.0);
@@ -1386,6 +1376,7 @@ private:
   Ptr<BondingTestSpectrumWifiPhy> m_txPhy = 0; ///< Tx Phy
   std::vector<Ptr<WaveformGenerator> > m_interferersPhys; ///< Interferers Phys
   uint16_t m_signalFrequency; ///< Signal frequency in MHz
+  uint8_t m_signalChannelNumber; ///< Signal channel number
   uint16_t m_signalChannelWidth; ///< Signal channel width in MHz
   double m_expectedSnrDb; ///< Expected SNR in dB
   uint32_t m_rxCount; ///< Counter for both RxOk and RxError callbacks
@@ -1396,6 +1387,7 @@ private:
 TestEffectiveSnrCalculations::TestEffectiveSnrCalculations ()
   : TestCase ("Effective SNR calculations test"),
     m_signalFrequency (5180),
+    m_signalChannelNumber (36),
     m_signalChannelWidth (20),
     m_rxCount (0)
 {
@@ -1488,27 +1480,41 @@ TestEffectiveSnrCalculations::DoSetup (void)
 
   Ptr<ErrorRateModel> error = CreateObject<NistErrorRateModel> ();
 
+  Ptr<Node> rxNode = CreateObject<Node> ();
+  Ptr<WifiNetDevice> rxDev = CreateObject<WifiNetDevice> ();
   m_rxPhy = CreateObject<BondingTestSpectrumWifiPhy> ();
+  m_rxPhy->CreateWifiSpectrumPhyInterface (rxDev);
+  m_rxPhy->ConfigureStandard (WIFI_PHY_STANDARD_80211ac);
+  m_rxPhy->SetChannelNumber (m_signalChannelNumber);
+  m_rxPhy->SetFrequency (m_signalFrequency);
+  m_rxPhy->SetChannelWidth (m_signalChannelWidth);
+  m_rxPhy->SetErrorRateModel (error);
+  m_rxPhy->SetDevice (rxDev);
+  m_rxPhy->SetChannel (channel);
   Ptr<ConstantPositionMobilityModel> rxMobility = CreateObject<ConstantPositionMobilityModel> ();
   rxMobility->SetPosition (Vector (1.0, 0.0, 0.0));
   m_rxPhy->SetMobility (rxMobility);
-  m_rxPhy->ConfigureStandard (WIFI_PHY_STANDARD_80211ac);
-  m_rxPhy->CreateWifiSpectrumPhyInterface (nullptr);
-  m_rxPhy->SetChannel (channel);
-  m_rxPhy->SetErrorRateModel (error);
-  m_rxPhy->SetChannelNumber (50); // to support up to 160 MHz signals
-  m_rxPhy->Initialize ();
+  rxDev->SetPhy (m_rxPhy);
+  rxNode->AggregateObject (rxMobility);
+  rxNode->AddDevice (rxDev);
 
+  Ptr<Node> txNode = CreateObject<Node> ();
+  Ptr<WifiNetDevice> txDev = CreateObject<WifiNetDevice> ();
   m_txPhy = CreateObject<BondingTestSpectrumWifiPhy> ();
+  m_txPhy->CreateWifiSpectrumPhyInterface (txDev);
+  m_txPhy->ConfigureStandard (WIFI_PHY_STANDARD_80211ac);
+  m_txPhy->SetChannelNumber (m_signalChannelNumber);
+  m_txPhy->SetFrequency (m_signalFrequency);
+  m_txPhy->SetChannelWidth (m_signalChannelWidth);
+  m_txPhy->SetErrorRateModel (error);
+  m_txPhy->SetDevice (txDev);
+  m_txPhy->SetChannel (channel);
   Ptr<ConstantPositionMobilityModel> txMobility = CreateObject<ConstantPositionMobilityModel> ();
   txMobility->SetPosition (Vector (0.0, 0.0, 0.0));
   m_txPhy->SetMobility (txMobility);
-  m_txPhy->ConfigureStandard (WIFI_PHY_STANDARD_80211ac);
-  m_txPhy->CreateWifiSpectrumPhyInterface (nullptr);
-  m_txPhy->SetChannel (channel);
-  m_txPhy->SetErrorRateModel (error);
-  m_txPhy->SetChannelNumber (50); // to support up to 160 MHz signals
-  m_txPhy->Initialize ();
+  txDev->SetPhy (m_txPhy);
+  txNode->AggregateObject (txMobility);
+  txNode->AddDevice (txDev);
 
   for (unsigned int i = 0; i < (160 / 20); i++)
     {
@@ -1538,6 +1544,14 @@ TestEffectiveSnrCalculations::RunOne (void)
   m_txPhy->SetTxPowerStart (18);
   m_txPhy->SetTxPowerEnd (18);
 
+  m_txPhy->SetChannelWidth (m_signalChannelWidth);
+  m_txPhy->SetChannelNumber (m_signalChannelNumber);
+  m_txPhy->SetFrequency (m_signalFrequency);
+
+  m_rxPhy->SetChannelWidth (m_signalChannelWidth);
+  m_rxPhy->SetChannelNumber (m_signalChannelNumber);
+  m_rxPhy->SetFrequency (m_signalFrequency);
+
   Simulator::Schedule (Seconds (1.0), &TestEffectiveSnrCalculations::SendPacket, this);
   unsigned i = 0;
   for (auto const& interference : m_interferences)
@@ -1557,6 +1571,7 @@ TestEffectiveSnrCalculations::DoRun (void)
   // Case 1: 20 MHz transmission: Reference case
   {
     m_signalFrequency = 5180;
+    m_signalChannelNumber = 36;
     m_signalChannelWidth = 20;
     m_interferences.push_back (TestEffectiveSnrCalculations::InterferenceInfo (5180, 20, 15));
     // SNR eff = SNR = 18 - 15 = 3 dB
@@ -1567,6 +1582,7 @@ TestEffectiveSnrCalculations::DoRun (void)
   // Case 2: 40 MHz transmission: I1 = I2
   {
     m_signalFrequency = 5190;
+    m_signalChannelNumber = 38;
     m_signalChannelWidth = 40;
     m_interferences.push_back (TestEffectiveSnrCalculations::InterferenceInfo (5190, 40, 15));
     // SNR eff,m = min ((18 - 3) - (15 - 3), (18 - 3) - (15 - 3)) = min (3 dB, 3 dB) = 3 dB = 2
@@ -1578,6 +1594,7 @@ TestEffectiveSnrCalculations::DoRun (void)
   // Case 3: 40 MHz transmission: I2 = 0
   {
     m_signalFrequency = 5190;
+    m_signalChannelNumber = 38;
     m_signalChannelWidth = 40;
     m_interferences.push_back (TestEffectiveSnrCalculations::InterferenceInfo (5180, 20, 12));
     // SNR eff,m = min ((18 - 3) - 12, (18 - 3) - (-94)) min (3 dB, 109 dB) = 3 dB = 2
@@ -1589,6 +1606,7 @@ TestEffectiveSnrCalculations::DoRun (void)
   // Case 4: 40 MHz transmission: I2 = 1/2 I1
   {
     m_signalFrequency = 5190;
+    m_signalChannelNumber = 38;
     m_signalChannelWidth = 40;
     m_interferences.push_back (TestEffectiveSnrCalculations::InterferenceInfo (5180, 20, 12));
     m_interferences.push_back (TestEffectiveSnrCalculations::InterferenceInfo (5200, 20, 9));
@@ -1601,6 +1619,7 @@ TestEffectiveSnrCalculations::DoRun (void)
   // Case 5: 80 MHz transmission: I1 = I2 = I3 = I4
   {
     m_signalFrequency = 5210;
+    m_signalChannelNumber = 42;
     m_signalChannelWidth = 80;
     m_interferences.push_back (TestEffectiveSnrCalculations::InterferenceInfo (5210, 80, 15));
     // SNR eff,m = min ((18 - 6) - (15 - 6), (18 - 6) - (15 - 6), (18 - 6) - (15 - 6), (18 - 6) - (15 - 6)) = min (3 dB, 3 dB, 3 dB, 3 dB) = 3 dB = 2
@@ -1612,6 +1631,7 @@ TestEffectiveSnrCalculations::DoRun (void)
   // Case 6: 80 MHz transmission: I2 = I3 = I4 = 0
   {
     m_signalFrequency = 5210;
+    m_signalChannelNumber = 42;
     m_signalChannelWidth = 80;
     m_interferences.push_back (TestEffectiveSnrCalculations::InterferenceInfo (5180, 20, 9));
     // SNR eff,m = min ((18 - 6) - 9, (18 - 6) - (-94), (18 - 6) - (-94), (18 - 6) - (-94)) = min (3 dB, 106 dB, 106 dB, 106 dB) = 3 dB = 2
@@ -1623,6 +1643,7 @@ TestEffectiveSnrCalculations::DoRun (void)
   // Case 7: 80 MHz transmission: I2 = 1/2 I1, I3 = I4 = 0
   {
     m_signalFrequency = 5210;
+    m_signalChannelNumber = 42;
     m_signalChannelWidth = 80;
     m_interferences.push_back (TestEffectiveSnrCalculations::InterferenceInfo (5180, 20, 9));
     m_interferences.push_back (TestEffectiveSnrCalculations::InterferenceInfo (5200, 20, 6));
@@ -1635,6 +1656,7 @@ TestEffectiveSnrCalculations::DoRun (void)
   // Case 8: 80 MHz transmission: I2 = I3 = I4 = 1/2 I1
   {
     m_signalFrequency = 5210;
+    m_signalChannelNumber = 42;
     m_signalChannelWidth = 80;
     m_interferences.push_back (TestEffectiveSnrCalculations::InterferenceInfo (5180, 20, 9));
     m_interferences.push_back (TestEffectiveSnrCalculations::InterferenceInfo (5200, 20, 6));
@@ -1649,6 +1671,7 @@ TestEffectiveSnrCalculations::DoRun (void)
   // Case 9: 160 MHz transmission: I1 = I2 = I3 = I4 = I5 = I6 = I7 = I8
   {
     m_signalFrequency = 5250;
+    m_signalChannelNumber = 50;
     m_signalChannelWidth = 160;
     m_interferences.push_back (TestEffectiveSnrCalculations::InterferenceInfo (5250, 160, 15));
     // SNR eff,m = min ((18 - 9) - (15 - 9), (18 - 9) - (15 - 9), (18 - 9) - (15 - 9), (18 - 9) - (15 - 9), (18 - 9) - (15 - 9), (18 - 9) - (15 - 9), (18 - 9) - (15 - 9), (18 - 9) - (15 - 9))
@@ -1661,6 +1684,7 @@ TestEffectiveSnrCalculations::DoRun (void)
   // Case 10: 160 MHz transmission: I2 = I3 = I4 = I5 = I6 = I7 = I8 = 0
   {
     m_signalFrequency = 5250;
+    m_signalChannelNumber = 50;
     m_signalChannelWidth = 160;
     m_interferences.push_back (TestEffectiveSnrCalculations::InterferenceInfo (5180, 20, 6));
     // SNR eff,m = min ((18 - 9) - 6, (18 - 9) - (-94), (18 - 9) - (-94), (18 - 9) - (-94), (18 - 9) - (-94), (18 - 9) - (-94), (18 - 9) - (-94), (18 - 9) - (-94))
@@ -1673,6 +1697,7 @@ TestEffectiveSnrCalculations::DoRun (void)
   // Case 11: 160 MHz transmission: I2 = I3 = I4 = 1/2 I1, I5 = I6 = I7 = I8 = 0
   {
     m_signalFrequency = 5250;
+    m_signalChannelNumber = 50;
     m_signalChannelWidth = 160;
     m_interferences.push_back (TestEffectiveSnrCalculations::InterferenceInfo (5180, 20, 6));
     m_interferences.push_back (TestEffectiveSnrCalculations::InterferenceInfo (5200, 20, 3));
@@ -1688,6 +1713,7 @@ TestEffectiveSnrCalculations::DoRun (void)
   // Case 12: 160 MHz transmission: I2 = I3 = I4 = I5 = I6 = I7 = I8 = 1/2 I1
   {
     m_signalFrequency = 5250;
+    m_signalChannelNumber = 50;
     m_signalChannelWidth = 160;
     m_interferences.push_back (TestEffectiveSnrCalculations::InterferenceInfo (5180, 20, 6));
     m_interferences.push_back (TestEffectiveSnrCalculations::InterferenceInfo (5200, 20, 3));
@@ -1800,8 +1826,9 @@ TestStaticChannelBondingChannelAccess::DoRun (void)
 
   spectrumPhy.SetChannel (spectrumChannel);
   spectrumPhy.SetErrorRateModel ("ns3::NistErrorRateModel");
-  spectrumPhy.Set ("Frequency", UintegerValue (5190));
   spectrumPhy.Set ("ChannelWidth", UintegerValue (40));
+  spectrumPhy.Set ("ChannelNumber", UintegerValue (38));
+  spectrumPhy.Set ("Frequency", UintegerValue (5190));
   spectrumPhy.Set ("TxPowerStart", DoubleValue (10));
   spectrumPhy.Set ("TxPowerEnd", DoubleValue (10));
 
@@ -1817,16 +1844,18 @@ TestStaticChannelBondingChannelAccess::DoRun (void)
   NetDeviceContainer bss1Devices;
   bss1Devices = wifi.Install (spectrumPhy, mac, wifiNodesBss1);
 
-  spectrumPhy.Set ("Frequency", UintegerValue (5180));
   spectrumPhy.Set ("ChannelWidth", UintegerValue (20));
+  spectrumPhy.Set ("ChannelNumber", UintegerValue (36));
+  spectrumPhy.Set ("Frequency", UintegerValue (5180));
   spectrumPhy.Set ("TxPowerStart", DoubleValue (10));
   spectrumPhy.Set ("TxPowerEnd", DoubleValue (10));
 
   NetDeviceContainer bss2Devices;
   bss2Devices = wifi.Install (spectrumPhy, mac, wifiNodesBss2);
 
-  spectrumPhy.Set ("Frequency", UintegerValue (5200));
   spectrumPhy.Set ("ChannelWidth", UintegerValue (20));
+  spectrumPhy.Set ("ChannelNumber", UintegerValue (40));
+  spectrumPhy.Set ("Frequency", UintegerValue (5200));
   spectrumPhy.Set ("TxPowerStart", DoubleValue (10));
   spectrumPhy.Set ("TxPowerEnd", DoubleValue (10));
 

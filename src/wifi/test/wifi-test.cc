@@ -1448,8 +1448,8 @@ Bug2843TestCase::DoRun (void)
 
   spectrumPhy.SetChannel (spectrumChannel);
   spectrumPhy.SetErrorRateModel ("ns3::NistErrorRateModel");
-  spectrumPhy.Set ("Frequency", UintegerValue (5180));
   spectrumPhy.Set ("ChannelWidth", UintegerValue (channelWidth));
+  spectrumPhy.Set ("Frequency", UintegerValue (5190));
   spectrumPhy.Set ("TxPowerStart", DoubleValue (10));
   spectrumPhy.Set ("TxPowerEnd", DoubleValue (10));
 

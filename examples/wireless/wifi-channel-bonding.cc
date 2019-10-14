@@ -105,8 +105,8 @@ int main (int argc, char *argv[])
   bool useDynamicChannelBonding = true;
   uint16_t channelBssA = 36;
   uint16_t channelBssB = 40;
-  std::string secondaryChannelBssA = "UPPER";
-  std::string secondaryChannelBssB = "";
+  uint16_t primaryChannelBssA = 36;
+  uint16_t primaryChannelBssB = 36;
   double ccaEdThresholdPrimaryBssA = -62.0;
   double ccaEdThresholdSecondaryBssA = -62.0;
   double ccaEdThresholdPrimaryBssB = -62.0;
@@ -128,8 +128,8 @@ int main (int argc, char *argv[])
   cmd.AddValue ("txMaskOuterBandMaximumRejection", "Maximum rejection in dBr for the outer band of the transmit spectrum mask", txMaskOuterBandMaximumRejection);
   cmd.AddValue ("channelBssA", "The selected channel for BSS A", channelBssA);
   cmd.AddValue ("channelBssB", "The selected channel for BSS B", channelBssB);
-  cmd.AddValue ("secondaryChannelBssA", "The secondary channel position for BSS A: UPPER or LOWER", secondaryChannelBssA);
-  cmd.AddValue ("secondaryChannelBssB", "The secondary channel position for BSS B: UPPER or LOWER", secondaryChannelBssB);
+  cmd.AddValue ("primaryChannelBssA", "The primary 20 MHz channel for BSS A", primaryChannelBssA);
+  cmd.AddValue ("primaryChannelBssB", "The primary 20 MHz channel for BSS B", primaryChannelBssB);
   cmd.AddValue ("useDynamicChannelBonding", "Enable/disable use of dynamic channel bonding", useDynamicChannelBonding);
   cmd.AddValue ("ccaEdThresholdPrimaryBssA", "The energy detection threshold on the primary channel for BSS A", ccaEdThresholdPrimaryBssA);
   cmd.AddValue ("ccaEdThresholdSecondaryBssA", "The energy detection threshold on the secondary channel for BSS A", ccaEdThresholdSecondaryBssA);
@@ -190,17 +190,6 @@ int main (int argc, char *argv[])
   // network A
   ssid = Ssid ("network-A");
 
-  phy.Set ("CcaEdThreshold", DoubleValue (ccaEdThresholdPrimaryBssA));
-  phy.Set ("CcaEdThresholdSecondary", DoubleValue (ccaEdThresholdSecondaryBssA));
-  if (secondaryChannelBssA == "LOWER")
-    {
-      phy.Set ("SecondaryChannelOffset", EnumValue (LOWER));
-    }
-  else
-    {
-      phy.Set ("SecondaryChannelOffset", EnumValue (UPPER));
-    }
-
   mac.SetType ("ns3::StaWifiMac",
                "Ssid", SsidValue (ssid));
   staDeviceA = wifi.Install (phy, mac, wifiStaNodes.Get (0));
@@ -208,6 +197,7 @@ int main (int argc, char *argv[])
   Ptr<NetDevice> staDeviceAPtr = staDeviceA.Get (0);
   Ptr<WifiNetDevice> wifiStaDeviceAPtr = staDeviceAPtr->GetObject <WifiNetDevice> ();
   wifiStaDeviceAPtr->GetPhy ()->SetChannelNumber (channelBssA);
+  wifiStaDeviceAPtr->GetPhy ()->SetPrimaryChannelNumber (primaryChannelBssA);
   wifiStaDeviceAPtr->GetPhy ()->SetCcaEdThreshold (ccaEdThresholdPrimaryBssA);
   wifiStaDeviceAPtr->GetPhy ()->SetCcaEdThresholdSecondary (ccaEdThresholdSecondaryBssA);
 
@@ -219,22 +209,12 @@ int main (int argc, char *argv[])
   Ptr<NetDevice> apDeviceAPtr = apDeviceA.Get (0);
   Ptr<WifiNetDevice> wifiApDeviceAPtr = apDeviceAPtr->GetObject <WifiNetDevice> ();
   wifiApDeviceAPtr->GetPhy ()->SetChannelNumber (channelBssA);
+  wifiApDeviceAPtr->GetPhy ()->SetPrimaryChannelNumber (primaryChannelBssA);
   wifiApDeviceAPtr->GetPhy ()->SetCcaEdThreshold (ccaEdThresholdPrimaryBssA);
   wifiApDeviceAPtr->GetPhy ()->SetCcaEdThresholdSecondary (ccaEdThresholdSecondaryBssA);
 
   // network B
   ssid = Ssid ("network-B");
-
-  phy.Set ("CcaEdThreshold", DoubleValue (ccaEdThresholdPrimaryBssB));
-  phy.Set ("CcaEdThresholdSecondary", DoubleValue (ccaEdThresholdSecondaryBssB));
-  if (secondaryChannelBssB == "LOWER")
-    {
-      phy.Set ("SecondaryChannelOffset", EnumValue (LOWER));
-    }
-  else
-    {
-      phy.Set ("SecondaryChannelOffset", EnumValue (UPPER));
-    }
 
   mac.SetType ("ns3::StaWifiMac",
                "Ssid", SsidValue (ssid));
@@ -244,6 +224,7 @@ int main (int argc, char *argv[])
   Ptr<NetDevice> staDeviceBPtr = staDeviceB.Get (0);
   Ptr<WifiNetDevice> wifiStaDeviceBPtr = staDeviceBPtr->GetObject <WifiNetDevice> ();
   wifiStaDeviceBPtr->GetPhy ()->SetChannelNumber (channelBssB);
+  wifiStaDeviceBPtr->GetPhy ()->SetPrimaryChannelNumber (primaryChannelBssB);
   wifiStaDeviceBPtr->GetPhy ()->SetCcaEdThreshold (ccaEdThresholdPrimaryBssB);
   wifiStaDeviceBPtr->GetPhy ()->SetCcaEdThresholdSecondary (ccaEdThresholdSecondaryBssB);
 
@@ -255,6 +236,7 @@ int main (int argc, char *argv[])
   Ptr<NetDevice> apDeviceBPtr = apDeviceB.Get (0);
   Ptr<WifiNetDevice> wifiApDeviceBPtr = apDeviceBPtr->GetObject <WifiNetDevice> ();
   wifiApDeviceBPtr->GetPhy ()->SetChannelNumber (channelBssB);
+  wifiApDeviceBPtr->GetPhy ()->SetPrimaryChannelNumber (primaryChannelBssB);
   wifiApDeviceBPtr->GetPhy ()->SetCcaEdThreshold (ccaEdThresholdPrimaryBssB);
   wifiApDeviceBPtr->GetPhy ()->SetCcaEdThresholdSecondary (ccaEdThresholdSecondaryBssB);
 
