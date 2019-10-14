@@ -317,6 +317,7 @@ private:
   Ptr<WaveformGenerator> m_phyInterferer; ///< PHY of interferer
 
   uint16_t m_frequency;        ///< frequency in MHz
+  uint8_t m_channelNumber;     ///< operating channel number
   uint16_t m_channelWidth;     ///< channel width in MHz
   Time m_expectedPpduDuration; ///< expected duration to send MU PPDU
 };
@@ -333,6 +334,7 @@ TestDlOfdmaPhyTransmission::TestDlOfdmaPhyTransmission ()
     m_countRxBytesSta2 (0),
     m_countRxBytesSta3 (0),
     m_frequency (DEFAULT_FREQUENCY),
+    m_channelNumber (DEFAULT_CHANNEL_NUMBER),
     m_channelWidth (DEFAULT_CHANNEL_WIDTH),
     m_expectedPpduDuration (NanoSeconds (306400))
 {
@@ -617,17 +619,21 @@ TestDlOfdmaPhyTransmission::RunOne (void)
   m_phySta2->AssignStreams (streamNumber);
   m_phySta3->AssignStreams (streamNumber);
 
-  m_phyAp->SetFrequency (m_frequency);
   m_phyAp->SetChannelWidth (m_channelWidth);
+  m_phyAp->SetChannelNumber (m_channelNumber);
+  m_phyAp->SetFrequency (m_frequency);
 
-  m_phySta1->SetFrequency (m_frequency);
   m_phySta1->SetChannelWidth (m_channelWidth);
+  m_phySta1->SetChannelNumber (m_channelNumber);
+  m_phySta1->SetFrequency (m_frequency);
 
-  m_phySta2->SetFrequency (m_frequency);
   m_phySta2->SetChannelWidth (m_channelWidth);
+  m_phySta2->SetChannelNumber (m_channelNumber);
+  m_phySta2->SetFrequency (m_frequency);
 
-  m_phySta3->SetFrequency (m_frequency);
   m_phySta3->SetChannelWidth (m_channelWidth);
+  m_phySta3->SetChannelNumber (m_channelNumber);
+  m_phySta3->SetFrequency (m_frequency);
 
   Simulator::Schedule (Seconds (0.5), &TestDlOfdmaPhyTransmission::ResetResults, this);
 
@@ -792,21 +798,25 @@ void
 TestDlOfdmaPhyTransmission::DoRun (void)
 {
   m_frequency = 5180;
+  m_channelNumber = 36;
   m_channelWidth = 20;
   m_expectedPpduDuration = NanoSeconds (306400);
   RunOne ();
 
   m_frequency = 5190;
+  m_channelNumber = 38;
   m_channelWidth = 40;
   m_expectedPpduDuration = NanoSeconds (156800);
   RunOne ();
 
   m_frequency = 5210;
+  m_channelNumber = 42;
   m_channelWidth = 80;
   m_expectedPpduDuration = NanoSeconds (102400);
   RunOne ();
 
   m_frequency = 5250;
+  m_channelNumber = 50;
   m_channelWidth = 160;
   m_expectedPpduDuration = NanoSeconds (75200);
   RunOne ();
@@ -913,6 +923,7 @@ TestUlOfdmaPpduUid::DoSetup (void)
   Ptr<ErrorRateModel> error = CreateObject<NistErrorRateModel> ();
   m_phyAp->SetErrorRateModel (error);
   m_phyAp->SetFrequency (DEFAULT_FREQUENCY);
+  m_phyAp->SetChannelNumber (DEFAULT_CHANNEL_NUMBER);
   m_phyAp->SetChannelWidth (DEFAULT_CHANNEL_WIDTH);
   m_phyAp->SetDevice (apDev);
   m_phyAp->SetChannel (spectrumChannel);
@@ -930,6 +941,7 @@ TestUlOfdmaPpduUid::DoSetup (void)
   m_phySta1->ConfigureStandard (WIFI_PHY_STANDARD_80211ax_5GHZ);
   m_phySta1->SetErrorRateModel (error);
   m_phySta1->SetFrequency (DEFAULT_FREQUENCY);
+  m_phySta1->SetChannelNumber (DEFAULT_CHANNEL_NUMBER);
   m_phySta1->SetChannelWidth (DEFAULT_CHANNEL_WIDTH);
   m_phySta1->SetDevice (sta1Dev);
   m_phySta1->SetChannel (spectrumChannel);
@@ -947,6 +959,7 @@ TestUlOfdmaPpduUid::DoSetup (void)
   m_phySta2->ConfigureStandard (WIFI_PHY_STANDARD_80211ax_5GHZ);
   m_phySta2->SetErrorRateModel (error);
   m_phySta2->SetFrequency (DEFAULT_FREQUENCY);
+  m_phySta2->SetChannelNumber (DEFAULT_CHANNEL_NUMBER);
   m_phySta2->SetChannelWidth (DEFAULT_CHANNEL_WIDTH);
   m_phySta2->SetDevice (sta2Dev);
   m_phySta2->SetChannel (spectrumChannel);
@@ -1557,6 +1570,7 @@ private:
   uint32_t m_countRxBytesFromSta2;   ///< count RX bytes from STA 2
 
   uint16_t m_frequency;        ///< frequency in MHz
+  uint8_t m_channelNumber;     ///< operating channel number
   uint16_t m_channelWidth;     ///< channel width in MHz
   Time m_expectedPpduDuration; ///< expected duration to send MU PPDU
 };
@@ -1570,6 +1584,7 @@ TestUlOfdmaPhyTransmission::TestUlOfdmaPhyTransmission ()
     m_countRxBytesFromSta1 (0),
     m_countRxBytesFromSta2 (0),
     m_frequency (DEFAULT_FREQUENCY),
+    m_channelNumber (DEFAULT_CHANNEL_NUMBER),
     m_channelWidth (DEFAULT_CHANNEL_WIDTH),
     m_expectedPpduDuration (NanoSeconds (271200))
 {
@@ -1898,17 +1913,21 @@ TestUlOfdmaPhyTransmission::RunOne (void)
   m_phySta2->AssignStreams (streamNumber);
   m_phySta3->AssignStreams (streamNumber);
 
-  m_phyAp->SetFrequency (m_frequency);
   m_phyAp->SetChannelWidth (m_channelWidth);
+  m_phyAp->SetChannelNumber (m_channelNumber);
+  m_phyAp->SetFrequency (m_frequency);
 
-  m_phySta1->SetFrequency (m_frequency);
   m_phySta1->SetChannelWidth (m_channelWidth);
+  m_phySta1->SetChannelNumber (m_channelNumber);
+  m_phySta1->SetFrequency (m_frequency);
 
-  m_phySta2->SetFrequency (m_frequency);
   m_phySta2->SetChannelWidth (m_channelWidth);
+  m_phySta2->SetChannelNumber (m_channelNumber);
+  m_phySta2->SetFrequency (m_frequency);
 
-  m_phySta3->SetFrequency (m_frequency);
   m_phySta3->SetChannelWidth (m_channelWidth);
+  m_phySta3->SetChannelNumber (m_channelNumber);
+  m_phySta3->SetFrequency (m_frequency);
 
   Simulator::Schedule (Seconds (0.0), &TestUlOfdmaPhyTransmission::Reset, this);
 
@@ -2083,21 +2102,25 @@ void
 TestUlOfdmaPhyTransmission::DoRun (void)
 {
   m_frequency = 5180;
+  m_channelNumber = 36;
   m_channelWidth = 20;
   m_expectedPpduDuration = NanoSeconds (271200);
   RunOne ();
 
   m_frequency = 5190;
+  m_channelNumber = 38;
   m_channelWidth = 40;
   m_expectedPpduDuration = NanoSeconds (148800);
   RunOne ();
 
   m_frequency = 5210;
+  m_channelNumber = 42;
   m_channelWidth = 80;
   m_expectedPpduDuration = NanoSeconds (94400);
   RunOne ();
 
   m_frequency = 5250;
+  m_channelNumber = 50;
   m_channelWidth = 160;
   m_expectedPpduDuration = NanoSeconds (67200);
   RunOne ();

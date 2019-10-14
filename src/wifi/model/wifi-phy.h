@@ -90,13 +90,6 @@ struct RxSignalInfo
   double rssi; ///< RSSI in dBm
 };
 
-/// SecondaryChannelOffset enumeration
-enum SecondaryChannelOffset
-{
-  UPPER,
-  LOWER
-};
-
 /**
  * \brief 802.11 PHY layer model
  * \ingroup wifi
@@ -284,9 +277,10 @@ public:
   WifiPhyState GetPhyState (void);
 
   /**
-   * \return true if the secondary channel is WifiPhy::IDLE, false otherwise.
+   * \param channelWidth the channel width to check
+   * \return true if all the 20 MHz channels for the given channel width are idle, false otherwise
    */
-  bool IsSecondaryStateIdle (void);
+  bool IsStateIdle (uint16_t channelWidth);
 
   /**
    * todo
@@ -302,9 +296,9 @@ public:
   Time GetDelayUntilIdle (void);
 
   /**
-   * \return the delay since the secondary channel is WifiPhy::IDLE.
+   * \return the minimum delay among the bonded channels since they are in WifiPhy::IDLE.
    */
-  Time GetDelaySinceSecondaryIsIdle (void);
+  Time GetDelaySinceChannelIsIdle (uint16_t channelWidth);
 
   /**
    * Return the start time of the last received packet.
@@ -651,6 +645,20 @@ public:
    * \return the current channel number
    */
   uint8_t GetChannelNumber (void) const;
+
+  /**
+   * \brief Set the primary 20 MHz channel number.
+   *
+   * \param id the primary channel number
+   */
+  void SetPrimaryChannelNumber (uint8_t id);
+  /**
+   * Return the primary channel number.
+   *
+   * \return the primary channel number
+   */
+  uint8_t GetPrimaryChannelNumber (void) const;
+
   /**
    * \return the required time for channel switch operation of this WifiPhy
    */
@@ -1642,18 +1650,6 @@ public:
    * \returns true if short PLCP preamble is supported, false otherwise
    */
   bool GetShortPlcpPreambleSupported (void) const;
-  /**
-   * Select whether secondary channel is upper or lower.
-   *
-   * \param offset sets whether secondary channel is upper or lower
-   */
-  void SetSecondaryChannelOffset (SecondaryChannelOffset offset);
-  /**
-   * Return whether secondary channel is upper or lower.
-   *
-   * \returns whether the secondary channel is upper or lower
-   */
-  SecondaryChannelOffset GetSecondaryChannelOffset (void) const;
 
   /**
    * Sets the error rate model.
@@ -1822,6 +1818,9 @@ protected:
    * \return the STA ID
    */
   virtual uint16_t GetStaId (const Ptr<const WifiPpdu> ppdu) const;
+
+  //TODO
+  uint8_t GetPrimaryBandIndex (uint16_t currentWidth) const;
 
   /**
    * Get the start band index and the stop band index for a given band
@@ -2181,7 +2180,6 @@ private:
   uint16_t m_initialFrequency;                      //!< Store frequency until initialization
   bool m_frequencyChannelNumberInitialized;         //!< Store initialization state
   uint16_t m_channelWidth;                          //!< Channel width
-  SecondaryChannelOffset m_secondaryChannelOffset;  //!< Secondary channel offset
 
   double   m_rxSensitivityW;           //!< Receive sensitivity threshold in watts
   double   m_ccaEdThresholdW;          //!< Clear channel assessment (CCA) threshold for primary channel in watts
@@ -2213,6 +2211,7 @@ private:
 
   std::vector<uint16_t> m_supportedChannelWidthSet; //!< Supported channel width
   uint8_t               m_channelNumber;            //!< Operating channel number
+  uint8_t               m_primaryChannelNumber;     //!< Primary 20 MHz channel number
   uint8_t               m_initialChannelNumber;     //!< Initial channel number
 
   Time m_channelSwitchDelay;     //!< Time required to switch between channel

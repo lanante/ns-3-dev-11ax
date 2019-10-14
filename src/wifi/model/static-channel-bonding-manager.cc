@@ -48,21 +48,14 @@ uint16_t
 StaticChannelBondingManager::GetUsableChannelWidth (void)
 {
   NS_LOG_FUNCTION (this);
-  if (m_phy->GetChannelWidth () == 40)
+  if ((m_phy->GetChannelWidth () < 40) || (m_phy->GetDelaySinceChannelIsIdle (m_phy->GetChannelWidth ()) >= m_phy->GetPifs ()))
     {
-      if (m_phy->GetDelaySinceSecondaryIsIdle () >= m_phy->GetPifs ())
-        {
-          NS_LOG_DEBUG ("Secondary channel is idle for at least PIFS: transmission on 40 MHz allowed");
-          return 40;
-        }
-      else
-        {
-          NS_LOG_DEBUG ("Secondary channel is idle for less than PIFS: transmission on 40 MHz not allowed");
-          return 0;
-        }
+      return m_phy->GetChannelWidth ();
     }
-  //TODO: handle 80 and 160 MHZ
-  return m_phy->GetChannelWidth ();
+  else
+    {
+      return 0;
+    }
 }
 
 } //namespace ns3

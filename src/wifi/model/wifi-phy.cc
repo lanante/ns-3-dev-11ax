@@ -189,13 +189,12 @@ WifiPhy::GetTypeId (void)
                    MakeUintegerAccessor (&WifiPhy::SetChannelNumber,
                                          &WifiPhy::GetChannelNumber),
                    MakeUintegerChecker<uint8_t> (0, 196))
-    .AddAttribute ("SecondaryChannelOffset",
-                   "Indicates the position of the secondary channel compare to the primary channel",
-                   EnumValue (UPPER),
-                   MakeEnumAccessor (&WifiPhy::SetSecondaryChannelOffset,
-                                     &WifiPhy::GetSecondaryChannelOffset),
-                   MakeEnumChecker (UPPER, "Upper",
-                                    LOWER, "Lower"))
+    .AddAttribute ("PrimaryChannelNumber",
+                   "Select the primary 20 MHz channel if a channel width of 40, 80 or 160 MHz is used",
+                   UintegerValue (36),
+                   MakeUintegerAccessor (&WifiPhy::SetPrimaryChannelNumber,
+                                         &WifiPhy::GetPrimaryChannelNumber),
+                   MakeUintegerChecker<uint8_t> (0, 181))
     .AddAttribute ("EnergyDetectionThreshold",
                    "The energy of a received signal should be higher than "
                    "this threshold (dbm) to allow the PHY layer to detect the signal.",
@@ -767,19 +766,6 @@ WifiPhy::GetShortPlcpPreambleSupported (void) const
 }
 
 void
-WifiPhy::SetSecondaryChannelOffset (SecondaryChannelOffset offset)
-{
-  NS_LOG_FUNCTION (this << offset);
-  m_secondaryChannelOffset = offset;
-}
-
-SecondaryChannelOffset
-WifiPhy::GetSecondaryChannelOffset (void) const
-{
-  return m_secondaryChannelOffset;
-}
-
-void
 WifiPhy::SetDevice (const Ptr<NetDevice> device)
 {
   m_device = device;
@@ -920,24 +906,28 @@ WifiPhy::ConfigureDefaultsForStandard (WifiPhyStandard standard)
       SetFrequency (2412);
       // Channel number should be aligned by SetFrequency () to 1
       NS_ASSERT (GetChannelNumber () == 1);
+      SetPrimaryChannelNumber (1); //TODO: remove once primary channels is updated when channel number has changed
       break;
     case WIFI_PHY_STANDARD_80211g:
       SetChannelWidth (20);
       SetFrequency (2412);
       // Channel number should be aligned by SetFrequency () to 1
       NS_ASSERT (GetChannelNumber () == 1);
+      SetPrimaryChannelNumber (1); //TODO: remove once primary channels is updated when channel number has changed
       break;
     case WIFI_PHY_STANDARD_80211_10MHZ:
       SetChannelWidth (10);
       SetFrequency (5860);
       // Channel number should be aligned by SetFrequency () to 172
       NS_ASSERT (GetChannelNumber () == 172);
+      SetPrimaryChannelNumber (172); //TODO: remove once primary channels is updated when channel number has changed
       break;
     case WIFI_PHY_STANDARD_80211_5MHZ:
       SetChannelWidth (5);
       SetFrequency (5860);
       // Channel number should be aligned by SetFrequency () to 0
       NS_ASSERT (GetChannelNumber () == 0);
+      SetPrimaryChannelNumber (0); //TODO: remove once primary channels is updated when channel number has changed
       break;
     case WIFI_PHY_STANDARD_holland:
       SetChannelWidth (20);
@@ -951,6 +941,7 @@ WifiPhy::ConfigureDefaultsForStandard (WifiPhyStandard standard)
       SetFrequency (2412);
       // Channel number should be aligned by SetFrequency () to 1
       NS_ASSERT (GetChannelNumber () == 1);
+      SetPrimaryChannelNumber (1); //TODO: remove once primary channels is updated when channel number has changed
       break;
     case WIFI_PHY_STANDARD_80211n_5GHZ:
       SetCcaEdThresholdSecondary (-62.0);
@@ -972,6 +963,7 @@ WifiPhy::ConfigureDefaultsForStandard (WifiPhyStandard standard)
       SetFrequency (2412);
       // Channel number should be aligned by SetFrequency () to 1
       NS_ASSERT (GetChannelNumber () == 1);
+      SetPrimaryChannelNumber (1); //TODO: remove once primary channels is updated when channel number has changed
       break;
     case WIFI_PHY_STANDARD_80211ax_5GHZ:
       SetCcaEdThresholdSecondary (-72.0);
@@ -1445,6 +1437,7 @@ WifiPhy::SetFrequency (uint16_t frequency)
           NS_LOG_DEBUG ("Suppressing reassignment of frequency");
         }
     }
+  //FIXME: in case the user changes the frequency, the primary channel should be updated accordingly
 }
 
 uint16_t
@@ -1465,6 +1458,7 @@ WifiPhy::SetChannelWidth (uint16_t channelwidth)
     {
       m_capabilitiesChangedCallback ();
     }
+  //FIXME: Update frequency and channel number accordingly
 }
 
 uint16_t
@@ -1628,12 +1622,36 @@ WifiPhy::SetChannelNumber (uint8_t nch)
     {
       NS_FATAL_ERROR ("Frequency not found for channel number " << +nch);
     }
+  //FIXME: in case the user changes the channel, the primary channel should be updated accordingly
 }
 
 uint8_t
 WifiPhy::GetChannelNumber (void) const
 {
   return m_channelNumber;
+}
+
+void
+WifiPhy::SetPrimaryChannelNumber (uint8_t nch)
+{
+  NS_LOG_FUNCTION (this << +nch);
+  if (GetChannelWidth () < 20)
+    {
+      m_primaryChannelNumber = GetChannelNumber ();
+      return;
+    }
+  auto it = m_channelToFrequencyWidth.find (std::make_pair (nch, WIFI_PHY_STANDARD_UNSPECIFIED));
+  if ((it == m_channelToFrequencyWidth.end ()) || (it->second.second >= 40))
+    {
+      NS_FATAL_ERROR ("Invalid primary 20 MHz channel: " << +nch);
+    }
+  m_primaryChannelNumber = nch;
+}
+
+uint8_t
+WifiPhy::GetPrimaryChannelNumber (void) const
+{
+  return m_primaryChannelNumber;
 }
 
 uint16_t
@@ -1644,13 +1662,8 @@ WifiPhy::GetCenterFrequencyForChannelWidth (uint16_t currentWidth) const
   uint16_t supportedWidth = GetChannelWidth ();
   if (currentWidth != supportedWidth)
     {
-      if (supportedWidth == 40)
-        {
-           return GetCenterFrequency (GetFrequency (), supportedWidth, currentWidth, GetSecondaryChannelOffset () == UPPER ? 0 : 1);
-        }
-      //TODO: 80 and 160 MHz
-      uint16_t startingFrequency = centerFrequencyForSupportedWidth - (supportedWidth / 2);
-      return startingFrequency + (currentWidth / 2); // primary channel is in the lower part (for the time being)
+      uint8_t index = GetPrimaryBandIndex (currentWidth);
+      return GetCenterFrequency (GetFrequency (), supportedWidth, currentWidth, index);
     }
   return centerFrequencyForSupportedWidth;
 }
@@ -1720,8 +1733,9 @@ WifiPhy::DoChannelSwitch (uint8_t nch)
 switchChannel:
 
   NS_LOG_DEBUG ("switching channel " << +GetChannelNumber () << " -> " << +nch);
+  m_channelNumber = nch;
   uint16_t primaryChannelWidth = GetChannelWidth () >= 40 ? 20 : GetChannelWidth ();
-  auto primaryBand = GetBand (primaryChannelWidth, GetSecondaryChannelOffset () == UPPER ? 0 : 1);
+  auto primaryBand = GetBand (primaryChannelWidth, GetPrimaryBandIndex (primaryChannelWidth));
   m_state->SwitchToChannelSwitching (GetChannelSwitchDelay (), primaryBand);
   m_interference.EraseEvents ();
   /*
@@ -1798,7 +1812,7 @@ switchFrequency:
 
   NS_LOG_DEBUG ("switching frequency " << GetFrequency () << " -> " << frequency);
   uint16_t primaryChannelWidth = GetChannelWidth () >= 40 ? 20 : GetChannelWidth ();
-  auto primaryBand = GetBand (primaryChannelWidth, GetSecondaryChannelOffset () == UPPER ? 0 : 1);
+  auto primaryBand = GetBand (primaryChannelWidth, GetPrimaryBandIndex (primaryChannelWidth));
   m_state->SwitchToChannelSwitching (GetChannelSwitchDelay (), primaryBand);
   m_interference.EraseEvents ();
   /*
@@ -1836,7 +1850,7 @@ WifiPhy::SetSleepMode (void)
     {
       NS_LOG_DEBUG ("setting sleep mode");
       uint16_t primaryChannelWidth = GetChannelWidth () >= 40 ? 20 : GetChannelWidth ();
-      auto primaryBand = GetBand (primaryChannelWidth, GetSecondaryChannelOffset () == UPPER ? 0 : 1);
+      auto primaryBand = GetBand (primaryChannelWidth, GetPrimaryBandIndex (primaryChannelWidth));
       m_state->SwitchToSleep (primaryBand);
       break;
     }
@@ -1867,7 +1881,7 @@ WifiPhy::SetOffMode (void)
     }
   m_endPreambleDetectionEvents.clear ();
   uint16_t primaryChannelWidth = GetChannelWidth () >= 40 ? 20 : GetChannelWidth ();
-  auto primaryBand = GetBand (primaryChannelWidth, GetSecondaryChannelOffset () == UPPER ? 0 : 1);
+  auto primaryBand = GetBand (primaryChannelWidth, GetPrimaryBandIndex (primaryChannelWidth));
   m_state->SwitchToOff (primaryBand);
 }
 
@@ -1890,9 +1904,14 @@ WifiPhy::ResumeFromSleep (void)
     case WifiPhyState::SLEEP:
       {
         NS_LOG_DEBUG ("resuming from sleep mode");
-        uint16_t primaryChannelWidth = GetChannelWidth () >= 40 ? 20 : GetChannelWidth ();
-        Time delayUntilCcaEnd = m_interference.GetEnergyDuration (m_ccaEdThresholdW, GetBand (primaryChannelWidth, GetSecondaryChannelOffset () == UPPER ? 0 : 1));
-        m_state->SwitchFromSleep (delayUntilCcaEnd);
+        uint16_t channelWidth = GetChannelWidth ();
+        for (uint8_t i = 0; i < std::max (1, channelWidth / 20); i++)
+          {
+            auto band = GetBand (((channelWidth >= 40) ? 20 : channelWidth), i);
+            bool isPrimary = (i == GetPrimaryBandIndex (((channelWidth >= 40) ? 20 : channelWidth)));
+            Time delayUntilCcaEnd = m_interference.GetEnergyDuration (m_ccaEdThresholdW, band);
+            m_state->SwitchFromSleep (delayUntilCcaEnd, band, isPrimary);
+          }
         break;
       }
     default:
@@ -1922,9 +1941,15 @@ WifiPhy::ResumeFromOff (void)
     case WifiPhyState::OFF:
       {
         NS_LOG_DEBUG ("resuming from off mode");
-        uint16_t primaryChannelWidth = GetChannelWidth () >= 40 ? 20 : GetChannelWidth ();
-        Time delayUntilCcaEnd = m_interference.GetEnergyDuration (m_ccaEdThresholdW, GetBand (primaryChannelWidth, GetSecondaryChannelOffset () == UPPER ? 0 : 1));
-        m_state->SwitchFromOff (delayUntilCcaEnd);
+        uint16_t channelWidth = GetChannelWidth ();
+        for (uint8_t i = 0; i < std::max (1, channelWidth / 20); i++)
+          {
+            uint16_t primaryChannelWidth = (channelWidth >= 40) ? 20 : channelWidth;
+            auto band = GetBand (primaryChannelWidth, i);
+            bool isPrimary = (i == GetPrimaryBandIndex (primaryChannelWidth));
+            Time delayUntilCcaEnd = m_interference.GetEnergyDuration (m_ccaEdThresholdW, band);
+            m_state->SwitchFromOff (delayUntilCcaEnd, band, isPrimary);
+          }
         break;
       }
     default:
@@ -2889,7 +2914,7 @@ WifiPhy::Send (WifiPsduMap psdus, WifiTxVector txVector)
   NotifyTxBegin (psdus, DbmToW (GetTxPowerForTransmission (txVector) + GetTxGain ()));
   NotifyMonitorSniffTx (psdus.begin ()->second, GetFrequency (), txVector); //TODO: fix for MU
   uint16_t primaryChannelWidth = GetChannelWidth () >= 40 ? 20 : GetChannelWidth ();
-  auto primaryBand = GetBand (primaryChannelWidth, GetSecondaryChannelOffset () == UPPER ? 0 : 1);
+  auto primaryBand = GetBand (primaryChannelWidth, GetPrimaryBandIndex (primaryChannelWidth));
   m_state->SwitchToTx (txDuration, psdus, GetPowerDbm (txVector.GetTxPowerLevel ()), txVector, primaryBand);
 
   if (IsStateOff ())
@@ -2980,13 +3005,12 @@ WifiPhy::StartReceiveHeader (Ptr<Event> event)
     {
       channelWidth = m_currentEvent->GetTxVector ().GetChannelWidth ();
     }
-  
-  double snr = m_interference.CalculateSnr (m_currentEvent, channelWidth, GetBand (channelWidth, GetSecondaryChannelOffset () == UPPER ? 0 : 1));
+  auto primaryband = GetBand (channelWidth, GetPrimaryBandIndex (channelWidth));
+  double snr = m_interference.CalculateSnr (m_currentEvent, channelWidth, primaryband);
   NS_LOG_DEBUG ("SNR(dB)=" << RatioToDb (snr) << " at start of legacy PHY header");
 
   Time headerPayloadDuration = m_currentEvent->GetStartTime () + m_currentEvent->GetPpdu ()->GetTxDuration () - Simulator::Now ();
-
-  if (!m_preambleDetectionModel || (m_preambleDetectionModel->IsPreambleDetected (m_currentEvent->GetRxPowerW (), snr, m_channelWidth)))
+  if (!m_preambleDetectionModel || (m_preambleDetectionModel->IsPreambleDetected (m_currentEvent->GetRxPowerW (primaryband), snr, channelWidth)))
     {
       for (auto & endPreambleDetectionEvent : m_endPreambleDetectionEvents)
         {
@@ -3009,7 +3033,7 @@ WifiPhy::StartReceiveHeader (Ptr<Event> event)
         }
   
       uint16_t primaryChannelWidth = GetChannelWidth () >= 40 ? 20 : GetChannelWidth ();
-      auto primaryBand = GetBand (primaryChannelWidth, GetSecondaryChannelOffset () == UPPER ? 0 : 1);
+      auto primaryBand = GetBand (primaryChannelWidth, GetPrimaryBandIndex (primaryChannelWidth));
       m_state->SwitchToRx (headerPayloadDuration, primaryBand);
       NotifyRxBegin (GetAddressedPsduInPpdu (m_currentEvent->GetPpdu ()), m_currentEvent->GetRxPowerWPerBand ());
 
@@ -3070,7 +3094,7 @@ WifiPhy::ContinueReceiveHeader (Ptr<Event> event)
     {
       channelWidth = event->GetTxVector ().GetChannelWidth ();
     }
-  InterferenceHelper::SnrPer snrPer = m_interference.CalculateLegacyPhyHeaderSnrPer (event, GetBand (channelWidth, GetSecondaryChannelOffset () == UPPER ? 0 : 1));
+  InterferenceHelper::SnrPer snrPer = m_interference.CalculateLegacyPhyHeaderSnrPer (event, GetBand (channelWidth, GetPrimaryBandIndex (channelWidth)));
 
   NS_LOG_DEBUG ("SNR(dB)=" << RatioToDb (snrPer.snr) << ", PER=" << snrPer.per);
   if (m_random->GetValue () > snrPer.per) //legacy PHY header reception succeeded
@@ -3160,7 +3184,7 @@ WifiPhy::StartReceivePreamble (Ptr<WifiPpdu> ppdu, RxPowerWattPerChannelBand rxP
 
   if (GetChannelWidth () >= 40)
     {
-      auto primaryChannelband = GetBand (20, GetSecondaryChannelOffset () == UPPER ? 0 : 1);
+      auto primaryChannelband = GetBand (20, GetPrimaryBandIndex (20));
       double rxPowerPrimaryChannelW = event->GetRxPowerW (primaryChannelband);
       if (WToDbm (rxPowerPrimaryChannelW) < GetRxSensitivity ())
         {
@@ -3179,8 +3203,7 @@ WifiPhy::StartReceivePreamble (Ptr<WifiPpdu> ppdu, RxPowerWattPerChannelBand rxP
         }
       if ((txVector.GetChannelWidth () < GetChannelWidth ()) && (ppdu->GetFrequency () != GetCenterFrequencyForChannelWidth (txVector.GetChannelWidth ())))
         {
-          //TODO: extend to 80 and 160 MHz
-          NS_LOG_INFO ("Received 20 MHz PPDU in the secondary 20 MHz channel: do not proceed with reception");
+          NS_LOG_INFO ("Received 20 MHz PPDU in a secondary 20 MHz channel: do not proceed with reception");
           //TODO: drop packet?
           MaybeCcaBusy (); //secondary channel shall maybe switch to CCA_BUSY
           for (auto it = m_currentPreambleEvents.begin (); it != m_currentPreambleEvents.end (); ++it)
@@ -3296,23 +3319,17 @@ WifiPhy::MaybeCcaBusy ()
   //not going to be able to synchronize on it
   //In this model, CCA becomes busy when the aggregation of all signals as
   //tracked by the InterferenceHelper class is higher than the CcaBusyThreshold
-  uint16_t primaryChannelWidth = GetChannelWidth () >= 40 ? 20 : GetChannelWidth ();
-  auto primaryBand = GetBand (primaryChannelWidth, GetSecondaryChannelOffset () == UPPER ? 0 : 1);
-  Time delayUntilCcaEnd = GetDelayUntilCcaEnd (m_ccaEdThresholdW, primaryBand);
-  if (!delayUntilCcaEnd.IsZero ())
+  uint16_t channelWidth = GetChannelWidth ();
+  for (uint8_t i = 0; i < std::max (1, channelWidth / 20); i++)
     {
-      NS_LOG_DEBUG ("Calling SwitchMaybeToCcaBusy for the primary channel for " << delayUntilCcaEnd.As (Time::S));
-      m_state->SwitchMaybeToCcaBusy (delayUntilCcaEnd, primaryBand, true);
-    }
-  if (GetChannelWidth () >= 40)
-    {
-      uint16_t secondaryChannelWidth = primaryChannelWidth;
-      auto secondaryBand = GetBand (secondaryChannelWidth, GetSecondaryChannelOffset () == UPPER ? 1 : 0);
-      delayUntilCcaEnd = GetDelayUntilCcaEnd (m_ccaEdThresholdSecondaryW, secondaryBand);
+      uint16_t primaryChannelWidth = (channelWidth >= 40) ? 20 : channelWidth;
+      auto band = GetBand (primaryChannelWidth, i);
+      bool isPrimary = (i == GetPrimaryBandIndex (primaryChannelWidth));
+      Time delayUntilCcaEnd = GetDelayUntilCcaEnd (isPrimary ? m_ccaEdThresholdW : m_ccaEdThresholdSecondaryW, band);
       if (!delayUntilCcaEnd.IsZero ())
         {
-          NS_LOG_DEBUG ("Calling SwitchMaybeToCcaBusy for the secondary channel for " << delayUntilCcaEnd.As (Time::S));
-          m_state->SwitchMaybeToCcaBusy (delayUntilCcaEnd, secondaryBand, false);
+          NS_LOG_DEBUG ("Calling SwitchMaybeToCcaBusy for channel band " << +i << " for " << delayUntilCcaEnd.As (Time::S));
+          m_state->SwitchMaybeToCcaBusy (delayUntilCcaEnd, band, isPrimary);
         }
     }
 }
@@ -3384,7 +3401,7 @@ WifiPhy::StartReceivePayload (Ptr<Event> event)
         {
           channelWidth = event->GetTxVector ().GetChannelWidth ();
         }
-      InterferenceHelper::SnrPer snrPer = m_interference.CalculateNonLegacyPhyHeaderSnrPer (event, GetBand (channelWidth, GetSecondaryChannelOffset () == UPPER ? 0 : 1));
+      InterferenceHelper::SnrPer snrPer = m_interference.CalculateNonLegacyPhyHeaderSnrPer (event, GetBand (channelWidth, GetPrimaryBandIndex (channelWidth)));
       NS_LOG_DEBUG ("SNR(dB)=" << RatioToDb (snrPer.snr) << ", PER=" << snrPer.per);
       canReceivePayload = (m_random->GetValue () > snrPer.per);
     }
@@ -3541,10 +3558,10 @@ WifiPhy::EndOfMpdu (Ptr<Event> event, Ptr<const WifiPsdu> psdu, size_t mpduIndex
       uint8_t index = 0;
       if (channelWidth < GetChannelWidth ())
         {
-          index = GetSecondaryChannelOffset () == UPPER ? 0 : 1;
+          index = GetPrimaryBandIndex (channelWidth);
         }
       band = GetBand (channelWidth, index);
-      if (channelWidth <= 20)
+      if (channelWidth < 40)
         {
           bands.push_back (band);
         }
@@ -3552,7 +3569,7 @@ WifiPhy::EndOfMpdu (Ptr<Event> event, Ptr<const WifiPsdu> psdu, size_t mpduIndex
         {
           for (uint8_t i = 0; i < (channelWidth / 20); i++)
             {
-              band = GetBand ((channelWidth > 20) ? 20 : channelWidth, i);
+              band = GetBand (20, i);
               bands.push_back (band);
             }
         }
@@ -3604,10 +3621,10 @@ WifiPhy::EndReceive (Ptr<Event> event)
       uint8_t index = 0;
       if (channelWidth < GetChannelWidth ())
         {
-          index = GetSecondaryChannelOffset () == UPPER ? 0 : 1;
+          index = GetPrimaryBandIndex (channelWidth);
         }
       band = GetBand (channelWidth, index);
-      if (channelWidth <= 20)
+      if (channelWidth < 40)
         {
           bands.push_back (band);
         }
@@ -3615,7 +3632,7 @@ WifiPhy::EndReceive (Ptr<Event> event)
         {
           for (uint8_t i = 0; i < (channelWidth / 20); i++)
             {
-              band = GetBand ((channelWidth > 20) ? 20 : channelWidth, i);
+              band = GetBand (20, i);
               bands.push_back (band);
             }
         }
@@ -3713,10 +3730,10 @@ WifiPhy::GetReceptionStatus (Ptr<const WifiPsdu> psdu, Ptr<Event> event, uint16_
       uint8_t index = 0;
       if (channelWidth < GetChannelWidth ())
         {
-          index = GetSecondaryChannelOffset () == UPPER ? 0 : 1;
+          index = GetPrimaryBandIndex (channelWidth);
         }
       band = GetBand (channelWidth, index);
-      if (channelWidth <= 20)
+      if (channelWidth < 40)
         {
           bands.push_back (band);
         }
@@ -3724,7 +3741,7 @@ WifiPhy::GetReceptionStatus (Ptr<const WifiPsdu> psdu, Ptr<Event> event, uint16_
         {
           for (uint8_t i = 0; i < (channelWidth / 20); i++)
             {
-              band = GetBand ((channelWidth > 20) ? 20 : channelWidth, i);
+              band = GetBand (20, i);
               bands.push_back (band);
             }
         }
@@ -4966,7 +4983,7 @@ bool
 WifiPhy::IsStateCcaBusy (void)
 {
   uint16_t primaryChannelWidth = GetChannelWidth () >= 40 ? 20 : GetChannelWidth ();
-  auto primaryBand = GetBand (primaryChannelWidth, GetSecondaryChannelOffset () == UPPER ? 0 : 1);
+  auto primaryBand = GetBand (primaryChannelWidth, GetPrimaryBandIndex (primaryChannelWidth));
   return m_state->IsStateCcaBusy (primaryBand);
 }
 
@@ -4974,7 +4991,7 @@ bool
 WifiPhy::IsStateIdle (void)
 {
   uint16_t primaryChannelWidth = GetChannelWidth () >= 40 ? 20 : GetChannelWidth ();
-  auto primaryBand = GetBand (primaryChannelWidth, GetSecondaryChannelOffset () == UPPER ? 0 : 1);
+  auto primaryBand = GetBand (primaryChannelWidth, GetPrimaryBandIndex (primaryChannelWidth));
   return m_state->IsStateIdle (primaryBand);
 }
 
@@ -5012,7 +5029,7 @@ Time
 WifiPhy::GetDelayUntilIdle (void)
 {
   uint16_t primaryChannelWidth = GetChannelWidth () >= 40 ? 20 : GetChannelWidth ();
-  auto primaryBand = GetBand (primaryChannelWidth, GetSecondaryChannelOffset () == UPPER ? 0 : 1);
+  auto primaryBand = GetBand (primaryChannelWidth, GetPrimaryBandIndex (primaryChannelWidth));
   return m_state->GetDelayUntilIdle (primaryBand);
 }
 
@@ -5023,24 +5040,47 @@ WifiPhy::GetLastRxStartTime (void) const
 }
 
 Time
-WifiPhy::GetDelaySinceSecondaryIsIdle (void)
+WifiPhy::GetDelaySinceChannelIsIdle (uint16_t channelWidth)
 {
-  auto secondaryBand = GetBand (20, GetSecondaryChannelOffset () == UPPER ? 1 : 0);
-  return m_state->GetDelaySinceIdle (secondaryBand);
+  NS_ASSERT (channelWidth <= GetChannelWidth ());
+  Time delaySinceIdle = Simulator::Now ();
+  uint8_t nBands = channelWidth / 20;
+  uint8_t startIndex = (GetPrimaryBandIndex (channelWidth) * nBands) + 1;
+  uint8_t stopIndex = (GetPrimaryBandIndex (channelWidth) + 1) * nBands;
+  for (uint8_t i = startIndex; i < stopIndex; i++)
+    {
+      auto band = GetBand (((channelWidth >= 40) ? 20 : channelWidth), i);
+      delaySinceIdle = std::min (delaySinceIdle, m_state->GetDelaySinceIdle (band));
+    }
+  return delaySinceIdle;
 }
 
 bool
-WifiPhy::IsSecondaryStateIdle (void)
+WifiPhy::IsStateIdle (uint16_t channelWidth)
 {
-  auto secondaryBand = GetBand (20, GetSecondaryChannelOffset () == UPPER ? 1 : 0);
-  return m_state->IsStateIdle (secondaryBand);
+  NS_ASSERT (channelWidth <= GetChannelWidth ());
+  if (GetChannelWidth () < 40)
+    {
+      auto band = GetBand (channelWidth, 0);
+      return m_state->IsStateIdle (band);
+    }
+  bool idle = true;
+  uint8_t nBands = channelWidth / 20;
+  uint8_t startIndex = GetPrimaryBandIndex (channelWidth) * nBands;
+  uint8_t stopIndex = (GetPrimaryBandIndex (channelWidth) + 1) * nBands;
+  for (uint8_t i = startIndex; i < stopIndex; i++)
+    {
+      auto band = GetBand (20, i);
+      idle &= m_state->IsStateIdle (band);
+    }
+  return idle;
 }
 
 WifiPhyState
 WifiPhy::GetPhyState (void)
 {
   uint16_t primaryChannelWidth = GetChannelWidth () >= 40 ? 20 : GetChannelWidth ();
-  auto primaryBand = GetBand (primaryChannelWidth, GetSecondaryChannelOffset () == UPPER ? 0 : 1);
+  auto primaryBand = GetBand (primaryChannelWidth, GetPrimaryBandIndex (primaryChannelWidth));
   return m_state->GetState (primaryBand);
 }
 
@@ -5195,6 +5235,174 @@ WifiPhy::GetBand (uint16_t /*bandWidth*/, uint8_t /*bandIndex*/)
   band.first = 0;
   band.second = 0;
   return band;
+}
+
+uint8_t
+WifiPhy::GetPrimaryBandIndex (uint16_t currentWidth) const
+{
+  uint8_t index = 0;
+  uint16_t supportedWidth = GetChannelWidth ();
+  if (currentWidth == supportedWidth)
+    {
+      return index;
+    }
+  if (supportedWidth == 40)
+    {
+      index = (GetPrimaryChannelNumber () <= GetChannelNumber ()) ? 0 : 1;
+    }
+  else if (supportedWidth == 80)
+    {
+      uint8_t channelNumber80 = GetChannelNumber ();
+      uint8_t channelNumberLow40 = 0;
+      uint8_t channelNumberHigh40 = 0;
+      for (auto const& channelToFrequencyWidth : m_channelToFrequencyWidth)
+        {
+          if (channelToFrequencyWidth.second.second == 40)
+            {
+              if (channelToFrequencyWidth.first.first < channelNumber80)
+                {
+                  channelNumberLow40 = channelToFrequencyWidth.first.first;
+                }
+              else
+                {
+                  channelNumberHigh40 = channelToFrequencyWidth.first.first;
+                  break;
+                }
+            }
+        }
+      NS_ASSERT (channelNumberLow40 != 0 && channelNumberHigh40 != 0);
+      if (currentWidth == 40)
+        {
+          index = (GetPrimaryChannelNumber () <= channelNumberLow40) ? 0 : 1;
+        }
+      else if (currentWidth == 20)
+        {
+          if (GetPrimaryChannelNumber () <= channelNumberLow40)
+            {
+              index = 0;
+            }
+          else if (GetPrimaryChannelNumber () <= channelNumber80)
+            {
+              index = 1;
+            }
+          else if (GetPrimaryChannelNumber () <= channelNumberHigh40)
+            {
+              index = 2;
+            }
+          else
+            {
+              index = 3;
+            }
+        }
+    }
+  else if (supportedWidth == 160)
+    {
+      uint8_t channelNumber160 = GetChannelNumber ();
+      uint8_t channelNumberLow80 = 0;
+      uint8_t channelNumberHigh80 = 0;
+      for (auto const& channelToFrequencyWidth : m_channelToFrequencyWidth)
+        {
+          if (channelToFrequencyWidth.second.second == 80)
+            {
+              if (channelToFrequencyWidth.first.first < channelNumber160)
+                {
+                  channelNumberLow80 = channelToFrequencyWidth.first.first;
+                }
+              else
+                {
+                  channelNumberHigh80 = channelToFrequencyWidth.first.first;
+                  break;
+                }
+            }
+        }
+      NS_ASSERT (channelNumberLow80 != 0 && channelNumberHigh80 != 0);
+      uint8_t channelNumberLow80Low40 = 0;
+      uint8_t channelNumberLow80High40 = 0;
+      uint8_t channelNumberHigh80Low40 = 0;
+      uint8_t channelNumberHigh80High40 = 0;
+      for (auto const& channelToFrequencyWidth : m_channelToFrequencyWidth)
+        {
+          if (channelToFrequencyWidth.second.second == 40)
+            {
+              if (channelToFrequencyWidth.first.first < channelNumberLow80)
+                {
+                  channelNumberLow80Low40 = channelToFrequencyWidth.first.first;
+                }
+              else if (channelNumberLow80High40 == 0)
+                {
+                  channelNumberLow80High40 = channelToFrequencyWidth.first.first;
+                }
+              if (channelToFrequencyWidth.first.first < channelNumberHigh80)
+                {
+                  channelNumberHigh80Low40 = channelToFrequencyWidth.first.first;
+                }
+              else if (channelNumberHigh80High40 == 0)
+                {
+                  channelNumberHigh80High40 = channelToFrequencyWidth.first.first;
+                }
+            }
+        }
+      NS_ASSERT (channelNumberLow80Low40 != 0 && channelNumberLow80High40 != 0 && channelNumberHigh80Low40 != 0 && channelNumberHigh80High40 != 0);
+      if (currentWidth == 80)
+        {
+          index = (GetPrimaryChannelNumber () <= channelNumberLow80) ? 0 : 1;
+        }
+      else if (currentWidth == 40)
+        {
+          if (GetPrimaryChannelNumber () <= channelNumberLow80)
+            {
+              index = 0;
+            }
+          else if (GetPrimaryChannelNumber () <= channelNumber160)
+            {
+              index = 1;
+            }
+          else if (GetPrimaryChannelNumber () <= channelNumberHigh80)
+            {
+              index = 2;
+            }
+          else
+            {
+              index = 3;
+            }
+        }
+      else if (currentWidth == 20)
+        {
+          if (GetPrimaryChannelNumber () <= channelNumberLow80Low40)
+            {
+              index = 0;
+            }
+          else if (GetPrimaryChannelNumber () <= channelNumberLow80)
+            {
+              index = 1;
+            }
+          else if (GetPrimaryChannelNumber () <= channelNumberLow80High40)
+            {
+              index = 2;
+            }
+          else if (GetPrimaryChannelNumber () <= channelNumber160)
+            {
+              index = 3;
+            }
+          else if (GetPrimaryChannelNumber () <= channelNumberHigh80Low40)
+            {
+              index = 4;
+            }
+          else if (GetPrimaryChannelNumber () <= channelNumberHigh80)
+            {
+              index = 5;
+            }
+          else if (GetPrimaryChannelNumber () <= channelNumberHigh80High40)
+            {
+              index = 6;
+            }
+          else
+            {
+              index = 7;
+            }
+        }
+    }
+  return index;
 }
 
 uint16_t

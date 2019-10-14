@@ -47,23 +47,21 @@ ConstantThresholdChannelBondingManager::GetTypeId (void)
 uint16_t
 ConstantThresholdChannelBondingManager::GetUsableChannelWidth (void)
 {
-  NS_LOG_FUNCTION (this);
-  if (m_phy->GetChannelWidth () == 40)
+  if (m_phy->GetChannelWidth () < 40)
     {
-      Time delaySinceSecondaryIsIdle = m_phy->GetDelaySinceSecondaryIsIdle ();
-      if (delaySinceSecondaryIsIdle >= m_phy->GetPifs ())
-        {
-          NS_LOG_DEBUG ("Secondary channel is idle for " << delaySinceSecondaryIsIdle << " >= PIFS: transmission on 40 MHz allowed");
-          return 40;
-        }
-      else
-        {
-          NS_LOG_DEBUG ("Secondary channel is idle for " << delaySinceSecondaryIsIdle << " < PIFS: transmission on 40 MHz not allowed");
-          return 20;
-        }
+      return m_phy->GetChannelWidth ();
     }
-  //TODO: handle 80 and 160 MHZ
-  return m_phy->GetChannelWidth ();
+  uint16_t usableChannelWidth = 20;
+  for (uint16_t width = m_phy->GetChannelWidth (); width > 20; )
+    {
+      if (m_phy->GetDelaySinceChannelIsIdle (width) >= m_phy->GetPifs ())
+        {
+          usableChannelWidth = width;
+          break;
+        }
+      width /= 2;
+    }
+  return usableChannelWidth;
 }
 
 } //namespace ns3
