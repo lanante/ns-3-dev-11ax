@@ -575,9 +575,7 @@ ApWifiMac::GetHtOperation (void) const
       operation.SetNonGfHtStasPresent (IsNonGfHtStasPresent ());
       if (m_phy->GetChannelWidth () > 20)
         {
-          EnumValue secondaryChannelOffset;
-          m_phy->GetAttribute ("SecondaryChannelOffset", secondaryChannelOffset);
-          if (secondaryChannelOffset.Get () == LOWER)
+          if (m_phy->GetPrimaryChannelNumber () > m_phy->GetChannelNumber ())
             {
               operation.SetSecondaryChannelOffset (3);
             }
