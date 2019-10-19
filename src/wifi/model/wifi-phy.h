@@ -277,9 +277,10 @@ public:
   WifiPhyState GetPhyState (void);
 
   /**
-   * \return true if the secondary channel is WifiPhy::IDLE, false otherwise.
+   * \param channelWidth the channel width to check
+   * \return true if all the 20 MHz channels for the given channel width are idle, false otherwise
    */
-  bool IsSecondaryStateIdle (void);
+  bool IsStateIdle (uint16_t channelWidth);
 
   /**
    * todo
