@@ -5041,6 +5041,7 @@ WifiPhy::GetLastRxStartTime (void) const
 Time
 WifiPhy::GetDelaySinceChannelIsIdle (uint16_t channelWidth)
 {
+  //TO BE TESTED !!!
   NS_ASSERT (channelWidth <= GetChannelWidth ());
   Time delaySinceIdle = Simulator::Now ();
   uint8_t nBands = channelWidth / 20;
@@ -5055,10 +5056,24 @@ WifiPhy::GetDelaySinceChannelIsIdle (uint16_t channelWidth)
 }
 
 bool
-WifiPhy::IsSecondaryStateIdle (void)
+WifiPhy::IsStateIdle (uint16_t channelWidth)
 {
-  auto secondaryBand = GetBand (20, (GetPrimaryChannelNumber () <= GetChannelNumber ()) ? 1 : 0);
-  return m_state->IsStateIdle (secondaryBand);
+  NS_ASSERT (channelWidth <= GetChannelWidth ());
+  if (GetChannelWidth () < 40)
+    {
+      auto band = GetBand (channelWidth, 0);
+      return m_state->IsStateIdle (band);
+    }
+  bool idle = true;
+  uint8_t nBands = channelWidth / 20;
+  uint8_t startIndex = GetPrimaryBandIndex (channelWidth) * nBands;
+  uint8_t stopIndex = (GetPrimaryBandIndex (channelWidth) + 1) * nBands;
+  for (uint8_t i = startIndex; i < stopIndex; i++)
+    {
+      auto band = GetBand (20, i);
+      idle &= m_state->IsStateIdle (band);
+    }
+  return idle;
 }
 
 WifiPhyState
