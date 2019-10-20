@@ -234,6 +234,7 @@ void
 TestStaticChannelBondingSnr::CheckSecondaryChannelStatus (bool expectedIdle, uint8_t bss, uint16_t channelWidth)
 {
   Ptr<BondingTestSpectrumWifiPhy> phy = m_rxPhys.at (bss - 1);
+  NS_ASSERT (phy->GetChannelWidth () >= 40);
   bool currentlyIdle = phy->IsStateIdle (channelWidth);
   NS_TEST_ASSERT_MSG_EQ (currentlyIdle, expectedIdle, "Secondary channel status " << currentlyIdle << " does not match expected status " << expectedIdle << " at " << Simulator::Now ());
 }
@@ -264,7 +265,32 @@ TestStaticChannelBondingSnr::SendPacket (uint8_t bss)
       channelWidth = 40;
       payloadSize = 2101; //This is chosen such that the transmission time on 40 MHz will be the same as for packets sent on 20 MHz
     }
-
+  else if (bss == 5)
+    {
+      channelWidth = 20;
+      payloadSize = 1005;
+    }
+  else if (bss == 6)
+    {
+      channelWidth = 20;
+      payloadSize = 1006;
+    }
+  else if (bss == 7)
+    {
+      channelWidth = 40;
+      payloadSize = 2107; //This is chosen such that the transmission time on 40 MHz will be the same as for packets sent on 20 MHz
+    }
+  else if (bss == 8)
+    {
+      channelWidth = 40;
+      payloadSize = 2108; //This is chosen such that the transmission time on 40 MHz will be the same as for packets sent on 20 MHz
+    }
+  else
+    {
+      channelWidth = 80;
+      payloadSize = 4000; //This is chosen such that the transmission time on 80 MHz will be the same as for packets sent on 20 MHz
+    }
+  
   WifiTxVector txVector = WifiTxVector (WifiPhy::GetVhtMcs7 (), 0, WIFI_PREAMBLE_HT_MF, 800, 1, 1, 0, channelWidth, false, false);
 
   Ptr<Packet> pkt = Create<Packet> (payloadSize);
@@ -450,7 +476,7 @@ void
 TestStaticChannelBondingSnr::RxOkCallback (std::string context, Ptr<const Packet> p, double snr, WifiMode mode, WifiPreamble preamble)
 {
   NS_LOG_INFO ("RxOkCallback: BSS=" << context << " SNR=" << RatioToDb (snr));
-  int bss = std::stoi (context.substr (3, 1));
+  int bss = std::stoi (context.substr (3, 2));
   m_reception.at (bss - 1) = true;
   m_phyPayloadReceivedSuccess.at (bss - 1) = true;
   auto it = m_expectedSnrPerBss.find (bss);
@@ -464,7 +490,7 @@ void
 TestStaticChannelBondingSnr::RxErrorCallback (std::string context, Ptr<const Packet> p, double snr)
 {
   NS_LOG_INFO ("RxErrorCallback: BSS=" << context << " SNR=" << RatioToDb (snr));
-  int bss = std::stoi (context.substr (3, 1));
+  int bss = std::stoi (context.substr (3, 2));
   m_reception.at (bss - 1) = true;
   m_phyPayloadReceivedSuccess.at (bss - 1) = false;
   auto it = m_expectedSnrPerBss.find (bss);
@@ -561,20 +587,44 @@ TestStaticChannelBondingSnr::DoSetup (void)
   Ptr<ConstantSpeedPropagationDelayModel> delayModel = CreateObject<ConstantSpeedPropagationDelayModel> ();
   channel->SetPropagationDelayModel (delayModel);
 
-  //Create BSS #1 operating on channel 36
+  //Create BSS #1 operating on channel 36 (20 MHz)
   CreateBss (channel, 20 /* channel width */, 36 /* channel number */, 5180 /* frequency */, 36 /* primary channel number */);
 
-  //Create BSS #2 operating on channel 40
+  //Create BSS #2 operating on channel 40 (20 MHz)
   CreateBss (channel, 20 /* channel width */, 40 /* channel number */, 5200 /* frequency */, 40 /* primary channel number */);
 
-  //Create BSS #3 operating on channel 38, with primary channel 36
+  //Create BSS #3 operating on channel 38, with primary channel 36 (40 MHz)
   CreateBss (channel, 40 /* channel width */, 38 /* channel number */, 5190 /* frequency */, 36 /* primary channel number */);
 
-  //Create BSS #4 operating on channel 38, with primary channel 40
+  //Create BSS #4 operating on channel 38, with primary channel 40 (40 MHz)
   CreateBss (channel, 40 /* channel width */, 38 /* channel number */, 5190 /* frequency */, 40 /* primary channel number */);
 
-  m_reception = std::vector<bool> (4, false);
-  m_phyPayloadReceivedSuccess = std::vector<bool> (4, false);
+  //Create BSS #5 operating on channel 44 (20 MHz)
+  CreateBss (channel, 20 /* channel width */, 44 /* channel number */, 5220 /* frequency */, 44 /* primary channel number */);
+
+  //Create BSS #6 operating on channel 48 (20 MHz)
+  CreateBss (channel, 20 /* channel width */, 48 /* channel number */, 5240 /* frequency */, 48 /* primary channel number */);
+
+  //Create BSS #7 operating on channel 46, with primary channel 44 (40 MHz)
+  CreateBss (channel, 40 /* channel width */, 46 /* channel number */, 5230 /* frequency */, 44 /* primary channel number */);
+
+  //Create BSS #8 operating on channel 46, with primary channel 48 (40 MHz)
+  CreateBss (channel, 40 /* channel width */, 46 /* channel number */, 5230 /* frequency */, 48 /* primary channel number */);
+  
+  //Create BSS #9 operating on channel 42, with primary channel 36 (80 MHz)
+  CreateBss (channel, 80 /* channel width */, 42 /* channel number */, 5210 /* frequency */, 36 /* primary channel number */);
+
+  //Create BSS #10 operating on channel 42, with primary channel 40 (80 MHz)
+  CreateBss (channel, 80 /* channel width */, 42 /* channel number */, 5210 /* frequency */, 40 /* primary channel number */);
+
+  //Create BSS #11 operating on channel 42, with primary channel 44 (80 MHz)
+  CreateBss (channel, 80 /* channel width */, 42 /* channel number */, 5210 /* frequency */, 44 /* primary channel number */);
+
+  //Create BSS #12 operating on channel 42, with primary channel 48 (80 MHz)
+  CreateBss (channel, 80 /* channel width */, 42 /* channel number */, 5210 /* frequency */, 48 /* primary channel number */);
+
+  m_reception = std::vector<bool> (12, false);
+  m_phyPayloadReceivedSuccess = std::vector<bool> (12, false);
 }
 
 void
@@ -599,41 +649,111 @@ TestStaticChannelBondingSnr::DoRun (void)
   Simulator::Schedule (Seconds (0.9), &TestStaticChannelBondingSnr::Reset, this);
   Simulator::Schedule (Seconds (1.0), &TestStaticChannelBondingSnr::SendPacket, this, 1);
   Simulator::Schedule (Seconds (1.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 1);
-  Simulator::Schedule (Seconds (1.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 3);
-  Simulator::Schedule (Seconds (1.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 3, 40); //secondary channel should be deemed busy for BSS 3
   Simulator::Schedule (Seconds (1.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 2);
+  Simulator::Schedule (Seconds (1.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 3);
   Simulator::Schedule (Seconds (1.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 4);
+  Simulator::Schedule (Seconds (1.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 5);
+  Simulator::Schedule (Seconds (1.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 6);
+  Simulator::Schedule (Seconds (1.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 7);
+  Simulator::Schedule (Seconds (1.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 8);
+  Simulator::Schedule (Seconds (1.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 9);
+  Simulator::Schedule (Seconds (1.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 10);
+  Simulator::Schedule (Seconds (1.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 11);
+  Simulator::Schedule (Seconds (1.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 12);
+  Simulator::Schedule (Seconds (1.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 3, 40); //secondary channel should be deemed busy for BSS 3
   Simulator::Schedule (Seconds (1.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 4, 40); //secondary channel should be deemed busy for BSS 4
+  Simulator::Schedule (Seconds (1.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 7, 40); //secondary channel should not be deemed busy for BSS 7
+  Simulator::Schedule (Seconds (1.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 8, 40); //secondary channel should not be deemed busy for BSS 8
+  Simulator::Schedule (Seconds (1.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 9, 40); //primary 40 MHz channel should be deemed busy for BSS 9
+  Simulator::Schedule (Seconds (1.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 10, 40); //primary 40 MHz channel should be deemed busy for BSS 10
+  Simulator::Schedule (Seconds (1.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 9, 80); //secondary channels should be deemed busy for BSS 9
+  Simulator::Schedule (Seconds (1.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 10, 80); //secondary channels should be deemed busy for BSS 10
+  Simulator::Schedule (Seconds (1.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 11, 40); //primary 40 MHz channel should not be deemed busy for BSS 11
+  Simulator::Schedule (Seconds (1.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 12, 40); //primary 40 MHz channel should not be deemed busy for BSS 12
+  Simulator::Schedule (Seconds (1.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 11, 80); //secondary channels should be deemed busy for BSS 11
+  Simulator::Schedule (Seconds (1.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 12, 80); //secondary channels should be deemed busy for BSS 12
+
   Simulator::Schedule (Seconds (1.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 1);
   Simulator::Schedule (Seconds (1.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 3);
-  Simulator::Schedule (Seconds (1.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 3, 40); //secondary channel should be deemed idle for BSS 3
   Simulator::Schedule (Seconds (1.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 2);
   Simulator::Schedule (Seconds (1.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 4);
+  Simulator::Schedule (Seconds (1.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 5);
+  Simulator::Schedule (Seconds (1.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 6);
+  Simulator::Schedule (Seconds (1.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 7);
+  Simulator::Schedule (Seconds (1.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 8);
+  Simulator::Schedule (Seconds (1.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 9);
+  Simulator::Schedule (Seconds (1.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 10);
+  Simulator::Schedule (Seconds (1.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 11);
+  Simulator::Schedule (Seconds (1.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 12);
+  Simulator::Schedule (Seconds (1.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 3, 40); //secondary channel should be deemed idle for BSS 3
   Simulator::Schedule (Seconds (1.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 4, 40); //secondary channel should be deemed idle for BSS 4
+  Simulator::Schedule (Seconds (1.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 7, 40); //secondary channel should be deemed idle for BSS 7
+  Simulator::Schedule (Seconds (1.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 8, 40); //secondary channel should be deemed idle for BSS 8
+  Simulator::Schedule (Seconds (1.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 9, 80); //secondary channels should be deemed idle for BSS 9
+  Simulator::Schedule (Seconds (1.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 10, 80); //secondary channels should be deemed idle for BSS 10
+  Simulator::Schedule (Seconds (1.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 11, 80); //secondary channels should be deemed idle for BSS 11
+  Simulator::Schedule (Seconds (1.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 12, 80); //secondary channels should be deemed idle for BSS 12
+
   Simulator::Schedule (Seconds (1.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, true, true, 1); // successfull reception for BSS 1
   Simulator::Schedule (Seconds (1.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, true, true, 3); // successfull reception for BSS 3
   Simulator::Schedule (Seconds (1.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, false, false, 2); // no reception for BSS 2
   Simulator::Schedule (Seconds (1.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, false, false, 4); // no reception for BSS 4
 
+
   //CASE 1B: BSS 2
   Simulator::Schedule (Seconds (1.9), &TestStaticChannelBondingSnr::Reset, this);
   Simulator::Schedule (Seconds (2.0), &TestStaticChannelBondingSnr::SendPacket, this, 2);
-  Simulator::Schedule (Seconds (2.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 2);
-  Simulator::Schedule (Seconds (2.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 4);
-  Simulator::Schedule (Seconds (2.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 4, 40); //secondary channel should be deemed busy for BSS 4
   Simulator::Schedule (Seconds (2.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 1);
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 2);
   Simulator::Schedule (Seconds (2.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 3);
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 4);
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 5);
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 6);
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 7);
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 8);
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 9);
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 10);
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 11);
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 12);
   Simulator::Schedule (Seconds (2.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 3, 40); //secondary channel should be deemed busy for BSS 3
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 4, 40); //secondary channel should be deemed busy for BSS 4
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 7, 40); //secondary channel should not be deemed busy for BSS 7
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 8, 40); //secondary channel should not be deemed busy for BSS 8
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 9, 40); //primary 40 MHz channel should be deemed busy for BSS 9
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 10, 40); //primary 40 MHz channel should be deemed busy for BSS 10
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 9, 80); //secondary channels should be deemed busy for BSS 9
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 10, 80); //secondary channels should be deemed busy for BSS 10
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 11, 40); //primary 40 MHz channel should not be deemed busy for BSS 11
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 12, 40); //primary 40 MHz channel should not be deemed busy for BSS 12
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 11, 80); //secondary channels should be deemed busy for BSS 11
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 12, 80); //secondary channels should be deemed busy for BSS 12
+
   Simulator::Schedule (Seconds (2.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 1);
   Simulator::Schedule (Seconds (2.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 3);
-  Simulator::Schedule (Seconds (2.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 3, 40); //secondary channel should be deemed idle for BSS 3
   Simulator::Schedule (Seconds (2.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 2);
   Simulator::Schedule (Seconds (2.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 4);
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 5);
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 6);
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 7);
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 8);
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 9);
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 10);
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 11);
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 12);
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 3, 40); //secondary channel should be deemed idle for BSS 3
   Simulator::Schedule (Seconds (2.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 4, 40); //secondary channel should be deemed idle for BSS 4
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 7, 40); //secondary channel should be deemed idle for BSS 7
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 8, 40); //secondary channel should be deemed idle for BSS 8
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 9, 80); //secondary channels should be deemed idle for BSS 9
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 10, 80); //secondary channels should be deemed idle for BSS 10
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 11, 80); //secondary channels should be deemed idle for BSS 11
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 12, 80); //secondary channels should be deemed idle for BSS 12
+
   Simulator::Schedule (Seconds (2.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, true, true, 2); // successfull reception for BSS 2
   Simulator::Schedule (Seconds (2.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, true, true, 4); // successfull reception for BSS 4
   Simulator::Schedule (Seconds (2.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, false, false, 1); // no reception for BSS 1
   Simulator::Schedule (Seconds (2.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, false, false, 3); // no reception for BSS 3
+
 
   //CASE 1C: BSS 3
   Simulator::Schedule (Seconds (2.9), &TestStaticChannelBondingSnr::Reset, this);
@@ -642,10 +762,48 @@ TestStaticChannelBondingSnr::DoRun (void)
   Simulator::Schedule (Seconds (3.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 2);
   Simulator::Schedule (Seconds (3.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 3);
   Simulator::Schedule (Seconds (3.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 4);
+  Simulator::Schedule (Seconds (3.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 5);
+  Simulator::Schedule (Seconds (3.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 6);
+  Simulator::Schedule (Seconds (3.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 7);
+  Simulator::Schedule (Seconds (3.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 8);
+  Simulator::Schedule (Seconds (3.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 9);
+  Simulator::Schedule (Seconds (3.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 10);
+  Simulator::Schedule (Seconds (3.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 11);
+  Simulator::Schedule (Seconds (3.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 12);
+  Simulator::Schedule (Seconds (3.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 3, 40); //secondary channel should be deemed busy for BSS 3
+  Simulator::Schedule (Seconds (3.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 4, 40); //secondary channel should be deemed busy for BSS 4
+  Simulator::Schedule (Seconds (3.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 7, 40); //secondary channel should not be deemed busy for BSS 7
+  Simulator::Schedule (Seconds (3.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 8, 40); //secondary channel should not be deemed busy for BSS 8
+  Simulator::Schedule (Seconds (3.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 9, 40); //primary 40 MHz channel should be deemed busy for BSS 9
+  Simulator::Schedule (Seconds (3.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 10, 40); //primary 40 MHz channel should be deemed busy for BSS 10
+  Simulator::Schedule (Seconds (3.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 9, 80); //secondary channels should be deemed busy for BSS 9
+  Simulator::Schedule (Seconds (3.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 10, 80); //secondary channels should be deemed busy for BSS 10
+  Simulator::Schedule (Seconds (3.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 11, 40); //primary 40 MHz channel should be deemed busy for BSS 11
+  Simulator::Schedule (Seconds (3.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 12, 40); //primary 40 MHz channel should be deemed busy for BSS 12
+  Simulator::Schedule (Seconds (3.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 11, 80); //secondary channels should be deemed busy for BSS 11
+  Simulator::Schedule (Seconds (3.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 12, 80); //secondary channels should be deemed busy for BSS 12
+
   Simulator::Schedule (Seconds (3.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 1);
   Simulator::Schedule (Seconds (3.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 3);
   Simulator::Schedule (Seconds (3.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 2);
   Simulator::Schedule (Seconds (3.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 4);
+  Simulator::Schedule (Seconds (3.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 5);
+  Simulator::Schedule (Seconds (3.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 6);
+  Simulator::Schedule (Seconds (3.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 7);
+  Simulator::Schedule (Seconds (3.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 8);
+  Simulator::Schedule (Seconds (3.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 9);
+  Simulator::Schedule (Seconds (3.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 10);
+  Simulator::Schedule (Seconds (3.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 11);
+  Simulator::Schedule (Seconds (3.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 12);
+  Simulator::Schedule (Seconds (3.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 3, 40); //secondary channel should be deemed idle for BSS 3
+  Simulator::Schedule (Seconds (3.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 4, 40); //secondary channel should be deemed idle for BSS 4
+  Simulator::Schedule (Seconds (3.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 7, 40); //secondary channel should be deemed idle for BSS 7
+  Simulator::Schedule (Seconds (3.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 8, 40); //secondary channel should be deemed idle for BSS 8
+  Simulator::Schedule (Seconds (3.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 9, 80); //secondary channels should be deemed idle for BSS 9
+  Simulator::Schedule (Seconds (3.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 10, 80); //secondary channels should be deemed idle for BSS 10
+  Simulator::Schedule (Seconds (3.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 11, 80); //secondary channels should be deemed idle for BSS 11
+  Simulator::Schedule (Seconds (3.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 12, 80); //secondary channels should be deemed idle for BSS 12
+
   Simulator::Schedule (Seconds (3.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, true, true, 3); // successfull reception for BSS 3
   Simulator::Schedule (Seconds (3.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, true, true, 4); // successfull reception for BSS 4
   Simulator::Schedule (Seconds (3.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, false, false, 1); // no reception for BSS 1 since channel width is not supported
@@ -654,134 +812,459 @@ TestStaticChannelBondingSnr::DoRun (void)
   //CASE 1D: BSS 4
   Simulator::Schedule (Seconds (3.9), &TestStaticChannelBondingSnr::Reset, this);
   Simulator::Schedule (Seconds (4.0), &TestStaticChannelBondingSnr::SendPacket, this, 4);
+
   Simulator::Schedule (Seconds (4.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 1);
   Simulator::Schedule (Seconds (4.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 2);
   Simulator::Schedule (Seconds (4.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 3);
   Simulator::Schedule (Seconds (4.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 4);
+  Simulator::Schedule (Seconds (4.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 5);
+  Simulator::Schedule (Seconds (4.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 6);
+  Simulator::Schedule (Seconds (4.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 7);
+  Simulator::Schedule (Seconds (4.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 8);
+  Simulator::Schedule (Seconds (4.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 9);
+  Simulator::Schedule (Seconds (4.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 10);
+  Simulator::Schedule (Seconds (4.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 11);
+  Simulator::Schedule (Seconds (4.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 12);
+  Simulator::Schedule (Seconds (4.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 3, 40); //secondary channel should be deemed busy for BSS 3
+  Simulator::Schedule (Seconds (4.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 4, 40); //secondary channel should be deemed busy for BSS 4
+  Simulator::Schedule (Seconds (4.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 7, 40); //secondary channel should not be deemed busy for BSS 7
+  Simulator::Schedule (Seconds (4.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 8, 40); //secondary channel should not be deemed busy for BSS 8
+  Simulator::Schedule (Seconds (4.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 9, 40); //primary 40 MHz channel should be deemed busy for BSS 9
+  Simulator::Schedule (Seconds (4.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 10, 40); //primary 40 MHz channel should be deemed busy for BSS 10
+  Simulator::Schedule (Seconds (4.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 9, 80); //secondary channels should be deemed busy for BSS 9
+  Simulator::Schedule (Seconds (4.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 10, 80); //secondary channels should be deemed busy for BSS 10
+  Simulator::Schedule (Seconds (4.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 11, 40); //primary 40 MHz channel should be deemed busy for BSS 11
+  Simulator::Schedule (Seconds (4.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 12, 40); //primary 40 MHz channel should be deemed busy for BSS 12
+  Simulator::Schedule (Seconds (4.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 11, 80); //secondary channels should be deemed busy for BSS 11
+  Simulator::Schedule (Seconds (4.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 12, 80); //secondary channels should be deemed busy for BSS 12
+
   Simulator::Schedule (Seconds (4.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 1);
   Simulator::Schedule (Seconds (4.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 3);
   Simulator::Schedule (Seconds (4.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 2);
   Simulator::Schedule (Seconds (4.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 4);
-  Simulator::Schedule (Seconds (4.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, true, true, 3); // successfull reception for BSS 3
+  Simulator::Schedule (Seconds (4.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 5);
+  Simulator::Schedule (Seconds (4.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 6);
+  Simulator::Schedule (Seconds (4.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 7);
+  Simulator::Schedule (Seconds (4.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 8);
+  Simulator::Schedule (Seconds (4.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 9);
+  Simulator::Schedule (Seconds (4.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 10);
+  Simulator::Schedule (Seconds (4.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 11);
+  Simulator::Schedule (Seconds (4.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 12);
+  Simulator::Schedule (Seconds (4.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 3, 40); //secondary channel should be deemed idle for BSS 3
+  Simulator::Schedule (Seconds (4.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 4, 40); //secondary channel should be deemed idle for BSS 4
+  Simulator::Schedule (Seconds (4.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 7, 40); //secondary channel should be deemed idle for BSS 7
+  Simulator::Schedule (Seconds (4.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 8, 40); //secondary channel should be deemed idle for BSS 8
+  Simulator::Schedule (Seconds (4.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 9, 80); //secondary channels should be deemed idle for BSS 9
+  Simulator::Schedule (Seconds (4.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 10, 80); //secondary channels should be deemed idle for BSS 10
+  Simulator::Schedule (Seconds (4.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 11, 80); //secondary channels should be deemed idle for BSS 11
+  Simulator::Schedule (Seconds (4.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 12, 80); //secondary channels should be deemed idle for BSS 12
+
   Simulator::Schedule (Seconds (4.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, true, true, 4); // successfull reception for BSS 4
   Simulator::Schedule (Seconds (4.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, false, false, 1); // no reception for BSS 1 since channel width is not supported
   Simulator::Schedule (Seconds (4.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, false, false, 2); // no reception for BSS 2 since channel width is not supported
+
 
   //CASE 2: verify reception on channel 36 (BSS 1) when channel 40 is used (BSS 2) at the same time
   Simulator::Schedule (Seconds (4.9), &TestStaticChannelBondingSnr::Reset, this);
   Simulator::Schedule (Seconds (5.0), &TestStaticChannelBondingSnr::SendPacket, this, 1);
   Simulator::Schedule (Seconds (5.0), &TestStaticChannelBondingSnr::SendPacket, this, 2);
+  
+  Simulator::Schedule (Seconds (5.0), &TestStaticChannelBondingSnr::SetExpectedSnrForBss, this, 44.0, 1); // BSS 1 expects SNR around 44 dB
+  Simulator::Schedule (Seconds (5.0), &TestStaticChannelBondingSnr::SetExpectedSnrForBss, this, 44.0, 2); // BSS 2 expects SNR around 44 dB
+
   Simulator::Schedule (Seconds (5.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 1);
   Simulator::Schedule (Seconds (5.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 2);
   Simulator::Schedule (Seconds (5.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 3);
   Simulator::Schedule (Seconds (5.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 4);
-  Simulator::Schedule (Seconds (5.0), &TestStaticChannelBondingSnr::SetExpectedSnrForBss, this, 44.0, 1); // BSS 1 expects SNR around 44 dB
-  Simulator::Schedule (Seconds (5.0), &TestStaticChannelBondingSnr::SetExpectedSnrForBss, this, 44.0, 1); // BSS 2 expects SNR around 44 dB
+  Simulator::Schedule (Seconds (5.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 5);
+  Simulator::Schedule (Seconds (5.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 6);
+  Simulator::Schedule (Seconds (5.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 7);
+  Simulator::Schedule (Seconds (5.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 8);
+  Simulator::Schedule (Seconds (5.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 9);
+  Simulator::Schedule (Seconds (5.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 10);
+  Simulator::Schedule (Seconds (5.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 11);
+  Simulator::Schedule (Seconds (5.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 12);
+  Simulator::Schedule (Seconds (5.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 3, 40); //secondary channel should be deemed busy for BSS 3
+  Simulator::Schedule (Seconds (5.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 4, 40); //secondary channel should be deemed busy for BSS 4
+  Simulator::Schedule (Seconds (5.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 7, 40); //secondary channel should not be deemed busy for BSS 7
+  Simulator::Schedule (Seconds (5.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 8, 40); //secondary channel should not be deemed busy for BSS 8
+  Simulator::Schedule (Seconds (5.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 9, 40); //primary 40 MHz channel should be deemed busy for BSS 9
+  Simulator::Schedule (Seconds (5.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 10, 40); //primary 40 MHz channel should be deemed busy for BSS 10
+  Simulator::Schedule (Seconds (5.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 9, 80); //secondary channels should be deemed busy for BSS 9
+  Simulator::Schedule (Seconds (5.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 10, 80); //secondary channels should be deemed busy for BSS 10
+  Simulator::Schedule (Seconds (5.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 11, 40); //primary 40 MHz channel should be deemed busy for BSS 11
+  Simulator::Schedule (Seconds (5.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 12, 40); //primary 40 MHz channel should be deemed busy for BSS 12
+  Simulator::Schedule (Seconds (5.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 11, 80); //secondary channels should be deemed busy for BSS 11
+  Simulator::Schedule (Seconds (5.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 12, 80); //secondary channels should be deemed busy for BSS 12
+
   Simulator::Schedule (Seconds (5.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 1);
   Simulator::Schedule (Seconds (5.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 3);
   Simulator::Schedule (Seconds (5.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 2);
   Simulator::Schedule (Seconds (5.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 4);
+  Simulator::Schedule (Seconds (5.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 5);
+  Simulator::Schedule (Seconds (5.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 6);
+  Simulator::Schedule (Seconds (5.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 7);
+  Simulator::Schedule (Seconds (5.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 8);
+  Simulator::Schedule (Seconds (5.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 9);
+  Simulator::Schedule (Seconds (5.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 10);
+  Simulator::Schedule (Seconds (5.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 11);
+  Simulator::Schedule (Seconds (5.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 12);
+  Simulator::Schedule (Seconds (5.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 3, 40); //secondary channel should be deemed idle for BSS 3
+  Simulator::Schedule (Seconds (5.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 4, 40); //secondary channel should be deemed idle for BSS 4
+  Simulator::Schedule (Seconds (5.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 7, 40); //secondary channel should be deemed idle for BSS 7
+  Simulator::Schedule (Seconds (5.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 8, 40); //secondary channel should be deemed idle for BSS 8
+  Simulator::Schedule (Seconds (5.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 9, 80); //secondary channels should be deemed idle for BSS 9
+  Simulator::Schedule (Seconds (5.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 10, 80); //secondary channels should be deemed idle for BSS 10
+  Simulator::Schedule (Seconds (5.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 11, 80); //secondary channels should be deemed idle for BSS 11
+  Simulator::Schedule (Seconds (5.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 12, 80); //secondary channels should be deemed idle for BSS 12
+
   Simulator::Schedule (Seconds (5.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, true, true, 1); // successfull reception for BSS 1
   Simulator::Schedule (Seconds (5.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, true, true, 2); // successfull reception for BSS 2
+
 
   //CASE 3: verify reception on channel 38 (BSS 3) when channel 36 is used (BSS 1) at the same time
   Simulator::Schedule (Seconds (5.9), &TestStaticChannelBondingSnr::Reset, this);
   Simulator::Schedule (Seconds (6.0), &TestStaticChannelBondingSnr::SendPacket, this, 3);
   Simulator::Schedule (Seconds (6.0), &TestStaticChannelBondingSnr::SendPacket, this, 1);
+
+  Simulator::Schedule (Seconds (6.0), &TestStaticChannelBondingSnr::SetExpectedSnrForBss, this, 3.0, 1); // BSS 1 expects SNR around 3 dB
+
   Simulator::Schedule (Seconds (6.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 1);
   Simulator::Schedule (Seconds (6.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 2);
   Simulator::Schedule (Seconds (6.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 3);
   Simulator::Schedule (Seconds (6.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 4);
-  Simulator::Schedule (Seconds (6.0), &TestStaticChannelBondingSnr::SetExpectedSnrForBss, this, 3.0, 1); // BSS 1 expects SNR around 3 dB
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 5);
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 6);
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 7);
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 8);
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 9);
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 10);
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 11);
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 12);
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 3, 40); //secondary channel should be deemed busy for BSS 3
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 4, 40); //secondary channel should be deemed busy for BSS 4
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 7, 40); //secondary channel should not be deemed busy for BSS 7
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 8, 40); //secondary channel should not be deemed busy for BSS 8
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 9, 40); //primary 40 MHz channel should be deemed busy for BSS 9
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 10, 40); //primary 40 MHz channel should be deemed busy for BSS 10
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 9, 80); //secondary channels should be deemed busy for BSS 9
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 10, 80); //secondary channels should be deemed busy for BSS 10
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 11, 40); //primary 40 MHz channel should be deemed busy for BSS 11
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 12, 40); //primary 40 MHz channel should be deemed busy for BSS 12
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 11, 80); //secondary channels should be deemed busy for BSS 11
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 12, 80); //secondary channels should be deemed busy for BSS 12
+
   Simulator::Schedule (Seconds (6.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 1);
   Simulator::Schedule (Seconds (6.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 3);
   Simulator::Schedule (Seconds (6.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 2);
   Simulator::Schedule (Seconds (6.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 4);
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 5);
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 6);
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 7);
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 8);
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 9);
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 10);
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 11);
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 12);
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 3, 40); //secondary channel should be deemed idle for BSS 3
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 4, 40); //secondary channel should be deemed idle for BSS 4
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 7, 40); //secondary channel should be deemed idle for BSS 7
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 8, 40); //secondary channel should be deemed idle for BSS 8
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 9, 80); //secondary channels should be deemed idle for BSS 9
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 10, 80); //secondary channels should be deemed idle for BSS 10
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 11, 80); //secondary channels should be deemed idle for BSS 11
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 12, 80); //secondary channels should be deemed idle for BSS 12
+
   Simulator::Schedule (Seconds (6.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, true, false, 1); // PHY header passed but payload failed for BSS 1
   Simulator::Schedule (Seconds (6.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, false, false, 3); // PHY header failed failed for BSS 3, so reception was aborted
+
 
   //CASE 4: verify reception on channel 38 (BSS 3) when channel 40 is used (BSS 2) at the same time
   Simulator::Schedule (Seconds (6.9), &TestStaticChannelBondingSnr::Reset, this);
   Simulator::Schedule (Seconds (7.0), &TestStaticChannelBondingSnr::SendPacket, this, 3);
   Simulator::Schedule (Seconds (7.0), &TestStaticChannelBondingSnr::SendPacket, this, 2);
+
+  Simulator::Schedule (Seconds (7.0), &TestStaticChannelBondingSnr::SetExpectedSnrForBss, this, 3.0, 2); // BSS 2 expects SNR around 3 dB
+
   Simulator::Schedule (Seconds (7.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 1);
   Simulator::Schedule (Seconds (7.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 2);
   Simulator::Schedule (Seconds (7.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 3);
   Simulator::Schedule (Seconds (7.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 4);
-  Simulator::Schedule (Seconds (7.0), &TestStaticChannelBondingSnr::SetExpectedSnrForBss, this, 3.0, 2); // BSS 2 expects SNR around 3 dB
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 5);
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 6);
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 7);
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 8);
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 9);
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 10);
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 11);
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 12);
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 3, 40); //secondary channel should be deemed busy for BSS 3
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 4, 40); //secondary channel should be deemed busy for BSS 4
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 7, 40); //secondary channel should not be deemed busy for BSS 7
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 8, 40); //secondary channel should not be deemed busy for BSS 8
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 9, 40); //primary 40 MHz channel should be deemed busy for BSS 9
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 10, 40); //primary 40 MHz channel should be deemed busy for BSS 10
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 9, 80); //secondary channels should be deemed busy for BSS 9
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 10, 80); //secondary channels should be deemed busy for BSS 10
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 11, 40); //primary 40 MHz channel should be deemed busy for BSS 11
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 12, 40); //primary 40 MHz channel should be deemed busy for BSS 12
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 11, 80); //secondary channels should be deemed busy for BSS 11
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 12, 80); //secondary channels should be deemed busy for BSS 12
+
   Simulator::Schedule (Seconds (7.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 1);
   Simulator::Schedule (Seconds (7.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 3);
   Simulator::Schedule (Seconds (7.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 2);
   Simulator::Schedule (Seconds (7.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 4);
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 5);
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 6);
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 7);
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 8);
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 9);
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 10);
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 11);
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 12);
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 3, 40); //secondary channel should be deemed idle for BSS 3
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 4, 40); //secondary channel should be deemed idle for BSS 4
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 7, 40); //secondary channel should be deemed idle for BSS 7
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 8, 40); //secondary channel should be deemed idle for BSS 8
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 9, 80); //secondary channels should be deemed idle for BSS 9
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 10, 80); //secondary channels should be deemed idle for BSS 10
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 11, 80); //secondary channels should be deemed idle for BSS 11
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 12, 80); //secondary channels should be deemed idle for BSS 12
+
   Simulator::Schedule (Seconds (7.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, true, false, 2); // PHY header passed but payload failed for BSS 2
   Simulator::Schedule (Seconds (7.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, true, false, 3); // PHY header passed but payload failed for BSS 3
+
 
   //CASE 5: verify reception on channel 38 (BSS 4) when channel 36 is used (BSS 1) at the same time
   Simulator::Schedule (Seconds (7.9), &TestStaticChannelBondingSnr::Reset, this);
   Simulator::Schedule (Seconds (8.0), &TestStaticChannelBondingSnr::SendPacket, this, 4);
   Simulator::Schedule (Seconds (8.0), &TestStaticChannelBondingSnr::SendPacket, this, 1);
+
+  Simulator::Schedule (Seconds (8.0), &TestStaticChannelBondingSnr::SetExpectedSnrForBss, this, 3.0, 1); // BSS 1 expects SNR around 3 dB
+
   Simulator::Schedule (Seconds (8.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 1);
   Simulator::Schedule (Seconds (8.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 2);
   Simulator::Schedule (Seconds (8.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 3);
   Simulator::Schedule (Seconds (8.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 4);
-  Simulator::Schedule (Seconds (8.0), &TestStaticChannelBondingSnr::SetExpectedSnrForBss, this, 3.0, 1); // BSS 1 expects SNR around 3 dB
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 5);
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 6);
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 7);
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 8);
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 9);
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 10);
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 11);
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 12);
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 3, 40); //secondary channel should be deemed busy for BSS 3
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 4, 40); //secondary channel should be deemed busy for BSS 4
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 7, 40); //secondary channel should not be deemed busy for BSS 7
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 8, 40); //secondary channel should not be deemed busy for BSS 8
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 9, 40); //primary 40 MHz channel should be deemed busy for BSS 9
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 10, 40); //primary 40 MHz channel should be deemed busy for BSS 10
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 9, 80); //secondary channels should be deemed busy for BSS 9
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 10, 80); //secondary channels should be deemed busy for BSS 10
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 11, 40); //primary 40 MHz channel should be deemed busy for BSS 11
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 12, 40); //primary 40 MHz channel should be deemed busy for BSS 12
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 11, 80); //secondary channels should be deemed busy for BSS 11
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 12, 80); //secondary channels should be deemed busy for BSS 12
+
   Simulator::Schedule (Seconds (8.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 1);
   Simulator::Schedule (Seconds (8.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 3);
   Simulator::Schedule (Seconds (8.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 2);
   Simulator::Schedule (Seconds (8.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 4);
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 5);
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 6);
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 7);
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 8);
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 9);
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 10);
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 11);
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 12);
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 3, 40); //secondary channel should be deemed idle for BSS 3
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 4, 40); //secondary channel should be deemed idle for BSS 4
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 7, 40); //secondary channel should be deemed idle for BSS 7
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 8, 40); //secondary channel should be deemed idle for BSS 8
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 9, 80); //secondary channels should be deemed idle for BSS 9
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 10, 80); //secondary channels should be deemed idle for BSS 10
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 11, 80); //secondary channels should be deemed idle for BSS 11
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 12, 80); //secondary channels should be deemed idle for BSS 12
+
   Simulator::Schedule (Seconds (8.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, true, false, 1); // PHY header passed but payload failed for BSS 1
   Simulator::Schedule (Seconds (8.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, true, false, 4); // PHY header passed but payload failed for BSS 4
+
 
   //CASE 6: verify reception on channel 38 (BSS 4) when channel 40 is used (BSS 2) at the same time
   Simulator::Schedule (Seconds (8.9), &TestStaticChannelBondingSnr::Reset, this);
   Simulator::Schedule (Seconds (9.0), &TestStaticChannelBondingSnr::SendPacket, this, 4);
   Simulator::Schedule (Seconds (9.0), &TestStaticChannelBondingSnr::SendPacket, this, 2);
+
+  Simulator::Schedule (Seconds (9.0), &TestStaticChannelBondingSnr::SetExpectedSnrForBss, this, 3.0, 2); // BSS 2 expects SNR around 3 dB
+
   Simulator::Schedule (Seconds (9.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 1);
   Simulator::Schedule (Seconds (9.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 2);
   Simulator::Schedule (Seconds (9.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 3);
   Simulator::Schedule (Seconds (9.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 4);
-  Simulator::Schedule (Seconds (9.0), &TestStaticChannelBondingSnr::SetExpectedSnrForBss, this, 3.0, 2); // BSS 2 expects SNR around 3 dB
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 5);
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 6);
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 7);
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 8);
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 9);
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 10);
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 11);
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 12);
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 3, 40); //secondary channel should be deemed busy for BSS 3
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 4, 40); //secondary channel should be deemed busy for BSS 4
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 7, 40); //secondary channel should not be deemed busy for BSS 7
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 8, 40); //secondary channel should not be deemed busy for BSS 8
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 9, 40); //primary 40 MHz channel should be deemed busy for BSS 9
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 10, 40); //primary 40 MHz channel should be deemed busy for BSS 10
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 9, 80); //secondary channels should be deemed busy for BSS 9
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 10, 80); //secondary channels should be deemed busy for BSS 10
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 11, 40); //primary 40 MHz channel should be deemed busy for BSS 11
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 12, 40); //primary 40 MHz channel should be deemed busy for BSS 12
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 11, 80); //secondary channels should be deemed busy for BSS 11
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 12, 80); //secondary channels should be deemed busy for BSS 12
+
   Simulator::Schedule (Seconds (9.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 1);
   Simulator::Schedule (Seconds (9.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 3);
   Simulator::Schedule (Seconds (9.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 2);
   Simulator::Schedule (Seconds (9.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 4);
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 5);
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 6);
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 7);
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 8);
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 9);
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 10);
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 11);
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 12);
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 3, 40); //secondary channel should be deemed idle for BSS 3
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 4, 40); //secondary channel should be deemed idle for BSS 4
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 7, 40); //secondary channel should be deemed idle for BSS 7
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 8, 40); //secondary channel should be deemed idle for BSS 8
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 9, 80); //secondary channels should be deemed idle for BSS 9
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 10, 80); //secondary channels should be deemed idle for BSS 10
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 11, 80); //secondary channels should be deemed idle for BSS 11
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 12, 80); //secondary channels should be deemed idle for BSS 12
+
   Simulator::Schedule (Seconds (9.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, true, false, 2); // PHY header passed but payload failed for BSS 2
   Simulator::Schedule (Seconds (9.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, false, false, 4); // PHY header failed failed for BSS 4, so reception was aborted
+
 
   //CASE 7: verify reception on channel 38 (BSS 3) when channels 36 (BSS 1) and 40 (BSS 2) are used at the same time
   Simulator::Schedule (Seconds (9.9), &TestStaticChannelBondingSnr::Reset, this);
   Simulator::Schedule (Seconds (10.0), &TestStaticChannelBondingSnr::SendPacket, this, 3);
   Simulator::Schedule (Seconds (10.0), &TestStaticChannelBondingSnr::SendPacket, this, 1);
   Simulator::Schedule (Seconds (10.0), &TestStaticChannelBondingSnr::SendPacket, this, 2);
+
+  Simulator::Schedule (Seconds (10.0), &TestStaticChannelBondingSnr::SetExpectedSnrForBss, this, 3.0, 1); // BSS 1 expects SNR around 3 dB
+  Simulator::Schedule (Seconds (10.0), &TestStaticChannelBondingSnr::SetExpectedSnrForBss, this, 3.0, 2); // BSS 2 expects SNR around 3 dB
+
   Simulator::Schedule (Seconds (10.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 1);
   Simulator::Schedule (Seconds (10.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 2);
   Simulator::Schedule (Seconds (10.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 3);
   Simulator::Schedule (Seconds (10.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 4);
-  Simulator::Schedule (Seconds (10.0), &TestStaticChannelBondingSnr::SetExpectedSnrForBss, this, 3.0, 1); // BSS 1 expects SNR around 3 dB
-  Simulator::Schedule (Seconds (10.0), &TestStaticChannelBondingSnr::SetExpectedSnrForBss, this, 3.0, 2); // BSS 2 expects SNR around 3 dB
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 5);
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 6);
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 7);
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 8);
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 9);
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 10);
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 11);
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 12);
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 3, 40); //secondary channel should be deemed busy for BSS 3
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 4, 40); //secondary channel should be deemed busy for BSS 4
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 7, 40); //secondary channel should not be deemed busy for BSS 7
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 8, 40); //secondary channel should not be deemed busy for BSS 8
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 9, 40); //primary 40 MHz channel should be deemed busy for BSS 9
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 10, 40); //primary 40 MHz channel should be deemed busy for BSS 10
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 9, 80); //secondary channels should be deemed busy for BSS 9
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 10, 80); //secondary channels should be deemed busy for BSS 10
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 11, 40); //primary 40 MHz channel should be deemed busy for BSS 11
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 12, 40); //primary 40 MHz channel should be deemed busy for BSS 12
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 11, 80); //secondary channels should be deemed busy for BSS 11
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 12, 80); //secondary channels should be deemed busy for BSS 12
+
   Simulator::Schedule (Seconds (10.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 1);
   Simulator::Schedule (Seconds (10.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 3);
   Simulator::Schedule (Seconds (10.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 2);
   Simulator::Schedule (Seconds (10.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 4);
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 5);
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 6);
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 7);
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 8);
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 9);
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 10);
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 11);
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 12);
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 3, 40); //secondary channel should be deemed idle for BSS 3
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 4, 40); //secondary channel should be deemed idle for BSS 4
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 7, 40); //secondary channel should be deemed idle for BSS 7
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 8, 40); //secondary channel should be deemed idle for BSS 8
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 9, 80); //secondary channels should be deemed idle for BSS 9
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 10, 80); //secondary channels should be deemed idle for BSS 10
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 11, 80); //secondary channels should be deemed idle for BSS 11
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 12, 80); //secondary channels should be deemed idle for BSS 12
+
   Simulator::Schedule (Seconds (10.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, true, false, 1); // PHY header passed but payload failed for BSS 1
   Simulator::Schedule (Seconds (10.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, true, false, 2); // PHY header passed but payload failed for BSS 2
   Simulator::Schedule (Seconds (10.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, false, false, 3); // PHY header failed failed for BSS 3, so reception was aborted
+
 
   //CASE 8: verify reception on channel 38 (BSS 4) when channels 36 (BSS 1) and 40 (BSS 2) are used at the same time
   Simulator::Schedule (Seconds (10.9), &TestStaticChannelBondingSnr::Reset, this);
   Simulator::Schedule (Seconds (11.0), &TestStaticChannelBondingSnr::SendPacket, this, 4);
   Simulator::Schedule (Seconds (11.0), &TestStaticChannelBondingSnr::SendPacket, this, 1);
   Simulator::Schedule (Seconds (11.0), &TestStaticChannelBondingSnr::SendPacket, this, 2);
+
+  Simulator::Schedule (Seconds (11.0), &TestStaticChannelBondingSnr::SetExpectedSnrForBss, this, 3.0, 1); // BSS 1 expects SNR around 3 dB
+  Simulator::Schedule (Seconds (11.0), &TestStaticChannelBondingSnr::SetExpectedSnrForBss, this, 3.0, 2); // BSS 2 expects SNR around 3 dB
+
   Simulator::Schedule (Seconds (11.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 1);
   Simulator::Schedule (Seconds (11.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 2);
   Simulator::Schedule (Seconds (11.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 3);
   Simulator::Schedule (Seconds (11.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 4);
-  Simulator::Schedule (Seconds (11.0), &TestStaticChannelBondingSnr::SetExpectedSnrForBss, this, 3.0, 1); // BSS 1 expects SNR around 3 dB
-  Simulator::Schedule (Seconds (11.0), &TestStaticChannelBondingSnr::SetExpectedSnrForBss, this, 3.0, 2); // BSS 2 expects SNR around 3 dB
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 5);
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 6);
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 7);
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 8);
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 9);
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 10);
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 11);
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 12);
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 3, 40); //secondary channel should be deemed busy for BSS 3
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 4, 40); //secondary channel should be deemed busy for BSS 4
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 7, 40); //secondary channel should not be deemed busy for BSS 7
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 8, 40); //secondary channel should not be deemed busy for BSS 8
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 9, 40); //primary 40 MHz channel should be deemed busy for BSS 9
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 10, 40); //primary 40 MHz channel should be deemed busy for BSS 10
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 9, 80); //secondary channels should be deemed busy for BSS 9
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 10, 80); //secondary channels should be deemed busy for BSS 10
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 11, 40); //primary 40 MHz channel should be deemed busy for BSS 11
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 12, 40); //primary 40 MHz channel should be deemed busy for BSS 12
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 11, 80); //secondary channels should be deemed busy for BSS 11
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 12, 80); //secondary channels should be deemed busy for BSS 12
+
   Simulator::Schedule (Seconds (11.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 1);
   Simulator::Schedule (Seconds (11.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 3);
   Simulator::Schedule (Seconds (11.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 2);
   Simulator::Schedule (Seconds (11.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 4);
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 5);
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 6);
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 7);
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 8);
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 9);
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 10);
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 11);
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 12);
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 3, 40); //secondary channel should be deemed idle for BSS 3
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 4, 40); //secondary channel should be deemed idle for BSS 4
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 7, 40); //secondary channel should be deemed idle for BSS 7
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 8, 40); //secondary channel should be deemed idle for BSS 8
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 9, 80); //secondary channels should be deemed idle for BSS 9
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 10, 80); //secondary channels should be deemed idle for BSS 10
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 11, 80); //secondary channels should be deemed idle for BSS 11
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 12, 80); //secondary channels should be deemed idle for BSS 12
+
   Simulator::Schedule (Seconds (11.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, true, false, 1); // PHY header passed but payload failed for BSS 1
   Simulator::Schedule (Seconds (11.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, true, false, 2); // PHY header passed but payload failed for BSS 2
   Simulator::Schedule (Seconds (11.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, false, false, 4); // PHY header failed failed for BSS 4, so reception was aborted
@@ -1492,6 +1975,7 @@ TestStaticChannelBondingChannelAccess::CheckPhyState (WifiPhyState expectedState
 {
   Ptr<WifiNetDevice> wifiDevicePtr = device->GetObject <WifiNetDevice> ();
   WifiPhyState currentState = wifiDevicePtr->GetPhy ()->GetPhyState ();
+  NS_ASSERT (currentState == expectedState);
   NS_TEST_ASSERT_MSG_EQ (currentState, expectedState, "PHY State " << currentState << " does not match expected state " << expectedState << " at " << Simulator::Now ());
 }
 
@@ -1510,30 +1994,44 @@ TestStaticChannelBondingChannelAccess::DoRun (void)
   RngSeedManager::SetRun (1);
   int64_t streamNumber = 0;
 
+  //BSS #1 operating on channel 38 (40 MHz)
   NodeContainer wifiNodesBss1;
   wifiNodesBss1.Create (2);
 
+  //BSS #2 operating on channel 36 (20 MHz)
   NodeContainer wifiNodesBss2;
   wifiNodesBss2.Create (2);
 
+  //BSS #3 operating on channel 40 (20 MHz)
   NodeContainer wifiNodesBss3;
   wifiNodesBss3.Create (2);
+
+  //BSS #4 operating on channel 46 (40 MHz)
+  NodeContainer wifiNodesBss4;
+  wifiNodesBss4.Create (2);
+
+  //BSS #5 operating on channel 42 (80 MHz)
+  NodeContainer wifiNodesBss5;
+  wifiNodesBss5.Create (2);
 
   SpectrumWifiPhyHelper spectrumPhy = SpectrumWifiPhyHelper::Default ();
   Ptr<MultiModelSpectrumChannel> spectrumChannel = CreateObject<MultiModelSpectrumChannel> ();
   Ptr<FriisPropagationLossModel> lossModel = CreateObject<FriisPropagationLossModel> ();
-  lossModel->SetFrequency (5.190e9);
+  lossModel->SetFrequency (5e9);
   spectrumChannel->AddPropagationLossModel (lossModel);
 
-  Ptr<ConstantSpeedPropagationDelayModel> delayModel
-    = CreateObject<ConstantSpeedPropagationDelayModel> ();
+  Ptr<ConstantSpeedPropagationDelayModel> delayModel = CreateObject<ConstantSpeedPropagationDelayModel> ();
   spectrumChannel->SetPropagationDelayModel (delayModel);
 
   spectrumPhy.SetChannel (spectrumChannel);
   spectrumPhy.SetErrorRateModel ("ns3::NistErrorRateModel");
   spectrumPhy.Set ("TxPowerStart", DoubleValue (10));
   spectrumPhy.Set ("TxPowerEnd", DoubleValue (10));
-
+  //Configure very strong rejection to be close to ideal filter conditions
+  spectrumPhy.Set ("TxMaskInnerBandMinimumRejection", DoubleValue (-80.0));
+  spectrumPhy.Set ("TxMaskOuterBandMinimumRejection", DoubleValue (-112.0));
+  spectrumPhy.Set ("TxMaskOuterBandMaximumRejection", DoubleValue (-160.0));
+  
   WifiHelper wifi;
   wifi.SetStandard (WIFI_PHY_STANDARD_80211ac);
   wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager",
@@ -1543,8 +2041,7 @@ TestStaticChannelBondingChannelAccess::DoRun (void)
   WifiMacHelper mac;
   mac.SetType ("ns3::AdhocWifiMac");
 
-  NetDeviceContainer bss1Devices;
-  bss1Devices = wifi.Install (spectrumPhy, mac, wifiNodesBss1);
+  NetDeviceContainer bss1Devices = wifi.Install (spectrumPhy, mac, wifiNodesBss1);
 
   // Assign fixed streams to random variables in use
   wifi.AssignStreams (bss1Devices, streamNumber);
@@ -1561,8 +2058,7 @@ TestStaticChannelBondingChannelAccess::DoRun (void)
   wifiDevicePtr->GetPhy ()->SetAttribute ("ChannelNumber", UintegerValue (38));
   wifiDevicePtr->GetPhy ()->SetAttribute ("Frequency", UintegerValue (5190));
 
-  NetDeviceContainer bss2Devices;
-  bss2Devices = wifi.Install (spectrumPhy, mac, wifiNodesBss2);
+  NetDeviceContainer bss2Devices = wifi.Install (spectrumPhy, mac, wifiNodesBss2);
 
   // Assign fixed streams to random variables in use
   wifi.AssignStreams (bss2Devices, streamNumber);
@@ -1579,8 +2075,7 @@ TestStaticChannelBondingChannelAccess::DoRun (void)
   wifiDevicePtr->GetPhy ()->SetAttribute ("ChannelNumber", UintegerValue (36));
   wifiDevicePtr->GetPhy ()->SetAttribute ("Frequency", UintegerValue (5180));
 
-  NetDeviceContainer bss3Devices;
-  bss3Devices = wifi.Install (spectrumPhy, mac, wifiNodesBss3);
+  NetDeviceContainer bss3Devices = wifi.Install (spectrumPhy, mac, wifiNodesBss3);
 
   // Assign fixed streams to random variables in use
   wifi.AssignStreams (bss3Devices, streamNumber);
@@ -1597,85 +2092,170 @@ TestStaticChannelBondingChannelAccess::DoRun (void)
   wifiDevicePtr->GetPhy ()->SetAttribute ("ChannelNumber", UintegerValue (40));
   wifiDevicePtr->GetPhy ()->SetAttribute ("Frequency", UintegerValue (5200));
 
+  NetDeviceContainer bss4Devices = wifi.Install (spectrumPhy, mac, wifiNodesBss4);
+
+  // Assign fixed streams to random variables in use
+  wifi.AssignStreams (bss4Devices, streamNumber);
+
+  devicePtr = bss4Devices.Get (0);
+  wifiDevicePtr = devicePtr->GetObject <WifiNetDevice> ();
+  wifiDevicePtr->GetPhy ()->SetAttribute ("ChannelWidth", UintegerValue (40));
+  wifiDevicePtr->GetPhy ()->SetAttribute ("ChannelNumber", UintegerValue (46));
+  wifiDevicePtr->GetPhy ()->SetAttribute ("Frequency", UintegerValue (5230));
+
+  devicePtr = bss4Devices.Get (1);
+  wifiDevicePtr = devicePtr->GetObject <WifiNetDevice> ();
+  wifiDevicePtr->GetPhy ()->SetAttribute ("ChannelWidth", UintegerValue (40));
+  wifiDevicePtr->GetPhy ()->SetAttribute ("ChannelNumber", UintegerValue (46));
+  wifiDevicePtr->GetPhy ()->SetAttribute ("Frequency", UintegerValue (5230));
+
+  NetDeviceContainer bss5Devices = wifi.Install (spectrumPhy, mac, wifiNodesBss5);
+
+  // Assign fixed streams to random variables in use
+  wifi.AssignStreams (bss5Devices, streamNumber);
+
+  devicePtr = bss5Devices.Get (0);
+  wifiDevicePtr = devicePtr->GetObject <WifiNetDevice> ();
+  wifiDevicePtr->GetPhy ()->SetAttribute ("ChannelWidth", UintegerValue (80));
+  wifiDevicePtr->GetPhy ()->SetAttribute ("ChannelNumber", UintegerValue (42));
+  wifiDevicePtr->GetPhy ()->SetAttribute ("Frequency", UintegerValue (5210));
+
+  devicePtr = bss5Devices.Get (1);
+  wifiDevicePtr = devicePtr->GetObject <WifiNetDevice> ();
+  wifiDevicePtr->GetPhy ()->SetAttribute ("ChannelWidth", UintegerValue (80));
+  wifiDevicePtr->GetPhy ()->SetAttribute ("ChannelNumber", UintegerValue (42));
+  wifiDevicePtr->GetPhy ()->SetAttribute ("Frequency", UintegerValue (5210));
+
   MobilityHelper mobility;
   Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator> ();
   positionAlloc->Add (Vector (0.0, 0.0, 0.0));
   positionAlloc->Add (Vector (1.0, 0.0, 0.0));
-  positionAlloc->Add (Vector (10.0, 0.0, 0.0));
-  positionAlloc->Add (Vector (11.0, 0.0, 0.0));
-  positionAlloc->Add (Vector (0.0, 10.0, 0.0));
-  positionAlloc->Add (Vector (0.0, 11.0, 0.0));
+  positionAlloc->Add (Vector (2.0, 0.0, 0.0));
+  positionAlloc->Add (Vector (3.0, 0.0, 0.0));
+  positionAlloc->Add (Vector (4.0, 0.0, 0.0));
+  positionAlloc->Add (Vector (5.0, 0.0, 0.0));
+  positionAlloc->Add (Vector (6.0, 0.0, 0.0));
+  positionAlloc->Add (Vector (7.0, 0.0, 0.0));
+  positionAlloc->Add (Vector (8.0, 0.0, 0.0));
+  positionAlloc->Add (Vector (9.0, 0.0, 0.0));
   mobility.SetPositionAllocator (positionAlloc);
 
   mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
   mobility.Install (wifiNodesBss1);
   mobility.Install (wifiNodesBss2);
   mobility.Install (wifiNodesBss3);
+  mobility.Install (wifiNodesBss4);
+  mobility.Install (wifiNodesBss5);
 
   //Make sure ADDBA are established
   Simulator::Schedule (Seconds (0.0), &TestStaticChannelBondingChannelAccess::SendPacket, this, bss1Devices.Get (0), bss1Devices.Get (1)->GetAddress ());
   Simulator::Schedule (Seconds (0.1), &TestStaticChannelBondingChannelAccess::SendPacket, this, bss2Devices.Get (0), bss2Devices.Get (1)->GetAddress ());
   Simulator::Schedule (Seconds (0.2), &TestStaticChannelBondingChannelAccess::SendPacket, this, bss3Devices.Get (0), bss3Devices.Get (1)->GetAddress ());
+  Simulator::Schedule (Seconds (0.3), &TestStaticChannelBondingChannelAccess::SendPacket, this, bss4Devices.Get (0), bss4Devices.Get (1)->GetAddress ());
+  Simulator::Schedule (Seconds (0.4), &TestStaticChannelBondingChannelAccess::SendPacket, this, bss5Devices.Get (0), bss5Devices.Get (1)->GetAddress ());
 
-  //Case 1: channel 36 only
+
+  //CASE 1: channel 36 only (20 MHz)
   Simulator::Schedule (Seconds (1.0), &TestStaticChannelBondingChannelAccess::SendPacket, this, bss2Devices.Get (0), bss2Devices.Get (1)->GetAddress ());
 
   //BSS 2: transmitter should be in TX state and receiver should be in RX state
   Simulator::Schedule (Seconds (1.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::TX, bss2Devices.Get (0));
   Simulator::Schedule (Seconds (1.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::RX, bss2Devices.Get (1));
 
-  //BSS 1: they should be in RX state since the PPDU is received on the primary channel
+  //BSS 1 and BSS 5: they should be in RX state since the PPDU is received on the primary channel
   Simulator::Schedule (Seconds (1.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::RX, bss1Devices.Get (0));
   Simulator::Schedule (Seconds (1.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::RX, bss1Devices.Get (1));
-
-  //BSS 3: they should be in IDLE state since no PPDU is received on that channel
+  Simulator::Schedule (Seconds (1.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::RX, bss5Devices.Get (0));
+  Simulator::Schedule (Seconds (1.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::RX, bss5Devices.Get (1));
+  
+  //BSS 3 and BSS 4: they should be in IDLE state since no PPDU is received on their channel(s)
   Simulator::Schedule (Seconds (1.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss3Devices.Get (0));
   Simulator::Schedule (Seconds (1.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss3Devices.Get (1));
+  Simulator::Schedule (Seconds (1.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss4Devices.Get (0));
+  Simulator::Schedule (Seconds (1.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss4Devices.Get (1));
 
-  //Secondary channel CCA is deemed BUSY during transmission or reception of a 20 MHz PPDU in the primary channel.
+  //Secondary channel CCA for BSS 1 and BBS 5 should be deemed BUSY during transmission or reception of a 20 MHz PPDU in the primary channel
   Simulator::Schedule (Seconds (1.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (0), 40);
   Simulator::Schedule (Seconds (1.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (1), 40);
+  Simulator::Schedule (Seconds (1.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (0), 40);
+  Simulator::Schedule (Seconds (1.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (1), 40);
+  Simulator::Schedule (Seconds (1.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (0), 80);
+  Simulator::Schedule (Seconds (1.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (1), 80);
+
+  //Secondary channel CCA for BSS 4 should not be deemed BUSY
+  Simulator::Schedule (Seconds (1.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, true, bss4Devices.Get (0), 40);
+  Simulator::Schedule (Seconds (1.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, true, bss4Devices.Get (1), 40);
 
 
-  //Case 2: channel 40 only
+  //CASE 2: channel 40 only (20 MHz)
   Simulator::Schedule (Seconds (2.0), &TestStaticChannelBondingChannelAccess::SendPacket, this, bss3Devices.Get (0), bss3Devices.Get (1)->GetAddress ());
 
   //BSS 3: transmitter should be in TX state and receiver should be in RX state
   Simulator::Schedule (Seconds (2.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::TX, bss3Devices.Get (0));
   Simulator::Schedule (Seconds (2.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::RX, bss3Devices.Get (1));
 
-  //BSS 1: they should be in IDLE state since PPDU is received on the secondary 20 MHz channel
+  //BSS 1 and BSS 5: they should be in IDLE state since PPDU is received on the secondary 20 MHz channel
   Simulator::Schedule (Seconds (2.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss1Devices.Get (0));
   Simulator::Schedule (Seconds (2.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss1Devices.Get (1));
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss5Devices.Get (0));
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss5Devices.Get (1));
 
-  //BSS 2: they should be in IDLE state since no PPDU is received on that channel
+  //BSS 2 and BSS 4: they should be in IDLE state since no PPDU is received on their channel(s)
   Simulator::Schedule (Seconds (2.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss2Devices.Get (0));
   Simulator::Schedule (Seconds (2.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss2Devices.Get (1));
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss4Devices.Get (0));
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss4Devices.Get (1));
 
-  //Secondary channel CCA is deemed BUSY if energy in the secondary channel is above the corresponding CCA threshold.
+  //Secondary channel CCA for BSS 1 and BSS 5 should be deemed BUSY since the energy in the secondary channel is above the corresponding CCA threshold.
   Simulator::Schedule (Seconds (2.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (0), 40);
   Simulator::Schedule (Seconds (2.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (1), 40);
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (0), 40);
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (1), 40);
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (0), 80);
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (1), 80);
+
+  //Secondary channel CCA for BSS 4 should not be deemed BUSY
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, true, bss4Devices.Get (0), 40);
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, true, bss4Devices.Get (1), 40);
 
 
-  //Case 3: channel 38 only
+  //CASE 3: channel 38 only (40 MHz)
   Simulator::Schedule (Seconds (3.0), &TestStaticChannelBondingChannelAccess::SendPacket, this, bss1Devices.Get (0), bss1Devices.Get (1)->GetAddress ());
 
   //BSS 1: transmitter should be in TX state and receiver should be in RX state
   Simulator::Schedule (Seconds (3.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::TX, bss1Devices.Get (0));
   Simulator::Schedule (Seconds (3.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::RX, bss1Devices.Get (1));
 
-  //others: they should be in CCA_BUSY state since a 40 MHz PPDU is transmitted whereas receivers only support 20 MHz PPDUs
+  //BSS 2 and BSS 3: they should be in CCA_BUSY state since a 40 MHz PPDU is transmitted whereas receivers only support 20 MHz PPDUs
   Simulator::Schedule (Seconds (3.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::CCA_BUSY, bss2Devices.Get (0));
   Simulator::Schedule (Seconds (3.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::CCA_BUSY, bss2Devices.Get (1));
   Simulator::Schedule (Seconds (3.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::CCA_BUSY, bss3Devices.Get (0));
   Simulator::Schedule (Seconds (3.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::CCA_BUSY, bss3Devices.Get (1));
 
-  //Secondary channel CCA is deemed BUSY during transmission of a 40 MHz PPDU.
+  //BSS 4: they should be in IDLE state since no PPDU is received on their channel(s)
+  Simulator::Schedule (Seconds (3.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss4Devices.Get (0));
+  Simulator::Schedule (Seconds (3.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss4Devices.Get (1));
+
+  //BSS 5: they should be in in RX state
+  Simulator::Schedule (Seconds (3.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::RX, bss5Devices.Get (0));
+  Simulator::Schedule (Seconds (3.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::RX, bss5Devices.Get (1));
+
+  //Secondary channel CCA for BSS 1 is deemed BUSY during transmission of a 40 MHz PPDU.
   Simulator::Schedule (Seconds (3.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (0), 40);
   Simulator::Schedule (Seconds (3.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (1), 40);
 
+  //Secondary channel CCA for BSS 5 is deemed BUSY during reception of a 40 MHz PPDU.
+  Simulator::Schedule (Seconds (3.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (0), 40);
+  Simulator::Schedule (Seconds (3.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (1), 40);
+  Simulator::Schedule (Seconds (3.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (0), 80);
+  Simulator::Schedule (Seconds (3.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (1), 80);
+  
+  //Secondary channel CCA for BSS 4 should not be deemed BUSY
+  Simulator::Schedule (Seconds (3.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, true, bss4Devices.Get (0), 40);
+  Simulator::Schedule (Seconds (3.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, true, bss4Devices.Get (1), 40);
 
-  //Case 4: channel 36 then channel 40
+
+  //CASE 4: channel 36 (20 MHz) then channel 40 (20 MHz)
   Simulator::Schedule (Seconds (4.0), &TestStaticChannelBondingChannelAccess::SendPacket, this, bss2Devices.Get (0), bss2Devices.Get (1)->GetAddress ());
   Simulator::Schedule (Seconds (4.0) + MicroSeconds (5), &TestStaticChannelBondingChannelAccess::SendPacket, this, bss3Devices.Get (0), bss3Devices.Get (1)->GetAddress ());
 
@@ -1687,16 +2267,30 @@ TestStaticChannelBondingChannelAccess::DoRun (void)
   Simulator::Schedule (Seconds (4.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::TX, bss3Devices.Get (0));
   Simulator::Schedule (Seconds (4.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::RX, bss3Devices.Get (1));
 
-  //BSS 1: they should be in RX state since a PPDU is received on the primary channel
+  //BSS 1 and BSS 5: they should be in RX state since a PPDU is received on the primary channel
   Simulator::Schedule (Seconds (4.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::RX, bss1Devices.Get (0));
   Simulator::Schedule (Seconds (4.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::RX, bss1Devices.Get (1));
+  Simulator::Schedule (Seconds (4.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::RX, bss5Devices.Get (0));
+  Simulator::Schedule (Seconds (4.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::RX, bss5Devices.Get (1));
 
-  //Secondary channel CCA is deemed BUSY during reception of a 20 MHz PPDU in the primary channel.
+  //BSS 4: they should be in IDLE state since no PPDU is received on their channel(s)
+  Simulator::Schedule (Seconds (4.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss4Devices.Get (0));
+  Simulator::Schedule (Seconds (4.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss4Devices.Get (1));
+
+  //Secondary channel CCA for BSS 1 and BSS 5 is deemed BUSY during reception of a 20 MHz PPDU in the primary channel.
   Simulator::Schedule (Seconds (4.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (0), 40);
   Simulator::Schedule (Seconds (4.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (1), 40);
+  Simulator::Schedule (Seconds (4.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (0), 40);
+  Simulator::Schedule (Seconds (4.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (1), 40);
+  Simulator::Schedule (Seconds (4.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (0), 80);
+  Simulator::Schedule (Seconds (4.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (1), 80);
+
+  //Secondary channel CCA for BSS 4 should not be deemed BUSY
+  Simulator::Schedule (Seconds (4.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, true, bss4Devices.Get (0), 40);
+  Simulator::Schedule (Seconds (4.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, true, bss4Devices.Get (1), 40);
 
 
-  //Case 5: channel 40 then channel 36
+  //CASE 5: channel 40 (20 MHz) then channel 36 (20 MHz)
   Simulator::Schedule (Seconds (5.0), &TestStaticChannelBondingChannelAccess::SendPacket, this, bss3Devices.Get (0), bss3Devices.Get (1)->GetAddress ());
   Simulator::Schedule (Seconds (5.0) + MicroSeconds (5), &TestStaticChannelBondingChannelAccess::SendPacket, this, bss2Devices.Get (0), bss2Devices.Get (1)->GetAddress ());
 
@@ -1708,16 +2302,30 @@ TestStaticChannelBondingChannelAccess::DoRun (void)
   Simulator::Schedule (Seconds (5.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::TX, bss3Devices.Get (0));
   Simulator::Schedule (Seconds (5.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::RX, bss3Devices.Get (1));
 
-  //BSS 1: they should be in RX state since a PPDU is received on the primary channel
+  //BSS 1 and BSS 5: they should be in RX state since a PPDU is received on the primary channel
   Simulator::Schedule (Seconds (5.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::RX, bss1Devices.Get (0));
   Simulator::Schedule (Seconds (5.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::RX, bss1Devices.Get (1));
+  Simulator::Schedule (Seconds (5.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::RX, bss5Devices.Get (0));
+  Simulator::Schedule (Seconds (5.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::RX, bss5Devices.Get (1));
 
-  //Secondary channel CCA is deemed BUSY if energy in the secondary channel is above the corresponding CCA threshold.
+  //BSS 4: they should be in IDLE state since no PPDU is received on their channel(s)
+  Simulator::Schedule (Seconds (5.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss4Devices.Get (0));
+  Simulator::Schedule (Seconds (5.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss4Devices.Get (1));
+
+  //Secondary channel CCA for BSS 1 and BBS 5 should be deemed BUSY during transmission or reception of a 20 MHz PPDU in the primary channel
   Simulator::Schedule (Seconds (5.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (0), 40);
   Simulator::Schedule (Seconds (5.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (1), 40);
+  Simulator::Schedule (Seconds (5.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (0), 40);
+  Simulator::Schedule (Seconds (5.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (1), 40);
+  Simulator::Schedule (Seconds (5.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (0), 80);
+  Simulator::Schedule (Seconds (5.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (1), 80);
+
+  //Secondary channel CCA for BSS 4 should not be deemed BUSY
+  Simulator::Schedule (Seconds (5.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, true, bss4Devices.Get (0), 40);
+  Simulator::Schedule (Seconds (5.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, true, bss4Devices.Get (1), 40);
 
 
-  //Case 6: channel 36 then channel 38
+  //CASE 6: channel 36 (20 MHz) then channel 38 (40 MHz)
   Simulator::Schedule (Seconds (6.0), &TestStaticChannelBondingChannelAccess::SendPacket, this, bss2Devices.Get (0), bss2Devices.Get (1)->GetAddress ());
   Simulator::Schedule (Seconds (6.0) + MicroSeconds (5), &TestStaticChannelBondingChannelAccess::SendPacket, this, bss1Devices.Get (0), bss1Devices.Get (1)->GetAddress ());
 
@@ -1725,7 +2333,9 @@ TestStaticChannelBondingChannelAccess::DoRun (void)
   Simulator::Schedule (Seconds (6.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::TX, bss2Devices.Get (0));
   Simulator::Schedule (Seconds (6.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::RX, bss2Devices.Get (1));
 
-  //BSS 1: they should be in RX state since the PPDU is received on the primary channel
+  //BSS 1 and BSS 5: they should be in RX state since the PPDU is received on the primary channel
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::RX, bss1Devices.Get (0));
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::RX, bss1Devices.Get (1));
   Simulator::Schedule (Seconds (6.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::RX, bss1Devices.Get (0));
   Simulator::Schedule (Seconds (6.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::RX, bss1Devices.Get (1));
 
@@ -1733,22 +2343,54 @@ TestStaticChannelBondingChannelAccess::DoRun (void)
   Simulator::Schedule (Seconds (6.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss3Devices.Get (0));
   Simulator::Schedule (Seconds (6.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss3Devices.Get (1));
 
-  //Secondary channel CCA is deemed BUSY during reception of a 20 MHz PPDU in the primary channel.
+  //BSS 4: they should be in IDLE state since no PPDU is received on their channel(s)
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss4Devices.Get (0));
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss4Devices.Get (1));
+
+  //Secondary channel CCA for BSS 1 and BSS 5 should be deemed BUSY during reception of a 20 MHz PPDU in the primary channel.
   Simulator::Schedule (Seconds (6.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (0), 40);
   Simulator::Schedule (Seconds (6.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (1), 40);
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (0), 40);
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (1), 40);
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (0), 80);
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (1), 80);
+  
+  //Secondary channel CCA for BSS 4 should not be deemed BUSY
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, true, bss4Devices.Get (0), 40);
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, true, bss4Devices.Get (1), 40);
 
   //BSS 1: transmitter should be in TX state and receiver should be in RX state
   Simulator::Schedule (Seconds (6.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::TX, bss1Devices.Get (0));
   Simulator::Schedule (Seconds (6.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::RX, bss1Devices.Get (1));
 
-  //others: they should be in CCA_BUSY state since a 40 MHz PPDU is transmitted whereas receivers only support 20 MHz PPDUs
+  //BSS 2 and BSS 3: they should be in CCA_BUSY state since a 40 MHz PPDU is transmitted whereas receivers only support 20 MHz PPDUs
   Simulator::Schedule (Seconds (6.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::CCA_BUSY, bss2Devices.Get (0));
   Simulator::Schedule (Seconds (6.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::CCA_BUSY, bss2Devices.Get (1));
   Simulator::Schedule (Seconds (6.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::CCA_BUSY, bss3Devices.Get (0));
   Simulator::Schedule (Seconds (6.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::CCA_BUSY, bss3Devices.Get (1));
 
+  //BSS 4: they should be in IDLE state since no PPDU is received on their channel(s)
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss4Devices.Get (0));
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss4Devices.Get (1));
 
-  //Case 7: channel 38 then channel 36
+  //BSS 5: they should be in RX state
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::RX, bss5Devices.Get (0));
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::RX, bss5Devices.Get (1));
+
+  //Secondary channel CCA for BSS 1 and BSS 5 should be deemed BUSY during transmission or reception of a 40 MHz PPDU.
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (0), 40);
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (1), 40);
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (0), 40);
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (1), 40);
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (0), 80);
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (1), 80);
+
+  //Secondary channel CCA for BSS 4 should not be deemed BUSY
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, true, bss4Devices.Get (0), 40);
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, true, bss4Devices.Get (1), 40);
+
+
+  //CASE 7: channel 38 (40 MHz) then channel 36 (20 MHz)
   Simulator::Schedule (Seconds (7.0), &TestStaticChannelBondingChannelAccess::SendPacket, this, bss1Devices.Get (0), bss1Devices.Get (1)->GetAddress ());
   Simulator::Schedule (Seconds (7.0) + MicroSeconds (5), &TestStaticChannelBondingChannelAccess::SendPacket, this, bss2Devices.Get (0), bss2Devices.Get (1)->GetAddress ());
 
@@ -1756,21 +2398,35 @@ TestStaticChannelBondingChannelAccess::DoRun (void)
   Simulator::Schedule (Seconds (7.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::TX, bss1Devices.Get (0));
   Simulator::Schedule (Seconds (7.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::RX, bss1Devices.Get (1));
 
-  //others: they should be in CCA_BUSY state since a 40 MHz PPDU is transmitted whereas receivers only support 20 MHz PPDUs
+  //BSS 2 and BSS 3: they should be in CCA_BUSY state since a 40 MHz PPDU is transmitted whereas receivers only support 20 MHz PPDUs
   Simulator::Schedule (Seconds (7.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::CCA_BUSY, bss2Devices.Get (0));
   Simulator::Schedule (Seconds (7.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::CCA_BUSY, bss2Devices.Get (1));
   Simulator::Schedule (Seconds (7.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::CCA_BUSY, bss3Devices.Get (0));
   Simulator::Schedule (Seconds (7.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::CCA_BUSY, bss3Devices.Get (1));
 
-  //Secondary channel CCA is deemed BUSY during transmission of a 40 MHz PPDU.
+  //BSS 5: they should be in RX state
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::RX, bss5Devices.Get (0));
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::RX, bss5Devices.Get (1));
+
+  //Secondary channel CCA for BSS 1 and BSS 5 should be deemed BUSY during transmission or reception of a 40 MHz PPDU.
   Simulator::Schedule (Seconds (7.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (0), 40);
   Simulator::Schedule (Seconds (7.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (1), 40);
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (0), 40);
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (1), 40);
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (0), 80);
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (1), 80);
+
+  //Secondary channel CCA for BSS 4 should not be deemed BUSY
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, true, bss4Devices.Get (0), 40);
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, true, bss4Devices.Get (1), 40);
 
   //BSS 2: transmitter should be in TX state and receiver should be in RX state
   Simulator::Schedule (Seconds (7.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::TX, bss2Devices.Get (0));
   Simulator::Schedule (Seconds (7.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::RX, bss2Devices.Get (1));
 
-  //BSS 1: they should be in RX state since the PPDU is received on the primary channel
+  //BSS 1 and BSS 5: they should be in RX state since the PPDU is received on the primary channel
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::RX, bss1Devices.Get (0));
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::RX, bss1Devices.Get (1));
   Simulator::Schedule (Seconds (7.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::RX, bss1Devices.Get (0));
   Simulator::Schedule (Seconds (7.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::RX, bss1Devices.Get (1));
 
@@ -1778,8 +2434,24 @@ TestStaticChannelBondingChannelAccess::DoRun (void)
   Simulator::Schedule (Seconds (7.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss3Devices.Get (0));
   Simulator::Schedule (Seconds (7.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss3Devices.Get (1));
 
+  //BSS 4: they should be in IDLE state since no PPDU is received on their channel(s)
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss4Devices.Get (0));
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss4Devices.Get (1));
 
-  //Case 8: channel 40 then channel 38
+  //Secondary channel CCA for BSS 1 and BSS 5 should be deemed BUSY during reception of a 20 MHz PPDU in the primary channel.
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (0), 40);
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (1), 40);
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (0), 40);
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (1), 40);
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (0), 80);
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (1), 80);
+  
+  //Secondary channel CCA for BSS 4 should not be deemed BUSY
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, true, bss4Devices.Get (0), 40);
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, true, bss4Devices.Get (1), 40);
+
+
+  //CASE 8: channel 40 (20 MHz) then channel 38 (40 MHz)
   Simulator::Schedule (Seconds (8.0), &TestStaticChannelBondingChannelAccess::SendPacket, this, bss3Devices.Get (0), bss3Devices.Get (1)->GetAddress ());
   Simulator::Schedule (Seconds (8.0) + MicroSeconds (5), &TestStaticChannelBondingChannelAccess::SendPacket, this, bss1Devices.Get (0), bss1Devices.Get (1)->GetAddress ());
 
@@ -1787,30 +2459,58 @@ TestStaticChannelBondingChannelAccess::DoRun (void)
   Simulator::Schedule (Seconds (8.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::TX, bss3Devices.Get (0));
   Simulator::Schedule (Seconds (8.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::RX, bss3Devices.Get (1));
 
-  //BSS 1: they should be in IDLE state since PPDU is received on the secondary 20 MHz channel
+  //BSS 1 and BSS 5: they should be in IDLE state since PPDU is received on the secondary 20 MHz channel
   Simulator::Schedule (Seconds (8.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss1Devices.Get (0));
   Simulator::Schedule (Seconds (8.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss1Devices.Get (1));
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss5Devices.Get (0));
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss5Devices.Get (1));
 
-  //BSS 2: they should be in IDLE state since no PPDU is received on that channel
+  //BSS 2 and BSS 4: they should be in IDLE state since no PPDU is received on their channel(s)
   Simulator::Schedule (Seconds (8.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss2Devices.Get (0));
   Simulator::Schedule (Seconds (8.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss2Devices.Get (1));
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss4Devices.Get (0));
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss4Devices.Get (1));
 
-  //Secondary channel CCA is deemed BUSY if energy in the secondary channel is above the corresponding CCA threshold.
+  //Secondary channel CCA for BSS 1 and BSS 5 should be deemed BUSY since the energy in the secondary channel is above the corresponding CCA threshold.
   Simulator::Schedule (Seconds (8.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (0), 40);
   Simulator::Schedule (Seconds (8.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (1), 40);
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (0), 40);
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (1), 40);
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (0), 80);
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (1), 80);
+
+  //Secondary channel CCA for BSS 4 should not be deemed BUSY
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, true, bss4Devices.Get (0), 40);
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, true, bss4Devices.Get (1), 40);
 
   //BSS 1: transmitter should be in TX state and receiver should be in RX state
   Simulator::Schedule (Seconds (8.0) + MicroSeconds (400.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::TX, bss1Devices.Get (0));
   Simulator::Schedule (Seconds (8.0) + MicroSeconds (400.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::RX, bss1Devices.Get (1));
 
-  //others: they should be in CCA_BUSY state since a 40 MHz PPDU is transmitted whereas receivers only support 20 MHz PPDUs
+  //BSS 2 and BSS 3: they should be in CCA_BUSY state since a 40 MHz PPDU is transmitted whereas receivers only support 20 MHz PPDUs
   Simulator::Schedule (Seconds (8.0) + MicroSeconds (400.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::CCA_BUSY, bss2Devices.Get (0));
   Simulator::Schedule (Seconds (8.0) + MicroSeconds (400.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::CCA_BUSY, bss2Devices.Get (1));
   Simulator::Schedule (Seconds (8.0) + MicroSeconds (400.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::CCA_BUSY, bss3Devices.Get (0));
   Simulator::Schedule (Seconds (8.0) + MicroSeconds (400.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::CCA_BUSY, bss3Devices.Get (1));
 
+  //BSS 5: they should be in RX state
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (400.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::RX, bss5Devices.Get (0));
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (400.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::RX, bss5Devices.Get (1));
 
-  //Case 9: channel 38 then channel 40
+  //Secondary channel CCA for BSS 1 and BSS 5 should be deemed BUSY during transmission or reception of a 40 MHz PPDU.
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (400.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (0), 40);
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (400.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (1), 40);
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (400.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (0), 40);
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (400.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (1), 40);
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (400.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (0), 80);
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (400.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (1), 80);
+
+  //Secondary channel CCA for BSS 4 should not be deemed BUSY
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (400.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, true, bss4Devices.Get (0), 40);
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (400.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, true, bss4Devices.Get (1), 40);
+
+
+  //CASE 9: channel 38 (40 MHz) then channel 40 (20 MHz)
   Simulator::Schedule (Seconds (9.0), &TestStaticChannelBondingChannelAccess::SendPacket, this, bss1Devices.Get (0), bss1Devices.Get (1)->GetAddress ());
   Simulator::Schedule (Seconds (9.0) + MicroSeconds (5), &TestStaticChannelBondingChannelAccess::SendPacket, this, bss3Devices.Get (0), bss3Devices.Get (1)->GetAddress ());
 
@@ -1818,27 +2518,173 @@ TestStaticChannelBondingChannelAccess::DoRun (void)
   Simulator::Schedule (Seconds (9.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::TX, bss1Devices.Get (0));
   Simulator::Schedule (Seconds (9.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::RX, bss1Devices.Get (1));
 
-  //others: they should be in CCA_BUSY state since a 40 MHz PPDU is transmitted whereas receivers only support 20 MHz PPDUs
+  //BSS 2 and BSS 3: they should be in CCA_BUSY state since a 40 MHz PPDU is transmitted whereas receivers only support 20 MHz PPDUs
   Simulator::Schedule (Seconds (9.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::CCA_BUSY, bss2Devices.Get (0));
   Simulator::Schedule (Seconds (9.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::CCA_BUSY, bss2Devices.Get (1));
   Simulator::Schedule (Seconds (9.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::CCA_BUSY, bss3Devices.Get (0));
   Simulator::Schedule (Seconds (9.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::CCA_BUSY, bss3Devices.Get (1));
 
-  //Secondary channel CCA is deemed BUSY during transmission of a 40 MHz PPDU.
+  //BSS 5: they should be in RX state
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::RX, bss5Devices.Get (0));
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::RX, bss5Devices.Get (1));
+
+  //Secondary channel CCA for BSS 1 and BSS 5 should be deemed BUSY during transmission or reception of a 40 MHz PPDU.
   Simulator::Schedule (Seconds (9.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (0), 40);
   Simulator::Schedule (Seconds (9.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (1), 40);
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (0), 40);
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (1), 40);
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (0), 80);
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (1), 80);
+
+  //Secondary channel CCA for BSS 4 should not be deemed BUSY
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, true, bss4Devices.Get (0), 40);
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, true, bss4Devices.Get (1), 40);
 
   //BSS 3: transmitter should be in TX state and receiver should be in RX state
   Simulator::Schedule (Seconds (9.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::TX, bss3Devices.Get (0));
   Simulator::Schedule (Seconds (9.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::RX, bss3Devices.Get (1));
 
-  //BSS 1: they should be in IDLE state since PPDU is received on the secondary 20 MHz channel
+  //BSS 1 and BSS 5: they should be in IDLE state since PPDU is received on the secondary 20 MHz channel
   Simulator::Schedule (Seconds (9.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss1Devices.Get (0));
   Simulator::Schedule (Seconds (9.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss1Devices.Get (1));
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss5Devices.Get (0));
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss5Devices.Get (1));
 
-  //BSS 2: they should be in IDLE state since no PPDU is received on that channel
+  //BSS 2 and BSS 4: they should be in IDLE state since no PPDU is received on their channel(s)
   Simulator::Schedule (Seconds (9.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss2Devices.Get (0));
   Simulator::Schedule (Seconds (9.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss2Devices.Get (1));
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss4Devices.Get (0));
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss4Devices.Get (1));
+
+  //Secondary channel CCA for BSS 1 and BSS 5 should be deemed BUSY since the energy in the secondary channel is above the corresponding CCA threshold.
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (0), 40);
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (1), 40);
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (0), 40);
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (1), 40);
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (0), 80);
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (1), 80);
+
+  //Secondary channel CCA for BSS 4 should not be deemed BUSY
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, true, bss4Devices.Get (0), 40);
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, true, bss4Devices.Get (1), 40);
+
+
+  //CASE 10: channel 46 (40 MHz) then channel 42 (80 MHz)
+  Simulator::Schedule (Seconds (10.0), &TestStaticChannelBondingChannelAccess::SendPacket, this, bss4Devices.Get (0), bss4Devices.Get (1)->GetAddress ());
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (5), &TestStaticChannelBondingChannelAccess::SendPacket, this, bss5Devices.Get (0), bss5Devices.Get (1)->GetAddress ());
+
+  //BSS 4: transmitter should be in TX state and receiver should be in RX state
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::TX, bss4Devices.Get (0));
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::RX, bss4Devices.Get (1));
+
+  //BSS 5: they should be in IDLE state since PPDU is received on the secondary 40 MHz channel
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss5Devices.Get (0));
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss5Devices.Get (1));
+
+  //BSS 1, BSS 2 and BSS 3: they should be in IDLE state since no PPDU is received on their channel(s)
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss1Devices.Get (0));
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss1Devices.Get (1));
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss2Devices.Get (0));
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss2Devices.Get (1));
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss3Devices.Get (0));
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss3Devices.Get (1));
+
+  //Secondary channel CCA for BSS 1 should not be deemed BUSY
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, true, bss1Devices.Get (0), 40);
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, true, bss1Devices.Get (1), 40);
+
+  //Secondary channel CCA for BSS 4 should be deemed BUSY during transmission or reception of a 40 MHz PPDU
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss4Devices.Get (0), 40);
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss4Devices.Get (1), 40);
+
+  //Secondary channel CCA for BSS 5 should be deemed BUSY since the energy in the 40 MHz secondary channel is above the corresponding CCA threshold
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (0), 80);
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (1), 80);
+
+  //Secondary channel CCA for BSS 5 should not be deemed BUSY for the primary 40 MHz channel
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, true, bss5Devices.Get (0), 40);
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, true, bss5Devices.Get (1), 40);
+
+  //BSS 5: transmitter should be in TX state and receiver should be in RX state
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (250.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::TX, bss5Devices.Get (0));
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (250.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::RX, bss5Devices.Get (1));
+
+  //BSS 1, BSS 2, BSS 3 and BSS 4: they should be in CCA_BUSY state since a 80 MHz PPDU is transmitted whereas receivers does not support reception of 80 MHz PPDUs
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (250.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::CCA_BUSY, bss1Devices.Get (0));
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (250.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::CCA_BUSY, bss1Devices.Get (1));
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (250.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::CCA_BUSY, bss2Devices.Get (0));
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (250.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::CCA_BUSY, bss2Devices.Get (1));
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (250.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::CCA_BUSY, bss3Devices.Get (0));
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (250.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::CCA_BUSY, bss3Devices.Get (1));
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (250.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::CCA_BUSY, bss4Devices.Get (0));
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (250.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::CCA_BUSY, bss4Devices.Get (1));
+
+  //Secondary channel CCA for all BSSs should be deemed BUSY during transmission or reception of a 80 MHz PPDU.
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (250.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (0), 40);
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (250.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (1), 40);
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (250.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss4Devices.Get (0), 40);
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (250.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss4Devices.Get (1), 40);
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (250.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (0), 40);
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (250.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (1), 40);
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (250.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (0), 80);
+  Simulator::Schedule (Seconds (10.0) + MicroSeconds (250.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (1), 80);
+
+  
+  //CASE 11: channel 40 (20 MHz) then channel 42 (80 MHz)
+  Simulator::Schedule (Seconds (11.0), &TestStaticChannelBondingChannelAccess::SendPacket, this, bss3Devices.Get (0), bss3Devices.Get (1)->GetAddress ());
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (5), &TestStaticChannelBondingChannelAccess::SendPacket, this, bss5Devices.Get (0), bss5Devices.Get (1)->GetAddress ());
+
+  //BSS 3: transmitter should be in TX state and receiver should be in RX state
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::TX, bss3Devices.Get (0));
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::RX, bss3Devices.Get (1));
+
+  //BSS 1 and BSS 5: they should be in IDLE state since PPDU is received on the secondary 20 MHz channel
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss1Devices.Get (0));
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss1Devices.Get (1));
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss5Devices.Get (0));
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss5Devices.Get (1));
+
+  //BSS 2 and BSS 4: they should be in IDLE state since no PPDU is received on their channel(s)
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss2Devices.Get (0));
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss2Devices.Get (1));
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss4Devices.Get (0));
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss4Devices.Get (1));
+
+  //Secondary channel CCA for BSS 1 and BSS 5 should be deemed BUSY since the energy in the secondary channel is above the corresponding CCA threshold.
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (0), 40);
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (1), 40);
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (0), 40);
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (1), 40);
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (0), 80);
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (1), 80);
+
+  //Secondary channel CCA for BSS 4 should not be deemed BUSY
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, true, bss4Devices.Get (0), 40);
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, true, bss4Devices.Get (1), 40);
+
+  //BSS 5: transmitter should be in TX state and receiver should be in RX state
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::TX, bss5Devices.Get (0));
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::RX, bss5Devices.Get (1));
+
+  //BSS 1, BSS 2, BSS 3 and BSS 4: they should be in CCA_BUSY state since a 80 MHz PPDU is transmitted whereas receivers does not support reception of 80 MHz PPDUs
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::CCA_BUSY, bss1Devices.Get (0));
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::CCA_BUSY, bss1Devices.Get (1));
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::CCA_BUSY, bss2Devices.Get (0));
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::CCA_BUSY, bss2Devices.Get (1));
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::CCA_BUSY, bss3Devices.Get (0));
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::CCA_BUSY, bss3Devices.Get (1));
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::CCA_BUSY, bss4Devices.Get (0));
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::CCA_BUSY, bss4Devices.Get (1));
+
+  //Secondary channel CCA for all BSSs should be deemed BUSY during transmission or reception of a 80 MHz PPDU.
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (0), 40);
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (1), 40);
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss4Devices.Get (0), 40);
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss4Devices.Get (1), 40);
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (0), 40);
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (1), 40);
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (0), 80);
+  Simulator::Schedule (Seconds (11.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss5Devices.Get (1), 80);
 
   Simulator::Run ();
 
