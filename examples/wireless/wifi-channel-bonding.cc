@@ -58,31 +58,31 @@
 // uses channel 36 whereas network B is configured to use channel 40:
 //     ./waf --run "wifi-channel-bonding --channelBssA=36 --channelBssB=40 --useDynamicChannelBonding=false"
 // The output gives:
-//     Throughput for BSS A: 59.5571 Mbit/s
-//     Throughput for BSS B: 59.5253 Mbit/s
+//     Throughput for BSS A: 59.5347 Mbit/s
+//     Throughput for BSS B: 59.5018 Mbit/s
 // The throughput per network is maximum and not affected by the presence of the other network,
 // since they are operating on different channels.
 //
 // One can run a scenario where a 40 MHz channel is used for network A, while keeping network B as previously:
 //     ./waf --run "wifi-channel-bonding --channelBssA=38 --channelBssB=40 --useDynamicChannelBonding=false"
 // The output gives:
-//     Throughput for BSS A: 67.2987 Mbit/s
-//     Throughput for BSS B: 26.887 Mbit/s
+//     Throughput for BSS A: 67.4753 Mbit/s
+//     Throughput for BSS B: 26.7774 Mbit/s
 // Since this makes use of static channel bonding, network A will have to share channel 40 together with network B.
 // But as network A makes use of 40 MHz channel when it transmits, it gets a higher throughput than network B that is not using channel bonding.
 //
 // One can run the previous scenario with dynamic channel bonding enabled:
 //     ./waf --run "wifi-channel-bonding --channelBssA=38 --channelBssB=40 --useDynamicChannelBonding=true"
 // The output gives:
-//     Throughput for BSS A: 59.901 Mbit/s
-//     Throughput for BSS B: 59.1143 Mbit/s
+//     Throughput for BSS A: 59.629 Mbit/s
+//     Throughput for BSS B: 59.4217 Mbit/s
 // We can see the benefit of using a dynamic channel bonding. Since activity is detected on the secondary channel,
 // network A limits its channel width to 20 MHz and this gives a better share of the spectrum.
 //
 // One can run a scenario where both networks make use of channel bonding:
 //     ./waf --run "wifi-channel-bonding --channelBssA=38 --channelBssB=38 --useDynamicChannelBonding=false"
-//     Throughput for BSS A: 66.167 Mbit/s
-//     Throughput for BSS B: 64.0944 Mbit/s
+//     Throughput for BSS A: 66.2341 Mbit/s
+//     Throughput for BSS B: 64.1403 Mbit/s
 // The channel is shared with the two networks as they operate on the same channel, but since they can use both
 // a 40 MHz channel, the maximum throughput is almost doubled.
 
@@ -97,9 +97,9 @@ int main (int argc, char *argv[])
   double distance = 1; //meters
   double interBssDistance = 5; //meters
   int mcs = 7;
-  double txMaskInnerBandMinimumRejection = -40.0; //dBr
-  double txMaskOuterBandMinimumRejection = -56.0; //dBr
-  double txMaskOuterBandMaximumRejection = -80.0; //dBr
+  double txMaskInnerBandMinimumRejection = -80.0; //dBr
+  double txMaskOuterBandMinimumRejection = -112.0; //dBr
+  double txMaskOuterBandMaximumRejection = -160.0; //dBr
   double loadBssA = 0.00002; //packets/s
   double loadBssB = 0.00002; //packets/s
   bool useDynamicChannelBonding = true;
@@ -108,9 +108,9 @@ int main (int argc, char *argv[])
   uint16_t primaryChannelBssA = 36;
   uint16_t primaryChannelBssB = 40;
   double ccaEdThresholdPrimaryBssA = -62.0;
-  double ccaEdThresholdSecondaryBssA = -62.0;
+  double ccaEdThresholdSecondaryBssA = -72.0;
   double ccaEdThresholdPrimaryBssB = -62.0;
-  double ccaEdThresholdSecondaryBssB = -62.0;
+  double ccaEdThresholdSecondaryBssB = -72.0;
   bool verifyResults = 0; //used for regression
   double minExpectedThroughputBssA = 0; //Mbit/s
   double maxExpectedThroughputBssA = 0; //Mbit/s
@@ -144,13 +144,6 @@ int main (int argc, char *argv[])
   cmd.AddValue ("maxExpectedThroughputBssB", "Maximum expected throughput for BSS B", maxExpectedThroughputBssB);
   cmd.Parse (argc, argv);
 
-  /*LogComponentEnableAll (LOG_PREFIX_TIME);
-  LogComponentEnableAll (LOG_PREFIX_NODE);
-
-  LogComponentEnable ("MacLow", LOG_LEVEL_ALL);
-  LogComponentEnable ("WifiPhy", LOG_LEVEL_ALL);
-  LogComponentEnable ("SpectrumWifiPhy", LOG_LEVEL_ALL);*/
-
   Config::SetDefault ("ns3::SpectrumWifiPhy::TxMaskInnerBandMinimumRejection", DoubleValue (txMaskInnerBandMinimumRejection));
   Config::SetDefault ("ns3::SpectrumWifiPhy::TxMaskOuterBandMinimumRejection", DoubleValue (txMaskOuterBandMinimumRejection));
   Config::SetDefault ("ns3::SpectrumWifiPhy::TxMaskOuterBandMaximumRejection", DoubleValue (txMaskOuterBandMaximumRejection));
@@ -172,10 +165,10 @@ int main (int argc, char *argv[])
   phy.SetChannel (channel);
 
   WifiHelper wifi;
-  wifi.SetStandard (WIFI_PHY_STANDARD_80211n_5GHZ);
+  wifi.SetStandard (WIFI_PHY_STANDARD_80211ac);
 
   std::ostringstream oss;
-  oss << "HtMcs" << mcs;
+  oss << "VhtMcs" << mcs;
   wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode", StringValue (oss.str ()), "ControlMode", StringValue (oss.str ()));
 
   if (useDynamicChannelBonding)
