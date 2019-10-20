@@ -28,7 +28,7 @@ n=10
 ../waf
 
 
-for RngRun in {1..50};
+for RngRun in {1};
 do
 
 for ccaEdThresholdSecondary in {-90..-50};

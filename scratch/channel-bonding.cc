@@ -502,13 +502,14 @@ phy.EnablePcap ("apC_pcap", apDeviceC);
 
   Simulator::Destroy ();
   // allocate in the order of AP_A, STAs_A, AP_B, STAs_B
+std::string filename;
 if (mcs=="")
 {
-  std::string filename =  "Tput_"+mcs+".csv";
+  filename =  "Tput_.csv";
 }
 else
 {
-  std::string filename =  "Tput_"+ccaEdThresholdSecondaryBssA+".csv";
+  filename =  "Tput_"+mcs+".csv";
 } 
  std::ofstream TputFile;
   TputFile.open (filename.c_str (), std::ofstream::out | std::ofstream::app);
