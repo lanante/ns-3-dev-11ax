@@ -212,14 +212,13 @@ Time
 WifiPhyStateHelper::GetDelaySinceIdle (WifiSpectrumBand band) const
 {
   auto it = m_endCcaBusy.find (band);
-  Time now = Simulator::Now ();
+  Time idleStart = Max (m_endTx, m_endRx);
+  idleStart = Max (idleStart, m_endSwitching);
   if (it != m_endCcaBusy.end ())
     {
-      Time retval = now - it->second;
-      retval = Max (retval, Seconds (0));
-      return retval;
+      idleStart = Max (idleStart, it->second);
     }
-  return now;
+  return Simulator::Now () - idleStart;
 }
 
 Time

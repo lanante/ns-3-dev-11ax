@@ -217,14 +217,6 @@ WifiPhy::GetTypeId (void)
                    MakeDoubleAccessor (&WifiPhy::SetCcaEdThreshold,
                                        &WifiPhy::GetCcaEdThreshold),
                    MakeDoubleChecker<double> ())
-    .AddAttribute ("CcaEdThresholdSecondary",
-                   "The energy of a non Wi-Fi received signal should be higher than "
-                   "this threshold (dbm) to allow the PHY layer to declare CCA BUSY state. "
-                   "This check is performed on the secondary channel(s) only.",
-                   DoubleValue (-62.0),
-                   MakeDoubleAccessor (&WifiPhy::SetCcaEdThresholdSecondary,
-                                       &WifiPhy::GetCcaEdThresholdSecondary),
-                   MakeDoubleChecker<double> ())
     .AddAttribute ("TxGain",
                    "Transmission gain (dB).",
                    DoubleValue (0.0),
@@ -573,16 +565,14 @@ WifiPhy::GetCcaEdThreshold (void) const
 }
 
 void
-WifiPhy::SetCcaEdThresholdSecondary (double threshold)
+WifiPhy::AddCcaEdThresholdSecondary (double threshold)
 {
   NS_LOG_FUNCTION (this << threshold);
-  m_ccaEdThresholdSecondaryW = DbmToW (threshold);
-}
-
-double
-WifiPhy::GetCcaEdThresholdSecondary (void) const
-{
-  return WToDbm (m_ccaEdThresholdSecondaryW);
+  auto it = std::find(m_ccaEdThresholdsSecondaryW.begin (), m_ccaEdThresholdsSecondaryW.end (), threshold);
+  if (it == m_ccaEdThresholdsSecondaryW.end ())
+    {
+      m_ccaEdThresholdsSecondaryW.push_back (DbmToW (threshold));
+    }
 }
 
 void
@@ -936,7 +926,6 @@ WifiPhy::ConfigureDefaultsForStandard (WifiPhyStandard standard)
       NS_ASSERT (GetChannelNumber () == 36);
       break;
     case WIFI_PHY_STANDARD_80211n_2_4GHZ:
-      SetCcaEdThresholdSecondary (-62.0);
       SetChannelWidth (20);
       SetFrequency (2412);
       // Channel number should be aligned by SetFrequency () to 1
@@ -944,21 +933,18 @@ WifiPhy::ConfigureDefaultsForStandard (WifiPhyStandard standard)
       SetPrimaryChannelNumber (1); //TODO: remove once primary channels is updated when channel number has changed
       break;
     case WIFI_PHY_STANDARD_80211n_5GHZ:
-      SetCcaEdThresholdSecondary (-62.0);
       SetChannelWidth (20);
       SetFrequency (5180);
       // Channel number should be aligned by SetFrequency () to 36
       NS_ASSERT (GetChannelNumber () == 36);
       break;
     case WIFI_PHY_STANDARD_80211ac:
-      SetCcaEdThresholdSecondary (-72.0);
       SetChannelWidth (80);
       SetFrequency (5210);
       // Channel number should be aligned by SetFrequency () to 42
       NS_ASSERT (GetChannelNumber () == 42);
       break;
     case WIFI_PHY_STANDARD_80211ax_2_4GHZ:
-      SetCcaEdThresholdSecondary (-72.0);
       SetChannelWidth (20);
       SetFrequency (2412);
       // Channel number should be aligned by SetFrequency () to 1
@@ -966,7 +952,6 @@ WifiPhy::ConfigureDefaultsForStandard (WifiPhyStandard standard)
       SetPrimaryChannelNumber (1); //TODO: remove once primary channels is updated when channel number has changed
       break;
     case WIFI_PHY_STANDARD_80211ax_5GHZ:
-      SetCcaEdThresholdSecondary (-72.0);
       SetChannelWidth (80);
       SetFrequency (5210);
       // Channel number should be aligned by SetFrequency () to 42
@@ -1361,13 +1346,16 @@ WifiPhy::ConfigureStandard (WifiPhyStandard standard)
     case WIFI_PHY_STANDARD_80211n_2_4GHZ:
     case WIFI_PHY_STANDARD_80211n_5GHZ:
       Configure80211n ();
+      AddCcaEdThresholdSecondary (-62.0);
       break;
     case WIFI_PHY_STANDARD_80211ac:
       Configure80211ac ();
+      AddCcaEdThresholdSecondary (-72.0);
       break;
     case WIFI_PHY_STANDARD_80211ax_2_4GHZ:
     case WIFI_PHY_STANDARD_80211ax_5GHZ:
       Configure80211ax ();
+      AddCcaEdThresholdSecondary (-72.0);
       break;
     case WIFI_PHY_STANDARD_UNSPECIFIED:
     default:
@@ -3316,7 +3304,17 @@ WifiPhy::MaybeCcaBusy ()
       uint16_t primaryChannelWidth = (channelWidth >= 40) ? 20 : channelWidth;
       auto band = GetBand (primaryChannelWidth, i);
       bool isPrimary = (i == GetPrimaryBandIndex (primaryChannelWidth));
-      Time delayUntilCcaEnd = GetDelayUntilCcaEnd (isPrimary ? m_ccaEdThresholdW : m_ccaEdThresholdSecondaryW, band);
+      double ccaThreshold;
+      if (isPrimary)
+        {
+          ccaThreshold = m_ccaEdThresholdW;
+        }
+      else
+        {
+          NS_ASSERT (!m_ccaEdThresholdsSecondaryW.empty ());
+          ccaThreshold = m_ccaEdThresholdsSecondaryW.front ();
+        }
+      Time delayUntilCcaEnd = GetDelayUntilCcaEnd (ccaThreshold, band);
       if (!delayUntilCcaEnd.IsZero ())
         {
           NS_LOG_DEBUG ("Calling SwitchMaybeToCcaBusy for channel band " << +i << " for " << delayUntilCcaEnd.As (Time::S));
