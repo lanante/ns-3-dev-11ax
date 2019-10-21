@@ -19,6 +19,7 @@
  */
 
 #include "ns3/log.h"
+#include "ns3/double.h"
 #include "constant-threshold-channel-bonding-manager.h"
 #include "wifi-phy.h"
 
@@ -40,8 +41,33 @@ ConstantThresholdChannelBondingManager::GetTypeId (void)
     .SetParent<ChannelBondingManager> ()
     .SetGroupName ("Wifi")
     .AddConstructor<ConstantThresholdChannelBondingManager> ()
+    .AddAttribute ("CcaEdThresholdSecondary",
+                   "The energy of a non Wi-Fi received signal should be higher than "
+                   "this threshold (dbm) to allow the PHY layer to declare CCA BUSY state. "
+                   "This check is performed on the secondary channel(s) only.",
+                   DoubleValue (-72.0),
+                   MakeDoubleAccessor (&ConstantThresholdChannelBondingManager::SetCcaEdThresholdSecondary),
+                   MakeDoubleChecker<double> ())
   ;
   return tid;
+}
+
+void
+ConstantThresholdChannelBondingManager::SetCcaEdThresholdSecondary (double threshold)
+{
+  NS_LOG_FUNCTION (this << threshold);
+  m_ccaEdThresholdSecondaryDbm = threshold;
+  if (m_phy)
+    {
+      m_phy->AddCcaEdThresholdSecondary (threshold);
+    }
+}
+
+void
+ConstantThresholdChannelBondingManager::SetPhy (const Ptr<WifiPhy> phy)
+{
+  phy->AddCcaEdThresholdSecondary (m_ccaEdThresholdSecondaryDbm);
+  ChannelBondingManager::SetPhy (phy);
 }
 
 uint16_t

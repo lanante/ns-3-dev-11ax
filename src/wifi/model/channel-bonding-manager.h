@@ -43,9 +43,9 @@ public:
   /**
    * Sets the WifiPhy this manager is associated with.
    *
-   * \param phy the WWifiPhy this manager is associated with
+   * \param phy the WifiPhy this manager is associated with
    */
-  void SetPhy (const Ptr<WifiPhy> phy);
+  virtual void SetPhy (const Ptr<WifiPhy> phy);
 
   /**
    * Returns the selected channel width (in MHz).

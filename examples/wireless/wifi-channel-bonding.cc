@@ -173,7 +173,8 @@ int main (int argc, char *argv[])
 
   if (useDynamicChannelBonding)
     {
-      wifi.SetChannelBondingManager ("ns3::ConstantThresholdChannelBondingManager");
+      wifi.SetChannelBondingManager ("ns3::ConstantThresholdChannelBondingManager",
+                                     "CcaEdThresholdSecondary", DoubleValue (ccaEdThresholdSecondaryBssA));
     }
 
   NetDeviceContainer staDeviceA, staDeviceB, apDeviceA, apDeviceB;
@@ -192,7 +193,6 @@ int main (int argc, char *argv[])
   wifiStaDeviceAPtr->GetPhy ()->SetChannelNumber (channelBssA);
   wifiStaDeviceAPtr->GetPhy ()->SetPrimaryChannelNumber (primaryChannelBssA);
   wifiStaDeviceAPtr->GetPhy ()->SetCcaEdThreshold (ccaEdThresholdPrimaryBssA);
-  wifiStaDeviceAPtr->GetPhy ()->SetCcaEdThresholdSecondary (ccaEdThresholdSecondaryBssA);
 
   mac.SetType ("ns3::ApWifiMac",
                "Ssid", SsidValue (ssid),
@@ -204,7 +204,12 @@ int main (int argc, char *argv[])
   wifiApDeviceAPtr->GetPhy ()->SetChannelNumber (channelBssA);
   wifiApDeviceAPtr->GetPhy ()->SetPrimaryChannelNumber (primaryChannelBssA);
   wifiApDeviceAPtr->GetPhy ()->SetCcaEdThreshold (ccaEdThresholdPrimaryBssA);
-  wifiApDeviceAPtr->GetPhy ()->SetCcaEdThresholdSecondary (ccaEdThresholdSecondaryBssA);
+
+  if (useDynamicChannelBonding)
+    {
+      wifi.SetChannelBondingManager ("ns3::ConstantThresholdChannelBondingManager",
+                                     "CcaEdThresholdSecondary", DoubleValue (ccaEdThresholdSecondaryBssB));
+    }
 
   // network B
   ssid = Ssid ("network-B");
@@ -219,7 +224,6 @@ int main (int argc, char *argv[])
   wifiStaDeviceBPtr->GetPhy ()->SetChannelNumber (channelBssB);
   wifiStaDeviceBPtr->GetPhy ()->SetPrimaryChannelNumber (primaryChannelBssB);
   wifiStaDeviceBPtr->GetPhy ()->SetCcaEdThreshold (ccaEdThresholdPrimaryBssB);
-  wifiStaDeviceBPtr->GetPhy ()->SetCcaEdThresholdSecondary (ccaEdThresholdSecondaryBssB);
 
   mac.SetType ("ns3::ApWifiMac",
                "Ssid", SsidValue (ssid),
@@ -231,7 +235,6 @@ int main (int argc, char *argv[])
   wifiApDeviceBPtr->GetPhy ()->SetChannelNumber (channelBssB);
   wifiApDeviceBPtr->GetPhy ()->SetPrimaryChannelNumber (primaryChannelBssB);
   wifiApDeviceBPtr->GetPhy ()->SetCcaEdThreshold (ccaEdThresholdPrimaryBssB);
-  wifiApDeviceBPtr->GetPhy ()->SetCcaEdThresholdSecondary (ccaEdThresholdSecondaryBssB);
 
   // Setting mobility model
   MobilityHelper mobility;

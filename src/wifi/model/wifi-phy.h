@@ -1447,18 +1447,12 @@ public:
    */
   double GetCcaEdThreshold (void) const;
   /**
-   * Sets the CCA threshold (dBm) for the secondary channels. The energy of a received signal
+   * Add a CCA threshold (dBm) for the secondary channels. The energy of a received signal
    * should be higher than this threshold to allow the PHY layer to declare CCA BUSY state.
    *
-   * \param threshold the CCA threshold in dBm for the secondary channels
+   * \param threshold the CCA threshold in dBm to be added for the secondary channels
    */
-  void SetCcaEdThresholdSecondary (double threshold);
-  /**
-   * Return the CCA threshold (dBm) for the secondary channels.
-   *
-   * \return the CCA threshold in dBm for the secondary channels.
-   */
-  double GetCcaEdThresholdSecondary (void) const;
+  void AddCcaEdThresholdSecondary (double threshold);
   /**
    * Sets the RX loss (dB) in the Signal-to-Noise-Ratio due to non-idealities in the receiver.
    *
@@ -2183,7 +2177,8 @@ private:
 
   double   m_rxSensitivityW;           //!< Receive sensitivity threshold in watts
   double   m_ccaEdThresholdW;          //!< Clear channel assessment (CCA) threshold for primary channel in watts
-  double   m_ccaEdThresholdSecondaryW; //!< Clear channel assessment (CCA) threshold for secondary channel(s) in watts
+
+  std::vector<double> m_ccaEdThresholdsSecondaryW; //!< Clear channel assessment (CCA) thresholds for secondary channel(s) in watts
 
   double   m_txGainDb;       //!< Transmission gain (dB)
   double   m_rxGainDb;       //!< Reception gain (dB)

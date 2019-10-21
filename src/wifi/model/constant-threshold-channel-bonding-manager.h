@@ -40,11 +40,31 @@ public:
   static TypeId GetTypeId (void);
 
   /**
+   * Sets the WifiPhy this manager is associated with.
+   *
+   * \param phy the WifiPhy this manager is associated with
+   */
+  void SetPhy (const Ptr<WifiPhy> phy) override;
+
+  /**
+   * Sets the CCA threshold (dBm) for the secondary channels. The energy of a received signal
+   * should be higher than this threshold to allow the PHY layer to declare CCA BUSY state.
+   *
+   * \param threshold the CCA threshold in dBm for the secondary channels
+   */
+  void SetCcaEdThresholdSecondary (double threshold);
+
+  /**
    * Returns the selected channel width (in MHz).
    *
    * \return the selected channel width in MHz
    */
-  uint16_t GetUsableChannelWidth (void);
+  uint16_t GetUsableChannelWidth (void) override;
+
+
+private:
+  double m_ccaEdThresholdSecondaryDbm; //!< Clear channel assessment (CCA) threshold for secondary channel(s) in dBm
+
 };
 
 } //namespace ns3
