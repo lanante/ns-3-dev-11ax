@@ -13,7 +13,7 @@ downlinkA=0
 downlinkB=0
 downlinkC=0
 payloadSize=1472
-simulationTime=5
+simulationTime=1
 
 
 ccaEdThresholdPrimary=-62
@@ -28,10 +28,10 @@ n=10
 ../waf
 
 
-for RngRun in {1};
-do
 
-for ccaEdThresholdSecondary in {-90..-50};
+for ccaEdThresholdSecondary in -72;
+do
+for RngRun in 1 2;
 do
 
 for mcs in VhtMcs0 VhtMcs4 VhtMcs8;
@@ -40,7 +40,9 @@ do
 done
 wait
 done
-
+mv ../Tput_VhtMcs0.csv ../Tput_VhtMcs0_${ccaEdThresholdSecondary}.csv 
+mv ../Tput_VhtMcs4.csv ../Tput_VhtMcs4_${ccaEdThresholdSecondary}.csv 
+mv ../Tput_VhtMcs8.csv ../Tput_VhtMcs8_${ccaEdThresholdSecondary}.csv 
 done
 
 

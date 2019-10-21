@@ -1,12 +1,7 @@
-rm ../Tput_10-82.csv
-rm ../Tput_10-72.csv
-rm ../Tput_10-62.csv
-rm ../Tput_20-82.csv
-rm ../Tput_20-72.csv
-rm ../Tput_20-62.csv
-rm ../Tput_30-82.csv
-rm ../Tput_30-72.csv
-rm ../Tput_30-62.csv
+rm ../Tput_10.000000.csv
+rm ../Tput_20.000000.csv
+rm ../Tput_30.000000.csv
+
 
 
 
@@ -25,7 +20,7 @@ downlinkA=0
 downlinkB=0
 downlinkC=0
 payloadSize=1472
-simulationTime=5
+simulationTime=1
 
 
 ccaEdThresholdPrimary=-62
@@ -40,19 +35,23 @@ n=10
 ../waf
 
 
-for RngRun in {1..50};
+
+
+for ccaEdThresholdSecondary in -82;
 do
 
-for ccaEdThresholdSecondary in {-82 -72 -62};
+for RngRun in 1;
 do
 
 for interBssDistance in 10 20 30;
 do
-../waf --run "Case1 --simulationTime=$simulationTime --RngRun=$RngRun --uplinkA=$uplinkA --uplinkB=$uplinkB --uplinkC=$uplinkC --downlinkA=$downlinkA --downlinkB=$downlinkB --downlinkC=$downlinkC --useDynamicChannelBonding=$useDynamicChannelBonding --n=$n --interBssDistance=$interBssDistance --distance=$distance --ccaEdThresholdPrimaryBssA=$ccaEdThresholdPrimary --ccaEdThresholdPrimaryBssB=$ccaEdThresholdPrimary --ccaEdThresholdPrimaryBssC=$ccaEdThresholdPrimary --ccaEdThresholdSecondaryBssA=$ccaEdThresholdSecondary --ccaEdThresholdSecondaryBssB=$ccaEdThresholdSecondary --ccaEdThresholdSecondaryBssC=$ccaEdThresholdSecondary --channelBssA=$channelBssA --channelBssB=$channelBssB --channelBssC=$channelBssC " &
+../waf --run "channel-bonding --simulationTime=$simulationTime --RngRun=$RngRun --uplinkA=$uplinkA --uplinkB=$uplinkB --uplinkC=$uplinkC --downlinkA=$downlinkA --downlinkB=$downlinkB --downlinkC=$downlinkC --useDynamicChannelBonding=$useDynamicChannelBonding --n=$n --interBssDistance=$interBssDistance --distance=$distance --ccaEdThresholdPrimaryBssA=$ccaEdThresholdPrimary --ccaEdThresholdPrimaryBssB=$ccaEdThresholdPrimary --ccaEdThresholdPrimaryBssC=$ccaEdThresholdPrimary --ccaEdThresholdSecondaryBssA=$ccaEdThresholdSecondary --ccaEdThresholdSecondaryBssB=$ccaEdThresholdSecondary --ccaEdThresholdSecondaryBssC=$ccaEdThresholdSecondary --channelBssA=$channelBssA --channelBssB=$channelBssB --channelBssC=$channelBssC " &
 done
 wait
 done
-
+mv ../Tput_10.000000.csv ../Tput_10_${ccaEdThresholdSecondary}.csv 
+mv ../Tput_20.000000.csv ../Tput_20_${ccaEdThresholdSecondary}.csv 
+mv ../Tput_30.000000.csv ../Tput_30_${ccaEdThresholdSecondary}.csv 
 done
 
 

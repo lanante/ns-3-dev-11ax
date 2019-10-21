@@ -95,7 +95,7 @@ int main (int argc, char *argv[])
   uint16_t channelBssC = 36;
   uint16_t primaryChannelBssA = 36;
   uint16_t primaryChannelBssB = 36;
-  uint16_t primaryChannelBssC = 38;
+  uint16_t primaryChannelBssC = 36;
 
   std::string mcs = "";
   double ccaEdThresholdPrimaryBssA = -62.0;
@@ -211,7 +211,7 @@ phy.SetChannel (channel);
   WifiHelper wifi;
   wifi.SetStandard (WIFI_PHY_STANDARD_80211ac);
 if (mcs == "")
- { wifi.SetRemoteStationManager ("ns3::IdealWifiManager", "DataMode", StringValue (mcs), "ControlMode", StringValue ("VhtMcs0"));
+ {       wifi.SetRemoteStationManager ("ns3::IdealWifiManager");
 }
 else
  { wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode", StringValue (mcs), "ControlMode", StringValue ("VhtMcs0"));
@@ -505,7 +505,7 @@ phy.EnablePcap ("apC_pcap", apDeviceC);
 std::string filename;
 if (mcs=="")
 {
-  filename =  "Tput_.csv";
+  filename =  "Tput_"+std::to_string(interBssDistance)+".csv";
 }
 else
 {
@@ -521,7 +521,6 @@ else
       return 1;
     }
 
-      TputFile << ccaEdThresholdSecondaryBssC<<std::endl;
   double rxThroughputPerNode[numNodes];
   // output for all nodes
   for (uint32_t k = 0; k < numNodes; k++)
