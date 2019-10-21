@@ -139,6 +139,7 @@ double aggregateUplinkFMbps=0;
 double aggregateUplinkGMbps=0;
 
 uint16_t n=1;
+uint16_t nBss=1;
   uint32_t maxMissedBeacons = 4294967295;
   CommandLine cmd;
 
@@ -153,10 +154,10 @@ uint16_t n=1;
   cmd.AddValue ("channelBssA", "The selected channel for BSS A", channelBssA);
   cmd.AddValue ("channelBssB", "The selected channel for BSS B", channelBssB);
   cmd.AddValue ("channelBssC", "The selected channel for BSS C", channelBssC);
-  cmd.AddValue ("channelBssD", "The selected channel for BSS A", channelBssD);
-  cmd.AddValue ("channelBssE", "The selected channel for BSS B", channelBssE);
-  cmd.AddValue ("channelBssF", "The selected channel for BSS C", channelBssF);
-  cmd.AddValue ("channelBssG", "The selected channel for BSS A", channelBssG);
+  cmd.AddValue ("channelBssD", "The selected channel for BSS D", channelBssD);
+  cmd.AddValue ("channelBssE", "The selected channel for BSS E", channelBssE);
+  cmd.AddValue ("channelBssF", "The selected channel for BSS F", channelBssF);
+  cmd.AddValue ("channelBssG", "The selected channel for BSS G", channelBssG);
 
  cmd.AddValue ("primaryChannelBssA", "The primary 20 MHz channel for BSS A", primaryChannelBssA);
   cmd.AddValue ("primaryChannelBssB", "The primary 20 MHz channel for BSS B", primaryChannelBssB);
@@ -197,7 +198,7 @@ cmd.AddValue ("uplinkF", "Aggregate uplink load, BSS-F(Mbps)", aggregateUplinkFM
 cmd.AddValue ("uplinkG", "Aggregate uplink load, BSS-G(Mbps)", aggregateUplinkGMbps);
   cmd.AddValue ("downlinkG", "Aggregate downlink load, BSS-G (Mbps)", aggregateDownlinkGMbps);
 
-
+  cmd.AddValue ("nBss", "The number of BSS", nBss);
   cmd.AddValue ("n", "The number of STAs per BSS", n);
   cmd.AddValue ("mcs", "MCS", mcs);
 
@@ -212,52 +213,113 @@ cmd.AddValue ("uplinkG", "Aggregate uplink load, BSS-G(Mbps)", aggregateUplinkGM
   Config::SetDefault ("ns3::SpectrumWifiPhy::TxMaskInnerBandMinimumRejection", DoubleValue (txMaskInnerBandMinimumRejection));
   Config::SetDefault ("ns3::SpectrumWifiPhy::TxMaskOuterBandMinimumRejection", DoubleValue (txMaskOuterBandMinimumRejection));
   Config::SetDefault ("ns3::SpectrumWifiPhy::TxMaskOuterBandMaximumRejection", DoubleValue (txMaskOuterBandMaximumRejection));
-
-  NodeContainer wifiStaNodesA,wifiStaNodesB,wifiStaNodesC,wifiStaNodesD,wifiStaNodesE,wifiStaNodesF,wifiStaNodesG;
+  
+uint32_t numNodes = nBss * (n + 1);
+  packetsReceived = std::vector<uint64_t> (numNodes);
+  bytesReceived = std::vector<uint64_t> (numNodes);
   NodeContainer wifiApNodes;
-  wifiApNodes.Create (7);
+  wifiApNodes.Create (nBss);
+
+  NodeContainer wifiStaNodesA;
+NodeContainer wifiStaNodesB;
+NodeContainer wifiStaNodesC;
+NodeContainer wifiStaNodesD;
+NodeContainer wifiStaNodesE;
+NodeContainer wifiStaNodesF;
+NodeContainer wifiStaNodesG;
   wifiStaNodesA.Create (n);
+  double perNodeUplinkAMbps = aggregateUplinkAMbps / n;
+  double perNodeDownlinkAMbps = aggregateDownlinkAMbps / n;
+  Time intervalUplinkA = MicroSeconds (payloadSize * 8 / perNodeUplinkAMbps);
+  Time intervalDownlinkA = MicroSeconds (payloadSize * 8 / perNodeDownlinkAMbps);
+
+  double perNodeUplinkBMbps = aggregateUplinkBMbps / n;
+  double perNodeDownlinkBMbps = aggregateDownlinkBMbps / n;
+  Time intervalUplinkB = MicroSeconds (payloadSize * 8 / perNodeUplinkBMbps);
+  Time intervalDownlinkB = MicroSeconds (payloadSize * 8 / perNodeDownlinkBMbps);
+
+  double perNodeUplinkCMbps = aggregateUplinkCMbps / n;
+  double perNodeDownlinkCMbps = aggregateDownlinkCMbps / n;
+  Time intervalUplinkC = MicroSeconds (payloadSize * 8 / perNodeUplinkCMbps);
+  Time intervalDownlinkC = MicroSeconds (payloadSize * 8 / perNodeDownlinkCMbps);
+
+  double perNodeUplinkDMbps = aggregateUplinkDMbps / n;
+  double perNodeDownlinkDMbps = aggregateDownlinkDMbps / n;
+  Time intervalUplinkD = MicroSeconds (payloadSize * 8 / perNodeUplinkDMbps);
+  Time intervalDownlinkD = MicroSeconds (payloadSize * 8 / perNodeDownlinkDMbps);
+
+  double perNodeUplinkEMbps = aggregateUplinkEMbps / n;
+  double perNodeDownlinkEMbps = aggregateDownlinkEMbps / n;
+  Time intervalUplinkE = MicroSeconds (payloadSize * 8 / perNodeUplinkEMbps);
+  Time intervalDownlinkE = MicroSeconds (payloadSize * 8 / perNodeDownlinkEMbps);
+
+  double perNodeUplinkFMbps = aggregateUplinkFMbps / n;
+  double perNodeDownlinkFMbps = aggregateDownlinkFMbps / n;
+  Time intervalUplinkF = MicroSeconds (payloadSize * 8 / perNodeUplinkFMbps);
+  Time intervalDownlinkF = MicroSeconds (payloadSize * 8 / perNodeDownlinkFMbps);
+
+  double perNodeUplinkGMbps = aggregateUplinkGMbps / n;
+  double perNodeDownlinkGMbps = aggregateDownlinkGMbps / n;
+  Time intervalUplinkG = MicroSeconds (payloadSize * 8 / perNodeUplinkGMbps);
+  Time intervalDownlinkG = MicroSeconds (payloadSize * 8 / perNodeDownlinkGMbps);
+if (nBss>1)
+{
+
   wifiStaNodesB.Create (n);
+
+
+}
+if (nBss>2){
+
   wifiStaNodesC.Create (n);
+
+
+}
+if (nBss>3){
+
   wifiStaNodesD.Create (n);
+
+}
+if (nBss>4){
+
   wifiStaNodesE.Create (n);
+
+
+}
+if (nBss>5){
+
   wifiStaNodesF.Create (n);
+
+
+}
+if (nBss>6){
+
   wifiStaNodesG.Create (n);
 
 
-  uint32_t numNodes = 7 * (n + 1);
-  packetsReceived = std::vector<uint64_t> (numNodes);
-  bytesReceived = std::vector<uint64_t> (numNodes);
+}
 
-  double perNodeUplinkAMbps = aggregateUplinkAMbps / n;
-  double perNodeDownlinkAMbps = aggregateDownlinkAMbps / n;
-  double perNodeUplinkBMbps = aggregateUplinkBMbps / n;
-  double perNodeDownlinkBMbps = aggregateDownlinkBMbps / n;
-  double perNodeUplinkCMbps = aggregateUplinkCMbps / n;
-  double perNodeDownlinkCMbps = aggregateDownlinkCMbps / n;
-  double perNodeUplinkDMbps = aggregateUplinkDMbps / n;
-  double perNodeDownlinkDMbps = aggregateDownlinkDMbps / n;
-  double perNodeUplinkEMbps = aggregateUplinkEMbps / n;
-  double perNodeDownlinkEMbps = aggregateDownlinkEMbps / n;
-  double perNodeUplinkFMbps = aggregateUplinkFMbps / n;
-  double perNodeDownlinkFMbps = aggregateDownlinkFMbps / n;
-  double perNodeUplinkGMbps = aggregateUplinkGMbps / n;
-  double perNodeDownlinkGMbps = aggregateDownlinkGMbps / n;
 
-  Time intervalUplinkA = MicroSeconds (payloadSize * 8 / perNodeUplinkAMbps);
-  Time intervalDownlinkA = MicroSeconds (payloadSize * 8 / perNodeDownlinkAMbps);
-  Time intervalUplinkB = MicroSeconds (payloadSize * 8 / perNodeUplinkBMbps);
-  Time intervalDownlinkB = MicroSeconds (payloadSize * 8 / perNodeDownlinkBMbps);
-  Time intervalUplinkC = MicroSeconds (payloadSize * 8 / perNodeUplinkCMbps);
-  Time intervalDownlinkC = MicroSeconds (payloadSize * 8 / perNodeDownlinkCMbps);
-  Time intervalUplinkD = MicroSeconds (payloadSize * 8 / perNodeUplinkDMbps);
-  Time intervalDownlinkD = MicroSeconds (payloadSize * 8 / perNodeDownlinkDMbps);
-  Time intervalUplinkE = MicroSeconds (payloadSize * 8 / perNodeUplinkEMbps);
-  Time intervalDownlinkE = MicroSeconds (payloadSize * 8 / perNodeDownlinkEMbps);
-  Time intervalUplinkF = MicroSeconds (payloadSize * 8 / perNodeUplinkFMbps);
-  Time intervalDownlinkF = MicroSeconds (payloadSize * 8 / perNodeDownlinkFMbps);
-  Time intervalUplinkG = MicroSeconds (payloadSize * 8 / perNodeUplinkGMbps);
-  Time intervalDownlinkG = MicroSeconds (payloadSize * 8 / perNodeDownlinkGMbps);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
   SpectrumWifiPhyHelper phy = SpectrumWifiPhyHelper::Default ();
@@ -284,7 +346,17 @@ else
       wifi.SetChannelBondingManager ("ns3::ConstantThresholdChannelBondingManager");
     }
 
-  NetDeviceContainer staDeviceA, staDeviceB,staDeviceC,staDeviceD, staDeviceE,staDeviceF,staDeviceG, apDeviceA, apDeviceB,apDeviceC, apDeviceD, apDeviceE,apDeviceF,apDeviceG;
+  NetDeviceContainer staDeviceA, apDeviceA;
+ NetDeviceContainer staDeviceB,apDeviceB;
+NetDeviceContainer staDeviceC, apDeviceC;
+NetDeviceContainer staDeviceD,apDeviceD;
+NetDeviceContainer staDeviceE,apDeviceE;
+NetDeviceContainer staDeviceF,apDeviceF;
+NetDeviceContainer staDeviceG,apDeviceG;
+
+
+
+
   WifiMacHelper mac;
   Ssid ssid;
 
@@ -321,6 +393,7 @@ for (uint16_t i=0;i<n;i++) {
   wifiApDeviceAPtr->GetPhy ()->SetCcaEdThreshold (ccaEdThresholdPrimaryBssA);
   wifiApDeviceAPtr->GetPhy ()->SetCcaEdThresholdSecondary (ccaEdThresholdSecondaryBssA);
 
+if (nBss>1){
   // network B
   ssid = Ssid ("network-B");
 
@@ -352,7 +425,8 @@ for (uint16_t i=0;i<n;i++) {
   wifiApDeviceBPtr->GetPhy ()->SetPrimaryChannelNumber (primaryChannelBssB);
   wifiApDeviceBPtr->GetPhy ()->SetCcaEdThreshold (ccaEdThresholdPrimaryBssB);
   wifiApDeviceBPtr->GetPhy ()->SetCcaEdThresholdSecondary (ccaEdThresholdSecondaryBssB);
-
+}
+if (nBss>2){
   // network C
   ssid = Ssid ("network-C");
   mac.SetType ("ns3::StaWifiMac",
@@ -383,7 +457,8 @@ for (uint16_t i=0;i<n;i++) {
   wifiApDeviceCPtr->GetPhy ()->SetCcaEdThreshold (ccaEdThresholdPrimaryBssC);
   wifiApDeviceCPtr->GetPhy ()->SetCcaEdThresholdSecondary (ccaEdThresholdSecondaryBssC);
 
-
+}
+if (nBss>3){
   // network D
   ssid = Ssid ("network-D");
   mac.SetType ("ns3::StaWifiMac",
@@ -413,7 +488,8 @@ for (uint16_t i=0;i<n;i++) {
   wifiApDeviceDPtr->GetPhy ()->SetPrimaryChannelNumber (primaryChannelBssD);
   wifiApDeviceDPtr->GetPhy ()->SetCcaEdThreshold (ccaEdThresholdPrimaryBssD);
   wifiApDeviceDPtr->GetPhy ()->SetCcaEdThresholdSecondary (ccaEdThresholdSecondaryBssD);
-
+}
+if (nBss>4){
   // network E
   ssid = Ssid ("network-E");
   mac.SetType ("ns3::StaWifiMac",
@@ -443,7 +519,8 @@ for (uint16_t i=0;i<n;i++) {
   wifiApDeviceEPtr->GetPhy ()->SetPrimaryChannelNumber (primaryChannelBssE);
   wifiApDeviceEPtr->GetPhy ()->SetCcaEdThreshold (ccaEdThresholdPrimaryBssE);
   wifiApDeviceEPtr->GetPhy ()->SetCcaEdThresholdSecondary (ccaEdThresholdSecondaryBssE);
-
+}
+if (nBss>5){
   // network F
   ssid = Ssid ("network-F");
   mac.SetType ("ns3::StaWifiMac",
@@ -474,7 +551,8 @@ for (uint16_t i=0;i<n;i++) {
   wifiApDeviceFPtr->GetPhy ()->SetCcaEdThreshold (ccaEdThresholdPrimaryBssF);
   wifiApDeviceFPtr->GetPhy ()->SetCcaEdThresholdSecondary (ccaEdThresholdSecondaryBssF);
 
-
+}
+if (nBss>6){
   // network G
   ssid = Ssid ("network-G");
   mac.SetType ("ns3::StaWifiMac",
@@ -505,7 +583,7 @@ for (uint16_t i=0;i<n;i++) {
   wifiApDeviceGPtr->GetPhy ()->SetCcaEdThreshold (ccaEdThresholdPrimaryBssG);
   wifiApDeviceGPtr->GetPhy ()->SetCcaEdThresholdSecondary (ccaEdThresholdSecondaryBssG);
 
-
+}
 
 
 
@@ -519,13 +597,24 @@ for (uint16_t i=0;i<n;i++) {
 
   // Set position for APs
   positionAlloc->Add (Vector (0.0, 0.0, 0.0));
+if (nBss>1){
   positionAlloc->Add (Vector (interBssDistance, 0.0, 0.0));
+}
+if (nBss>2){
   positionAlloc->Add (Vector (interBssDistance/2, sqrt(3)/2*interBssDistance, 0.0));
+}
+if (nBss>3){
   positionAlloc->Add (Vector (-interBssDistance/2, sqrt(3)/2*interBssDistance, 0.0));
+}
+if (nBss>5){
   positionAlloc->Add (Vector (-interBssDistance, 0.0, 0.0));
+}
+if (nBss>6){
   positionAlloc->Add (Vector (-interBssDistance/2,-sqrt(3)/2*interBssDistance, 0.0));
+}
+if (nBss>6){
   positionAlloc->Add (Vector (interBssDistance/2, -sqrt(3)/2*interBssDistance, 0.0));
-
+}
 
   // Set position for STAs
   int64_t streamNumber = 100;
@@ -540,6 +629,8 @@ Ptr<UniformDiscPositionAllocator> unitDiscPositionAllocator1 = CreateObject<Unif
           Vector v = unitDiscPositionAllocator1->GetNext ();
           positionAlloc->Add (v);
         }
+
+if (nBss>1){
 Ptr<UniformDiscPositionAllocator> unitDiscPositionAllocator2= CreateObject<UniformDiscPositionAllocator> ();
       unitDiscPositionAllocator2->AssignStreams (streamNumber+1);
       // AP2 is at origin (x=x2, y=y2), with radius Rho=r
@@ -551,6 +642,8 @@ Ptr<UniformDiscPositionAllocator> unitDiscPositionAllocator2= CreateObject<Unifo
           Vector v = unitDiscPositionAllocator2->GetNext ();
           positionAlloc->Add (v);
         }
+}
+if (nBss>2){
 Ptr<UniformDiscPositionAllocator> unitDiscPositionAllocator3 = CreateObject<UniformDiscPositionAllocator> ();
       unitDiscPositionAllocator3->AssignStreams (streamNumber+2);
       // AP3 is at origin (x=x3, y=y3), with radius Rho=r
@@ -562,6 +655,8 @@ Ptr<UniformDiscPositionAllocator> unitDiscPositionAllocator3 = CreateObject<Unif
           Vector v = unitDiscPositionAllocator3->GetNext ();
           positionAlloc->Add (v);
         }
+}
+if (nBss>3){
 Ptr<UniformDiscPositionAllocator> unitDiscPositionAllocator4 = CreateObject<UniformDiscPositionAllocator> ();
       unitDiscPositionAllocator4->AssignStreams (streamNumber+3);
       // AP4 is at origin (x=x4, y=y4), with radius Rho=r
@@ -573,6 +668,8 @@ Ptr<UniformDiscPositionAllocator> unitDiscPositionAllocator4 = CreateObject<Unif
           Vector v = unitDiscPositionAllocator4->GetNext ();
           positionAlloc->Add (v);
         }
+}
+if (nBss>4){
 Ptr<UniformDiscPositionAllocator> unitDiscPositionAllocator5= CreateObject<UniformDiscPositionAllocator> ();
       unitDiscPositionAllocator5->AssignStreams (streamNumber+4);
       // AP5 is at origin (x=x5, y=y5), with radius Rho=r
@@ -584,6 +681,8 @@ Ptr<UniformDiscPositionAllocator> unitDiscPositionAllocator5= CreateObject<Unifo
           Vector v = unitDiscPositionAllocator5->GetNext ();
           positionAlloc->Add (v);
         }
+}
+if (nBss>5){
 Ptr<UniformDiscPositionAllocator> unitDiscPositionAllocator6 = CreateObject<UniformDiscPositionAllocator> ();
       unitDiscPositionAllocator6->AssignStreams (streamNumber+5);
       // AP6 is at origin (x=x6, y=y6), with radius Rho=r
@@ -595,6 +694,8 @@ Ptr<UniformDiscPositionAllocator> unitDiscPositionAllocator6 = CreateObject<Unif
           Vector v = unitDiscPositionAllocator6->GetNext ();
           positionAlloc->Add (v);
         }
+}
+if (nBss>6){
 Ptr<UniformDiscPositionAllocator> unitDiscPositionAllocator7 = CreateObject<UniformDiscPositionAllocator> ();
       unitDiscPositionAllocator7->AssignStreams (streamNumber+6);
       // AP7 is at origin (x=x7, y=y7), with radius Rho=r
@@ -606,13 +707,34 @@ Ptr<UniformDiscPositionAllocator> unitDiscPositionAllocator7 = CreateObject<Unif
           Vector v = unitDiscPositionAllocator7->GetNext ();
           positionAlloc->Add (v);
         }
-
+}
 
 
 
   mobility.SetPositionAllocator (positionAlloc);
-NodeContainer allNodes1 = NodeContainer (wifiApNodes, wifiStaNodesA, wifiStaNodesB, wifiStaNodesC, wifiStaNodesD);
-NodeContainer allNodes =  NodeContainer (allNodes1, wifiStaNodesE, wifiStaNodesF, wifiStaNodesG);
+NodeContainer allNodes = NodeContainer (wifiApNodes, wifiStaNodesA);
+if (nBss>1){
+allNodes =  NodeContainer (allNodes, wifiStaNodesB);
+}
+if (nBss>2){
+allNodes =  NodeContainer (allNodes, wifiStaNodesC);
+}
+if (nBss>3){
+allNodes =  NodeContainer (allNodes, wifiStaNodesD);
+}
+if (nBss>4){
+allNodes =  NodeContainer (allNodes, wifiStaNodesE);
+}
+if (nBss>5){
+allNodes =  NodeContainer (allNodes, wifiStaNodesF);
+}
+if (nBss>6){
+allNodes =  NodeContainer (allNodes, wifiStaNodesG);
+}
+
+
+
+
   mobility.Install (allNodes);
 
   // Internet stack
@@ -621,48 +743,69 @@ NodeContainer allNodes =  NodeContainer (allNodes1, wifiStaNodesE, wifiStaNodesF
 
 
   Ipv4AddressHelper address;
+  Ipv4InterfaceContainer ApInterfaceA;
+  Ipv4InterfaceContainer ApInterfaceB;
+  Ipv4InterfaceContainer ApInterfaceC;
+  Ipv4InterfaceContainer ApInterfaceD;
+  Ipv4InterfaceContainer ApInterfaceE;
+  Ipv4InterfaceContainer ApInterfaceF;
+  Ipv4InterfaceContainer ApInterfaceG;
+
+
   address.SetBase ("192.168.1.0", "255.255.255.0");
   Ipv4InterfaceContainer StaInterfaceA;
   StaInterfaceA = address.Assign (staDeviceA);
-  Ipv4InterfaceContainer ApInterfaceA;
   ApInterfaceA = address.Assign (apDeviceA);
 
-  address.SetBase ("192.168.2.0", "255.255.255.0");
   Ipv4InterfaceContainer StaInterfaceB;
-  StaInterfaceB = address.Assign (staDeviceB);
-  Ipv4InterfaceContainer ApInterfaceB;
-  ApInterfaceB = address.Assign (apDeviceB);
-
-  address.SetBase ("192.168.3.0", "255.255.255.0");
   Ipv4InterfaceContainer StaInterfaceC;
-  StaInterfaceC = address.Assign (staDeviceC);
-  Ipv4InterfaceContainer ApInterfaceC;
-  ApInterfaceC = address.Assign (apDeviceC);
-
-  address.SetBase ("192.168.4.0", "255.255.255.0");
   Ipv4InterfaceContainer StaInterfaceD;
-  StaInterfaceD = address.Assign (staDeviceD);
-  Ipv4InterfaceContainer ApInterfaceD;
-  ApInterfaceD = address.Assign (apDeviceD);
-
-  address.SetBase ("192.168.5.0", "255.255.255.0");
   Ipv4InterfaceContainer StaInterfaceE;
-  StaInterfaceE = address.Assign (staDeviceE);
-  Ipv4InterfaceContainer ApInterfaceE;
-  ApInterfaceE = address.Assign (apDeviceE);
-
-  address.SetBase ("192.168.6.0", "255.255.255.0");
   Ipv4InterfaceContainer StaInterfaceF;
-  StaInterfaceF = address.Assign (staDeviceF);
-  Ipv4InterfaceContainer ApInterfaceF;
-  ApInterfaceF= address.Assign (apDeviceF);
-
-  address.SetBase ("192.168.7.0", "255.255.255.0");
   Ipv4InterfaceContainer StaInterfaceG;
-  StaInterfaceG = address.Assign (staDeviceG);
-  Ipv4InterfaceContainer ApInterfaceG;
-  ApInterfaceG = address.Assign (apDeviceG);
 
+if (nBss>2){
+  address.SetBase ("192.168.2.0", "255.255.255.0");
+
+  StaInterfaceB = address.Assign (staDeviceB);
+
+  ApInterfaceB = address.Assign (apDeviceB);
+}
+if (nBss>3){
+  address.SetBase ("192.168.3.0", "255.255.255.0");
+
+  StaInterfaceC = address.Assign (staDeviceC);
+
+  ApInterfaceC = address.Assign (apDeviceC);
+}
+if (nBss>4){
+  address.SetBase ("192.168.4.0", "255.255.255.0");
+
+  StaInterfaceD = address.Assign (staDeviceD);
+
+  ApInterfaceD = address.Assign (apDeviceD);
+}
+if (nBss>5){
+  address.SetBase ("192.168.5.0", "255.255.255.0");
+
+  StaInterfaceE = address.Assign (staDeviceE);
+
+  ApInterfaceE = address.Assign (apDeviceE);
+}
+if (nBss>6){
+  address.SetBase ("192.168.6.0", "255.255.255.0");
+
+  StaInterfaceF = address.Assign (staDeviceF);
+
+  ApInterfaceF= address.Assign (apDeviceF);
+}
+if (nBss>7){
+  address.SetBase ("192.168.7.0", "255.255.255.0");
+
+  StaInterfaceG = address.Assign (staDeviceG);
+
+  ApInterfaceG = address.Assign (apDeviceG);
+}
 
   // Setting applications
 
@@ -675,32 +818,6 @@ ApplicationContainer downlinkClientApps;
   uint16_t downlinkPortA = 10;
   UdpServerHelper uplinkServerA (uplinkPortA);
   UdpServerHelper downlinkServerA (downlinkPortA);
-  uint16_t uplinkPortB = 11;
-  uint16_t downlinkPortB = 12;
-  UdpServerHelper uplinkServerB (uplinkPortB);
-  UdpServerHelper downlinkServerB (downlinkPortB);
-  uint16_t uplinkPortC = 13;
-  uint16_t downlinkPortC = 14;
-  UdpServerHelper uplinkServerC (uplinkPortC);
-  UdpServerHelper downlinkServerC (downlinkPortC);
-  uint16_t uplinkPortD = 15;
-  uint16_t downlinkPortD = 16;
-  UdpServerHelper uplinkServerD (uplinkPortD);
-  UdpServerHelper downlinkServerD (downlinkPortD);
-  uint16_t uplinkPortE = 17;
-  uint16_t downlinkPortE = 18;
-  UdpServerHelper uplinkServerE (uplinkPortE);
-  UdpServerHelper downlinkServerE (downlinkPortE);
-  uint16_t uplinkPortF = 19;
-  uint16_t downlinkPortF = 20;
-  UdpServerHelper uplinkServerF (uplinkPortF);
-  UdpServerHelper downlinkServerF (downlinkPortF);
-  uint16_t uplinkPortG = 21;
-  uint16_t downlinkPortG = 22;
-  UdpServerHelper uplinkServerG (uplinkPortG);
-  UdpServerHelper downlinkServerG (downlinkPortG);
-
-
  for (uint32_t i = 0; i < n; i++)
         {
           if (aggregateUplinkAMbps > 0)
@@ -718,6 +835,11 @@ ApplicationContainer downlinkClientApps;
         AddServer (uplinkServerApps, uplinkServerA, wifiApNodes.Get(0));
       }
   // BSS 2
+if (nBss>1){
+  uint16_t uplinkPortB = 11;
+  uint16_t downlinkPortB = 12;
+  UdpServerHelper uplinkServerB (uplinkPortB);
+  UdpServerHelper downlinkServerB (downlinkPortB);
    for (uint32_t i = 0; i < n; i++)
         {
           if (aggregateUplinkBMbps > 0)
@@ -735,9 +857,13 @@ ApplicationContainer downlinkClientApps;
       {
         AddServer (uplinkServerApps, uplinkServerB, wifiApNodes.Get(1));
       }
-
+}
   // BSS 3
-
+if (nBss>2){
+  uint16_t uplinkPortC = 13;
+  uint16_t downlinkPortC = 14;
+  UdpServerHelper uplinkServerC (uplinkPortC);
+  UdpServerHelper downlinkServerC (downlinkPortC);
       for (uint32_t i = 0; i < n; i++)
         {
           if (aggregateUplinkCMbps > 0)
@@ -754,9 +880,13 @@ ApplicationContainer downlinkClientApps;
       {
         AddServer (uplinkServerApps, uplinkServerC, wifiApNodes.Get(2));
       }
-
+}
   // BSS 4
-
+if (nBss>3){
+  uint16_t uplinkPortD = 15;
+  uint16_t downlinkPortD = 16;
+  UdpServerHelper uplinkServerD (uplinkPortD);
+  UdpServerHelper downlinkServerD (downlinkPortD);
       for (uint32_t i = 0; i < n; i++)
         {
           if (aggregateUplinkDMbps > 0)
@@ -773,9 +903,13 @@ ApplicationContainer downlinkClientApps;
       {
         AddServer (uplinkServerApps, uplinkServerD, wifiApNodes.Get(3));
       }
-
+}
   // BSS 5
-
+if (nBss>4) {
+  uint16_t uplinkPortE = 17;
+  uint16_t downlinkPortE = 18;
+  UdpServerHelper uplinkServerE (uplinkPortE);
+  UdpServerHelper downlinkServerE (downlinkPortE);
       for (uint32_t i = 0; i < n; i++)
         {
           if (aggregateUplinkEMbps > 0)
@@ -792,10 +926,16 @@ ApplicationContainer downlinkClientApps;
       {
         AddServer (uplinkServerApps, uplinkServerE, wifiApNodes.Get(4));
       }
-
+}
   // BSS 6
+if (nBss>5)
+   {   
+  uint16_t uplinkPortF = 19;
+  uint16_t downlinkPortF = 20;
+  UdpServerHelper uplinkServerF (uplinkPortF);
+  UdpServerHelper downlinkServerF (downlinkPortF);
 
-      for (uint32_t i = 0; i < n; i++)
+for (uint32_t i = 0; i < n; i++)
         {
           if (aggregateUplinkFMbps > 0)
             {
@@ -811,10 +951,15 @@ ApplicationContainer downlinkClientApps;
       {
         AddServer (uplinkServerApps, uplinkServerF, wifiApNodes.Get(5));
       }
-
+}
   // BSS 7
-
-      for (uint32_t i = 0; i < n; i++)
+if (nBss>6)
+   {   
+  uint16_t uplinkPortG = 21;
+  uint16_t downlinkPortG = 22;
+  UdpServerHelper uplinkServerG (uplinkPortG);
+  UdpServerHelper downlinkServerG (downlinkPortG);
+for (uint32_t i = 0; i < n; i++)
         {
           if (aggregateUplinkGMbps > 0)
             {
@@ -831,7 +976,7 @@ ApplicationContainer downlinkClientApps;
         AddServer (uplinkServerApps, uplinkServerG, wifiApNodes.Get(6));
       }
 
-
+}
 
   Config::Connect ("/NodeList/*/ApplicationList/*/$ns3::UdpServer/RxWithAddresses", MakeCallback (&PacketRx));
 /*
@@ -880,7 +1025,7 @@ else
       double bitsReceived = bytesReceived[k] * 8;
       rxThroughputPerNode[k] = static_cast<double> (bitsReceived) / 1e6 / simulationTime;
       std::cout << "Node " << k << ", pkts " << packetsReceived[k] << ", bytes " << bytesReceived[k] << ", throughput [MMb/s] " << rxThroughputPerNode[k] << std::endl;
-if (k<7)
+if (k<nBss)
 {
       TputFile << rxThroughputPerNode[k] << std::endl;
 }
