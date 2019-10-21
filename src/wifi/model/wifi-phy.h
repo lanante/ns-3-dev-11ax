@@ -1704,9 +1704,11 @@ public:
    */
   uint16_t GetChannelWidth (void) const;
   /**
-   * \return the usable channel width
+   * \param mcs the MCS that is selected for the transmission
+   *
+   * \return the usable channel width for the transmission
    */
-  uint16_t GetUsableChannelWidth (void);
+  uint16_t GetUsableChannelWidth (uint8_t mcs = 0);
   /**
    * \param channelwidth channel width
    */

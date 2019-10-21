@@ -922,6 +922,7 @@ WifiHelper::EnableLogComponents (void)
   LogComponentEnable ("Txop", LOG_LEVEL_ALL);
   LogComponentEnable ("ChannelAccessManager", LOG_LEVEL_ALL);
   LogComponentEnable ("DsssErrorRateModel", LOG_LEVEL_ALL);
+  LogComponentEnable ("DynamicThresholdChannelBondingManager", LOG_LEVEL_ALL);
   LogComponentEnable ("QosTxop", LOG_LEVEL_ALL);
   LogComponentEnable ("IdealWifiManager", LOG_LEVEL_ALL);
   LogComponentEnable ("InfrastructureWifiMac", LOG_LEVEL_ALL);

@@ -50,9 +50,11 @@ public:
   /**
    * Returns the selected channel width (in MHz).
    *
+   * \param mcs the MCS that will be used for the transmission
+   *
    * \return the selected channel width in MHz
    */
-  virtual uint16_t GetUsableChannelWidth (void) = 0;
+  virtual uint16_t GetUsableChannelWidth (uint8_t mcs) = 0;
 
 
 protected:

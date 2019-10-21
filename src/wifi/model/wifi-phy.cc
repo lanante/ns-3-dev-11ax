@@ -1456,12 +1456,12 @@ WifiPhy::GetChannelWidth (void) const
 }
 
 uint16_t
-WifiPhy::GetUsableChannelWidth (void)
+WifiPhy::GetUsableChannelWidth (uint8_t mcs)
 {
   if (GetChannelWidth () >= 40)
     {
       NS_ASSERT_MSG (m_channelBondingManager, "Channel bonding can only be used if a channel bonding manager has been set!");
-      return m_channelBondingManager->GetUsableChannelWidth ();
+      return m_channelBondingManager->GetUsableChannelWidth (mcs);
     }
   return GetChannelWidth ();
 }
