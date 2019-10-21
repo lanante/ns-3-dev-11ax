@@ -302,7 +302,7 @@ WifiTxVector::GetLength (void) const
 bool
 WifiTxVector::IsValid (void) const
 {
-  if (!GetModeInitialized ())
+  if (!GetModeInitialized () || !m_mode.IsAllowed (m_channelWidth, m_nss))
     {
       return false;
     }
