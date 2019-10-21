@@ -37,10 +37,10 @@ n=10
 
 
 
-for ccaEdThresholdSecondary in -82;
+for ccaEdThresholdSecondary in -82 -72 -62;
 do
 
-for RngRun in 1;
+for RngRun in 1 2;
 do
 
 for interBssDistance in 10 20 30;
@@ -48,6 +48,7 @@ do
 ../waf --run "channel-bonding --simulationTime=$simulationTime --RngRun=$RngRun --uplinkA=$uplinkA --uplinkB=$uplinkB --uplinkC=$uplinkC --downlinkA=$downlinkA --downlinkB=$downlinkB --downlinkC=$downlinkC --useDynamicChannelBonding=$useDynamicChannelBonding --n=$n --interBssDistance=$interBssDistance --distance=$distance --ccaEdThresholdPrimaryBssA=$ccaEdThresholdPrimary --ccaEdThresholdPrimaryBssB=$ccaEdThresholdPrimary --ccaEdThresholdPrimaryBssC=$ccaEdThresholdPrimary --ccaEdThresholdSecondaryBssA=$ccaEdThresholdSecondary --ccaEdThresholdSecondaryBssB=$ccaEdThresholdSecondary --ccaEdThresholdSecondaryBssC=$ccaEdThresholdSecondary --channelBssA=$channelBssA --channelBssB=$channelBssB --channelBssC=$channelBssC " &
 done
 wait
+
 done
 mv ../Tput_10.000000.csv ../Tput_10_${ccaEdThresholdSecondary}.csv 
 mv ../Tput_20.000000.csv ../Tput_20_${ccaEdThresholdSecondary}.csv 
