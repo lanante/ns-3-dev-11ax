@@ -18,24 +18,31 @@
  * Author: Sébastien Deronne <sebastien.deronne@gmail.com>
  */
 
-#ifndef CONSTANT_THRESHOLD_CHANNEL_BONDING_MANAGER_H
-#define CONSTANT_THRESHOLD_CHANNEL_BONDING_MANAGER_H
+#ifndef DYNAMIC_THRESHOLD_CHANNEL_BONDING_MANAGER_H
+#define DYNAMIC_THRESHOLD_CHANNEL_BONDING_MANAGER_H
 
+#include "ns3/attribute-helper.h"
 #include "channel-bonding-manager.h"
 
 namespace ns3 {
 
+typedef std::map<uint8_t,double> CcaThresholdPerMcsMap;
+
+ATTRIBUTE_VALUE_DEFINE_WITH_NAME (CcaThresholdPerMcsMap, CcaThresholdPerMcs);
+ATTRIBUTE_ACCESSOR_DEFINE (CcaThresholdPerMcs);
+ATTRIBUTE_CHECKER_DEFINE (CcaThresholdPerMcs);
+
 /**
- * \brief Constant Threshold Channel Bonding Manager
+ * \brief Dynamic Threshold Channel Bonding Manager
  * \ingroup wifi
  *
  * This object provides an implementation for dynamically selecting the channel width.
  *
  */
-class ConstantThresholdChannelBondingManager : public ChannelBondingManager
+class DynamicThresholdChannelBondingManager : public ChannelBondingManager
 {
 public:
-  ConstantThresholdChannelBondingManager ();
+  DynamicThresholdChannelBondingManager ();
 
   static TypeId GetTypeId (void);
 
@@ -52,7 +59,7 @@ public:
    *
    * \param threshold the CCA threshold in dBm for the secondary channels
    */
-  void SetCcaEdThresholdSecondary (double threshold);
+  void SetCcaEdThresholdSecondaryForMcs (uint8_t mcs, double threshold);
 
   /**
    * Returns the selected channel width (in MHz).
@@ -65,10 +72,24 @@ public:
 
 
 private:
-  double m_ccaEdThresholdSecondaryDbm; //!< Clear channel assessment (CCA) threshold for secondary channel(s) in dBm
-
+  CcaThresholdPerMcsMap m_ccaEdThresholdsSecondaryDbm; //!< Clear channel assessment (CCA) thresholds for secondary channel(s) in dBm, per MCS
 };
+
+/**
+ * \param os  output stream
+ * \param ccaThresholdPerMcs  CCA threshold per MCS map to stringify
+ * \return output stream
+ */
+std::ostream& operator<< (std::ostream& os, CcaThresholdPerMcsMap ccaThresholdPerMcs);
+
+/**
+* \param is input stream.
+* \param ccaThresholdPerMcs CCA threshold per MCS map to set
+* \return input stream.
+*/
+std::istream &operator>> (std::istream &is, CcaThresholdPerMcsMap &ccaThresholdPerMcs);
+
 
 } //namespace ns3
 
-#endif /* CONSTANT_THRESHOLD_CHANNEL_BONDING_MANAGER_H */
+#endif /* DYNAMIC_THRESHOLD_CHANNEL_BONDING_MANAGER_H */

@@ -71,7 +71,7 @@ ConstantThresholdChannelBondingManager::SetPhy (const Ptr<WifiPhy> phy)
 }
 
 uint16_t
-ConstantThresholdChannelBondingManager::GetUsableChannelWidth (void)
+ConstantThresholdChannelBondingManager::GetUsableChannelWidth (uint8_t mcs)
 {
   if (m_phy->GetChannelWidth () < 40)
     {

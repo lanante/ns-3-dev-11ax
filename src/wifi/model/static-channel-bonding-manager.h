@@ -42,10 +42,11 @@ public:
   /**
    * Returns the selected channel width (in MHz).
    *
-   * \return the  supported PHY channel width in MHz if transmission on bonded channels is allowed
-   *         0 otherwise.
+   * \param mcs the MCS that will be used for the transmission
+   *
+   * \return the selected channel width in MHz
    */
-  uint16_t GetUsableChannelWidth (void);
+  uint16_t GetUsableChannelWidth (uint8_t mcs) override;
 };
 
 } //namespace ns3

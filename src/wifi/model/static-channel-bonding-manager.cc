@@ -45,9 +45,8 @@ StaticChannelBondingManager::GetTypeId (void)
 }
 
 uint16_t
-StaticChannelBondingManager::GetUsableChannelWidth (void)
+StaticChannelBondingManager::GetUsableChannelWidth (uint8_t mcs)
 {
-  NS_LOG_FUNCTION (this);
   if ((m_phy->GetChannelWidth () < 40) || (m_phy->GetDelaySinceChannelIsIdle (m_phy->GetChannelWidth ()) >= m_phy->GetPifs ()))
     {
       return m_phy->GetChannelWidth ();
