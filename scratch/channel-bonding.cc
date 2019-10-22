@@ -79,6 +79,7 @@ PacketRx (std::string context, const Ptr<const Packet> p, const Address &srcAddr
   uint32_t pktSize = p->GetSize ();
   bytesReceived[nodeId] += pktSize;
   packetsReceived[nodeId]++;
+//std::cout<<nodeId<<std::endl;
 }
 
 int
@@ -268,7 +269,8 @@ main (int argc, char *argv[])
   NodeContainer wifiStaNodesE;
   NodeContainer wifiStaNodesF;
   NodeContainer wifiStaNodesG;
-  wifiStaNodesA.Create (n);
+
+
   double perNodeUplinkAMbps = aggregateUplinkAMbps / n;
   double perNodeDownlinkAMbps = aggregateDownlinkAMbps / n;
   Time intervalUplinkA = MicroSeconds (payloadSize * 8 / perNodeUplinkAMbps);
@@ -303,6 +305,9 @@ main (int argc, char *argv[])
   double perNodeDownlinkGMbps = aggregateDownlinkGMbps / n;
   Time intervalUplinkG = MicroSeconds (payloadSize * 8 / perNodeUplinkGMbps);
   Time intervalDownlinkG = MicroSeconds (payloadSize * 8 / perNodeDownlinkGMbps);
+
+  wifiStaNodesA.Create (n);
+
   if (nBss > 1)
     {
 
