@@ -5,22 +5,15 @@ rm ../Tput_VhtMcs8.csv
 channelBssA=36
 channelBssB=40
 channelBssC=38
-channelBssD=36
-channelBssE=40
-channelBssF=38
-channelBssG=38
+
 
 primaryChannelBssA=36
-primaryChannelBssB=36
+primaryChannelBssB=40
 primaryChannelBssC=36
-primaryChannelBssD=36
-primaryChannelBssE=36
-primaryChannelBssF=36
-primaryChannelBssG=36
 
-uplinkA=10
-uplinkB=0
-uplinkC=0
+uplinkA=100
+uplinkB=100
+uplinkC=100
 uplinkD=0
 uplinkE=0
 uplinkF=0
@@ -42,20 +35,20 @@ ccaEdThresholdSecondary=-62
 useDynamicChannelBonding=true
 interBssDistance=10
 distance=10
-n=4
-nBss=1
+n=10
+nBss=3
 
 
 ../waf
 
 
 
-for ccaEdThresholdSecondary in -72;
+for ccaEdThresholdSecondary in {-90..-50};
 do
-for RngRun in 1;
+for RngRun in 1 2;
 do
 
-for mcs in VhtMcs0;
+for mcs in VhtMcs0 VhtMcs4 VhtMcs8;
 do
 ../waf --run "channel-bonding --nBss=$nBss --simulationTime=$simulationTime --RngRun=$RngRun --uplinkA=$uplinkA --uplinkB=$uplinkB --uplinkC=$uplinkC --uplinkD=$uplinkD --uplinkE=$uplinkE --uplinkF=$uplinkF --uplinkG=$uplinkG --downlinkA=$downlinkA --downlinkB=$downlinkB --downlinkC=$downlinkC --downlinkD=$downlinkD --downlinkE=$downlinkE --downlinkF=$downlinkF --downlinkG=$downlinkG --useDynamicChannelBonding=$useDynamicChannelBonding --mcs=$mcs --n=$n --interBssDistance=$interBssDistance --distance=$distance --ccaEdThresholdPrimaryBssA=$ccaEdThresholdPrimary --ccaEdThresholdPrimaryBssB=$ccaEdThresholdPrimary --ccaEdThresholdPrimaryBssC=$ccaEdThresholdPrimary --ccaEdThresholdPrimaryBssD=$ccaEdThresholdPrimary --ccaEdThresholdPrimaryBssE=$ccaEdThresholdPrimary --ccaEdThresholdPrimaryBssF=$ccaEdThresholdPrimary --ccaEdThresholdPrimaryBssG=$ccaEdThresholdPrimary --ccaEdThresholdSecondaryBssA=$ccaEdThresholdSecondary --ccaEdThresholdSecondaryBssB=$ccaEdThresholdSecondary --ccaEdThresholdSecondaryBssC=$ccaEdThresholdSecondary --ccaEdThresholdSecondaryBssD=$ccaEdThresholdSecondary --ccaEdThresholdSecondaryBssE=$ccaEdThresholdSecondary --ccaEdThresholdSecondaryBssF=$ccaEdThresholdSecondary --ccaEdThresholdSecondaryBssG=$ccaEdThresholdSecondary  --channelBssA=$channelBssA --channelBssB=$channelBssB --channelBssC=$channelBssC --channelBssD=$channelBssD --channelBssE=$channelBssE --channelBssF=$channelBssF --channelBssG=$channelBssG --primaryChannelBssA=$primaryChannelBssA --primaryChannelBssB=$primaryChannelBssB --primaryChannelBssC=$primaryChannelBssC --primaryChannelBssD=$primaryChannelBssD --primaryChannelBssE=$primaryChannelBssE --primaryChannelBssF=$primaryChannelBssF --primaryChannelBssG=$primaryChannelBssG" &
 done

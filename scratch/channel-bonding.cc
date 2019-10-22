@@ -781,7 +781,7 @@ main (int argc, char *argv[])
   Ipv4InterfaceContainer StaInterfaceF;
   Ipv4InterfaceContainer StaInterfaceG;
 
-  if (nBss > 2)
+  if (nBss > 1)
     {
       address.SetBase ("192.168.2.0", "255.255.255.0");
 
@@ -789,7 +789,7 @@ main (int argc, char *argv[])
 
       ApInterfaceB = address.Assign (apDeviceB);
     }
-  if (nBss > 3)
+  if (nBss > 2)
     {
       address.SetBase ("192.168.3.0", "255.255.255.0");
 
@@ -797,7 +797,7 @@ main (int argc, char *argv[])
 
       ApInterfaceC = address.Assign (apDeviceC);
     }
-  if (nBss > 4)
+  if (nBss > 3)
     {
       address.SetBase ("192.168.4.0", "255.255.255.0");
 
@@ -805,7 +805,7 @@ main (int argc, char *argv[])
 
       ApInterfaceD = address.Assign (apDeviceD);
     }
-  if (nBss > 5)
+  if (nBss > 4)
     {
       address.SetBase ("192.168.5.0", "255.255.255.0");
 
@@ -813,7 +813,7 @@ main (int argc, char *argv[])
 
       ApInterfaceE = address.Assign (apDeviceE);
     }
-  if (nBss > 6)
+  if (nBss > 5)
     {
       address.SetBase ("192.168.6.0", "255.255.255.0");
 
@@ -821,7 +821,7 @@ main (int argc, char *argv[])
 
       ApInterfaceF = address.Assign (apDeviceF);
     }
-  if (nBss > 7)
+  if (nBss > 6)
     {
       address.SetBase ("192.168.7.0", "255.255.255.0");
 
@@ -911,6 +911,7 @@ main (int argc, char *argv[])
           AddServer (uplinkServerApps, uplinkServerC, wifiApNodes.Get (2));
         }
     }
+
   // BSS 4
   if (nBss > 3)
     {
@@ -938,6 +939,7 @@ main (int argc, char *argv[])
         }
     }
   // BSS 5
+
   if (nBss > 4)
     {
       uint16_t uplinkPortE = 17;
@@ -990,6 +992,7 @@ main (int argc, char *argv[])
           AddServer (uplinkServerApps, uplinkServerF, wifiApNodes.Get (5));
         }
     }
+
   // BSS 7
   if (nBss > 6)
     {
@@ -997,13 +1000,16 @@ main (int argc, char *argv[])
       uint16_t downlinkPortG = 22;
       UdpServerHelper uplinkServerG (uplinkPortG);
       UdpServerHelper downlinkServerG (downlinkPortG);
+
       for (uint32_t i = 0; i < n; i++)
         {
+
           if (aggregateUplinkGMbps > 0)
             {
               AddClient (uplinkClientApps, ApInterfaceG.GetAddress (0), wifiStaNodesG.Get (i),
                          uplinkPortG, intervalUplinkG, payloadSize);
             }
+
           if (aggregateDownlinkGMbps > 0)
             {
               AddClient (downlinkClientApps, StaInterfaceG.GetAddress (i), wifiApNodes.Get (6),
@@ -1011,6 +1017,7 @@ main (int argc, char *argv[])
               AddServer (downlinkServerApps, downlinkServerG, wifiStaNodesG.Get (i));
             }
         }
+
       if (aggregateUplinkGMbps > 0)
         {
           AddServer (uplinkServerApps, uplinkServerG, wifiApNodes.Get (6));

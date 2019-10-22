@@ -4,29 +4,29 @@ rm ../Tput_30.000000.csv
 
 
 
-channelBssA=36
-channelBssB=40
-channelBssC=38
-channelBssD=36
-channelBssE=40
-channelBssF=38
-channelBssG=38
+channelBssA=42
+channelBssB=42
+channelBssC=42
+channelBssD=42
+channelBssE=42
+channelBssF=42
+channelBssG=42
 
 primaryChannelBssA=36
-primaryChannelBssB=36
-primaryChannelBssC=36
-primaryChannelBssD=36
+primaryChannelBssB=40
+primaryChannelBssC=44
+primaryChannelBssD=48
 primaryChannelBssE=36
-primaryChannelBssF=36
-primaryChannelBssG=36
+primaryChannelBssF=40
+primaryChannelBssG=44
 
-uplinkA=10
-uplinkB=0
-uplinkC=0
-uplinkD=0
-uplinkE=0
-uplinkF=0
-uplinkG=0
+uplinkA=400
+uplinkB=400
+uplinkC=400
+uplinkD=400
+uplinkE=400
+uplinkF=400
+uplinkG=400
 downlinkA=0
 downlinkB=0
 downlinkC=0
@@ -44,8 +44,8 @@ ccaEdThresholdSecondary=-62
 useDynamicChannelBonding=true
 interBssDistance=10
 distance=10;
-n=4
-nBss=1
+n=10
+nBss=7
 
 
 ../waf
@@ -53,7 +53,7 @@ nBss=1
 
 
 
-for ccaEdThresholdSecondary in -82 ;
+for ccaEdThresholdSecondary in -82;
 do
 
 for RngRun in 1;
