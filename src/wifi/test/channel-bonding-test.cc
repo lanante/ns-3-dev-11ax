@@ -58,7 +58,7 @@ public:
  *
  * \brief SNR tests for static channel bonding
  *
- * In this test, we have four 802.11n transmitters and four 802.11n receivers.
+ * In this test, we have four 802.11ac transmitters and four 802.11ac receivers.
  * A BSS is composed of one transmitter and one receiver.
  *
  * The first BSS occupies channel 36 and a channel width of 20 MHz.
@@ -74,35 +74,35 @@ public:
   TestStaticChannelBondingSnr ();
   virtual ~TestStaticChannelBondingSnr ();
 
-protected:
+private:
   virtual void DoSetup (void);
-  Ptr<BondingTestSpectrumWifiPhy> m_rxPhyBss1; ///< RX Phy BSS #1
-  Ptr<BondingTestSpectrumWifiPhy> m_rxPhyBss2; ///< RX Phy BSS #2
-  Ptr<BondingTestSpectrumWifiPhy> m_rxPhyBss3; ///< RX Phy BSS #3
-  Ptr<BondingTestSpectrumWifiPhy> m_rxPhyBss4; ///< RX Phy BSS #4
-  Ptr<BondingTestSpectrumWifiPhy> m_txPhyBss1; ///< TX Phy BSS #1
-  Ptr<BondingTestSpectrumWifiPhy> m_txPhyBss2; ///< TX Phy BSS #2
-  Ptr<BondingTestSpectrumWifiPhy> m_txPhyBss3; ///< TX Phy BSS #3
-  Ptr<BondingTestSpectrumWifiPhy> m_txPhyBss4; ///< TX Phy BSS #4
+  virtual void DoRun (void);
 
-  double m_expectedSnrBss1;  ///< Expected SNR for RX Phy #1
-  double m_expectedSnrBss2;  ///< Expected SNR for RX Phy #2
-  double m_expectedSnrBss3;  ///< Expected SNR for RX Phy #3
-  double m_expectedSnrBss4;  ///< Expected SNR for RX Phy #4
-  bool m_initializedSnrBss1; ///< Flag whether expected SNR for BSS 1 has been set
-  bool m_initializedSnrBss2; ///< Flag whether expected SNR for BSS 2 has been set
-  bool m_initializedSnrBss3; ///< Flag whether expected SNR for BSS 3 has been set
-  bool m_initializedSnrBss4; ///< Flag whether expected SNR for BSS 4 has been set
+  /**
+   * Create BSS
+   * \param channel the Spectrum channel
+   * \param channelWidth the channel width
+   * \param channelNumber the operating channel number
+   * \param frequency the operating frequency
+   * \param primaryChannelNumber the channel number of the primary 20 MHz
+   */
+  void CreateBss (const Ptr<MultiModelSpectrumChannel> channel,
+                  uint16_t channelWidth, uint8_t channelNumber,
+                  uint16_t frequency, uint8_t primaryChannelNumber);
 
-  bool m_receptionBss1; ///< Flag whether a reception occured for BSS 1
-  bool m_receptionBss2; ///< Flag whether a reception occured for BSS 2
-  bool m_receptionBss3; ///< Flag whether a reception occured for BSS 3
-  bool m_receptionBss4; ///< Flag whether a reception occured for BSS 4
-
-  bool m_phyPayloadReceivedSuccessBss1; ///< Flag whether the PHY payload has been successfully received by BSS 1
-  bool m_phyPayloadReceivedSuccessBss2; ///< Flag whether the PHY payload has been successfully received by BSS 2
-  bool m_phyPayloadReceivedSuccessBss3; ///< Flag whether the PHY payload has been successfully received by BSS 3
-  bool m_phyPayloadReceivedSuccessBss4; ///< Flag whether the PHY payload has been successfully received by BSS 4
+  /**
+   * Check the PHY state
+   * \param expectedState the expected PHY state
+   * \param bss the BSS number
+   */
+  void CheckPhyState (WifiPhyState expectedState, uint8_t bss);
+  /**
+   * Check the secondary channel status
+   * \param expectedIdle flag whether the secondary channel is expected to be deemed IDLE
+   * \param bss the BSS number
+   * \param channelWidth the channel width to check
+   */
+  void CheckSecondaryChannelStatus (bool expectedIdle, uint8_t bss, uint16_t channelWidth);
 
   /**
    * Send packet function
@@ -154,41 +154,17 @@ protected:
    */
   void Reset (void);
 
-private:
-  virtual void DoRun (void);
+  std::vector<Ptr<BondingTestSpectrumWifiPhy> > m_rxPhys; ///< RX PHYs
+  std::vector<Ptr<BondingTestSpectrumWifiPhy> > m_txPhys; ///< TX PHYs
 
-  /**
-   * Check the PHY state
-   * \param expectedState the expected PHY state
-   * \param bss the BSS number
-   */
-  void CheckPhyState (WifiPhyState expectedState, uint8_t bss);
-  /**
-   * Check the secondary channel status
-   * \param expectedIdle flag whether the secondary channel is expected to be deemed IDLE
-   * \param bss the BSS number
-   */
-  void CheckSecondaryChannelStatus (bool expectedIdle, uint8_t bss);
+  std::map<uint8_t /* bss */, double /* snr */> m_expectedSnrPerBss; ///< Expected SNR per BSS
+
+  std::vector<bool> m_reception; ///< Flags whether a reception occured for a given BSS
+  std::vector<bool> m_phyPayloadReceivedSuccess; ///< Flags whether the PHY payload has been successfully received for a given BSS
 };
 
 TestStaticChannelBondingSnr::TestStaticChannelBondingSnr ()
-  : TestCase ("SNR tests for static channel bonding"),
-    m_expectedSnrBss1 (0.0),
-    m_expectedSnrBss2 (0.0),
-    m_expectedSnrBss3 (0.0),
-    m_expectedSnrBss4 (0.0),
-    m_initializedSnrBss1 (false),
-    m_initializedSnrBss2 (false),
-    m_initializedSnrBss3 (false),
-    m_initializedSnrBss4 (false),
-    m_receptionBss1 (false),
-    m_receptionBss2 (false),
-    m_receptionBss3 (false),
-    m_receptionBss4 (false),
-    m_phyPayloadReceivedSuccessBss1 (false),
-    m_phyPayloadReceivedSuccessBss2 (false),
-    m_phyPayloadReceivedSuccessBss3 (false),
-    m_phyPayloadReceivedSuccessBss4 (false)
+  : TestCase ("SNR tests for static channel bonding")
 {
   LogLevel logLevel = (LogLevel)(LOG_PREFIX_TIME | LOG_PREFIX_NODE | LOG_LEVEL_ALL);
   LogComponentEnable ("WifiChannelBondingTest", logLevel);
@@ -202,46 +178,22 @@ TestStaticChannelBondingSnr::TestStaticChannelBondingSnr ()
 void
 TestStaticChannelBondingSnr::Reset (void)
 {
-  m_expectedSnrBss1 = 0.0;
-  m_expectedSnrBss2 = 0.0;
-  m_expectedSnrBss3 = 0.0;
-  m_expectedSnrBss4 = 0.0;
-  m_initializedSnrBss1 = false;
-  m_initializedSnrBss2 = false;
-  m_initializedSnrBss3 = false;
-  m_initializedSnrBss4 = false;
-  m_receptionBss1 = false;
-  m_receptionBss2 = false;
-  m_receptionBss3 = false;
-  m_receptionBss4 = false;
-  m_phyPayloadReceivedSuccessBss1 = false;
-  m_phyPayloadReceivedSuccessBss2 = false;
-  m_phyPayloadReceivedSuccessBss3 = false;
-  m_phyPayloadReceivedSuccessBss4 = false;
+  m_expectedSnrPerBss.clear ();
+  std::fill(m_reception.begin(), m_reception.end(), false);
+  std::fill(m_phyPayloadReceivedSuccess.begin(), m_phyPayloadReceivedSuccess.end(), false);
 }
 
 void
 TestStaticChannelBondingSnr::SetExpectedSnrForBss (double snr, uint8_t bss)
 {
-  if (bss == 1)
+  auto it = m_expectedSnrPerBss.find (bss);
+  if (it != m_expectedSnrPerBss.end ())
     {
-      m_expectedSnrBss1 = snr;
-      m_initializedSnrBss1 = true;
+      it->second = snr;
     }
-  else if (bss == 2)
+  else
     {
-      m_expectedSnrBss2 = snr;
-      m_initializedSnrBss2 = true;
-    }
-  else if (bss == 3)
-    {
-      m_expectedSnrBss3 = snr;
-      m_initializedSnrBss3 = true;
-    }
-  else if (bss == 4)
-    {
-      m_expectedSnrBss4 = snr;
-      m_initializedSnrBss4 = true;
+      m_expectedSnrPerBss.insert ({bss, snr});
     }
 }
 
@@ -250,106 +202,70 @@ TestStaticChannelBondingSnr::VerifyResultsForBss (bool expectedReception, bool e
 {
   if (bss == 1)
     {
-      NS_TEST_ASSERT_MSG_EQ (m_receptionBss1, expectedReception, "m_receptionBss1 is not equal to expectedReception");
-      NS_TEST_ASSERT_MSG_EQ (m_phyPayloadReceivedSuccessBss1, expectedPhyPayloadSuccess, "m_phyPayloadReceivedSuccessBss1 is not equal to expectedPhyPayloadSuccess");
+      NS_TEST_ASSERT_MSG_EQ (m_reception.at (0), expectedReception, "m_receptionBss1 is not equal to expectedReception");
+      NS_TEST_ASSERT_MSG_EQ (m_phyPayloadReceivedSuccess.at (0), expectedPhyPayloadSuccess, "m_phyPayloadReceivedSuccess is not equal to expectedPhyPayloadSuccess for BSS 1");
     }
   else if (bss == 2)
     {
-      NS_TEST_ASSERT_MSG_EQ (m_receptionBss2, expectedReception, "m_receptionBss2 is not equal to expectedReception");
-      NS_TEST_ASSERT_MSG_EQ (m_phyPayloadReceivedSuccessBss2, expectedPhyPayloadSuccess, "m_phyPayloadReceivedSuccessBss2 is not equal to expectedPhyPayloadSuccess");
+      NS_TEST_ASSERT_MSG_EQ (m_reception.at (1), expectedReception, "m_receptionBss2 is not equal to expectedReception");
+      NS_TEST_ASSERT_MSG_EQ (m_phyPayloadReceivedSuccess.at (1), expectedPhyPayloadSuccess, "m_phyPayloadReceivedSuccess is not equal to expectedPhyPayloadSuccess for BSS 2");
     }
   else if (bss == 3)
     {
-      NS_TEST_ASSERT_MSG_EQ (m_receptionBss3, expectedReception, "m_receptionBss3 is not equal to expectedReception");
-      NS_TEST_ASSERT_MSG_EQ (m_phyPayloadReceivedSuccessBss3, expectedPhyPayloadSuccess, "m_phyPayloadReceivedSuccessBss3 is not equal to expectedPhyPayloadSuccess");
+      NS_TEST_ASSERT_MSG_EQ (m_reception.at (2), expectedReception, "m_receptionBss3 is not equal to expectedReception");
+      NS_TEST_ASSERT_MSG_EQ (m_phyPayloadReceivedSuccess.at (2), expectedPhyPayloadSuccess, "m_phyPayloadReceivedSuccess is not equal to expectedPhyPayloadSuccess for BSS 3");
     }
   else if (bss == 4)
     {
-      NS_TEST_ASSERT_MSG_EQ (m_receptionBss4, expectedReception, "m_receptionBss4 is not equal to expectedReception");
-      NS_TEST_ASSERT_MSG_EQ (m_phyPayloadReceivedSuccessBss4, expectedPhyPayloadSuccess, "m_phyPayloadReceivedSuccessBss4 is not equal to expectedPhyPayloadSuccess");
+      NS_TEST_ASSERT_MSG_EQ (m_reception.at (3), expectedReception, "m_receptionBss4 is not equal to expectedReception");
+      NS_TEST_ASSERT_MSG_EQ (m_phyPayloadReceivedSuccess.at (3), expectedPhyPayloadSuccess, "m_phyPayloadReceivedSuccess is not equal to expectedPhyPayloadSuccess for BSS 4");
     }
 }
 
 void
 TestStaticChannelBondingSnr::CheckPhyState (WifiPhyState expectedState, uint8_t bss)
 {
-  Ptr<BondingTestSpectrumWifiPhy> phy;
-  if (bss == 1)
-    {
-      phy = m_rxPhyBss1;
-    }
-  else if (bss == 2)
-    {
-      phy = m_rxPhyBss2;
-    }
-  else if (bss == 3)
-    {
-      phy = m_rxPhyBss3;
-    }
-  else if (bss == 4)
-    {
-      phy = m_rxPhyBss4;
-    }
+  Ptr<BondingTestSpectrumWifiPhy> phy = m_rxPhys.at (bss - 1);
   WifiPhyState currentState = phy->GetPhyState ();
   NS_TEST_ASSERT_MSG_EQ (currentState, expectedState, "PHY State " << currentState << " does not match expected state " << expectedState << " at " << Simulator::Now ());
 }
 
 void
-TestStaticChannelBondingSnr::CheckSecondaryChannelStatus (bool expectedIdle, uint8_t bss)
+TestStaticChannelBondingSnr::CheckSecondaryChannelStatus (bool expectedIdle, uint8_t bss, uint16_t channelWidth)
 {
-  Ptr<BondingTestSpectrumWifiPhy> phy;
-  if (bss == 1)
-    {
-      phy = m_rxPhyBss1;
-    }
-  else if (bss == 2)
-    {
-      phy = m_rxPhyBss2;
-    }
-  else if (bss == 3)
-    {
-      phy = m_rxPhyBss3;
-    }
-  else if (bss == 4)
-    {
-      phy = m_rxPhyBss4;
-    }
-  bool currentlyIdle = phy->IsSecondaryStateIdle ();
+  Ptr<BondingTestSpectrumWifiPhy> phy = m_rxPhys.at (bss - 1);
+  bool currentlyIdle = phy->IsStateIdle (channelWidth);
   NS_TEST_ASSERT_MSG_EQ (currentlyIdle, expectedIdle, "Secondary channel status " << currentlyIdle << " does not match expected status " << expectedIdle << " at " << Simulator::Now ());
 }
 
 void
 TestStaticChannelBondingSnr::SendPacket (uint8_t bss)
 {
-  Ptr<BondingTestSpectrumWifiPhy> phy;
+  Ptr<BondingTestSpectrumWifiPhy> phy = m_txPhys.at (bss - 1);
   uint16_t channelWidth = 20;
   uint32_t payloadSize = 1000;
   if (bss == 1)
     {
-      phy = m_txPhyBss1;
       channelWidth = 20;
       payloadSize = 1001;
     }
   else if (bss == 2)
     {
-      phy = m_txPhyBss2;
       channelWidth = 20;
       payloadSize = 1002;
     }
   else if (bss == 3)
     {
-      phy = m_txPhyBss3;
       channelWidth = 40;
       payloadSize = 2100; //This is chosen such that the transmission time on 40 MHz will be the same as for packets sent on 20 MHz
     }
   else if (bss == 4)
     {
-      phy = m_txPhyBss4;
       channelWidth = 40;
       payloadSize = 2101; //This is chosen such that the transmission time on 40 MHz will be the same as for packets sent on 20 MHz
     }
 
-  WifiTxVector txVector = WifiTxVector (WifiPhy::GetHtMcs7 (), 0, WIFI_PREAMBLE_HT_MF, 800, 1, 1, 0, channelWidth, false, false);
+  WifiTxVector txVector = WifiTxVector (WifiPhy::GetVhtMcs7 (), 0, WIFI_PREAMBLE_HT_MF, 800, 1, 1, 0, channelWidth, false, false);
 
   Ptr<Packet> pkt = Create<Packet> (payloadSize);
   WifiMacHeader hdr;
@@ -366,7 +282,7 @@ TestStaticChannelBondingSnr::RxCallback (std::string context, Ptr<const Packet> 
   NS_LOG_INFO (context << " received packet with size " << size);
   if (context == "BSS1") //RX is in BSS 1
     {
-      auto band = m_rxPhyBss1->GetBand(20, 0);
+      auto band = m_rxPhys.at (0)->GetBand (20, 0);
       auto it = std::find_if (rxPowersW.begin (), rxPowersW.end(),
           [&band](const std::pair<WifiSpectrumBand, double>& element){ return element.first == band; } );
       NS_ASSERT (it != rxPowersW.end ());
@@ -379,7 +295,7 @@ TestStaticChannelBondingSnr::RxCallback (std::string context, Ptr<const Packet> 
       else if (size == 1032) //TX is in BSS 2
         {
           double expectedRxPowerMax = - 40 /* rejection */ - 50 /* loss */;
-          NS_TEST_EXPECT_MSG_LT (WToDbm (it->second), expectedRxPowerMax, "Received power for BSS 2 RX PHY is too high");
+          NS_TEST_EXPECT_MSG_LT (WToDbm (it->second), expectedRxPowerMax, "Received power for BSS 1 RX PHY is too high");
         }
       else if (size == 2130) //TX is in BSS 3
         {
@@ -394,7 +310,7 @@ TestStaticChannelBondingSnr::RxCallback (std::string context, Ptr<const Packet> 
     }
   else if (context == "BSS2") //RX is in BSS 2
     {
-      auto band = m_rxPhyBss2->GetBand(20, 0);
+      auto band = m_rxPhys.at (1)->GetBand (20, 0);
       auto it = std::find_if (rxPowersW.begin (), rxPowersW.end(),
           [&band](const std::pair<WifiSpectrumBand, double>& element){ return element.first == band; } );
       NS_ASSERT (it != rxPowersW.end ());
@@ -407,22 +323,22 @@ TestStaticChannelBondingSnr::RxCallback (std::string context, Ptr<const Packet> 
       else if (size == 1032) //TX is in BSS 2
         {
           double expectedRxPowerMin = - 50 /* loss */ - 1 /* precision */;
-          NS_TEST_EXPECT_MSG_GT (WToDbm (it->second), expectedRxPowerMin, "Received power for BSS 1 RX PHY is too low");
+          NS_TEST_EXPECT_MSG_GT (WToDbm (it->second), expectedRxPowerMin, "Received power for BSS 2 RX PHY is too low");
         }
       else if (size == 2130) //TX is in BSS 3
         {
           double expectedRxPowerMin = - 3 /* half band */ - 50 /* loss */ - 1 /* precision */;
-          NS_TEST_EXPECT_MSG_GT (WToDbm (it->second), expectedRxPowerMin, "Received power for BSS 1 RX PHY is too low");
+          NS_TEST_EXPECT_MSG_GT (WToDbm (it->second), expectedRxPowerMin, "Received power for BSS 2 RX PHY is too low");
         }
       else if (size == 2131) //TX is in BSS 4
         {
           double expectedRxPowerMin = - 3 /* half band */ - 50 /* loss */ - 1 /* precision */;
-          NS_TEST_EXPECT_MSG_GT (WToDbm (it->second), expectedRxPowerMin, "Received power for BSS 1 RX PHY is too low");
+          NS_TEST_EXPECT_MSG_GT (WToDbm (it->second), expectedRxPowerMin, "Received power for BSS 2 RX PHY is too low");
         }
     }
   else if (context == "BSS3") //RX is in BSS 3
     {
-      auto band = m_rxPhyBss3->GetBand(20, 0);
+      auto band = m_rxPhys.at (2)->GetBand (20, 0);
       auto it = std::find_if (rxPowersW.begin (), rxPowersW.end(),
           [&band](const std::pair<WifiSpectrumBand, double>& element){ return element.first == band; } );
       NS_ASSERT (it != rxPowersW.end ());
@@ -448,7 +364,7 @@ TestStaticChannelBondingSnr::RxCallback (std::string context, Ptr<const Packet> 
           NS_TEST_EXPECT_MSG_GT (WToDbm (it->second), expectedRxPowerMin, "Received power for BSS 3 RX PHY is too low");
         }
 
-      band = m_rxPhyBss3->GetBand(20, 1);
+      band = m_rxPhys.at (2)->GetBand (20, 1);
       it = std::find_if (rxPowersW.begin (), rxPowersW.end(),
           [&band](const std::pair<WifiSpectrumBand, double>& element){ return element.first == band; } );
       NS_ASSERT (it != rxPowersW.end ());
@@ -476,7 +392,7 @@ TestStaticChannelBondingSnr::RxCallback (std::string context, Ptr<const Packet> 
     }
   else if (context == "BSS4") //RX is in BSS 4
     {
-      auto band = m_rxPhyBss3->GetBand(20, 1);
+      auto band = m_rxPhys.at (3)->GetBand (20, 1);
       auto it = std::find_if (rxPowersW.begin (), rxPowersW.end(),
           [&band](const std::pair<WifiSpectrumBand, double>& element){ return element.first == band; } );
       NS_ASSERT (it != rxPowersW.end ());
@@ -502,7 +418,7 @@ TestStaticChannelBondingSnr::RxCallback (std::string context, Ptr<const Packet> 
           NS_TEST_EXPECT_MSG_GT (WToDbm (it->second), expectedRxPowerMin, "Received power for BSS 4 RX PHY is too low");
         }
 
-      band = m_rxPhyBss3->GetBand(20, 0);
+      band = m_rxPhys.at (3)->GetBand (20, 0);
       it = std::find_if (rxPowersW.begin (), rxPowersW.end(),
           [&band](const std::pair<WifiSpectrumBand, double>& element){ return element.first == band; } );
       NS_ASSERT (it != rxPowersW.end ());
@@ -534,41 +450,13 @@ void
 TestStaticChannelBondingSnr::RxOkCallback (std::string context, Ptr<const Packet> p, double snr, WifiMode mode, WifiPreamble preamble)
 {
   NS_LOG_INFO ("RxOkCallback: BSS=" << context << " SNR=" << RatioToDb (snr));
-  if (context == "BSS1")
+  int bss = std::stoi (context.substr (3, 1));
+  m_reception.at (bss - 1) = true;
+  m_phyPayloadReceivedSuccess.at (bss - 1) = true;
+  auto it = m_expectedSnrPerBss.find (bss);
+  if (it != m_expectedSnrPerBss.end ())
     {
-      m_receptionBss1 = true;
-      m_phyPayloadReceivedSuccessBss1 = true;
-      if (m_initializedSnrBss1)
-        {
-          NS_TEST_EXPECT_MSG_EQ_TOL (RatioToDb (snr), m_expectedSnrBss1, 0.2, "Unexpected SNR value");
-        }
-    }
-  else if (context == "BSS2")
-    {
-      m_receptionBss2 = true;
-      m_phyPayloadReceivedSuccessBss2 = true;
-      if (m_initializedSnrBss2)
-        {
-          NS_TEST_EXPECT_MSG_EQ_TOL (RatioToDb (snr), m_expectedSnrBss2, 0.2, "Unexpected SNR value");
-        }
-    }
-  else if (context == "BSS3")
-    {
-      m_receptionBss3 = true;
-      m_phyPayloadReceivedSuccessBss3 = true;
-      if (m_initializedSnrBss3)
-        {
-          NS_TEST_EXPECT_MSG_EQ_TOL (RatioToDb (snr), m_expectedSnrBss3, 0.2, "Unexpected SNR value");
-        }
-    }
-  else if (context == "BSS4")
-    {
-      m_receptionBss4 = true;
-      m_phyPayloadReceivedSuccessBss4 = true;
-      if (m_initializedSnrBss4)
-        {
-          NS_TEST_EXPECT_MSG_EQ_TOL (RatioToDb (snr), m_expectedSnrBss4, 0.2, "Unexpected SNR value");
-        }
+      NS_TEST_EXPECT_MSG_EQ_TOL (RatioToDb (snr), it->second, 0.2, "Unexpected SNR value");
     }
 }
 
@@ -576,54 +464,89 @@ void
 TestStaticChannelBondingSnr::RxErrorCallback (std::string context, Ptr<const Packet> p, double snr)
 {
   NS_LOG_INFO ("RxErrorCallback: BSS=" << context << " SNR=" << RatioToDb (snr));
-  if (context == "BSS1")
+  int bss = std::stoi (context.substr (3, 1));
+  m_reception.at (bss - 1) = true;
+  m_phyPayloadReceivedSuccess.at (bss - 1) = false;
+  auto it = m_expectedSnrPerBss.find (bss);
+  if (it != m_expectedSnrPerBss.end ())
     {
-      m_receptionBss1 = true;
-      m_phyPayloadReceivedSuccessBss1 = false;
-      if (m_initializedSnrBss1)
-        {
-          NS_TEST_EXPECT_MSG_EQ_TOL (RatioToDb (snr), m_expectedSnrBss1, 0.2, "Unexpected SNR value");
-        }
-    }
-  else if (context == "BSS2")
-    {
-      m_receptionBss2 = true;
-      m_phyPayloadReceivedSuccessBss2 = false;
-      if (m_initializedSnrBss2)
-        {
-          NS_TEST_EXPECT_MSG_EQ_TOL (RatioToDb (snr), m_expectedSnrBss2, 0.2, "Unexpected SNR value");
-        }
-    }
-  else if (context == "BSS3")
-    {
-      m_receptionBss3 = true;
-      m_phyPayloadReceivedSuccessBss3 = false;
-      if (m_initializedSnrBss3)
-        {
-          NS_TEST_EXPECT_MSG_EQ_TOL (RatioToDb (snr), m_expectedSnrBss3, 0.2, "Unexpected SNR value");
-        }
-    }
-  else if (context == "BSS4")
-    {
-      m_receptionBss4 = true;
-      m_phyPayloadReceivedSuccessBss4 = false;
-      if (m_initializedSnrBss4)
-        {
-          NS_TEST_EXPECT_MSG_EQ_TOL (RatioToDb (snr), m_expectedSnrBss4, 0.2, "Unexpected SNR value");
-        }
+      NS_TEST_EXPECT_MSG_EQ_TOL (RatioToDb (snr), it->second, 0.2, "Unexpected SNR value");
     }
 }
 
 TestStaticChannelBondingSnr::~TestStaticChannelBondingSnr ()
 {
-  m_rxPhyBss1 = 0;
-  m_rxPhyBss2 = 0;
-  m_rxPhyBss3 = 0;
-  m_rxPhyBss4 = 0;
-  m_txPhyBss1 = 0;
-  m_txPhyBss2 = 0;
-  m_txPhyBss3 = 0;
-  m_txPhyBss4 = 0;
+  for (auto & rxPhy : m_rxPhys)
+    {
+      rxPhy = 0;
+    }
+  for (auto & txPhy : m_txPhys)
+    {
+      txPhy = 0;
+    }
+  m_rxPhys.clear ();
+  m_txPhys.clear ();
+}
+
+void
+TestStaticChannelBondingSnr::CreateBss (const Ptr<MultiModelSpectrumChannel> channel,
+                                        uint16_t channelWidth, uint8_t channelNumber,
+                                        uint16_t frequency, uint8_t primaryChannelNumber)
+{
+  uint8_t bssNumber = m_rxPhys.size () + 1;
+
+  Ptr<ErrorRateModel> error = CreateObject<NistErrorRateModel> ();
+
+  Ptr<BondingTestSpectrumWifiPhy> rxPhy = CreateObject<BondingTestSpectrumWifiPhy> ();
+  Ptr<ConstantPositionMobilityModel> rxMobility = CreateObject<ConstantPositionMobilityModel> ();
+  rxMobility->SetPosition (Vector (1.0, 1.0 * (bssNumber - 1), 0.0));
+  rxPhy->SetMobility (rxMobility);
+  rxPhy->ConfigureStandard (WIFI_PHY_STANDARD_80211ac);
+  rxPhy->CreateWifiSpectrumPhyInterface (nullptr);
+  rxPhy->SetChannel (channel);
+  rxPhy->SetErrorRateModel (error);
+  rxPhy->SetChannelWidth (channelWidth);
+  rxPhy->SetChannelNumber (channelNumber);
+  rxPhy->SetPrimaryChannelNumber (primaryChannelNumber);
+  rxPhy->SetFrequency (frequency);
+  rxPhy->SetTxPowerStart (0.0);
+  rxPhy->SetTxPowerEnd (0.0);
+  rxPhy->SetRxSensitivity (-91.0);
+  rxPhy->SetAttribute ("TxMaskInnerBandMinimumRejection", DoubleValue (-40.0));
+  rxPhy->SetAttribute ("TxMaskOuterBandMinimumRejection", DoubleValue (-56.0));
+  rxPhy->SetAttribute ("TxMaskOuterBandMaximumRejection", DoubleValue (-80.0));
+  rxPhy->Initialize ();
+
+  std::ostringstream bss;
+  bss << "BSS" << +bssNumber;
+
+  rxPhy->TraceConnect ("PhyRxBegin", bss.str (), MakeCallback (&TestStaticChannelBondingSnr::RxCallback, this));
+  rxPhy->GetState()->TraceConnect ("RxOk", bss.str (), MakeCallback (&TestStaticChannelBondingSnr::RxOkCallback, this));
+  rxPhy->GetState()->TraceConnect ("RxError", bss.str (), MakeCallback (&TestStaticChannelBondingSnr::RxErrorCallback, this));
+  
+  m_rxPhys.push_back (rxPhy);
+
+  Ptr<BondingTestSpectrumWifiPhy> txPhy = CreateObject<BondingTestSpectrumWifiPhy> ();
+  Ptr<ConstantPositionMobilityModel> txMobility = CreateObject<ConstantPositionMobilityModel> ();
+  txMobility->SetPosition (Vector (0.0, 1.0 * (bssNumber - 1), 0.0));
+  txPhy->SetMobility (txMobility);
+  txPhy->ConfigureStandard (WIFI_PHY_STANDARD_80211ac);
+  txPhy->CreateWifiSpectrumPhyInterface (nullptr);
+  txPhy->SetChannel (channel);
+  txPhy->SetErrorRateModel (error);
+  txPhy->SetChannelWidth (channelWidth);
+  txPhy->SetChannelNumber (channelNumber);
+  txPhy->SetPrimaryChannelNumber (primaryChannelNumber);
+  txPhy->SetFrequency (frequency);
+  txPhy->SetTxPowerStart (0.0);
+  txPhy->SetTxPowerEnd (0.0);
+  txPhy->SetRxSensitivity (-91.0);
+  txPhy->SetAttribute ("TxMaskInnerBandMinimumRejection", DoubleValue (-40.0));
+  txPhy->SetAttribute ("TxMaskOuterBandMinimumRejection", DoubleValue (-56.0));
+  txPhy->SetAttribute ("TxMaskOuterBandMaximumRejection", DoubleValue (-80.0));
+  txPhy->Initialize ();
+
+  m_txPhys.push_back (txPhy);
 }
 
 void
@@ -635,180 +558,23 @@ TestStaticChannelBondingSnr::DoSetup (void)
   lossModel->SetDefaultLoss (50); // set default loss to 50 dB for all links
   channel->AddPropagationLossModel (lossModel);
 
-  Ptr<ConstantSpeedPropagationDelayModel> delayModel
-    = CreateObject<ConstantSpeedPropagationDelayModel> ();
+  Ptr<ConstantSpeedPropagationDelayModel> delayModel = CreateObject<ConstantSpeedPropagationDelayModel> ();
   channel->SetPropagationDelayModel (delayModel);
 
-  Ptr<ErrorRateModel> error = CreateObject<NistErrorRateModel> ();
+  //Create BSS #1 operating on channel 36
+  CreateBss (channel, 20 /* channel width */, 36 /* channel number */, 5180 /* frequency */, 36 /* primary channel number */);
 
-  m_rxPhyBss1 = CreateObject<BondingTestSpectrumWifiPhy> ();
-  Ptr<ConstantPositionMobilityModel> rxMobilityBss1 = CreateObject<ConstantPositionMobilityModel> ();
-  rxMobilityBss1->SetPosition (Vector (1.0, 0.0, 0.0));
-  m_rxPhyBss1->SetMobility (rxMobilityBss1);
-  m_rxPhyBss1->ConfigureStandard (WIFI_PHY_STANDARD_80211n_5GHZ);
-  m_rxPhyBss1->CreateWifiSpectrumPhyInterface (nullptr);
-  m_rxPhyBss1->SetChannel (channel);
-  m_rxPhyBss1->SetErrorRateModel (error);
-  m_rxPhyBss1->SetChannelWidth (20);
-  m_rxPhyBss1->SetChannelNumber (36);
-  m_rxPhyBss1->SetFrequency (5180);
-  m_rxPhyBss1->SetTxPowerStart (0.0);
-  m_rxPhyBss1->SetTxPowerEnd (0.0);
-  m_rxPhyBss1->SetRxSensitivity (-91.0);
-  m_rxPhyBss1->SetAttribute ("TxMaskInnerBandMinimumRejection", DoubleValue (-40.0));
-  m_rxPhyBss1->SetAttribute ("TxMaskOuterBandMinimumRejection", DoubleValue (-56.0));
-  m_rxPhyBss1->SetAttribute ("TxMaskOuterBandMaximumRejection", DoubleValue (-80.0));
-  m_rxPhyBss1->Initialize ();
+  //Create BSS #2 operating on channel 40
+  CreateBss (channel, 20 /* channel width */, 40 /* channel number */, 5200 /* frequency */, 40 /* primary channel number */);
 
-  m_txPhyBss1 = CreateObject<BondingTestSpectrumWifiPhy> ();
-  Ptr<ConstantPositionMobilityModel> txMobilityBss1 = CreateObject<ConstantPositionMobilityModel> ();
-  txMobilityBss1->SetPosition (Vector (0.0, 0.0, 0.0));
-  m_txPhyBss1->SetMobility (txMobilityBss1);
-  m_txPhyBss1->ConfigureStandard (WIFI_PHY_STANDARD_80211n_5GHZ);
-  m_txPhyBss1->CreateWifiSpectrumPhyInterface (nullptr);
-  m_txPhyBss1->SetChannel (channel);
-  m_txPhyBss1->SetErrorRateModel (error);
-  m_txPhyBss1->SetChannelWidth (20);
-  m_txPhyBss1->SetChannelNumber (36);
-  m_txPhyBss1->SetFrequency (5180);
-  m_txPhyBss1->SetTxPowerStart (0.0);
-  m_txPhyBss1->SetTxPowerEnd (0.0);
-  m_txPhyBss1->SetRxSensitivity (-91.0);
-  m_txPhyBss1->SetAttribute ("TxMaskInnerBandMinimumRejection", DoubleValue (-40.0));
-  m_txPhyBss1->SetAttribute ("TxMaskOuterBandMinimumRejection", DoubleValue (-56.0));
-  m_txPhyBss1->SetAttribute ("TxMaskOuterBandMaximumRejection", DoubleValue (-80.0));
-  m_txPhyBss1->Initialize ();
+  //Create BSS #3 operating on channel 38, with primary channel 36
+  CreateBss (channel, 40 /* channel width */, 38 /* channel number */, 5190 /* frequency */, 36 /* primary channel number */);
 
-  m_rxPhyBss2 = CreateObject<BondingTestSpectrumWifiPhy> ();
-  Ptr<ConstantPositionMobilityModel> rxMobilityBss2 = CreateObject<ConstantPositionMobilityModel> ();
-  rxMobilityBss2->SetPosition (Vector (1.0, 10.0, 0.0));
-  m_rxPhyBss2->SetMobility (rxMobilityBss2);
-  m_rxPhyBss2->ConfigureStandard (WIFI_PHY_STANDARD_80211n_5GHZ);
-  m_rxPhyBss2->CreateWifiSpectrumPhyInterface (nullptr);
-  m_rxPhyBss2->SetChannel (channel);
-  m_rxPhyBss2->SetErrorRateModel (error);
-  m_rxPhyBss2->SetChannelWidth (20);
-  m_rxPhyBss2->SetChannelNumber (40);
-  m_rxPhyBss2->SetFrequency (5200);
-  m_rxPhyBss2->SetTxPowerStart (0.0);
-  m_rxPhyBss2->SetTxPowerEnd (0.0);
-  m_rxPhyBss2->SetRxSensitivity (-91.0);
-  m_rxPhyBss2->SetAttribute ("TxMaskInnerBandMinimumRejection", DoubleValue (-40.0));
-  m_rxPhyBss2->SetAttribute ("TxMaskOuterBandMinimumRejection", DoubleValue (-56.0));
-  m_rxPhyBss2->SetAttribute ("TxMaskOuterBandMaximumRejection", DoubleValue (-80.0));
-  m_rxPhyBss2->Initialize ();
+  //Create BSS #4 operating on channel 38, with primary channel 40
+  CreateBss (channel, 40 /* channel width */, 38 /* channel number */, 5190 /* frequency */, 40 /* primary channel number */);
 
-  m_txPhyBss2 = CreateObject<BondingTestSpectrumWifiPhy> ();
-  Ptr<ConstantPositionMobilityModel> txMobilityBss2 = CreateObject<ConstantPositionMobilityModel> ();
-  txMobilityBss2->SetPosition (Vector (0.0, 10.0, 0.0));
-  m_txPhyBss2->SetMobility (txMobilityBss2);
-  m_txPhyBss2->ConfigureStandard (WIFI_PHY_STANDARD_80211n_5GHZ);
-  m_txPhyBss2->CreateWifiSpectrumPhyInterface (nullptr);
-  m_txPhyBss2->SetChannel (channel);
-  m_txPhyBss2->SetErrorRateModel (error);
-  m_txPhyBss2->SetChannelWidth (20);
-  m_txPhyBss2->SetChannelNumber (40);
-  m_txPhyBss2->SetFrequency (5200);
-  m_txPhyBss2->SetTxPowerStart (0.0);
-  m_txPhyBss2->SetTxPowerEnd (0.0);
-  m_txPhyBss2->SetRxSensitivity (-91.0);
-  m_txPhyBss2->SetAttribute ("TxMaskInnerBandMinimumRejection", DoubleValue (-40.0));
-  m_txPhyBss2->SetAttribute ("TxMaskOuterBandMinimumRejection", DoubleValue (-56.0));
-  m_txPhyBss2->SetAttribute ("TxMaskOuterBandMaximumRejection", DoubleValue (-80.0));
-  m_txPhyBss2->Initialize ();
-
-  m_rxPhyBss3 = CreateObject<BondingTestSpectrumWifiPhy> ();
-  Ptr<ConstantPositionMobilityModel> rxMobilityBss3 = CreateObject<ConstantPositionMobilityModel> ();
-  rxMobilityBss3->SetPosition (Vector (1.0, 20.0, 0.0));
-  m_rxPhyBss3->SetMobility (rxMobilityBss3);
-  m_rxPhyBss3->ConfigureStandard (WIFI_PHY_STANDARD_80211n_5GHZ);
-  m_rxPhyBss3->CreateWifiSpectrumPhyInterface (nullptr);
-  m_rxPhyBss3->SetChannel (channel);
-  m_rxPhyBss3->SetErrorRateModel (error);
-  m_rxPhyBss3->SetChannelWidth (40);
-  m_rxPhyBss3->SetChannelNumber (38);
-  m_rxPhyBss3->SetPrimaryChannelNumber (36);
-  m_rxPhyBss3->SetFrequency (5190);
-  m_rxPhyBss3->SetTxPowerStart (0.0);
-  m_rxPhyBss3->SetTxPowerEnd (0.0);
-  m_rxPhyBss3->SetRxSensitivity (-91.0);
-  m_rxPhyBss3->SetAttribute ("TxMaskInnerBandMinimumRejection", DoubleValue (-40.0));
-  m_rxPhyBss3->SetAttribute ("TxMaskOuterBandMinimumRejection", DoubleValue (-56.0));
-  m_rxPhyBss3->SetAttribute ("TxMaskOuterBandMaximumRejection", DoubleValue (-80.0));
-  m_rxPhyBss3->Initialize ();
-
-  m_txPhyBss3 = CreateObject<BondingTestSpectrumWifiPhy> ();
-  Ptr<ConstantPositionMobilityModel> txMobilityBss3 = CreateObject<ConstantPositionMobilityModel> ();
-  txMobilityBss3->SetPosition (Vector (0.0, 20.0, 0.0));
-  m_txPhyBss3->SetMobility (txMobilityBss3);
-  m_txPhyBss3->ConfigureStandard (WIFI_PHY_STANDARD_80211n_5GHZ);
-  m_txPhyBss3->CreateWifiSpectrumPhyInterface (nullptr);
-  m_txPhyBss3->SetChannel (channel);
-  m_txPhyBss3->SetErrorRateModel (error);
-  m_txPhyBss3->SetChannelWidth (40);
-  m_txPhyBss3->SetChannelNumber (38);
-  m_txPhyBss3->SetPrimaryChannelNumber (36);
-  m_txPhyBss3->SetFrequency (5190);
-  m_txPhyBss3->SetTxPowerStart (0.0);
-  m_txPhyBss3->SetTxPowerEnd (0.0);
-  m_txPhyBss3->SetRxSensitivity (-91.0);
-  m_txPhyBss3->SetAttribute ("TxMaskInnerBandMinimumRejection", DoubleValue (-40.0));
-  m_txPhyBss3->SetAttribute ("TxMaskOuterBandMinimumRejection", DoubleValue (-56.0));
-  m_txPhyBss3->SetAttribute ("TxMaskOuterBandMaximumRejection", DoubleValue (-80.0));
-  m_txPhyBss3->Initialize ();
-
-  m_rxPhyBss4 = CreateObject<BondingTestSpectrumWifiPhy> ();
-  Ptr<ConstantPositionMobilityModel> rxMobilityBss4 = CreateObject<ConstantPositionMobilityModel> ();
-  rxMobilityBss4->SetPosition (Vector (1.0, 30.0, 0.0));
-  m_rxPhyBss4->SetMobility (rxMobilityBss4);
-  m_rxPhyBss4->ConfigureStandard (WIFI_PHY_STANDARD_80211n_5GHZ);
-  m_rxPhyBss4->CreateWifiSpectrumPhyInterface (nullptr);
-  m_rxPhyBss4->SetChannel (channel);
-  m_rxPhyBss4->SetErrorRateModel (error);
-  m_rxPhyBss4->SetChannelWidth (40);
-  m_rxPhyBss4->SetChannelNumber (38);
-  m_rxPhyBss4->SetPrimaryChannelNumber (40);
-  m_rxPhyBss4->SetFrequency (5190);
-  m_rxPhyBss4->SetTxPowerStart (0.0);
-  m_rxPhyBss4->SetTxPowerEnd (0.0);
-  m_rxPhyBss4->SetRxSensitivity (-91.0);
-  m_rxPhyBss4->SetAttribute ("TxMaskInnerBandMinimumRejection", DoubleValue (-40.0));
-  m_rxPhyBss4->SetAttribute ("TxMaskOuterBandMinimumRejection", DoubleValue (-56.0));
-  m_rxPhyBss4->SetAttribute ("TxMaskOuterBandMaximumRejection", DoubleValue (-80.0));
-  m_rxPhyBss4->Initialize ();
-
-  m_txPhyBss4 = CreateObject<BondingTestSpectrumWifiPhy> ();
-  Ptr<ConstantPositionMobilityModel> txMobilityBss4 = CreateObject<ConstantPositionMobilityModel> ();
-  txMobilityBss4->SetPosition (Vector (0.0, 30.0, 0.0));
-  m_txPhyBss4->SetMobility (txMobilityBss4);
-  m_txPhyBss4->ConfigureStandard (WIFI_PHY_STANDARD_80211n_5GHZ);
-  m_txPhyBss4->CreateWifiSpectrumPhyInterface (nullptr);
-  m_txPhyBss4->SetChannel (channel);
-  m_txPhyBss4->SetErrorRateModel (error);
-  m_txPhyBss4->SetChannelWidth (40);
-  m_txPhyBss4->SetChannelNumber (38);
-  m_rxPhyBss4->SetPrimaryChannelNumber (40);
-  m_txPhyBss4->SetFrequency (5190);
-  m_txPhyBss4->SetTxPowerStart (0.0);
-  m_txPhyBss4->SetTxPowerEnd (0.0);
-  m_txPhyBss4->SetRxSensitivity (-91.0);
-  m_txPhyBss4->SetAttribute ("TxMaskInnerBandMinimumRejection", DoubleValue (-40.0));
-  m_txPhyBss4->SetAttribute ("TxMaskOuterBandMinimumRejection", DoubleValue (-56.0));
-  m_txPhyBss4->SetAttribute ("TxMaskOuterBandMaximumRejection", DoubleValue (-80.0));
-  m_txPhyBss4->Initialize ();
-
-  m_rxPhyBss1->TraceConnect ("PhyRxBegin", "BSS1", MakeCallback (&TestStaticChannelBondingSnr::RxCallback, this));
-  m_rxPhyBss2->TraceConnect ("PhyRxBegin", "BSS2", MakeCallback (&TestStaticChannelBondingSnr::RxCallback, this));
-  m_rxPhyBss3->TraceConnect ("PhyRxBegin", "BSS3", MakeCallback (&TestStaticChannelBondingSnr::RxCallback, this));
-  m_rxPhyBss4->TraceConnect ("PhyRxBegin", "BSS4", MakeCallback (&TestStaticChannelBondingSnr::RxCallback, this));
-  m_rxPhyBss1->GetState()->TraceConnect ("RxOk", "BSS1", MakeCallback (&TestStaticChannelBondingSnr::RxOkCallback, this));
-  m_rxPhyBss2->GetState()->TraceConnect ("RxOk", "BSS2", MakeCallback (&TestStaticChannelBondingSnr::RxOkCallback, this));
-  m_rxPhyBss3->GetState()->TraceConnect ("RxOk", "BSS3", MakeCallback (&TestStaticChannelBondingSnr::RxOkCallback, this));
-  m_rxPhyBss4->GetState()->TraceConnect ("RxOk", "BSS4", MakeCallback (&TestStaticChannelBondingSnr::RxOkCallback, this));
-  m_rxPhyBss1->GetState()->TraceConnect ("RxError", "BSS1", MakeCallback (&TestStaticChannelBondingSnr::RxErrorCallback, this));
-  m_rxPhyBss2->GetState()->TraceConnect ("RxError", "BSS2", MakeCallback (&TestStaticChannelBondingSnr::RxErrorCallback, this));
-  m_rxPhyBss3->GetState()->TraceConnect ("RxError", "BSS3", MakeCallback (&TestStaticChannelBondingSnr::RxErrorCallback, this));
-  m_rxPhyBss4->GetState()->TraceConnect ("RxError", "BSS4", MakeCallback (&TestStaticChannelBondingSnr::RxErrorCallback, this));
+  m_reception = std::vector<bool> (4, false);
+  m_phyPayloadReceivedSuccess = std::vector<bool> (4, false);
 }
 
 void
@@ -817,14 +583,14 @@ TestStaticChannelBondingSnr::DoRun (void)
   RngSeedManager::SetSeed (1);
   RngSeedManager::SetRun (1);
   int64_t streamNumber = 0;
-  m_rxPhyBss1->AssignStreams (streamNumber);
-  m_rxPhyBss2->AssignStreams (streamNumber);
-  m_rxPhyBss3->AssignStreams (streamNumber);
-  m_rxPhyBss4->AssignStreams (streamNumber);
-  m_txPhyBss1->AssignStreams (streamNumber);
-  m_txPhyBss2->AssignStreams (streamNumber);
-  m_txPhyBss3->AssignStreams (streamNumber);
-  m_txPhyBss4->AssignStreams (streamNumber);
+  for (auto & rxPhy : m_rxPhys)
+    {
+      rxPhy->AssignStreams (streamNumber);
+    }
+  for (auto & txPhy : m_txPhys)
+    {
+      txPhy->AssignStreams (streamNumber);
+    }
 
   //CASE 1: each BSS send a packet on its channel to verify the received power per band for each receiver
   //and whether the packet is successfully received or not.*/
@@ -834,16 +600,16 @@ TestStaticChannelBondingSnr::DoRun (void)
   Simulator::Schedule (Seconds (1.0), &TestStaticChannelBondingSnr::SendPacket, this, 1);
   Simulator::Schedule (Seconds (1.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 1);
   Simulator::Schedule (Seconds (1.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 3);
-  Simulator::Schedule (Seconds (1.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 3); //secondary channel should be deemed busy for BSS 3
+  Simulator::Schedule (Seconds (1.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 3, 40); //secondary channel should be deemed busy for BSS 3
   Simulator::Schedule (Seconds (1.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 2);
   Simulator::Schedule (Seconds (1.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 4);
-  Simulator::Schedule (Seconds (1.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 4); //secondary channel should be deemed busy for BSS 4
+  Simulator::Schedule (Seconds (1.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 4, 40); //secondary channel should be deemed busy for BSS 4
   Simulator::Schedule (Seconds (1.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 1);
   Simulator::Schedule (Seconds (1.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 3);
-  Simulator::Schedule (Seconds (1.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 3); //secondary channel should be deemed idle for BSS 3
+  Simulator::Schedule (Seconds (1.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 3, 40); //secondary channel should be deemed idle for BSS 3
   Simulator::Schedule (Seconds (1.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 2);
   Simulator::Schedule (Seconds (1.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 4);
-  Simulator::Schedule (Seconds (1.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 4); //secondary channel should be deemed idle for BSS 4
+  Simulator::Schedule (Seconds (1.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 4, 40); //secondary channel should be deemed idle for BSS 4
   Simulator::Schedule (Seconds (1.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, true, true, 1); // successfull reception for BSS 1
   Simulator::Schedule (Seconds (1.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, true, true, 3); // successfull reception for BSS 3
   Simulator::Schedule (Seconds (1.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, false, false, 2); // no reception for BSS 2
@@ -854,16 +620,16 @@ TestStaticChannelBondingSnr::DoRun (void)
   Simulator::Schedule (Seconds (2.0), &TestStaticChannelBondingSnr::SendPacket, this, 2);
   Simulator::Schedule (Seconds (2.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 2);
   Simulator::Schedule (Seconds (2.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::RX, 4);
-  Simulator::Schedule (Seconds (2.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 4); //secondary channel should be deemed busy for BSS 4
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 4, 40); //secondary channel should be deemed busy for BSS 4
   Simulator::Schedule (Seconds (2.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 1);
   Simulator::Schedule (Seconds (2.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 3);
-  Simulator::Schedule (Seconds (2.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 3); //secondary channel should be deemed busy for BSS 3
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (5.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, false, 3, 40); //secondary channel should be deemed busy for BSS 3
   Simulator::Schedule (Seconds (2.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 1);
   Simulator::Schedule (Seconds (2.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 3);
-  Simulator::Schedule (Seconds (2.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 3); //secondary channel should be deemed idle for BSS 3
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 3, 40); //secondary channel should be deemed idle for BSS 3
   Simulator::Schedule (Seconds (2.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 2);
   Simulator::Schedule (Seconds (2.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckPhyState, this, WifiPhyState::IDLE, 4);
-  Simulator::Schedule (Seconds (2.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 4); //secondary channel should be deemed idle for BSS 4
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 4, 40); //secondary channel should be deemed idle for BSS 4
   Simulator::Schedule (Seconds (2.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, true, true, 2); // successfull reception for BSS 2
   Simulator::Schedule (Seconds (2.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, true, true, 4); // successfull reception for BSS 4
   Simulator::Schedule (Seconds (2.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, false, false, 1); // no reception for BSS 1
@@ -1030,15 +796,14 @@ TestStaticChannelBondingSnr::DoRun (void)
  *
  * \brief dynamic channel bonding
  *
- * In this test, we have three 802.11n transmitters and three 802.11n receivers.
+ * In this test, we have three 802.11ac transmitters and three 802.11ac receivers.
  * A BSS is composed of one transmitter and one receiver.
  *
- * The first BSS 1 makes uses of channel bonding on channel 38 (= 36 + 40),
- * with its secondary channel upper than its primary channel.
+ * The first BSS makes uses of channel bonding on channel 38 (= 36 + 40),
+ * with channel 36 as primary 20 MHz channel.
  * The second BSS operates on channel 40 with a channel width of 20 MHz.
- * Both BSS 3 is configured similarly as BSS 1 but has its secondary channel
- * lower than its primary channel.
- *
+ * The third BSS makes uses of channel bonding on channel 38 (= 36 + 40),
+ * with channel 40 as primary 20 MHz channel.
  */
 class TestDynamicChannelBonding : public TestCase
 {
@@ -1046,14 +811,21 @@ public:
   TestDynamicChannelBonding ();
   virtual ~TestDynamicChannelBonding ();
 
-protected:
+private:
   virtual void DoSetup (void);
-  Ptr<BondingTestSpectrumWifiPhy> m_rxPhyBss1; ///< RX Phy BSS #1
-  Ptr<BondingTestSpectrumWifiPhy> m_rxPhyBss2; ///< RX Phy BSS #2
-  Ptr<BondingTestSpectrumWifiPhy> m_rxPhyBss3; ///< RX Phy BSS #3
-  Ptr<BondingTestSpectrumWifiPhy> m_txPhyBss1; ///< TX Phy BSS #1
-  Ptr<BondingTestSpectrumWifiPhy> m_txPhyBss2; ///< TX Phy BSS #2
-  Ptr<BondingTestSpectrumWifiPhy> m_txPhyBss3; ///< TX Phy BSS #3
+  virtual void DoRun (void);
+
+  /**
+   * Create BSS
+   * \param channel the Spectrum channel
+   * \param channelWidth the channel width
+   * \param channelNumber the operating channel number
+   * \param frequency the operating frequency
+   * \param primaryChannelNumber the channel number of the primary 20 MHz
+   */
+  void CreateBss (const Ptr<MultiModelSpectrumChannel> channel,
+                  uint16_t channelWidth, uint8_t channelNumber,
+                  uint16_t frequency, uint8_t primaryChannelNumber);
 
   /**
    * Send packet function
@@ -1062,8 +834,8 @@ protected:
    */
   void SendPacket (uint8_t bss, uint16_t expectedChannelWidth);
 
-private:
-  virtual void DoRun (void);
+  std::vector<Ptr<BondingTestSpectrumWifiPhy> > m_rxPhys; ///< RX PHYs
+  std::vector<Ptr<BondingTestSpectrumWifiPhy> > m_txPhys; ///< TX PHYs
 };
 
 TestDynamicChannelBonding::TestDynamicChannelBonding ()
@@ -1077,38 +849,28 @@ TestDynamicChannelBonding::TestDynamicChannelBonding ()
 
 TestDynamicChannelBonding::~TestDynamicChannelBonding ()
 {
-  m_rxPhyBss1 = 0;
-  m_rxPhyBss2 = 0;
-  m_rxPhyBss3 = 0;
-  m_txPhyBss1 = 0;
-  m_txPhyBss2 = 0;
-  m_txPhyBss3 = 0;
+  for (auto & rxPhy : m_rxPhys)
+    {
+      rxPhy = 0;
+    }
+  for (auto & txPhy : m_txPhys)
+    {
+      txPhy = 0;
+    }
+  m_rxPhys.clear ();
+  m_txPhys.clear ();
 }
 
 void
 TestDynamicChannelBonding::SendPacket (uint8_t bss, uint16_t expectedChannelWidth)
 {
-  Ptr<BondingTestSpectrumWifiPhy> phy;
-  uint32_t payloadSize = 1000;
-  if (bss == 1)
-    {
-      phy = m_txPhyBss1;
-      payloadSize = 1001;
-    }
-  else if (bss == 2)
-    {
-      phy = m_txPhyBss2;
-      payloadSize = 1002;
-    }
-  else if (bss == 3)
-    {
-      phy = m_txPhyBss3;
-      payloadSize = 1003;
-    }
+  Ptr<BondingTestSpectrumWifiPhy> phy = m_txPhys.at (bss - 1);
+  uint32_t payloadSize = 1000 + bss;
+
   uint16_t channelWidth = phy->GetUsableChannelWidth ();
   NS_TEST_ASSERT_MSG_EQ (channelWidth, expectedChannelWidth, "selected channel width is not as expected");
 
-  WifiTxVector txVector = WifiTxVector (WifiPhy::GetHtMcs7 (), 0, WIFI_PREAMBLE_HT_MF, 800, 1, 1, 0, channelWidth, false, false);
+  WifiTxVector txVector = WifiTxVector (WifiPhy::GetVhtMcs7 (), 0, WIFI_PREAMBLE_HT_MF, 800, 1, 1, 0, channelWidth, false, false);
 
   Ptr<Packet> pkt = Create<Packet> (payloadSize);
   WifiMacHeader hdr;
@@ -1116,6 +878,64 @@ TestDynamicChannelBonding::SendPacket (uint8_t bss, uint16_t expectedChannelWidt
 
   Ptr<WifiPsdu> psdu = Create<WifiPsdu> (pkt, hdr);
   phy->Send (WifiPsduMap ({std::make_pair (SU_STA_ID, psdu)}), txVector);
+}
+
+void
+TestDynamicChannelBonding::CreateBss (const Ptr<MultiModelSpectrumChannel> channel,
+                                      uint16_t channelWidth, uint8_t channelNumber,
+                                      uint16_t frequency, uint8_t primaryChannelNumber)
+{
+  uint8_t bssNumber = m_rxPhys.size () + 1;
+
+  Ptr<ErrorRateModel> error = CreateObject<NistErrorRateModel> ();
+
+  Ptr<BondingTestSpectrumWifiPhy> rxPhy = CreateObject<BondingTestSpectrumWifiPhy> ();
+  Ptr<ConstantPositionMobilityModel> rxMobility = CreateObject<ConstantPositionMobilityModel> ();
+  rxMobility->SetPosition (Vector (1.0, 1.0 * (bssNumber - 1), 0.0));
+  rxPhy->SetMobility (rxMobility);
+  rxPhy->ConfigureStandard (WIFI_PHY_STANDARD_80211ac);
+  rxPhy->CreateWifiSpectrumPhyInterface (nullptr);
+  rxPhy->SetChannel (channel);
+  rxPhy->SetErrorRateModel (error);
+  rxPhy->SetChannelWidth (channelWidth);
+  rxPhy->SetChannelNumber (channelNumber);
+  rxPhy->SetPrimaryChannelNumber (primaryChannelNumber);
+  rxPhy->SetFrequency (frequency);
+  rxPhy->SetTxPowerStart (0.0);
+  rxPhy->SetTxPowerEnd (0.0);
+  rxPhy->SetRxSensitivity (-91.0);
+  rxPhy->SetAttribute ("TxMaskInnerBandMinimumRejection", DoubleValue (-40.0));
+  rxPhy->SetAttribute ("TxMaskOuterBandMinimumRejection", DoubleValue (-56.0));
+  rxPhy->SetAttribute ("TxMaskOuterBandMaximumRejection", DoubleValue (-80.0));
+  rxPhy->Initialize ();
+  
+  m_rxPhys.push_back (rxPhy);
+
+  Ptr<BondingTestSpectrumWifiPhy> txPhy = CreateObject<BondingTestSpectrumWifiPhy> ();
+  Ptr<ConstantPositionMobilityModel> txMobility = CreateObject<ConstantPositionMobilityModel> ();
+  txMobility->SetPosition (Vector (0.0, 1.0 * (bssNumber - 1), 0.0));
+  txPhy->SetMobility (txMobility);
+  txPhy->ConfigureStandard (WIFI_PHY_STANDARD_80211ac);
+  txPhy->CreateWifiSpectrumPhyInterface (nullptr);
+  txPhy->SetChannel (channel);
+  txPhy->SetErrorRateModel (error);
+  txPhy->SetChannelWidth (channelWidth);
+  txPhy->SetChannelNumber (channelNumber);
+  txPhy->SetPrimaryChannelNumber (primaryChannelNumber);
+  txPhy->SetFrequency (frequency);
+  txPhy->SetTxPowerStart (0.0);
+  txPhy->SetTxPowerEnd (0.0);
+  txPhy->SetRxSensitivity (-91.0);
+  txPhy->SetAttribute ("TxMaskInnerBandMinimumRejection", DoubleValue (-40.0));
+  txPhy->SetAttribute ("TxMaskOuterBandMinimumRejection", DoubleValue (-56.0));
+  txPhy->SetAttribute ("TxMaskOuterBandMaximumRejection", DoubleValue (-80.0));
+  txPhy->Initialize ();
+
+  Ptr<ConstantThresholdChannelBondingManager> channelBondingManager = CreateObject<ConstantThresholdChannelBondingManager> ();
+  txPhy->SetChannelBondingManager (channelBondingManager);
+  txPhy->SetPifs (MicroSeconds (25));
+
+  m_txPhys.push_back (txPhy);
 }
 
 void
@@ -1127,141 +947,17 @@ TestDynamicChannelBonding::DoSetup (void)
   lossModel->SetDefaultLoss (50); // set default loss to 50 dB for all links
   channel->AddPropagationLossModel (lossModel);
 
-  Ptr<ConstantSpeedPropagationDelayModel> delayModel
-    = CreateObject<ConstantSpeedPropagationDelayModel> ();
+  Ptr<ConstantSpeedPropagationDelayModel> delayModel = CreateObject<ConstantSpeedPropagationDelayModel> ();
   channel->SetPropagationDelayModel (delayModel);
 
-  Ptr<ErrorRateModel> error = CreateObject<NistErrorRateModel> ();
+  //Create BSS #1 operating on channel 38, with primary channel 36
+  CreateBss (channel, 40 /* channel width */, 38 /* channel number */, 5190 /* frequency */, 36 /* primary channel number */);
 
-  m_rxPhyBss1 = CreateObject<BondingTestSpectrumWifiPhy> ();
-  Ptr<ConstantPositionMobilityModel> rxMobilityBss1 = CreateObject<ConstantPositionMobilityModel> ();
-  rxMobilityBss1->SetPosition (Vector (1.0, 20.0, 0.0));
-  m_rxPhyBss1->SetMobility (rxMobilityBss1);
-  m_rxPhyBss1->ConfigureStandard (WIFI_PHY_STANDARD_80211n_5GHZ);
-  m_rxPhyBss1->CreateWifiSpectrumPhyInterface (nullptr);
-  m_rxPhyBss1->SetChannel (channel);
-  m_rxPhyBss1->SetErrorRateModel (error);
-  m_rxPhyBss1->SetChannelWidth (40);
-  m_rxPhyBss1->SetChannelNumber (38);
-  m_rxPhyBss1->SetPrimaryChannelNumber (36);
-  m_rxPhyBss1->SetFrequency (5190);
-  m_rxPhyBss1->SetTxPowerStart (0.0);
-  m_rxPhyBss1->SetTxPowerEnd (0.0);
-  m_rxPhyBss1->SetRxSensitivity (-91.0);
-  m_rxPhyBss1->SetAttribute ("TxMaskInnerBandMinimumRejection", DoubleValue (-40.0));
-  m_rxPhyBss1->SetAttribute ("TxMaskOuterBandMinimumRejection", DoubleValue (-56.0));
-  m_rxPhyBss1->SetAttribute ("TxMaskOuterBandMaximumRejection", DoubleValue (-80.0));
-  m_rxPhyBss1->Initialize ();
+  //Create BSS #2 operating on channel 40
+  CreateBss (channel, 20 /* channel width */, 40 /* channel number */, 5200 /* frequency */, 40 /* primary channel number */);
 
-  m_txPhyBss1 = CreateObject<BondingTestSpectrumWifiPhy> ();
-  Ptr<ConstantPositionMobilityModel> txMobilityBss1 = CreateObject<ConstantPositionMobilityModel> ();
-  txMobilityBss1->SetPosition (Vector (0.0, 20.0, 0.0));
-  m_txPhyBss1->SetMobility (txMobilityBss1);
-  m_txPhyBss1->ConfigureStandard (WIFI_PHY_STANDARD_80211n_5GHZ);
-  m_txPhyBss1->CreateWifiSpectrumPhyInterface (nullptr);
-  m_txPhyBss1->SetChannel (channel);
-  m_txPhyBss1->SetErrorRateModel (error);
-  m_txPhyBss1->SetChannelWidth (40);
-  m_txPhyBss1->SetChannelNumber (38);
-  m_txPhyBss1->SetPrimaryChannelNumber (36);
-  m_txPhyBss1->SetFrequency (5190);
-  m_txPhyBss1->SetTxPowerStart (0.0);
-  m_txPhyBss1->SetTxPowerEnd (0.0);
-  m_txPhyBss1->SetRxSensitivity (-91.0);
-  m_txPhyBss1->SetAttribute ("TxMaskInnerBandMinimumRejection", DoubleValue (-40.0));
-  m_txPhyBss1->SetAttribute ("TxMaskOuterBandMinimumRejection", DoubleValue (-56.0));
-  m_txPhyBss1->SetAttribute ("TxMaskOuterBandMaximumRejection", DoubleValue (-80.0));
-  m_txPhyBss1->Initialize ();
-
-  Ptr<ConstantThresholdChannelBondingManager> channelBondingManagerTx1 = CreateObject<ConstantThresholdChannelBondingManager> ();
-  m_txPhyBss1->SetChannelBondingManager (channelBondingManagerTx1);
-  m_txPhyBss1->SetPifs (MicroSeconds (25));
-
-  m_rxPhyBss2 = CreateObject<BondingTestSpectrumWifiPhy> ();
-  Ptr<ConstantPositionMobilityModel> rxMobilityBss2 = CreateObject<ConstantPositionMobilityModel> ();
-  rxMobilityBss2->SetPosition (Vector (1.0, 10.0, 0.0));
-  m_rxPhyBss2->SetMobility (rxMobilityBss2);
-  m_rxPhyBss2->ConfigureStandard (WIFI_PHY_STANDARD_80211n_5GHZ);
-  m_rxPhyBss2->CreateWifiSpectrumPhyInterface (nullptr);
-  m_rxPhyBss2->SetChannel (channel);
-  m_rxPhyBss2->SetErrorRateModel (error);
-  m_rxPhyBss2->SetChannelWidth (20);
-  m_rxPhyBss2->SetChannelNumber (40);
-  m_rxPhyBss2->SetFrequency (5200);
-  m_rxPhyBss2->SetTxPowerStart (0.0);
-  m_rxPhyBss2->SetTxPowerEnd (0.0);
-  m_rxPhyBss2->SetRxSensitivity (-91.0);
-  m_rxPhyBss2->SetAttribute ("TxMaskInnerBandMinimumRejection", DoubleValue (-40.0));
-  m_rxPhyBss2->SetAttribute ("TxMaskOuterBandMinimumRejection", DoubleValue (-56.0));
-  m_rxPhyBss2->SetAttribute ("TxMaskOuterBandMaximumRejection", DoubleValue (-80.0));
-  m_rxPhyBss2->Initialize ();
-
-  m_txPhyBss2 = CreateObject<BondingTestSpectrumWifiPhy> ();
-  Ptr<ConstantPositionMobilityModel> txMobilityBss2 = CreateObject<ConstantPositionMobilityModel> ();
-  txMobilityBss2->SetPosition (Vector (0.0, 10.0, 0.0));
-  m_txPhyBss2->SetMobility (txMobilityBss2);
-  m_txPhyBss2->ConfigureStandard (WIFI_PHY_STANDARD_80211n_5GHZ);
-  m_txPhyBss2->CreateWifiSpectrumPhyInterface (nullptr);
-  m_txPhyBss2->SetChannel (channel);
-  m_txPhyBss2->SetErrorRateModel (error);
-  m_txPhyBss2->SetChannelWidth (20);
-  m_txPhyBss2->SetChannelNumber (40);
-  m_txPhyBss2->SetFrequency (5200);
-  m_txPhyBss2->SetTxPowerStart (0.0);
-  m_txPhyBss2->SetTxPowerEnd (0.0);
-  m_txPhyBss2->SetRxSensitivity (-91.0);
-  m_txPhyBss2->SetAttribute ("TxMaskInnerBandMinimumRejection", DoubleValue (-40.0));
-  m_txPhyBss2->SetAttribute ("TxMaskOuterBandMinimumRejection", DoubleValue (-56.0));
-  m_txPhyBss2->SetAttribute ("TxMaskOuterBandMaximumRejection", DoubleValue (-80.0));
-  m_txPhyBss2->Initialize ();
-
-  Ptr<ConstantThresholdChannelBondingManager> channelBondingManagerTx2 = CreateObject<ConstantThresholdChannelBondingManager> ();
-  m_txPhyBss2->SetChannelBondingManager (channelBondingManagerTx2);
-  m_txPhyBss2->SetPifs (MicroSeconds (25));
-
-  m_rxPhyBss3 = CreateObject<BondingTestSpectrumWifiPhy> ();
-  Ptr<ConstantPositionMobilityModel> rxMobilityBss3 = CreateObject<ConstantPositionMobilityModel> ();
-  rxMobilityBss3->SetPosition (Vector (1.0, 20.0, 0.0));
-  m_rxPhyBss3->SetMobility (rxMobilityBss3);
-  m_rxPhyBss3->ConfigureStandard (WIFI_PHY_STANDARD_80211n_5GHZ);
-  m_rxPhyBss3->CreateWifiSpectrumPhyInterface (nullptr);
-  m_rxPhyBss3->SetChannel (channel);
-  m_rxPhyBss3->SetErrorRateModel (error);
-  m_rxPhyBss3->SetChannelWidth (40);
-  m_rxPhyBss3->SetChannelNumber (38);
-  m_rxPhyBss3->SetPrimaryChannelNumber (40);
-  m_rxPhyBss3->SetFrequency (5190);
-  m_rxPhyBss3->SetTxPowerStart (0.0);
-  m_rxPhyBss3->SetTxPowerEnd (0.0);
-  m_rxPhyBss3->SetRxSensitivity (-91.0);
-  m_rxPhyBss3->SetAttribute ("TxMaskInnerBandMinimumRejection", DoubleValue (-40.0));
-  m_rxPhyBss3->SetAttribute ("TxMaskOuterBandMinimumRejection", DoubleValue (-56.0));
-  m_rxPhyBss3->SetAttribute ("TxMaskOuterBandMaximumRejection", DoubleValue (-80.0));
-  m_rxPhyBss3->Initialize ();
-
-  m_txPhyBss3 = CreateObject<BondingTestSpectrumWifiPhy> ();
-  Ptr<ConstantPositionMobilityModel> txMobilityBss3 = CreateObject<ConstantPositionMobilityModel> ();
-  txMobilityBss3->SetPosition (Vector (0.0, 20.0, 0.0));
-  m_txPhyBss3->SetMobility (txMobilityBss3);
-  m_txPhyBss3->ConfigureStandard (WIFI_PHY_STANDARD_80211n_5GHZ);
-  m_txPhyBss3->CreateWifiSpectrumPhyInterface (nullptr);
-  m_txPhyBss3->SetChannel (channel);
-  m_txPhyBss3->SetErrorRateModel (error);
-  m_txPhyBss3->SetChannelWidth (40);
-  m_txPhyBss3->SetChannelNumber (38);
-  m_txPhyBss3->SetPrimaryChannelNumber (40);
-  m_txPhyBss3->SetFrequency (5190);
-  m_txPhyBss3->SetTxPowerStart (0.0);
-  m_txPhyBss3->SetTxPowerEnd (0.0);
-  m_txPhyBss3->SetRxSensitivity (-91.0);
-  m_txPhyBss3->SetAttribute ("TxMaskInnerBandMinimumRejection", DoubleValue (-40.0));
-  m_txPhyBss3->SetAttribute ("TxMaskOuterBandMinimumRejection", DoubleValue (-56.0));
-  m_txPhyBss3->SetAttribute ("TxMaskOuterBandMaximumRejection", DoubleValue (-80.0));
-  m_txPhyBss3->Initialize ();
-
-  Ptr<ConstantThresholdChannelBondingManager> channelBondingManagerTx3 = CreateObject<ConstantThresholdChannelBondingManager> ();
-  m_txPhyBss3->SetChannelBondingManager (channelBondingManagerTx3);
-  m_txPhyBss3->SetPifs (MicroSeconds (25));
+  //Create BSS #3 operating on channel 38, with primary channel 40
+  CreateBss (channel, 40 /* channel width */, 38 /* channel number */, 5190 /* frequency */, 40 /* primary channel number */);
 }
 
 void
@@ -1270,10 +966,14 @@ TestDynamicChannelBonding::DoRun (void)
   RngSeedManager::SetSeed (1);
   RngSeedManager::SetRun (1);
   int64_t streamNumber = 0;
-  m_rxPhyBss1->AssignStreams (streamNumber);
-  m_rxPhyBss2->AssignStreams (streamNumber);
-  m_txPhyBss1->AssignStreams (streamNumber);
-  m_txPhyBss2->AssignStreams (streamNumber);
+  for (auto & rxPhy : m_rxPhys)
+    {
+      rxPhy->AssignStreams (streamNumber);
+    }
+  for (auto & txPhy : m_txPhys)
+    {
+      txPhy->AssignStreams (streamNumber);
+    }
 
   //CASE 1: send on free channel, so BSS 1 PHY shall select the full supported channel width of 40 MHz
   Simulator::Schedule (Seconds (1.0), &TestDynamicChannelBonding::SendPacket, this, 1, 40);
@@ -1286,15 +986,15 @@ TestDynamicChannelBonding::DoRun (void)
   Simulator::Schedule (Seconds (3.0), &TestDynamicChannelBonding::SendPacket, this, 2, 20);
   Simulator::Schedule (Seconds (3.0) + MicroSeconds (164) /* transmission time of previous packet sent by BSS 2 */ + MicroSeconds (20) /* < PIFS */, &TestDynamicChannelBonding::SendPacket, this, 1, 20);
 
-  //Case 4: both transmitters send at the same time when channel was previously idle, BSS 1 shall anyway transmit at 40 MHz since it shall already indicate the selected channel width in its PHY header
+  //CASE 4: both transmitters send at the same time when channel was previously idle, BSS 1 shall anyway transmit at 40 MHz since it shall already indicate the selected channel width in its PHY header
   Simulator::Schedule (Seconds (4.0), &TestDynamicChannelBonding::SendPacket, this, 2, 20);
   Simulator::Schedule (Seconds (4.0), &TestDynamicChannelBonding::SendPacket, this, 1, 40);
 
-  //Case 5: send when secondardy channel is free for more than PIFS, so BSS 1 PHY shall select the full supported channel width of 40 MHz
+  //CASE 5: send when secondardy channel is free for more than PIFS, so BSS 1 PHY shall select the full supported channel width of 40 MHz
   Simulator::Schedule (Seconds (5.0), &TestDynamicChannelBonding::SendPacket, this, 3, 40);
   Simulator::Schedule (Seconds (5.0) + MicroSeconds (100) /* transmission time of previous packet sent by BSS 2 */ + MicroSeconds (50) /* > PIFS */, &TestDynamicChannelBonding::SendPacket, this, 1, 40);
 
-  //Case 6: send when secondardy channel is free for more than PIFS, so BSS 3 PHY shall select the full supported channel width of 40 MHz
+  //CASE 6: send when secondardy channel is free for more than PIFS, so BSS 3 PHY shall select the full supported channel width of 40 MHz
   Simulator::Schedule (Seconds (6.0), &TestDynamicChannelBonding::SendPacket, this, 1, 40);
   Simulator::Schedule (Seconds (6.0) + MicroSeconds (100) /* transmission time of previous packet sent by BSS 2 */ + MicroSeconds (50) /* > PIFS */, &TestDynamicChannelBonding::SendPacket, this, 3, 40);
 
@@ -1766,8 +1466,9 @@ private:
    * Check the secondary channel status
    * \param expectedIdle flag whether the secondary channel is expected to be deemed IDLE
    * \param device the device to check
+   * \param channelWidth the channel width to check
    */
-  void CheckSecondaryChannelStatus (bool expectedIdle, Ptr<NetDevice> device);
+  void CheckSecondaryChannelStatus (bool expectedIdle, Ptr<NetDevice> device, uint16_t channelWidth);
 };
 
 TestStaticChannelBondingChannelAccess::TestStaticChannelBondingChannelAccess ()
@@ -1795,16 +1496,20 @@ TestStaticChannelBondingChannelAccess::CheckPhyState (WifiPhyState expectedState
 }
 
 void
-TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus (bool expectedIdle, Ptr<NetDevice> device)
+TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus (bool expectedIdle, Ptr<NetDevice> device, uint16_t channelWidth)
 {
   Ptr<WifiNetDevice> wifiDevicePtr = device->GetObject <WifiNetDevice> ();
-  bool currentlyIdle = wifiDevicePtr->GetPhy ()->IsSecondaryStateIdle ();
+  bool currentlyIdle = wifiDevicePtr->GetPhy ()->IsStateIdle (channelWidth);
   NS_TEST_ASSERT_MSG_EQ (currentlyIdle, expectedIdle, "Secondary channel status " << currentlyIdle << " does not match expected status " << expectedIdle << " at " << Simulator::Now ());
 }
 
 void
 TestStaticChannelBondingChannelAccess::DoRun (void)
 {
+  RngSeedManager::SetSeed (5);
+  RngSeedManager::SetRun (1);
+  int64_t streamNumber = 0;
+
   NodeContainer wifiNodesBss1;
   wifiNodesBss1.Create (2);
 
@@ -1826,17 +1531,14 @@ TestStaticChannelBondingChannelAccess::DoRun (void)
 
   spectrumPhy.SetChannel (spectrumChannel);
   spectrumPhy.SetErrorRateModel ("ns3::NistErrorRateModel");
-  spectrumPhy.Set ("ChannelWidth", UintegerValue (40));
-  spectrumPhy.Set ("ChannelNumber", UintegerValue (38));
-  spectrumPhy.Set ("Frequency", UintegerValue (5190));
   spectrumPhy.Set ("TxPowerStart", DoubleValue (10));
   spectrumPhy.Set ("TxPowerEnd", DoubleValue (10));
 
   WifiHelper wifi;
-  wifi.SetStandard (WIFI_PHY_STANDARD_80211n_5GHZ);
+  wifi.SetStandard (WIFI_PHY_STANDARD_80211ac);
   wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager",
-                                "DataMode", StringValue ("HtMcs7"),
-                                "ControlMode", StringValue ("HtMcs7"));
+                                "DataMode", StringValue ("VhtMcs7"),
+                                "ControlMode", StringValue ("VhtMcs7"));
 
   WifiMacHelper mac;
   mac.SetType ("ns3::AdhocWifiMac");
@@ -1844,23 +1546,56 @@ TestStaticChannelBondingChannelAccess::DoRun (void)
   NetDeviceContainer bss1Devices;
   bss1Devices = wifi.Install (spectrumPhy, mac, wifiNodesBss1);
 
-  spectrumPhy.Set ("ChannelWidth", UintegerValue (20));
-  spectrumPhy.Set ("ChannelNumber", UintegerValue (36));
-  spectrumPhy.Set ("Frequency", UintegerValue (5180));
-  spectrumPhy.Set ("TxPowerStart", DoubleValue (10));
-  spectrumPhy.Set ("TxPowerEnd", DoubleValue (10));
+  // Assign fixed streams to random variables in use
+  wifi.AssignStreams (bss1Devices, streamNumber);
+
+  Ptr<NetDevice> devicePtr = bss1Devices.Get (0);
+  Ptr<WifiNetDevice> wifiDevicePtr = devicePtr->GetObject <WifiNetDevice> ();
+  wifiDevicePtr->GetPhy ()->SetAttribute ("ChannelWidth", UintegerValue (40));
+  wifiDevicePtr->GetPhy ()->SetAttribute ("ChannelNumber", UintegerValue (38));
+  wifiDevicePtr->GetPhy ()->SetAttribute ("Frequency", UintegerValue (5190));
+
+  devicePtr = bss1Devices.Get (1);
+  wifiDevicePtr = devicePtr->GetObject <WifiNetDevice> ();
+  wifiDevicePtr->GetPhy ()->SetAttribute ("ChannelWidth", UintegerValue (40));
+  wifiDevicePtr->GetPhy ()->SetAttribute ("ChannelNumber", UintegerValue (38));
+  wifiDevicePtr->GetPhy ()->SetAttribute ("Frequency", UintegerValue (5190));
 
   NetDeviceContainer bss2Devices;
   bss2Devices = wifi.Install (spectrumPhy, mac, wifiNodesBss2);
 
-  spectrumPhy.Set ("ChannelWidth", UintegerValue (20));
-  spectrumPhy.Set ("ChannelNumber", UintegerValue (40));
-  spectrumPhy.Set ("Frequency", UintegerValue (5200));
-  spectrumPhy.Set ("TxPowerStart", DoubleValue (10));
-  spectrumPhy.Set ("TxPowerEnd", DoubleValue (10));
+  // Assign fixed streams to random variables in use
+  wifi.AssignStreams (bss2Devices, streamNumber);
+
+  devicePtr = bss2Devices.Get (0);
+  wifiDevicePtr = devicePtr->GetObject <WifiNetDevice> ();
+  wifiDevicePtr->GetPhy ()->SetAttribute ("ChannelWidth", UintegerValue (20));
+  wifiDevicePtr->GetPhy ()->SetAttribute ("ChannelNumber", UintegerValue (36));
+  wifiDevicePtr->GetPhy ()->SetAttribute ("Frequency", UintegerValue (5180));
+
+  devicePtr = bss2Devices.Get (1);
+  wifiDevicePtr = devicePtr->GetObject <WifiNetDevice> ();
+  wifiDevicePtr->GetPhy ()->SetAttribute ("ChannelWidth", UintegerValue (20));
+  wifiDevicePtr->GetPhy ()->SetAttribute ("ChannelNumber", UintegerValue (36));
+  wifiDevicePtr->GetPhy ()->SetAttribute ("Frequency", UintegerValue (5180));
 
   NetDeviceContainer bss3Devices;
   bss3Devices = wifi.Install (spectrumPhy, mac, wifiNodesBss3);
+
+  // Assign fixed streams to random variables in use
+  wifi.AssignStreams (bss3Devices, streamNumber);
+
+  devicePtr = bss3Devices.Get (0);
+  wifiDevicePtr = devicePtr->GetObject <WifiNetDevice> ();
+  wifiDevicePtr->GetPhy ()->SetAttribute ("ChannelWidth", UintegerValue (20));
+  wifiDevicePtr->GetPhy ()->SetAttribute ("ChannelNumber", UintegerValue (40));
+  wifiDevicePtr->GetPhy ()->SetAttribute ("Frequency", UintegerValue (5200));
+
+  devicePtr = bss3Devices.Get (1);
+  wifiDevicePtr = devicePtr->GetObject <WifiNetDevice> ();
+  wifiDevicePtr->GetPhy ()->SetAttribute ("ChannelWidth", UintegerValue (20));
+  wifiDevicePtr->GetPhy ()->SetAttribute ("ChannelNumber", UintegerValue (40));
+  wifiDevicePtr->GetPhy ()->SetAttribute ("Frequency", UintegerValue (5200));
 
   MobilityHelper mobility;
   Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator> ();
@@ -1876,6 +1611,11 @@ TestStaticChannelBondingChannelAccess::DoRun (void)
   mobility.Install (wifiNodesBss1);
   mobility.Install (wifiNodesBss2);
   mobility.Install (wifiNodesBss3);
+
+  //Make sure ADDBA are established
+  Simulator::Schedule (Seconds (0.0), &TestStaticChannelBondingChannelAccess::SendPacket, this, bss1Devices.Get (0), bss1Devices.Get (1)->GetAddress ());
+  Simulator::Schedule (Seconds (0.1), &TestStaticChannelBondingChannelAccess::SendPacket, this, bss2Devices.Get (0), bss2Devices.Get (1)->GetAddress ());
+  Simulator::Schedule (Seconds (0.2), &TestStaticChannelBondingChannelAccess::SendPacket, this, bss3Devices.Get (0), bss3Devices.Get (1)->GetAddress ());
 
   //Case 1: channel 36 only
   Simulator::Schedule (Seconds (1.0), &TestStaticChannelBondingChannelAccess::SendPacket, this, bss2Devices.Get (0), bss2Devices.Get (1)->GetAddress ());
@@ -1893,8 +1633,8 @@ TestStaticChannelBondingChannelAccess::DoRun (void)
   Simulator::Schedule (Seconds (1.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss3Devices.Get (1));
 
   //Secondary channel CCA is deemed BUSY during transmission or reception of a 20 MHz PPDU in the primary channel.
-  Simulator::Schedule (Seconds (1.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (0));
-  Simulator::Schedule (Seconds (1.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (1));
+  Simulator::Schedule (Seconds (1.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (0), 40);
+  Simulator::Schedule (Seconds (1.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (1), 40);
 
 
   //Case 2: channel 40 only
@@ -1913,8 +1653,8 @@ TestStaticChannelBondingChannelAccess::DoRun (void)
   Simulator::Schedule (Seconds (2.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss2Devices.Get (1));
 
   //Secondary channel CCA is deemed BUSY if energy in the secondary channel is above the corresponding CCA threshold.
-  Simulator::Schedule (Seconds (2.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (0));
-  Simulator::Schedule (Seconds (2.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (1));
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (0), 40);
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (1), 40);
 
 
   //Case 3: channel 38 only
@@ -1931,8 +1671,8 @@ TestStaticChannelBondingChannelAccess::DoRun (void)
   Simulator::Schedule (Seconds (3.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::CCA_BUSY, bss3Devices.Get (1));
 
   //Secondary channel CCA is deemed BUSY during transmission of a 40 MHz PPDU.
-  Simulator::Schedule (Seconds (3.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (0));
-  Simulator::Schedule (Seconds (3.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (1));
+  Simulator::Schedule (Seconds (3.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (0), 40);
+  Simulator::Schedule (Seconds (3.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (1), 40);
 
 
   //Case 4: channel 36 then channel 40
@@ -1952,8 +1692,8 @@ TestStaticChannelBondingChannelAccess::DoRun (void)
   Simulator::Schedule (Seconds (4.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::RX, bss1Devices.Get (1));
 
   //Secondary channel CCA is deemed BUSY during reception of a 20 MHz PPDU in the primary channel.
-  Simulator::Schedule (Seconds (4.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (0));
-  Simulator::Schedule (Seconds (4.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (1));
+  Simulator::Schedule (Seconds (4.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (0), 40);
+  Simulator::Schedule (Seconds (4.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (1), 40);
 
 
   //Case 5: channel 40 then channel 36
@@ -1973,8 +1713,8 @@ TestStaticChannelBondingChannelAccess::DoRun (void)
   Simulator::Schedule (Seconds (5.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::RX, bss1Devices.Get (1));
 
   //Secondary channel CCA is deemed BUSY if energy in the secondary channel is above the corresponding CCA threshold.
-  Simulator::Schedule (Seconds (5.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (0));
-  Simulator::Schedule (Seconds (5.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (1));
+  Simulator::Schedule (Seconds (5.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (0), 40);
+  Simulator::Schedule (Seconds (5.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (1), 40);
 
 
   //Case 6: channel 36 then channel 38
@@ -1994,18 +1734,18 @@ TestStaticChannelBondingChannelAccess::DoRun (void)
   Simulator::Schedule (Seconds (6.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss3Devices.Get (1));
 
   //Secondary channel CCA is deemed BUSY during reception of a 20 MHz PPDU in the primary channel.
-  Simulator::Schedule (Seconds (6.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (0));
-  Simulator::Schedule (Seconds (6.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (1));
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (0), 40);
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (1), 40);
 
   //BSS 1: transmitter should be in TX state and receiver should be in RX state
   Simulator::Schedule (Seconds (6.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::TX, bss1Devices.Get (0));
   Simulator::Schedule (Seconds (6.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::RX, bss1Devices.Get (1));
 
   //others: they should be in CCA_BUSY state since a 40 MHz PPDU is transmitted whereas receivers only support 20 MHz PPDUs
-  Simulator::Schedule (Seconds (6.0) + MicroSeconds (400.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::CCA_BUSY, bss2Devices.Get (0));
-  Simulator::Schedule (Seconds (6.0) + MicroSeconds (400.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::CCA_BUSY, bss2Devices.Get (1));
-  Simulator::Schedule (Seconds (6.0) + MicroSeconds (400.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::CCA_BUSY, bss3Devices.Get (0));
-  Simulator::Schedule (Seconds (6.0) + MicroSeconds (400.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::CCA_BUSY, bss3Devices.Get (1));
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::CCA_BUSY, bss2Devices.Get (0));
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::CCA_BUSY, bss2Devices.Get (1));
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::CCA_BUSY, bss3Devices.Get (0));
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::CCA_BUSY, bss3Devices.Get (1));
 
 
   //Case 7: channel 38 then channel 36
@@ -2023,8 +1763,8 @@ TestStaticChannelBondingChannelAccess::DoRun (void)
   Simulator::Schedule (Seconds (7.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::CCA_BUSY, bss3Devices.Get (1));
 
   //Secondary channel CCA is deemed BUSY during transmission of a 40 MHz PPDU.
-  Simulator::Schedule (Seconds (7.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (0));
-  Simulator::Schedule (Seconds (7.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (1));
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (0), 40);
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (1), 40);
 
   //BSS 2: transmitter should be in TX state and receiver should be in RX state
   Simulator::Schedule (Seconds (7.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::TX, bss2Devices.Get (0));
@@ -2056,18 +1796,18 @@ TestStaticChannelBondingChannelAccess::DoRun (void)
   Simulator::Schedule (Seconds (8.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::IDLE, bss2Devices.Get (1));
 
   //Secondary channel CCA is deemed BUSY if energy in the secondary channel is above the corresponding CCA threshold.
-  Simulator::Schedule (Seconds (8.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (0));
-  Simulator::Schedule (Seconds (8.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (1));
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (0), 40);
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (1), 40);
 
   //BSS 1: transmitter should be in TX state and receiver should be in RX state
-  Simulator::Schedule (Seconds (8.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::TX, bss1Devices.Get (0));
-  Simulator::Schedule (Seconds (8.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::RX, bss1Devices.Get (1));
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (400.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::TX, bss1Devices.Get (0));
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (400.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::RX, bss1Devices.Get (1));
 
   //others: they should be in CCA_BUSY state since a 40 MHz PPDU is transmitted whereas receivers only support 20 MHz PPDUs
-  Simulator::Schedule (Seconds (8.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::CCA_BUSY, bss2Devices.Get (0));
-  Simulator::Schedule (Seconds (8.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::CCA_BUSY, bss2Devices.Get (1));
-  Simulator::Schedule (Seconds (8.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::CCA_BUSY, bss3Devices.Get (0));
-  Simulator::Schedule (Seconds (8.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::CCA_BUSY, bss3Devices.Get (1));
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (400.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::CCA_BUSY, bss2Devices.Get (0));
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (400.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::CCA_BUSY, bss2Devices.Get (1));
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (400.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::CCA_BUSY, bss3Devices.Get (0));
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (400.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::CCA_BUSY, bss3Devices.Get (1));
 
 
   //Case 9: channel 38 then channel 40
@@ -2085,8 +1825,8 @@ TestStaticChannelBondingChannelAccess::DoRun (void)
   Simulator::Schedule (Seconds (9.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::CCA_BUSY, bss3Devices.Get (1));
 
   //Secondary channel CCA is deemed BUSY during transmission of a 40 MHz PPDU.
-  Simulator::Schedule (Seconds (9.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (0));
-  Simulator::Schedule (Seconds (9.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (1));
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (0), 40);
+  Simulator::Schedule (Seconds (9.0) + MicroSeconds (50.0), &TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus, this, false, bss1Devices.Get (1), 40);
 
   //BSS 3: transmitter should be in TX state and receiver should be in RX state
   Simulator::Schedule (Seconds (9.0) + MicroSeconds (350.0), &TestStaticChannelBondingChannelAccess::CheckPhyState, this, WifiPhyState::TX, bss3Devices.Get (0));
