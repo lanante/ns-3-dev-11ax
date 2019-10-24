@@ -475,11 +475,33 @@ TestStaticChannelBondingSnr::RxCallback (std::string context, Ptr<const Packet> 
 void
 TestStaticChannelBondingSnr::RxOkCallback (std::string context, Ptr<const Packet> p, double snr, WifiMode mode, WifiPreamble preamble)
 {
-  NS_LOG_INFO ("RxOkCallback: BSS=" << context << " SNR=" << RatioToDb (snr));
-  int bss = std::stoi (context.substr (3, 2));
-  m_reception.at (bss - 1) = true;
-  m_phyPayloadReceivedSuccess.at (bss - 1) = true;
-  auto it = m_expectedSnrPerBss.find (bss);
+  uint32_t size = p->GetSize ();
+  uint8_t txBss = 0;
+  if (size == 1031)
+    {
+      txBss = 1;
+    }
+  else if (size == 1032)
+    {
+      txBss = 2;
+    }
+  else if (size == 2130)
+    {
+      txBss = 3;
+    }
+  else if (size == 2131)
+    {
+      txBss = 4;
+    }
+  uint8_t rxBss = std::stoi (context.substr (3, 2));
+  NS_LOG_INFO ("RxOkCallback: TX BSS=" << +txBss << " RX BSS=" << +rxBss << " SNR=" << RatioToDb (snr));
+  if (txBss != rxBss)
+    {
+      return;
+    }
+  m_reception.at (rxBss - 1) = true;
+  m_phyPayloadReceivedSuccess.at (rxBss - 1) = true;
+  auto it = m_expectedSnrPerBss.find (rxBss);
   if (it != m_expectedSnrPerBss.end ())
     {
       NS_TEST_EXPECT_MSG_EQ_TOL (RatioToDb (snr), it->second, 0.2, "Unexpected SNR value");
@@ -489,11 +511,33 @@ TestStaticChannelBondingSnr::RxOkCallback (std::string context, Ptr<const Packet
 void
 TestStaticChannelBondingSnr::RxErrorCallback (std::string context, Ptr<const Packet> p, double snr)
 {
-  NS_LOG_INFO ("RxErrorCallback: BSS=" << context << " SNR=" << RatioToDb (snr));
-  int bss = std::stoi (context.substr (3, 2));
-  m_reception.at (bss - 1) = true;
-  m_phyPayloadReceivedSuccess.at (bss - 1) = false;
-  auto it = m_expectedSnrPerBss.find (bss);
+  uint32_t size = p->GetSize ();
+  uint8_t txBss = 0;
+  if (size == 1031)
+    {
+      txBss = 1;
+    }
+  else if (size == 1032)
+    {
+      txBss = 2;
+    }
+  else if (size == 2130)
+    {
+      txBss = 3;
+    }
+  else if (size == 2131)
+    {
+      txBss = 4;
+    }
+  uint8_t rxBss = std::stoi (context.substr (3, 2));
+  NS_LOG_INFO ("RxOkCallback: TX BSS=" << +txBss << " RX BSS=" << +rxBss << " SNR=" << RatioToDb (snr));
+  if (txBss != rxBss)
+    {
+      return;
+    }
+  m_reception.at (rxBss - 1) = true;
+  m_phyPayloadReceivedSuccess.at (rxBss - 1) = false;
+  auto it = m_expectedSnrPerBss.find (rxBss);
   if (it != m_expectedSnrPerBss.end ())
     {
       NS_TEST_EXPECT_MSG_EQ_TOL (RatioToDb (snr), it->second, 0.2, "Unexpected SNR value");
@@ -695,9 +739,6 @@ TestStaticChannelBondingSnr::DoRun (void)
   Simulator::Schedule (Seconds (1.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 12, 80); //secondary channels should be deemed idle for BSS 12
 
   Simulator::Schedule (Seconds (1.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, true, true, 1); // successfull reception for BSS 1
-  Simulator::Schedule (Seconds (1.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, true, true, 3); // successfull reception for BSS 3
-  Simulator::Schedule (Seconds (1.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, false, false, 2); // no reception for BSS 2
-  Simulator::Schedule (Seconds (1.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, false, false, 4); // no reception for BSS 4
 
 
   //CASE 1B: BSS 2
@@ -750,9 +791,6 @@ TestStaticChannelBondingSnr::DoRun (void)
   Simulator::Schedule (Seconds (2.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 12, 80); //secondary channels should be deemed idle for BSS 12
 
   Simulator::Schedule (Seconds (2.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, true, true, 2); // successfull reception for BSS 2
-  Simulator::Schedule (Seconds (2.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, true, true, 4); // successfull reception for BSS 4
-  Simulator::Schedule (Seconds (2.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, false, false, 1); // no reception for BSS 1
-  Simulator::Schedule (Seconds (2.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, false, false, 3); // no reception for BSS 3
 
 
   //CASE 1C: BSS 3
@@ -805,9 +843,6 @@ TestStaticChannelBondingSnr::DoRun (void)
   Simulator::Schedule (Seconds (3.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 12, 80); //secondary channels should be deemed idle for BSS 12
 
   Simulator::Schedule (Seconds (3.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, true, true, 3); // successfull reception for BSS 3
-  Simulator::Schedule (Seconds (3.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, true, true, 4); // successfull reception for BSS 4
-  Simulator::Schedule (Seconds (3.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, false, false, 1); // no reception for BSS 1 since channel width is not supported
-  Simulator::Schedule (Seconds (3.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, false, false, 2); // no reception for BSS 2 since channel width is not supported
 
   //CASE 1D: BSS 4
   Simulator::Schedule (Seconds (3.9), &TestStaticChannelBondingSnr::Reset, this);
@@ -860,8 +895,6 @@ TestStaticChannelBondingSnr::DoRun (void)
   Simulator::Schedule (Seconds (4.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 12, 80); //secondary channels should be deemed idle for BSS 12
 
   Simulator::Schedule (Seconds (4.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, true, true, 4); // successfull reception for BSS 4
-  Simulator::Schedule (Seconds (4.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, false, false, 1); // no reception for BSS 1 since channel width is not supported
-  Simulator::Schedule (Seconds (4.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, false, false, 2); // no reception for BSS 2 since channel width is not supported
 
 
   //CASE 2: verify reception on channel 36 (BSS 1) when channel 40 is used (BSS 2) at the same time
@@ -919,7 +952,6 @@ TestStaticChannelBondingSnr::DoRun (void)
   Simulator::Schedule (Seconds (5.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 12, 80); //secondary channels should be deemed idle for BSS 12
 
   Simulator::Schedule (Seconds (5.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, true, true, 1); // successfull reception for BSS 1
-  Simulator::Schedule (Seconds (5.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, true, true, 2); // successfull reception for BSS 2
 
 
   //CASE 3: verify reception on channel 38 (BSS 3) when channel 36 is used (BSS 1) at the same time
@@ -976,7 +1008,7 @@ TestStaticChannelBondingSnr::DoRun (void)
   Simulator::Schedule (Seconds (6.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 12, 80); //secondary channels should be deemed idle for BSS 12
 
   Simulator::Schedule (Seconds (6.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, true, false, 1); // PHY header passed but payload failed for BSS 1
-  Simulator::Schedule (Seconds (6.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, false, false, 3); // PHY header failed failed for BSS 3, so reception was aborted
+  Simulator::Schedule (Seconds (6.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, false, false, 3); // packet from BSS 3 dropped because power from BSS 1 is higher in the primary 20 MHz
 
 
   //CASE 4: verify reception on channel 38 (BSS 3) when channel 40 is used (BSS 2) at the same time
@@ -1147,7 +1179,7 @@ TestStaticChannelBondingSnr::DoRun (void)
   Simulator::Schedule (Seconds (9.0) + MicroSeconds (165.0), &TestStaticChannelBondingSnr::CheckSecondaryChannelStatus, this, true, 12, 80); //secondary channels should be deemed idle for BSS 12
 
   Simulator::Schedule (Seconds (9.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, true, false, 2); // PHY header passed but payload failed for BSS 2
-  Simulator::Schedule (Seconds (9.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, false, false, 4); // PHY header failed failed for BSS 4, so reception was aborted
+  Simulator::Schedule (Seconds (9.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, false, false, 4); // packet from BSS 4 dropped because power from BSS 2 is higher in the primary 20 MHz
 
 
   //CASE 7: verify reception on channel 38 (BSS 3) when channels 36 (BSS 1) and 40 (BSS 2) are used at the same time
@@ -1207,7 +1239,7 @@ TestStaticChannelBondingSnr::DoRun (void)
 
   Simulator::Schedule (Seconds (10.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, true, false, 1); // PHY header passed but payload failed for BSS 1
   Simulator::Schedule (Seconds (10.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, true, false, 2); // PHY header passed but payload failed for BSS 2
-  Simulator::Schedule (Seconds (10.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, false, false, 3); // PHY header failed failed for BSS 3, so reception was aborted
+  Simulator::Schedule (Seconds (10.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, false, false, 3); // packet from BSS 3 dropped because power from BSS 1 is higher in the primary 20 MHz
 
 
   //CASE 8: verify reception on channel 38 (BSS 4) when channels 36 (BSS 1) and 40 (BSS 2) are used at the same time
@@ -1267,7 +1299,7 @@ TestStaticChannelBondingSnr::DoRun (void)
 
   Simulator::Schedule (Seconds (11.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, true, false, 1); // PHY header passed but payload failed for BSS 1
   Simulator::Schedule (Seconds (11.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, true, false, 2); // PHY header passed but payload failed for BSS 2
-  Simulator::Schedule (Seconds (11.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, false, false, 4); // PHY header failed failed for BSS 4, so reception was aborted
+  Simulator::Schedule (Seconds (11.5), &TestStaticChannelBondingSnr::VerifyResultsForBss, this, false, false, 4); // packet from BSS 4 dropped because power from BSS 2 is higher in the primary 20 MHz
 
   Simulator::Run ();
   Simulator::Destroy ();

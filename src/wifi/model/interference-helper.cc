@@ -80,18 +80,10 @@ double
 Event::GetRxPowerW (void) const
 {
   NS_ASSERT (m_rxPowerW.size () > 0);
-  //The total RX power corresponds to the sum of the power in each involved 20 MHz band
-  std::size_t nBands = std::max (m_txVector.GetChannelWidth () / 20, 1);
-  std::size_t i = 0;
   double power = 0.0;
   for (auto const& rxPowerPerBand : m_rxPowerW)
     {
       power += rxPowerPerBand.second;
-      i++;
-      if (i == nBands)
-        {
-          break;
-        }
     }
   return power;
 }
@@ -104,6 +96,18 @@ Event::GetRxPowerW (WifiSpectrumBand band) const
   NS_ASSERT (it != m_rxPowerW.end ());
   return it->second;
 }
+
+double
+Event::GetRxPowerW (WifiSpectrumBands bands) const
+{
+  double power = 0.0;
+  for (auto const& band : bands)
+    {
+      power += GetRxPowerW (band);
+    }
+  return power;
+}
+
 
 RxPowerWattPerChannelBand
 Event::GetRxPowerWPerBand (void) const
