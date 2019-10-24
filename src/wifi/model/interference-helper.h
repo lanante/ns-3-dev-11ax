@@ -95,6 +95,13 @@ public:
    */
   double GetRxPowerW (WifiSpectrumBand band) const;
   /**
+   * Return the total received power (W) for given bands.
+   *
+   * \param bands the vector of band for which the power should be returned
+   * \return the received power (W) for given bands
+   */
+  double GetRxPowerW (WifiSpectrumBands bands) const;
+  /**
    * Return the received power (W) for all bands.
    *
    * \return the received power (W) for all bands.
