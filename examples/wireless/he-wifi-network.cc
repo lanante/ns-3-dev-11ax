@@ -155,7 +155,7 @@ int main (int argc, char *argv[])
               std::ostringstream oss;
               oss << "HeMcs" << mcs;
               wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager","DataMode", StringValue (oss.str ()),
-                                            "ControlMode", StringValue (oss.str ()));
+                                            "ControlMode", (frequency == 2.4) ? StringValue ("DsssRate1Mbps") : StringValue ("OfdmRate6Mbps"));
 
               Ssid ssid = Ssid ("ns3-80211ax");
 
