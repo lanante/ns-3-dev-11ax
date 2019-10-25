@@ -369,17 +369,18 @@ WifiTxVector
 MinstrelWifiManager::GetDataTxVector (MinstrelWifiRemoteStation *station)
 {
   NS_LOG_FUNCTION (this << station);
-  uint16_t channelWidth = GetChannelWidth (station);
-  if (channelWidth > 20 && channelWidth != 22)
-    {
-      //avoid to use legacy rate adaptation algorithms for IEEE 802.11n/ac
-      channelWidth = 20;
-    }
+
   if (!station->m_initialized)
     {
       CheckInit (station);
     }
   WifiMode mode = GetSupported (station, station->m_txrate);
+  uint16_t channelWidth = GetChannelWidth (station, mode);
+  if (channelWidth > 20 && channelWidth != 22)
+    {
+      //avoid to use legacy rate adaptation algorithms for IEEE 802.11n/ac
+      channelWidth = 20;
+    }
   if (m_currentRate != mode.GetDataRate (channelWidth) && !station->m_isSampling)
     {
       NS_LOG_DEBUG ("New datarate: " << mode.GetDataRate (channelWidth));
@@ -393,12 +394,6 @@ MinstrelWifiManager::GetRtsTxVector (MinstrelWifiRemoteStation *station)
 {
   NS_LOG_FUNCTION (this << station);
   NS_LOG_DEBUG ("DoGetRtsMode m_txrate=" << station->m_txrate);
-  uint16_t channelWidth = GetChannelWidth (station);
-  if (channelWidth > 20 && channelWidth != 22)
-    {
-      //avoid to use legacy rate adaptation algorithms for IEEE 802.11n/ac
-      channelWidth = 20;
-    }
   WifiTxVector rtsTxVector;
   WifiMode mode;
   if (GetUseNonErpProtection () == false)
@@ -408,6 +403,12 @@ MinstrelWifiManager::GetRtsTxVector (MinstrelWifiRemoteStation *station)
   else
     {
       mode = GetNonErpSupported (station, 0);
+    }
+  uint16_t channelWidth = GetChannelWidth (station, mode);
+  if (channelWidth > 20 && channelWidth != 22)
+    {
+      //avoid to use legacy rate adaptation algorithms for IEEE 802.11n/ac
+      channelWidth = 20;
     }
   rtsTxVector = WifiTxVector (mode, GetDefaultTxPowerLevel (), GetPreambleForTransmission (mode.GetModulationClass (), GetShortPreambleEnabled (), UseGreenfieldForDestination (GetAddress (station))), 800, 1, 1, 0, channelWidth, GetAggregation (station), false);
   return rtsTxVector;

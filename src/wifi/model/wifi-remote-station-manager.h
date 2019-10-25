@@ -1027,10 +1027,11 @@ protected:
    * Return the maximum channel width that can be used to transmit to a station at the moment of the request.
    *
    * \param station the station being queried
+   * \param mode the WifiMode that will be used for the transmission
    *
    * \return the maximum channel width in MHz that can be used to transmit to a station at the moment of the request
    */
-  uint16_t GetChannelWidth (const WifiRemoteStation *station) const;
+  uint16_t GetChannelWidth (const WifiRemoteStation *station, WifiMode mode) const;
   /**
    * Return the channel width supported by the station.
    *

@@ -54,8 +54,11 @@ public:
   void SetPhy (const Ptr<WifiPhy> phy) override;
 
   /**
-   * Sets the CCA threshold (dBm) for the secondary channels. The energy of a received signal
-   * should be higher than this threshold to allow the PHY layer to declare CCA BUSY state.
+   * Sets the CCA threshold (dBm) for the secondary channels for a given MCS.
+   * The energy of a received signal should be higher than this threshold to allow
+   * the PHY layer to declare CCA BUSY state. When checking the secondary state prior
+   * to a transmission, it will consider the threshold that is configured for the
+   * MCS that is going to be used for the upcoming transmission.
    *
    * \param threshold the CCA threshold in dBm for the secondary channels
    */

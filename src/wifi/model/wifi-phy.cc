@@ -1456,12 +1456,13 @@ WifiPhy::GetChannelWidth (void) const
 }
 
 uint16_t
-WifiPhy::GetUsableChannelWidth (uint8_t mcs)
+WifiPhy::GetUsableChannelWidth (WifiMode mode)
 {
-  if (GetChannelWidth () >= 40)
+  WifiModulationClass modulation = mode.GetModulationClass ();
+  if ((GetChannelWidth () >= 40) && ((modulation == WIFI_MOD_CLASS_HT) || (modulation == WIFI_MOD_CLASS_VHT) || (modulation == WIFI_MOD_CLASS_HE)))
     {
       NS_ASSERT_MSG (m_channelBondingManager, "Channel bonding can only be used if a channel bonding manager has been set!");
-      return m_channelBondingManager->GetUsableChannelWidth (mcs);
+      return m_channelBondingManager->GetUsableChannelWidth (mode.GetMcsValue ());
     }
   return GetChannelWidth ();
 }

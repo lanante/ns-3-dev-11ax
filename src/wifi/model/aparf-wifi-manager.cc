@@ -184,7 +184,7 @@ AparfWifiManager::CheckInit (AparfWifiRemoteStation *station)
       station->m_prevPowerLevel = m_maxPower;
       station->m_critRateIndex = 0;
       WifiMode mode = GetSupported (station, station->m_rateIndex);
-      uint16_t channelWidth = GetChannelWidth (station);
+      uint16_t channelWidth = GetChannelWidthSupported (station);
       DataRate rate = DataRate (mode.GetDataRate (channelWidth));
       double power = GetPhy ()->GetPowerDbm (m_maxPower);
       m_powerChange (power, power, station->m_state->m_address);
@@ -340,14 +340,14 @@ AparfWifiManager::DoGetDataTxVector (WifiRemoteStation *st)
 {
   NS_LOG_FUNCTION (this << st);
   AparfWifiRemoteStation *station = (AparfWifiRemoteStation *) st;
-  uint16_t channelWidth = GetChannelWidth (station);
+  CheckInit (station);
+  WifiMode mode = GetSupported (station, station->m_rateIndex);
+  uint16_t channelWidth = GetChannelWidth (station, mode);
   if (channelWidth > 20 && channelWidth != 22)
     {
       //avoid to use legacy rate adaptation algorithms for IEEE 802.11n/ac
       channelWidth = 20;
     }
-  CheckInit (station);
-  WifiMode mode = GetSupported (station, station->m_rateIndex);
   DataRate rate = DataRate (mode.GetDataRate (channelWidth));
   DataRate prevRate = DataRate (GetSupported (station, station->m_prevRateIndex).GetDataRate (channelWidth));
   double power = GetPhy ()->GetPowerDbm (station->m_powerLevel);
@@ -372,12 +372,6 @@ AparfWifiManager::DoGetRtsTxVector (WifiRemoteStation *st)
   /// \todo we could/should implement the Arf algorithm for
   /// RTS only by picking a single rate within the BasicRateSet.
   AparfWifiRemoteStation *station = (AparfWifiRemoteStation *) st;
-  uint16_t channelWidth = GetChannelWidth (station);
-  if (channelWidth > 20 && channelWidth != 22)
-    {
-      //avoid to use legacy rate adaptation algorithms for IEEE 802.11n/ac
-      channelWidth = 20;
-    }
   WifiTxVector rtsTxVector;
   WifiMode mode;
   if (GetUseNonErpProtection () == false)
@@ -387,6 +381,12 @@ AparfWifiManager::DoGetRtsTxVector (WifiRemoteStation *st)
   else
     {
       mode = GetNonErpSupported (station, 0);
+    }
+  uint16_t channelWidth = GetChannelWidth (station, mode);
+  if (channelWidth > 20 && channelWidth != 22)
+    {
+      //avoid to use legacy rate adaptation algorithms for IEEE 802.11n/ac
+      channelWidth = 20;
     }
   rtsTxVector = WifiTxVector (mode, GetDefaultTxPowerLevel (), GetPreambleForTransmission (mode.GetModulationClass (), GetShortPreambleEnabled (), UseGreenfieldForDestination (GetAddress (st))), 800, 1, 1, 0, channelWidth, GetAggregation (station), false);
   return rtsTxVector;
