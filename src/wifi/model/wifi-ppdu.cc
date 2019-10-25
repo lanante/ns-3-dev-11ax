@@ -350,7 +350,7 @@ WifiPpdu::GetTxVector (void) const
           break;
         }
       default:
-        NS_FATAL_ERROR ("unsupported modulation class");
+        NS_FATAL_ERROR ("unsupported modulation class " << m_modulation);
         break;
     }
   txVector.SetAggregation (m_psdus.size () > 1 || m_psdus.begin ()->second->IsAggregate ());

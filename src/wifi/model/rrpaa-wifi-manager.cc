@@ -261,7 +261,7 @@ RrpaaWifiManager::CheckInit (RrpaaWifiRemoteStation *station)
       station->m_prevPowerLevel = m_maxPowerLevel;
       station->m_powerLevel = m_maxPowerLevel;
       WifiMode mode = GetSupported (station, 0);
-      uint16_t channelWidth = GetChannelWidth (station);
+      uint16_t channelWidth = GetChannelWidthSupported (station);
       DataRate rate = DataRate (mode.GetDataRate (channelWidth));
       double power = GetPhy ()->GetPowerDbm (station->m_powerLevel);
       m_rateChange (rate, rate, station->m_state->m_address);
@@ -393,14 +393,14 @@ RrpaaWifiManager::DoGetDataTxVector (WifiRemoteStation *st)
 {
   NS_LOG_FUNCTION (this << st);
   RrpaaWifiRemoteStation *station = (RrpaaWifiRemoteStation *) st;
-  uint16_t channelWidth = GetChannelWidth (station);
+  CheckInit (station);
+  WifiMode mode = GetSupported (station, station->m_rateIndex);
+  uint16_t channelWidth = GetChannelWidth (station, mode);
   if (channelWidth > 20 && channelWidth != 22)
     {
       //avoid to use legacy rate adaptation algorithms for IEEE 802.11n/ac
       channelWidth = 20;
     }
-  CheckInit (station);
-  WifiMode mode = GetSupported (station, station->m_rateIndex);
   DataRate rate = DataRate (mode.GetDataRate (channelWidth));
   DataRate prevRate = DataRate (GetSupported (station, station->m_prevRateIndex).GetDataRate (channelWidth));
   double power = GetPhy ()->GetPowerDbm (station->m_powerLevel);
@@ -422,12 +422,6 @@ RrpaaWifiManager::DoGetRtsTxVector (WifiRemoteStation *st)
 {
   NS_LOG_FUNCTION (this << st);
   RrpaaWifiRemoteStation *station = (RrpaaWifiRemoteStation *) st;
-  uint16_t channelWidth = GetChannelWidth (station);
-  if (channelWidth > 20 && channelWidth != 22)
-    {
-      //avoid to use legacy rate adaptation algorithms for IEEE 802.11n/ac
-      channelWidth = 20;
-    }
   WifiTxVector rtsTxVector;
   WifiMode mode;
   if (GetUseNonErpProtection () == false)
@@ -437,6 +431,12 @@ RrpaaWifiManager::DoGetRtsTxVector (WifiRemoteStation *st)
   else
     {
       mode = GetNonErpSupported (station, 0);
+    }
+  uint16_t channelWidth = GetChannelWidth (station, mode);
+  if (channelWidth > 20 && channelWidth != 22)
+    {
+      //avoid to use legacy rate adaptation algorithms for IEEE 802.11n/ac
+      channelWidth = 20;
     }
   rtsTxVector = WifiTxVector (mode, GetDefaultTxPowerLevel (), GetPreambleForTransmission (mode.GetModulationClass (), GetShortPreambleEnabled (), UseGreenfieldForDestination (GetAddress (station))), 800, 1, 1, 0, channelWidth, GetAggregation (station), false);
   return rtsTxVector;

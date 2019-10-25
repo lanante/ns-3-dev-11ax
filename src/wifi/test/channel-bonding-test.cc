@@ -947,10 +947,11 @@ TestDynamicChannelBonding::SendPacket (uint8_t bss, uint16_t expectedChannelWidt
   Ptr<BondingTestSpectrumWifiPhy> phy = m_txPhys.at (bss - 1);
   uint32_t payloadSize = 1000 + bss;
 
-  uint16_t channelWidth = phy->GetUsableChannelWidth ();
+  WifiMode mode = WifiPhy::GetVhtMcs7 ();
+  uint16_t channelWidth = phy->GetUsableChannelWidth (mode);
   NS_TEST_ASSERT_MSG_EQ (channelWidth, expectedChannelWidth, "selected channel width is not as expected");
 
-  WifiTxVector txVector = WifiTxVector (WifiPhy::GetVhtMcs7 (), 0, WIFI_PREAMBLE_HT_MF, 800, 1, 1, 0, channelWidth, false, false);
+  WifiTxVector txVector = WifiTxVector (mode, 0, WIFI_PREAMBLE_HT_MF, 800, 1, 1, 0, channelWidth, false, false);
 
   Ptr<Packet> pkt = Create<Packet> (payloadSize);
   WifiMacHeader hdr;

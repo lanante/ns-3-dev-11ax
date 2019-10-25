@@ -304,7 +304,7 @@ IdealWifiManager::DoGetDataTxVector (WifiRemoteStation *st)
   uint64_t bestRate = 0;
   uint8_t selectedNss = 1;
   uint16_t guardInterval;
-  uint16_t channelWidth = std::min (GetChannelWidth (station), GetPhy ()->GetUsableChannelWidth ());
+  uint16_t channelWidth = std::min (GetChannelWidth (station, maxMode), GetPhy ()->GetUsableChannelWidth (maxMode));
   txVector.SetChannelWidth (channelWidth);
   if (station->m_lastSnrCached != CACHE_INITIAL_VALUE && station->m_lastSnrObserved == station->m_lastSnrCached && station->m_lastMode.IsAllowed (channelWidth, station->m_nss))
     {

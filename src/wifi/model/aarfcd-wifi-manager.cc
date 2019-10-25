@@ -319,13 +319,13 @@ AarfcdWifiManager::DoGetDataTxVector (WifiRemoteStation *st)
 {
   NS_LOG_FUNCTION (this << st);
   AarfcdWifiRemoteStation *station = (AarfcdWifiRemoteStation *) st;
-  uint16_t channelWidth = GetChannelWidth (station);
+  WifiMode mode = GetSupported (station, station->m_rate);
+  uint16_t channelWidth = GetChannelWidth (station, mode);
   if (channelWidth > 20 && channelWidth != 22)
     {
       //avoid to use legacy rate adaptation algorithms for IEEE 802.11n/ac
       channelWidth = 20;
     }
-  WifiMode mode = GetSupported (station, station->m_rate);
   if (m_currentRate != mode.GetDataRate (channelWidth))
     {
       NS_LOG_DEBUG ("New datarate: " << mode.GetDataRate (channelWidth));
@@ -341,12 +341,6 @@ AarfcdWifiManager::DoGetRtsTxVector (WifiRemoteStation *st)
   /// \todo we could/should implement the Aarf algorithm for
   /// RTS only by picking a single rate within the BasicRateSet.
   AarfcdWifiRemoteStation *station = (AarfcdWifiRemoteStation *) st;
-  uint16_t channelWidth = GetChannelWidth (station);
-  if (channelWidth > 20 && channelWidth != 22)
-    {
-      //avoid to use legacy rate adaptation algorithms for IEEE 802.11n/ac
-      channelWidth = 20;
-    }
   WifiTxVector rtsTxVector;
   WifiMode mode;
   if (GetUseNonErpProtection () == false)
@@ -356,6 +350,12 @@ AarfcdWifiManager::DoGetRtsTxVector (WifiRemoteStation *st)
   else
     {
       mode = GetNonErpSupported (station, 0);
+    }
+  uint16_t channelWidth = GetChannelWidth (station, mode);
+  if (channelWidth > 20 && channelWidth != 22)
+    {
+      //avoid to use legacy rate adaptation algorithms for IEEE 802.11n/ac
+      channelWidth = 20;
     }
   rtsTxVector = WifiTxVector (mode, GetDefaultTxPowerLevel (), GetPreambleForTransmission (mode.GetModulationClass (), GetShortPreambleEnabled (), UseGreenfieldForDestination (GetAddress (station))), 800, 1, 1, 0, channelWidth, GetAggregation (station), false);
   return rtsTxVector;

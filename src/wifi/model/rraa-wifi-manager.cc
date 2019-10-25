@@ -351,14 +351,14 @@ RraaWifiManager::DoGetDataTxVector (WifiRemoteStation *st)
 {
   NS_LOG_FUNCTION (this << st);
   RraaWifiRemoteStation *station = (RraaWifiRemoteStation *) st;
-  uint16_t channelWidth = GetChannelWidth (station);
+  CheckInit (station);
+  WifiMode mode = GetSupported (station, station->m_rateIndex);
+  uint16_t channelWidth = GetChannelWidth (station, mode);
   if (channelWidth > 20 && channelWidth != 22)
     {
       //avoid to use legacy rate adaptation algorithms for IEEE 802.11n/ac
       channelWidth = 20;
     }
-  CheckInit (station);
-  WifiMode mode = GetSupported (station, station->m_rateIndex);
   if (m_currentRate != mode.GetDataRate (channelWidth))
     {
       NS_LOG_DEBUG ("New datarate: " << mode.GetDataRate (channelWidth));
@@ -372,12 +372,6 @@ RraaWifiManager::DoGetRtsTxVector (WifiRemoteStation *st)
 {
   NS_LOG_FUNCTION (this << st);
   RraaWifiRemoteStation *station = (RraaWifiRemoteStation *) st;
-  uint16_t channelWidth = GetChannelWidth (station);
-  if (channelWidth > 20 && channelWidth != 22)
-    {
-      //avoid to use legacy rate adaptation algorithms for IEEE 802.11n/ac
-      channelWidth = 20;
-    }
   WifiTxVector rtsTxVector;
   WifiMode mode;
   if (GetUseNonErpProtection () == false)
@@ -387,6 +381,12 @@ RraaWifiManager::DoGetRtsTxVector (WifiRemoteStation *st)
   else
     {
       mode = GetNonErpSupported (station, 0);
+    }
+  uint16_t channelWidth = GetChannelWidth (station, mode);
+  if (channelWidth > 20 && channelWidth != 22)
+    {
+      //avoid to use legacy rate adaptation algorithms for IEEE 802.11n/ac
+      channelWidth = 20;
     }
   rtsTxVector = WifiTxVector (mode, GetDefaultTxPowerLevel (), GetPreambleForTransmission (mode.GetModulationClass (), GetShortPreambleEnabled (), UseGreenfieldForDestination (GetAddress (station))), 800, 1, 1, 0, channelWidth, GetAggregation (station), false);
   return rtsTxVector;
