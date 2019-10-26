@@ -57,11 +57,11 @@ public:
   /**
    * Returns the selected channel width (in MHz).
    *
-   * \param mcs the MCS that will be used for the transmission
+   * \param mode the WifiMode that will be used for the transmission
    *
    * \return the selected channel width in MHz
    */
-  uint16_t GetUsableChannelWidth (uint8_t mcs) override;
+  uint16_t GetUsableChannelWidth (WifiMode mode) override;
 
 
 private:

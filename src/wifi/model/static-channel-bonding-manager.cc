@@ -45,7 +45,7 @@ StaticChannelBondingManager::GetTypeId (void)
 }
 
 uint16_t
-StaticChannelBondingManager::GetUsableChannelWidth (uint8_t mcs)
+StaticChannelBondingManager::GetUsableChannelWidth (WifiMode mode)
 {
   if ((m_phy->GetChannelWidth () < 40) || (m_phy->GetDelaySinceChannelIsIdle (m_phy->GetChannelWidth ()) >= m_phy->GetPifs ()))
     {
