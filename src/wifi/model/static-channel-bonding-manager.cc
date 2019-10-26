@@ -21,6 +21,7 @@
 #include "ns3/log.h"
 #include "static-channel-bonding-manager.h"
 #include "wifi-phy.h"
+#include "wifi-utils.h"
 
 namespace ns3 {
 
@@ -47,7 +48,7 @@ StaticChannelBondingManager::GetTypeId (void)
 uint16_t
 StaticChannelBondingManager::GetUsableChannelWidth (WifiMode mode)
 {
-  if ((m_phy->GetChannelWidth () < 40) || (m_phy->GetDelaySinceChannelIsIdle (m_phy->GetChannelWidth ()) >= m_phy->GetPifs ()))
+  if ((m_phy->GetChannelWidth () < 40) || (m_phy->GetDelaySinceChannelIsIdle (m_phy->GetChannelWidth (), WToDbm (m_phy->GetDefaultCcaEdThresholdSecondary ())) >= m_phy->GetPifs ()))
     {
       return m_phy->GetChannelWidth ();
     }

@@ -619,20 +619,20 @@ TestDlOfdmaPhyTransmission::RunOne (void)
   m_phySta2->AssignStreams (streamNumber);
   m_phySta3->AssignStreams (streamNumber);
 
-  m_phyAp->SetChannelWidth (m_channelWidth);
   m_phyAp->SetChannelNumber (m_channelNumber);
+  m_phyAp->SetChannelWidth (m_channelWidth);
   m_phyAp->SetFrequency (m_frequency);
 
-  m_phySta1->SetChannelWidth (m_channelWidth);
   m_phySta1->SetChannelNumber (m_channelNumber);
+  m_phySta1->SetChannelWidth (m_channelWidth);
   m_phySta1->SetFrequency (m_frequency);
 
-  m_phySta2->SetChannelWidth (m_channelWidth);
   m_phySta2->SetChannelNumber (m_channelNumber);
+  m_phySta2->SetChannelWidth (m_channelWidth);
   m_phySta2->SetFrequency (m_frequency);
 
-  m_phySta3->SetChannelWidth (m_channelWidth);
   m_phySta3->SetChannelNumber (m_channelNumber);
+  m_phySta3->SetChannelWidth (m_channelWidth);
   m_phySta3->SetFrequency (m_frequency);
 
   Simulator::Schedule (Seconds (0.5), &TestDlOfdmaPhyTransmission::ResetResults, this);
@@ -1913,20 +1913,20 @@ TestUlOfdmaPhyTransmission::RunOne (void)
   m_phySta2->AssignStreams (streamNumber);
   m_phySta3->AssignStreams (streamNumber);
 
-  m_phyAp->SetChannelWidth (m_channelWidth);
   m_phyAp->SetChannelNumber (m_channelNumber);
+  m_phyAp->SetChannelWidth (m_channelWidth);
   m_phyAp->SetFrequency (m_frequency);
 
-  m_phySta1->SetChannelWidth (m_channelWidth);
   m_phySta1->SetChannelNumber (m_channelNumber);
+  m_phySta1->SetChannelWidth (m_channelWidth);
   m_phySta1->SetFrequency (m_frequency);
 
-  m_phySta2->SetChannelWidth (m_channelWidth);
   m_phySta2->SetChannelNumber (m_channelNumber);
+  m_phySta2->SetChannelWidth (m_channelWidth);
   m_phySta2->SetFrequency (m_frequency);
 
-  m_phySta3->SetChannelWidth (m_channelWidth);
   m_phySta3->SetChannelNumber (m_channelNumber);
+  m_phySta3->SetChannelWidth (m_channelWidth);
   m_phySta3->SetFrequency (m_frequency);
 
   Simulator::Schedule (Seconds (0.0), &TestUlOfdmaPhyTransmission::Reset, this);

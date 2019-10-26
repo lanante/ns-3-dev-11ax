@@ -102,63 +102,90 @@ public:
   /**
    * Return the current state of WifiPhy.
    *
+   * \param band the band that corresponds to the channel to check
+   * \param ccaThreshold the threshold used to determine whether the band is CCA_BUSY
+   *
    * \return the current state of WifiPhy
    */
-  WifiPhyState GetState (WifiSpectrumBand band = WifiSpectrumBand ()) const;
+  WifiPhyState GetState (WifiSpectrumBand band, double ccaThreshold) const;
   /**
    * Check whether the current state is CCA busy.
    *
+   * \param band the band that corresponds to the channel to check
+   * \param ccaThreshold the threshold used to determine whether the band is CCA_BUSY
+   *
    * \return true if the current state is CCA busy, false otherwise
    */
-  bool IsStateCcaBusy (WifiSpectrumBand band) const;
+  bool IsStateCcaBusy (WifiSpectrumBand band, double ccaThreshold) const;
   /**
    * Check whether the current state is IDLE.
    *
    * \return true if the current state is IDLE, false otherwise
    */
-  bool IsStateIdle (WifiSpectrumBand band) const;
+  bool IsStateIdle (WifiSpectrumBand band, double ccaThreshold) const;
   /**
    * Check whether the current state is RX.
    *
+   * \param band the band that corresponds to the channel to check
+   * \param ccaThreshold the threshold used to determine whether the band is CCA_BUSY
+   *
    * \return true if the current state is RX, false otherwise
    */
-  bool IsStateRx (void) const;
+  bool IsStateRx (WifiSpectrumBand primaryBand, double primaryCcaThreshold) const;
   /**
    * Check whether the current state is TX.
    *
+   * \param primaryBand the band that corresponds to the primary channel
+   * \param primaryCcaThreshold the threshold used to determine whether the primary channel is CCA_BUSY
+   *
    * \return true if the current state is TX, false otherwise
    */
-  bool IsStateTx (void) const;
+  bool IsStateTx (WifiSpectrumBand primaryBand, double primaryCcaThreshold) const;
   /**
    * Check whether the current state is SWITCHING.
    *
+   * \param primaryBand the band that corresponds to the primary channel
+   * \param primaryCcaThreshold the threshold used to determine whether the primary channel is CCA_BUSY
+   *
    * \return true if the current state is SWITCHING, false otherwise
    */
-  bool IsStateSwitching (void) const;
+  bool IsStateSwitching (WifiSpectrumBand primaryBand, double primaryCcaThreshold) const;
   /**
    * Check whether the current state is SLEEP.
    *
+   * \param primaryBand the band that corresponds to the primary channel
+   * \param primaryCcaThreshold the threshold used to determine whether the primary channel is CCA_BUSY
+   *
    * \return true if the current state is SLEEP, false otherwise
    */
-  bool IsStateSleep (void) const;
+  bool IsStateSleep (WifiSpectrumBand primaryBand, double primaryCcaThreshold) const;
   /**
    * Check whether the current state is OFF.
    *
+   * \param primaryBand the band that corresponds to the primary channel
+   * \param primaryCcaThreshold the threshold used to determine whether the primary channel is CCA_BUSY
+   *
    * \return true if the current state is OFF, false otherwise
    */
-  bool IsStateOff (void) const;
+  bool IsStateOff (WifiSpectrumBand primaryBand, double primaryCcaThreshold) const;
   /**
    * Return the time before the state is back to IDLE.
    *
+   * \param band the band that corresponds to the channel to check
+   * \param ccaThreshold the threshold used to determine whether the band is CCA_BUSY
+   *
    * \return the delay before the state is back to IDLE
    */
-  Time GetDelayUntilIdle (WifiSpectrumBand band) const;
+  Time GetDelayUntilIdle (WifiSpectrumBand band, double ccaThreshold) const;
   /**
    * Return the time since the secondary channel is determined idle.
    *
+   * \param band the band that corresponds to the secondary to check
+   * \param ccaThreshold the threshold used to determine whether the band is CCA_BUSY
+   *
    * \return the delay since the secondary channel is determined idle
    */
-  Time GetDelaySinceIdle (WifiSpectrumBand band) const;
+  Time GetDelaySinceIdle (WifiSpectrumBand band, double ccaThreshold) const;
   /**
    * Return the time the last RX start.
    *
@@ -173,21 +200,26 @@ public:
    * \param psdus the PSDUs in the transmitted PPDU (only one unless it is a MU PPDU)
    * \param txPowerDbm the nominal tx power in dBm
    * \param txVector the tx vector for the transmission
+   * \param primaryBand the band that corresponds to the primary channel
+   * \param primaryCcaThreshold the threshold used to determine whether the primary channel is CCA_BUSY
    */
-  void SwitchToTx (Time txDuration, WifiPsduMap psdus, double txPowerDbm, WifiTxVector txVector, WifiSpectrumBand primaryBand);
+  void SwitchToTx (Time txDuration, WifiPsduMap psdus, double txPowerDbm, WifiTxVector txVector, WifiSpectrumBand primaryBand, double primaryCcaThreshold);
   /**
    * Switch state to RX for the given duration.
    *
    * \param rxDuration the duration of the RX
+   * \param primaryBand the band that corresponds to the primary channel
+   * \param primaryCcaThreshold the threshold used to determine whether the primary channel is CCA_BUSY
    */
-  void SwitchToRx (Time rxDuration, WifiSpectrumBand primaryBand);
+  void SwitchToRx (Time rxDuration, WifiSpectrumBand primaryBand, double primaryCcaThreshold);
   /**
    * Switch state to channel switching for the given duration.
    *
    * \param switchingDuration the duration of required to switch the channel
-   * \param primaryBand identifies the primary channel
+   * \param primaryBand the band that corresponds to the primary channel
+   * \param primaryCcaThreshold the threshold used to determine whether the primary channel is CCA_BUSY
    */
-  void SwitchToChannelSwitching (Time switchingDuration, WifiSpectrumBand primaryBand);
+  void SwitchToChannelSwitching (Time switchingDuration, WifiSpectrumBand primaryBand, double primaryCcaThreshold);
   /**
    * Continue RX after the reception of an MPDU in an A-MPDU was successful.
    *
@@ -220,20 +252,22 @@ public:
    * \param duration the duration of CCA busy state
    * \param band the band for which the CCA busy state is triggered
    * \param isPrimaryChannel flag whether the band corresponds to the primary channel
+   * \param ccaThreshold the threshold used to determine the channel is in CCA busy state
    */
-  void SwitchMaybeToCcaBusy (Time duration, WifiSpectrumBand band, bool isPrimaryChannel);
+  void SwitchMaybeToCcaBusy (Time duration, WifiSpectrumBand band, bool isPrimaryChannel, double ccaThreshold);
   /**
    * Switch to sleep mode.
-   * 
-   * \param primaryBand identifies the primary channel
+   *
+   * \param primaryBand the band that corresponds to the primary channel
+   * \param primaryCcaThreshold the threshold used to determine whether the primary channel is CCA_BUSY
    */
-  void SwitchToSleep (WifiSpectrumBand primaryBand);
+  void SwitchToSleep (WifiSpectrumBand primaryBand, double primaryCcaThreshold);
   /**
    * Switch from sleep mode.
    *
    * \param duration the duration of CCA busy state
    */
-  void SwitchFromSleep (Time duration, WifiSpectrumBand band, bool isPrimaryChannel);
+  void SwitchFromSleep (Time duration, WifiSpectrumBand band, bool isPrimaryChannel, double ccaThreshold);
   /**
    * Abort current reception
    *
@@ -242,16 +276,18 @@ public:
   void SwitchFromRxAbort (bool failure);
   /**
    * Switch to off mode.
-   * 
+   *
+   * \param primaryBand the band that corresponds to the primary channel
+   * \param primaryCcaThreshold the threshold used to determine whether the primary channel is CCA_BUSY
    * \param primaryBand identifies the primary channel
    */
-  void SwitchToOff (WifiSpectrumBand primaryBand);
+  void SwitchToOff (WifiSpectrumBand primaryBand, double primaryCcaThreshold);
   /**
    * Switch from off mode.
    *
    * \param duration the duration of CCA busy state
    */
-  void SwitchFromOff (Time duration, WifiSpectrumBand band, bool isPrimaryChannel);
+  void SwitchFromOff (Time duration, WifiSpectrumBand band, bool isPrimaryChannel, double ccaThreshold);
 
   /**
    * TracedCallback signature for state changes.
@@ -311,10 +347,11 @@ private:
 
   /**
    * Log the ideal and CCA states.
-   * 
-   * \param primaryBand identifies the primary channel
+   *
+   * \param primaryBand the band that corresponds to the primary channel
+   * \param primaryCcaThreshold the threshold used to determine whether the primary channel is CCA_BUSY
    */
-  void LogPreviousIdleAndCcaBusyStates (WifiSpectrumBand primaryBand);
+  void LogPreviousIdleAndCcaBusyStates (WifiSpectrumBand primaryBand, double primaryCcaThreshold);
 
   /**
    * Notify all WifiPhyListener that the transmission has started for the given duration.
@@ -387,8 +424,9 @@ private:
   Time m_startSleep; ///< start sleep
   Time m_previousStateChangeTime; ///< previous state change time
 
-  std::map<WifiSpectrumBand, Time> m_startCcaBusy; ///< start CCA busy per channel
-  std::map<WifiSpectrumBand, Time> m_endCcaBusy; ///< end CCA busy per channel
+  std::map<std::pair <WifiSpectrumBand, int /* threshold */>, Time> m_startCcaBusy; ///< start CCA busy per channel
+  std::map<std::pair <WifiSpectrumBand, int /* threshold */>, Time> m_endCcaBusy; ///< end CCA busy per channel
+  //FIXME: thresholds should be double, but we need to implement std::find differently, so OK to round to int for now
 
   Listeners m_listeners; ///< listeners
   TracedCallback<Ptr<const Packet>, double, WifiMode, WifiPreamble> m_rxOkTrace; ///< receive OK trace callback

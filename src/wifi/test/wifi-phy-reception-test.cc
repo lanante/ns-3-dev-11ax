@@ -1494,11 +1494,7 @@ TestAmpduReception::CheckRxDroppedBitmapAmpdu2 (uint8_t expected)
 void
 TestAmpduReception::CheckPhyState (WifiPhyState expectedState)
 {
-  WifiPhyState currentState;
-  PointerValue ptr;
-  m_phy->GetAttribute ("State", ptr);
-  Ptr <WifiPhyStateHelper> state = DynamicCast <WifiPhyStateHelper> (ptr.Get<WifiPhyStateHelper> ());
-  currentState = state->GetState ();
+  WifiPhyState currentState = m_phy->GetPhyState ();
   NS_TEST_ASSERT_MSG_EQ (currentState, expectedState, "PHY State " << currentState << " does not match expected state " << expectedState << " at " << Simulator::Now ());
 }
 

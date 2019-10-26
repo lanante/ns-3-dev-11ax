@@ -235,7 +235,7 @@ TestStaticChannelBondingSnr::CheckSecondaryChannelStatus (bool expectedIdle, uin
 {
   Ptr<BondingTestSpectrumWifiPhy> phy = m_rxPhys.at (bss - 1);
   NS_ASSERT (phy->GetChannelWidth () >= 40);
-  bool currentlyIdle = phy->IsStateIdle (channelWidth);
+  bool currentlyIdle = phy->IsStateIdle (channelWidth, WToDbm (phy->GetDefaultCcaEdThresholdSecondary ()));
   NS_TEST_ASSERT_MSG_EQ (currentlyIdle, expectedIdle, "Secondary channel status " << currentlyIdle << " does not match expected status " << expectedIdle << " at " << Simulator::Now ());
 }
 
@@ -1760,12 +1760,12 @@ TestEffectiveSnrCalculations::RunOne (void)
   m_txPhy->SetTxPowerStart (18);
   m_txPhy->SetTxPowerEnd (18);
 
-  m_txPhy->SetChannelWidth (m_signalChannelWidth);
   m_txPhy->SetChannelNumber (m_signalChannelNumber);
+  m_txPhy->SetChannelWidth (m_signalChannelWidth);
   m_txPhy->SetFrequency (m_signalFrequency);
 
-  m_rxPhy->SetChannelWidth (m_signalChannelWidth);
   m_rxPhy->SetChannelNumber (m_signalChannelNumber);
+  m_rxPhy->SetChannelWidth (m_signalChannelWidth);
   m_rxPhy->SetFrequency (m_signalFrequency);
 
   Simulator::Schedule (Seconds (1.0), &TestEffectiveSnrCalculations::SendPacket, this);
@@ -2008,7 +2008,6 @@ TestStaticChannelBondingChannelAccess::CheckPhyState (WifiPhyState expectedState
 {
   Ptr<WifiNetDevice> wifiDevicePtr = device->GetObject <WifiNetDevice> ();
   WifiPhyState currentState = wifiDevicePtr->GetPhy ()->GetPhyState ();
-  NS_ASSERT (currentState == expectedState);
   NS_TEST_ASSERT_MSG_EQ (currentState, expectedState, "PHY State " << currentState << " does not match expected state " << expectedState << " at " << Simulator::Now ());
 }
 
@@ -2016,7 +2015,8 @@ void
 TestStaticChannelBondingChannelAccess::CheckSecondaryChannelStatus (bool expectedIdle, Ptr<NetDevice> device, uint16_t channelWidth)
 {
   Ptr<WifiNetDevice> wifiDevicePtr = device->GetObject <WifiNetDevice> ();
-  bool currentlyIdle = wifiDevicePtr->GetPhy ()->IsStateIdle (channelWidth);
+  Ptr<WifiPhy> phy = wifiDevicePtr->GetPhy ();
+  bool currentlyIdle = phy->IsStateIdle (channelWidth, WToDbm (phy->GetDefaultCcaEdThresholdSecondary ()));
   NS_TEST_ASSERT_MSG_EQ (currentlyIdle, expectedIdle, "Secondary channel status " << currentlyIdle << " does not match expected status " << expectedIdle << " at " << Simulator::Now ());
 }
 
