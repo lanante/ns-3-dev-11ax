@@ -252,23 +252,23 @@ public:
   /**
    * \return true of the current state of the PHY layer is WifiPhy::RX, false otherwise.
    */
-  bool IsStateRx (void) const;
+  bool IsStateRx (void);
   /**
    * \return true of the current state of the PHY layer is WifiPhy::TX, false otherwise.
    */
-  bool IsStateTx (void) const;
+  bool IsStateTx (void);
   /**
    * \return true of the current state of the PHY layer is WifiPhy::SWITCHING, false otherwise.
    */
-  bool IsStateSwitching (void) const;
+  bool IsStateSwitching (void);
   /**
    * \return true if the current state of the PHY layer is WifiPhy::SLEEP, false otherwise.
    */
-  bool IsStateSleep (void) const;
+  bool IsStateSleep (void);
   /**
    * \return true if the current state of the PHY layer is WifiPhy::OFF, false otherwise.
    */
-  bool IsStateOff (void) const;
+  bool IsStateOff (void);
 
   /**
    * \return the PHY state.
@@ -278,9 +278,10 @@ public:
 
   /**
    * \param channelWidth the channel width to check
+   * \param ccaThreshold the CCA threshold to consider
    * \return true if all the 20 MHz channels for the given channel width are idle, false otherwise
    */
-  bool IsStateIdle (uint16_t channelWidth);
+  bool IsStateIdle (uint16_t channelWidth, double ccaThreshold);
 
   /**
    * todo
@@ -296,9 +297,12 @@ public:
   Time GetDelayUntilIdle (void);
 
   /**
+   * \param channelWidth the channel width to determine the number of 20 MHz bands to check
+   * \param threshold the threshold used to decide whether the channel is WifiPhy::CCA_BUSY or WifiPhy::IDLE
+   *
    * \return the minimum delay among the bonded channels since they are in WifiPhy::IDLE.
    */
-  Time GetDelaySinceChannelIsIdle (uint16_t channelWidth);
+  Time GetDelaySinceChannelIsIdle (uint16_t channelWidth, double threshold);
 
   /**
    * Return the start time of the last received packet.
@@ -1453,6 +1457,12 @@ public:
    * \param threshold the CCA threshold in dBm to be added for the secondary channels
    */
   void AddCcaEdThresholdSecondary (double threshold);
+  /**
+   * Return the default CCA threshold (dBm) for the secondary channels.
+   *
+   * \return the default CCA threshold (dBm) for the secondary channels
+   */
+  double GetDefaultCcaEdThresholdSecondary (void) const;
   /**
    * Sets the RX loss (dB) in the Signal-to-Noise-Ratio due to non-idealities in the receiver.
    *

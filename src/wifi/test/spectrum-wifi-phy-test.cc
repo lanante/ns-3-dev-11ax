@@ -533,7 +533,6 @@ SpectrumWifiPhyFilterTest::DoSetup (void)
 void
 SpectrumWifiPhyFilterTest::RunOne (void)
 {
-  m_txPhy->SetChannelWidth (m_txChannelWidth);
   uint8_t txChannel;
   uint16_t txFrequency;
   switch (m_txChannelWidth)
@@ -557,9 +556,9 @@ SpectrumWifiPhyFilterTest::RunOne (void)
       break;
     }
   m_txPhy->SetChannelNumber (txChannel);
+  m_txPhy->SetChannelWidth (m_txChannelWidth);
   m_txPhy->SetFrequency (txFrequency);
 
-  m_rxPhy->SetChannelWidth (m_rxChannelWidth);
   uint8_t rxChannel;
   uint16_t rxFrequency;
   switch (m_rxChannelWidth)
@@ -583,6 +582,7 @@ SpectrumWifiPhyFilterTest::RunOne (void)
       break;
     }
   m_rxPhy->SetChannelNumber (rxChannel);
+  m_rxPhy->SetChannelWidth (m_rxChannelWidth);
   m_rxPhy->SetFrequency (rxFrequency);
 
   Simulator::Schedule (Seconds (1), &SpectrumWifiPhyFilterTest::SendPpdu, this);

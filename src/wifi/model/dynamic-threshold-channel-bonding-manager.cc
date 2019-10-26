@@ -21,6 +21,7 @@
 #include "ns3/log.h"
 #include "dynamic-threshold-channel-bonding-manager.h"
 #include "wifi-phy.h"
+#include "wifi-utils.h"
 
 namespace ns3 {
 
@@ -78,9 +79,31 @@ DynamicThresholdChannelBondingManager::SetPhy (const Ptr<WifiPhy> phy)
 uint16_t
 DynamicThresholdChannelBondingManager::GetUsableChannelWidth (WifiMode mode)
 {
-  //TODO
-  NS_ASSERT (false);
-  return m_phy->GetChannelWidth ();
+  if (m_phy->GetChannelWidth () < 40)
+    {
+      return m_phy->GetChannelWidth ();
+    }
+  double threshold;
+  auto it = m_ccaEdThresholdsSecondaryDbm.find (mode);
+  if (it != m_ccaEdThresholdsSecondaryDbm.end ())
+    {
+      threshold = it->second;
+    }
+  else
+    {
+      threshold = WToDbm (m_phy->GetDefaultCcaEdThresholdSecondary ());
+    }
+  uint16_t usableChannelWidth = 20;
+  for (uint16_t width = m_phy->GetChannelWidth (); width > 20; )
+    {
+      if (m_phy->GetDelaySinceChannelIsIdle (width, threshold) >= m_phy->GetPifs ())
+        {
+          usableChannelWidth = width;
+          break;
+        }
+      width /= 2;
+    }
+  return usableChannelWidth;
 }
 
 std::ostream& operator<< (std::ostream& os, CcaThresholdPerWifiModeMap ccaThresholdPerWifiMode)

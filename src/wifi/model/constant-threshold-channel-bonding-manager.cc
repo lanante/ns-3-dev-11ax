@@ -80,7 +80,7 @@ ConstantThresholdChannelBondingManager::GetUsableChannelWidth (WifiMode mode)
   uint16_t usableChannelWidth = 20;
   for (uint16_t width = m_phy->GetChannelWidth (); width > 20; )
     {
-      if (m_phy->GetDelaySinceChannelIsIdle (width) >= m_phy->GetPifs ())
+      if (m_phy->GetDelaySinceChannelIsIdle (width, m_ccaEdThresholdSecondaryDbm) >= m_phy->GetPifs ())
         {
           usableChannelWidth = width;
           break;
