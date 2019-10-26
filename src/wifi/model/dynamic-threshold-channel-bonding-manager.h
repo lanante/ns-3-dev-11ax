@@ -26,11 +26,11 @@
 
 namespace ns3 {
 
-typedef std::map<uint8_t,double> CcaThresholdPerMcsMap;
+typedef std::map<WifiMode,double> CcaThresholdPerWifiModeMap;
 
-ATTRIBUTE_VALUE_DEFINE_WITH_NAME (CcaThresholdPerMcsMap, CcaThresholdPerMcs);
-ATTRIBUTE_ACCESSOR_DEFINE (CcaThresholdPerMcs);
-ATTRIBUTE_CHECKER_DEFINE (CcaThresholdPerMcs);
+ATTRIBUTE_VALUE_DEFINE_WITH_NAME (CcaThresholdPerWifiModeMap, CcaThresholdPerWifiMode);
+ATTRIBUTE_ACCESSOR_DEFINE (CcaThresholdPerWifiMode);
+ATTRIBUTE_CHECKER_DEFINE (CcaThresholdPerWifiMode);
 
 /**
  * \brief Dynamic Threshold Channel Bonding Manager
@@ -54,43 +54,43 @@ public:
   void SetPhy (const Ptr<WifiPhy> phy) override;
 
   /**
-   * Sets the CCA threshold (dBm) for the secondary channels for a given MCS.
+   * Sets the CCA threshold (dBm) for the secondary channels for a given WifiMode.
    * The energy of a received signal should be higher than this threshold to allow
    * the PHY layer to declare CCA BUSY state. When checking the secondary state prior
    * to a transmission, it will consider the threshold that is configured for the
-   * MCS that is going to be used for the upcoming transmission.
+   * WifiMode that is going to be used for the upcoming transmission.
    *
    * \param threshold the CCA threshold in dBm for the secondary channels
    */
-  void SetCcaEdThresholdSecondaryForMcs (uint8_t mcs, double threshold);
+  void SetCcaEdThresholdSecondaryForMode (WifiMode mode, double threshold);
 
   /**
    * Returns the selected channel width (in MHz).
    *
-   * \param mcs the MCS that will be used for the transmission
+   * \param mode the WifiMode that will be used for the transmission
    *
    * \return the selected channel width in MHz
    */
-  uint16_t GetUsableChannelWidth (uint8_t mcs) override;
+  uint16_t GetUsableChannelWidth (WifiMode mode) override;
 
 
 private:
-  CcaThresholdPerMcsMap m_ccaEdThresholdsSecondaryDbm; //!< Clear channel assessment (CCA) thresholds for secondary channel(s) in dBm, per MCS
+  CcaThresholdPerWifiModeMap m_ccaEdThresholdsSecondaryDbm; //!< Clear channel assessment (CCA) thresholds for secondary channel(s) in dBm, per WifiMode
 };
 
 /**
  * \param os  output stream
- * \param ccaThresholdPerMcs  CCA threshold per MCS map to stringify
+ * \param ccaThresholdPerWifiMode  CCA threshold per WifiMode map to stringify
  * \return output stream
  */
-std::ostream& operator<< (std::ostream& os, CcaThresholdPerMcsMap ccaThresholdPerMcs);
+std::ostream& operator<< (std::ostream& os, CcaThresholdPerWifiModeMap ccaThresholdPerWifiMode);
 
 /**
 * \param is input stream.
-* \param ccaThresholdPerMcs CCA threshold per MCS map to set
+* \param ccaThresholdPerWifiMode CCA threshold per WifiMode map to set
 * \return input stream.
 */
-std::istream &operator>> (std::istream &is, CcaThresholdPerMcsMap &ccaThresholdPerMcs);
+std::istream &operator>> (std::istream &is, CcaThresholdPerWifiModeMap &ccaThresholdPerWifiMode);
 
 
 } //namespace ns3

@@ -26,6 +26,7 @@
 namespace ns3 {
 
 class WifiPhy;
+class WifiMode;
 
 /**
  * \brief Channel Bonding Manager interface
@@ -50,11 +51,11 @@ public:
   /**
    * Returns the selected channel width (in MHz).
    *
-   * \param mcs the MCS that will be used for the transmission
+   * \param mode the WifiMode that will be used for the transmission
    *
    * \return the selected channel width in MHz
    */
-  virtual uint16_t GetUsableChannelWidth (uint8_t mcs) = 0;
+  virtual uint16_t GetUsableChannelWidth (WifiMode mode) = 0;
 
 
 protected:

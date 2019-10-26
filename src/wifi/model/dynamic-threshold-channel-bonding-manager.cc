@@ -19,14 +19,13 @@
  */
 
 #include "ns3/log.h"
-#include "ns3/double.h"
 #include "dynamic-threshold-channel-bonding-manager.h"
 #include "wifi-phy.h"
 
 namespace ns3 {
 
-ATTRIBUTE_CHECKER_IMPLEMENT_WITH_NAME (CcaThresholdPerMcs, "std::map<uint8_t, double>");
-ATTRIBUTE_VALUE_IMPLEMENT_WITH_NAME (CcaThresholdPerMcsMap, CcaThresholdPerMcs);
+ATTRIBUTE_CHECKER_IMPLEMENT_WITH_NAME (CcaThresholdPerWifiMode, "std::map<WifiMode, double>");
+ATTRIBUTE_VALUE_IMPLEMENT_WITH_NAME (CcaThresholdPerWifiModeMap, CcaThresholdPerWifiMode);
 
 NS_LOG_COMPONENT_DEFINE ("DynamicThresholdChannelBondingManager");
 NS_OBJECT_ENSURE_REGISTERED (DynamicThresholdChannelBondingManager);
@@ -48,20 +47,18 @@ DynamicThresholdChannelBondingManager::GetTypeId (void)
                    "The energy of a non Wi-Fi received signal should be higher than "
                    "this threshold (dbm) to allow the PHY layer to declare CCA BUSY state. "
                    "This check is performed on the secondary channel(s) only.",
-                   CcaThresholdPerMcsValue ({ {0, -72.0}, {1, -72.0}, {2, -72.0}, {3, -72.0},
-                                              {4, -72.0}, {5, -72.0}, {6, -72.0}, {7, -72.0},
-                                              {8, -72.0}, {9, -72.0}, {10, -72.0}, {11, -72.0} }),
-                   MakeCcaThresholdPerMcsAccessor (&DynamicThresholdChannelBondingManager::m_ccaEdThresholdsSecondaryDbm),
-                   MakeCcaThresholdPerMcsChecker ())
+                   CcaThresholdPerWifiModeValue (),
+                   MakeCcaThresholdPerWifiModeAccessor (&DynamicThresholdChannelBondingManager::m_ccaEdThresholdsSecondaryDbm),
+                   MakeCcaThresholdPerWifiModeChecker ())
   ;
   return tid;
 }
 
 void
-DynamicThresholdChannelBondingManager::SetCcaEdThresholdSecondaryForMcs (uint8_t mcs, double threshold)
+DynamicThresholdChannelBondingManager::SetCcaEdThresholdSecondaryForMode (WifiMode mode, double threshold)
 {
-  NS_LOG_FUNCTION (this << +mcs << threshold);
-  m_ccaEdThresholdsSecondaryDbm.insert ({mcs, threshold});
+  NS_LOG_FUNCTION (this << mode << threshold);
+  m_ccaEdThresholdsSecondaryDbm.insert ({mode, threshold});
   if (m_phy)
     {
       m_phy->AddCcaEdThresholdSecondary (threshold);
@@ -79,35 +76,22 @@ DynamicThresholdChannelBondingManager::SetPhy (const Ptr<WifiPhy> phy)
 }
 
 uint16_t
-DynamicThresholdChannelBondingManager::GetUsableChannelWidth (uint8_t mcs)
+DynamicThresholdChannelBondingManager::GetUsableChannelWidth (WifiMode mode)
 {
   //TODO
   NS_ASSERT (false);
   return m_phy->GetChannelWidth ();
-  /*if (m_phy->GetChannelWidth () < 40)
-    {
-      return m_phy->GetChannelWidth ();
-    }
-  uint16_t usableChannelWidth = 20;
-  for (uint16_t width = m_phy->GetChannelWidth (); width > 20; )
-    {
-      if (m_phy->GetDelaySinceChannelIsIdle (width) >= m_phy->GetPifs ())
-        {
-          usableChannelWidth = width;
-          break;
-        }
-      width /= 2;
-    }
-  return usableChannelWidth;*/
 }
 
-std::ostream& operator<< (std::ostream& os, CcaThresholdPerMcsMap ccaThresholdPerMcs)
+std::ostream& operator<< (std::ostream& os, CcaThresholdPerWifiModeMap ccaThresholdPerWifiMode)
 {
+  //TODO
   return os;
 }
 
-std::istream &operator>> (std::istream &is, CcaThresholdPerMcsMap &ccaThresholdPerMcs)
+std::istream &operator>> (std::istream &is, CcaThresholdPerWifiModeMap &ccaThresholdPerWifiMode)
 {
+  //TODO
   return is;
 }
 
