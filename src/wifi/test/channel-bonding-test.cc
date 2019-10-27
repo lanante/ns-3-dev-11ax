@@ -36,6 +36,7 @@
 #include "ns3/multi-model-spectrum-channel.h"
 #include "ns3/constant-position-mobility-model.h"
 #include "ns3/constant-threshold-channel-bonding-manager.h"
+#include "ns3/dynamic-threshold-channel-bonding-manager.h"
 #include "ns3/waveform-generator.h"
 #include "ns3/non-communicating-net-device.h"
 #include "ns3/mobility-helper.h"
@@ -874,7 +875,7 @@ TestStaticChannelBondingSnr::DoRun (void)
  * \ingroup wifi-test
  * \ingroup tests
  *
- * \brief dynamic channel bonding
+ * \brief constant threshold dynamic channel bonding
  *
  * In this test, we have three 802.11ac transmitters and three 802.11ac receivers.
  * A BSS is composed of one transmitter and one receiver.
@@ -885,11 +886,11 @@ TestStaticChannelBondingSnr::DoRun (void)
  * The third BSS makes uses of channel bonding on channel 38 (= 36 + 40),
  * with channel 40 as primary 20 MHz channel.
  */
-class TestDynamicChannelBonding : public TestCase
+class TestConstantThresholdDynamicChannelBonding : public TestCase
 {
 public:
-  TestDynamicChannelBonding ();
-  virtual ~TestDynamicChannelBonding ();
+  TestConstantThresholdDynamicChannelBonding ();
+  virtual ~TestConstantThresholdDynamicChannelBonding ();
 
 private:
   virtual void DoSetup (void);
@@ -918,8 +919,8 @@ private:
   std::vector<Ptr<BondingTestSpectrumWifiPhy> > m_txPhys; ///< TX PHYs
 };
 
-TestDynamicChannelBonding::TestDynamicChannelBonding ()
-  : TestCase ("Dynamic channel bonding test")
+TestConstantThresholdDynamicChannelBonding::TestConstantThresholdDynamicChannelBonding ()
+  : TestCase ("Constant threshold dynamic channel bonding test")
 {
   LogLevel logLevel = (LogLevel)(LOG_PREFIX_TIME | LOG_PREFIX_NODE | LOG_LEVEL_ALL);
   LogComponentEnable ("WifiChannelBondingTest", logLevel);
@@ -927,7 +928,7 @@ TestDynamicChannelBonding::TestDynamicChannelBonding ()
   //LogComponentEnable ("WifiPhy", logLevel);
 }
 
-TestDynamicChannelBonding::~TestDynamicChannelBonding ()
+TestConstantThresholdDynamicChannelBonding::~TestConstantThresholdDynamicChannelBonding ()
 {
   for (auto & rxPhy : m_rxPhys)
     {
@@ -942,7 +943,7 @@ TestDynamicChannelBonding::~TestDynamicChannelBonding ()
 }
 
 void
-TestDynamicChannelBonding::SendPacket (uint8_t bss, uint16_t expectedChannelWidth)
+TestConstantThresholdDynamicChannelBonding::SendPacket (uint8_t bss, uint16_t expectedChannelWidth)
 {
   Ptr<BondingTestSpectrumWifiPhy> phy = m_txPhys.at (bss - 1);
   uint32_t payloadSize = 1000 + bss;
@@ -962,7 +963,7 @@ TestDynamicChannelBonding::SendPacket (uint8_t bss, uint16_t expectedChannelWidt
 }
 
 void
-TestDynamicChannelBonding::CreateBss (const Ptr<MultiModelSpectrumChannel> channel,
+TestConstantThresholdDynamicChannelBonding::CreateBss (const Ptr<MultiModelSpectrumChannel> channel,
                                       uint16_t channelWidth, uint8_t channelNumber,
                                       uint16_t frequency, uint8_t primaryChannelNumber)
 {
@@ -1020,7 +1021,7 @@ TestDynamicChannelBonding::CreateBss (const Ptr<MultiModelSpectrumChannel> chann
 }
 
 void
-TestDynamicChannelBonding::DoSetup (void)
+TestConstantThresholdDynamicChannelBonding::DoSetup (void)
 {
   Ptr<MultiModelSpectrumChannel> channel = CreateObject<MultiModelSpectrumChannel> ();
 
@@ -1042,7 +1043,7 @@ TestDynamicChannelBonding::DoSetup (void)
 }
 
 void
-TestDynamicChannelBonding::DoRun (void)
+TestConstantThresholdDynamicChannelBonding::DoRun (void)
 {
   RngSeedManager::SetSeed (1);
   RngSeedManager::SetRun (1);
@@ -1057,37 +1058,279 @@ TestDynamicChannelBonding::DoRun (void)
     }
 
   //CASE 1: send on free channel, so BSS 1 PHY shall select the full supported channel width of 40 MHz
-  Simulator::Schedule (Seconds (1.0), &TestDynamicChannelBonding::SendPacket, this, 1, 40);
+  Simulator::Schedule (Seconds (1.0), &TestConstantThresholdDynamicChannelBonding::SendPacket, this, 1, 40);
 
-  //CASE 2: send when secondardy channel is free for more than PIFS, so BSS 1 PHY shall select the full supported channel width of 40 MHz
-  Simulator::Schedule (Seconds (2.0), &TestDynamicChannelBonding::SendPacket, this, 2, 20);
-  Simulator::Schedule (Seconds (2.0) + MicroSeconds (164) /* transmission time of previous packet sent by BSS 2 */ + MicroSeconds (50) /* > PIFS */, &TestDynamicChannelBonding::SendPacket, this, 1, 40);
+  //CASE 2: send when secondary channel is free for more than PIFS, so BSS 1 PHY shall select the full supported channel width of 40 MHz
+  Simulator::Schedule (Seconds (2.0), &TestConstantThresholdDynamicChannelBonding::SendPacket, this, 2, 20);
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (164) /* transmission time of previous packet sent by BSS 2 */ + MicroSeconds (50) /* > PIFS */, &TestConstantThresholdDynamicChannelBonding::SendPacket, this, 1, 40);
 
   //CASE 3: send when secondary channel is free for less than PIFS, so BSS 1 PHY shall limit its channel width to 20 MHz
-  Simulator::Schedule (Seconds (3.0), &TestDynamicChannelBonding::SendPacket, this, 2, 20);
-  Simulator::Schedule (Seconds (3.0) + MicroSeconds (164) /* transmission time of previous packet sent by BSS 2 */ + MicroSeconds (20) /* < PIFS */, &TestDynamicChannelBonding::SendPacket, this, 1, 20);
+  Simulator::Schedule (Seconds (3.0), &TestConstantThresholdDynamicChannelBonding::SendPacket, this, 2, 20);
+  Simulator::Schedule (Seconds (3.0) + MicroSeconds (164) /* transmission time of previous packet sent by BSS 2 */ + MicroSeconds (20) /* < PIFS */, &TestConstantThresholdDynamicChannelBonding::SendPacket, this, 1, 20);
 
   //CASE 4: both transmitters send at the same time when channel was previously idle, BSS 1 shall anyway transmit at 40 MHz since it shall already indicate the selected channel width in its PHY header
-  Simulator::Schedule (Seconds (4.0), &TestDynamicChannelBonding::SendPacket, this, 2, 20);
-  Simulator::Schedule (Seconds (4.0), &TestDynamicChannelBonding::SendPacket, this, 1, 40);
+  Simulator::Schedule (Seconds (4.0), &TestConstantThresholdDynamicChannelBonding::SendPacket, this, 2, 20);
+  Simulator::Schedule (Seconds (4.0), &TestConstantThresholdDynamicChannelBonding::SendPacket, this, 1, 40);
 
-  //CASE 5: send when secondardy channel is free for more than PIFS, so BSS 1 PHY shall select the full supported channel width of 40 MHz
-  Simulator::Schedule (Seconds (5.0), &TestDynamicChannelBonding::SendPacket, this, 3, 40);
-  Simulator::Schedule (Seconds (5.0) + MicroSeconds (100) /* transmission time of previous packet sent by BSS 2 */ + MicroSeconds (50) /* > PIFS */, &TestDynamicChannelBonding::SendPacket, this, 1, 40);
+  //CASE 5: send when secondary channel is free for more than PIFS, so BSS 1 PHY shall select the full supported channel width of 40 MHz
+  Simulator::Schedule (Seconds (5.0), &TestConstantThresholdDynamicChannelBonding::SendPacket, this, 3, 40);
+  Simulator::Schedule (Seconds (5.0) + MicroSeconds (100) /* transmission time of previous packet sent by BSS 2 */ + MicroSeconds (50) /* > PIFS */, &TestConstantThresholdDynamicChannelBonding::SendPacket, this, 1, 40);
 
-  //CASE 6: send when secondardy channel is free for more than PIFS, so BSS 3 PHY shall select the full supported channel width of 40 MHz
-  Simulator::Schedule (Seconds (6.0), &TestDynamicChannelBonding::SendPacket, this, 1, 40);
-  Simulator::Schedule (Seconds (6.0) + MicroSeconds (100) /* transmission time of previous packet sent by BSS 2 */ + MicroSeconds (50) /* > PIFS */, &TestDynamicChannelBonding::SendPacket, this, 3, 40);
+  //CASE 6: send when secondary channel is free for more than PIFS, so BSS 3 PHY shall select the full supported channel width of 40 MHz
+  Simulator::Schedule (Seconds (6.0), &TestConstantThresholdDynamicChannelBonding::SendPacket, this, 1, 40);
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (100) /* transmission time of previous packet sent by BSS 2 */ + MicroSeconds (50) /* > PIFS */, &TestConstantThresholdDynamicChannelBonding::SendPacket, this, 3, 40);
 
   //CASE 7: send when secondary channel is free for less than PIFS, so BSS 1 PHY shall limit its channel width to 20 MHz
-  Simulator::Schedule (Seconds (7.0), &TestDynamicChannelBonding::SendPacket, this, 3, 40);
-  Simulator::Schedule (Seconds (7.0) + MicroSeconds (100) /* transmission time of previous packet sent by BSS 2 */ + MicroSeconds (20) /* < PIFS */, &TestDynamicChannelBonding::SendPacket, this, 1, 20);
+  Simulator::Schedule (Seconds (7.0), &TestConstantThresholdDynamicChannelBonding::SendPacket, this, 3, 40);
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (100) /* transmission time of previous packet sent by BSS 2 */ + MicroSeconds (20) /* < PIFS */, &TestConstantThresholdDynamicChannelBonding::SendPacket, this, 1, 20);
 
   //CASE 8: send when secondary channel is free for less than PIFS, so BSS 3 PHY shall limit its channel width to 20 MHz
-  Simulator::Schedule (Seconds (8.0), &TestDynamicChannelBonding::SendPacket, this, 1, 40);
-  Simulator::Schedule (Seconds (8.0) + MicroSeconds (100) /* transmission time of previous packet sent by BSS 2 */ + MicroSeconds (20) /* < PIFS */, &TestDynamicChannelBonding::SendPacket, this, 3, 20);
+  Simulator::Schedule (Seconds (8.0), &TestConstantThresholdDynamicChannelBonding::SendPacket, this, 1, 40);
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (100) /* transmission time of previous packet sent by BSS 2 */ + MicroSeconds (20) /* < PIFS */, &TestConstantThresholdDynamicChannelBonding::SendPacket, this, 3, 20);
 
   Simulator::Run ();
+  Simulator::Destroy ();
+}
+
+/**
+ * \ingroup wifi-test
+ * \ingroup tests
+ *
+ * \brief dynamic threshold dynamic channel bonding
+ *
+ * In this test, we have three 802.11ac transmitters and three 802.11ac receivers.
+ * A BSS is composed of one transmitter and one receiver.
+ *
+ * The first BSS makes uses of channel bonding on channel 38 (= 36 + 40),
+ * with channel 36 as primary 20 MHz channel.
+ * The second BSS operates on channel 40 with a channel width of 20 MHz.
+ * The third BSS makes uses of channel bonding on channel 38 (= 36 + 40),
+ * with channel 40 as primary 20 MHz channel.
+ */
+class TestDynamicThresholdDynamicChannelBonding : public TestCase
+{
+public:
+  TestDynamicThresholdDynamicChannelBonding ();
+  virtual ~TestDynamicThresholdDynamicChannelBonding ();
+
+private:
+  virtual void DoSetup (void);
+  virtual void DoRun (void);
+
+  /**
+   * Run one function
+   * \param mcs the MCS to use for the tests
+   * \param interferenceAboveThreshold  flag whether the interference is above the CCA threshold in the secondary channel
+   */
+  void RunOne (uint8_t mcs, bool interferenceAboveThreshold);
+
+  /**
+   * Create BSS
+   * \param channel the Spectrum channel
+   * \param channelWidth the channel width
+   * \param channelNumber the operating channel number
+   * \param frequency the operating frequency
+   * \param primaryChannelNumber the channel number of the primary 20 MHz
+   */
+  void CreateBss (const Ptr<MultiModelSpectrumChannel> channel,
+                  uint16_t channelWidth, uint8_t channelNumber,
+                  uint16_t frequency, uint8_t primaryChannelNumber);
+
+  /**
+   * Send packet function
+   * \param bss the BSS of the transmitter belongs to
+   * \param mcs the MCS to use for the transmission
+   * \param expectedChannelWidth the expected channel width used for the transmission
+   */
+  void SendPacket (uint8_t bss, uint8_t mcs, uint16_t expectedChannelWidth);
+
+  std::vector<Ptr<BondingTestSpectrumWifiPhy> > m_rxPhys; ///< RX PHYs
+  std::vector<Ptr<BondingTestSpectrumWifiPhy> > m_txPhys; ///< TX PHYs
+};
+
+TestDynamicThresholdDynamicChannelBonding::TestDynamicThresholdDynamicChannelBonding ()
+  : TestCase ("dynamic threshold dynamic channel bonding test")
+{
+  LogLevel logLevel = (LogLevel)(LOG_PREFIX_TIME | LOG_PREFIX_NODE | LOG_LEVEL_ALL);
+  LogComponentEnable ("WifiChannelBondingTest", logLevel);
+  //LogComponentEnable ("ConstantThresholdChannelBondingManager", logLevel);
+  //LogComponentEnable ("WifiPhy", logLevel);
+}
+
+TestDynamicThresholdDynamicChannelBonding::~TestDynamicThresholdDynamicChannelBonding ()
+{
+  for (auto & rxPhy : m_rxPhys)
+    {
+      rxPhy = 0;
+    }
+  for (auto & txPhy : m_txPhys)
+    {
+      txPhy = 0;
+    }
+  m_rxPhys.clear ();
+  m_txPhys.clear ();
+}
+
+void
+TestDynamicThresholdDynamicChannelBonding::SendPacket (uint8_t bss, uint8_t mcs, uint16_t expectedChannelWidth)
+{
+  Ptr<BondingTestSpectrumWifiPhy> phy = m_txPhys.at (bss - 1);
+  uint32_t payloadSize = 1000 + bss;
+
+  WifiMode mode = WifiPhy::GetVhtMcs (mcs);
+  uint16_t channelWidth = phy->GetUsableChannelWidth (mode);
+  NS_TEST_ASSERT_MSG_EQ (channelWidth, expectedChannelWidth, "selected channel width is not as expected");
+
+  WifiTxVector txVector = WifiTxVector (mode, 0, WIFI_PREAMBLE_HT_MF, 800, 1, 1, 0, channelWidth, false, false);
+
+  Ptr<Packet> pkt = Create<Packet> (payloadSize);
+  WifiMacHeader hdr;
+  hdr.SetType (WIFI_MAC_QOSDATA);
+
+  Ptr<WifiPsdu> psdu = Create<WifiPsdu> (pkt, hdr);
+  phy->Send (WifiPsduMap ({std::make_pair (SU_STA_ID, psdu)}), txVector);
+}
+
+void
+TestDynamicThresholdDynamicChannelBonding::CreateBss (const Ptr<MultiModelSpectrumChannel> channel,
+                                      uint16_t channelWidth, uint8_t channelNumber,
+                                      uint16_t frequency, uint8_t primaryChannelNumber)
+{
+  uint8_t bssNumber = m_rxPhys.size () + 1;
+
+  Ptr<ErrorRateModel> error = CreateObject<NistErrorRateModel> ();
+
+  Ptr<BondingTestSpectrumWifiPhy> rxPhy = CreateObject<BondingTestSpectrumWifiPhy> ();
+  Ptr<ConstantPositionMobilityModel> rxMobility = CreateObject<ConstantPositionMobilityModel> ();
+  rxMobility->SetPosition (Vector (1.0, 1.0 * (bssNumber - 1), 0.0));
+  rxPhy->SetMobility (rxMobility);
+  rxPhy->ConfigureStandard (WIFI_PHY_STANDARD_80211ac);
+  rxPhy->CreateWifiSpectrumPhyInterface (nullptr);
+  rxPhy->SetChannel (channel);
+  rxPhy->SetErrorRateModel (error);
+  rxPhy->SetChannelWidth (channelWidth);
+  rxPhy->SetChannelNumber (channelNumber);
+  rxPhy->SetPrimaryChannelNumber (primaryChannelNumber);
+  rxPhy->SetFrequency (frequency);
+  rxPhy->SetTxPowerStart (0.0);
+  rxPhy->SetTxPowerEnd (0.0);
+  rxPhy->SetRxSensitivity (-91.0);
+  rxPhy->SetAttribute ("TxMaskInnerBandMinimumRejection", DoubleValue (-40.0));
+  rxPhy->SetAttribute ("TxMaskOuterBandMinimumRejection", DoubleValue (-56.0));
+  rxPhy->SetAttribute ("TxMaskOuterBandMaximumRejection", DoubleValue (-80.0));
+  rxPhy->Initialize ();
+  
+  m_rxPhys.push_back (rxPhy);
+
+  Ptr<BondingTestSpectrumWifiPhy> txPhy = CreateObject<BondingTestSpectrumWifiPhy> ();
+  Ptr<ConstantPositionMobilityModel> txMobility = CreateObject<ConstantPositionMobilityModel> ();
+  txMobility->SetPosition (Vector (0.0, 1.0 * (bssNumber - 1), 0.0));
+  txPhy->SetMobility (txMobility);
+  txPhy->ConfigureStandard (WIFI_PHY_STANDARD_80211ac);
+  txPhy->CreateWifiSpectrumPhyInterface (nullptr);
+  txPhy->SetChannel (channel);
+  txPhy->SetErrorRateModel (error);
+  txPhy->SetChannelWidth (channelWidth);
+  txPhy->SetChannelNumber (channelNumber);
+  txPhy->SetPrimaryChannelNumber (primaryChannelNumber);
+  txPhy->SetFrequency (frequency);
+  txPhy->SetTxPowerStart (0.0);
+  txPhy->SetTxPowerEnd (0.0);
+  txPhy->SetRxSensitivity (-91.0);
+  txPhy->SetAttribute ("TxMaskInnerBandMinimumRejection", DoubleValue (-40.0));
+  txPhy->SetAttribute ("TxMaskOuterBandMinimumRejection", DoubleValue (-56.0));
+  txPhy->SetAttribute ("TxMaskOuterBandMaximumRejection", DoubleValue (-80.0));
+  txPhy->Initialize ();
+
+  Ptr<DynamicThresholdChannelBondingManager> channelBondingManager = CreateObject<DynamicThresholdChannelBondingManager> ();
+  channelBondingManager->SetCcaEdThresholdSecondaryForMode (WifiPhy::GetVhtMcs7 (), -72);
+  channelBondingManager->SetCcaEdThresholdSecondaryForMode (WifiPhy::GetVhtMcs0 (), -22);
+  txPhy->SetChannelBondingManager (channelBondingManager);
+  txPhy->SetPifs (MicroSeconds (25));
+
+  m_txPhys.push_back (txPhy);
+}
+
+void
+TestDynamicThresholdDynamicChannelBonding::DoSetup (void)
+{
+  Ptr<MultiModelSpectrumChannel> channel = CreateObject<MultiModelSpectrumChannel> ();
+
+  Ptr<MatrixPropagationLossModel> lossModel = CreateObject<MatrixPropagationLossModel> ();
+  lossModel->SetDefaultLoss (50); // set default loss to 50 dB for all links
+  channel->AddPropagationLossModel (lossModel);
+
+  Ptr<ConstantSpeedPropagationDelayModel> delayModel = CreateObject<ConstantSpeedPropagationDelayModel> ();
+  channel->SetPropagationDelayModel (delayModel);
+
+  //Create BSS #1 operating on channel 38, with primary channel 36
+  CreateBss (channel, 40 /* channel width */, 38 /* channel number */, 5190 /* frequency */, 36 /* primary channel number */);
+
+  //Create BSS #2 operating on channel 40
+  CreateBss (channel, 20 /* channel width */, 40 /* channel number */, 5200 /* frequency */, 40 /* primary channel number */);
+
+  //Create BSS #3 operating on channel 38, with primary channel 40
+  CreateBss (channel, 40 /* channel width */, 38 /* channel number */, 5190 /* frequency */, 40 /* primary channel number */);
+}
+
+void
+TestDynamicThresholdDynamicChannelBonding::RunOne (uint8_t mcs, bool interferenceAboveThreshold)
+{
+  RngSeedManager::SetSeed (1);
+  RngSeedManager::SetRun (1);
+  int64_t streamNumber = 0;
+  for (auto & rxPhy : m_rxPhys)
+    {
+      rxPhy->AssignStreams (streamNumber);
+    }
+  for (auto & txPhy : m_txPhys)
+    {
+      txPhy->AssignStreams (streamNumber);
+    }
+
+  //CASE 1: send on free channel, so BSS 1 PHY shall select the full supported channel width of 40 MHz
+  Simulator::Schedule (Seconds (1.0), &TestDynamicThresholdDynamicChannelBonding::SendPacket, this, 1, mcs, 40);
+
+  //CASE 2: send when secondary channel is free for more than PIFS, so BSS 1 PHY shall select the full supported channel width of 40 MHz
+  Simulator::Schedule (Seconds (2.0), &TestDynamicThresholdDynamicChannelBonding::SendPacket, this, 2, 7, 20);
+  Simulator::Schedule (Seconds (2.0) + MicroSeconds (164) /* transmission time of previous packet sent by BSS 2 */ + MicroSeconds (50) /* > PIFS */, &TestDynamicThresholdDynamicChannelBonding::SendPacket, this, 1, mcs, 40);
+
+  //CASE 3: send when secondary channel is free for less than PIFS, so BSS 1 PHY shall limit its channel width to 20 MHz if interference is above the CCA threshold
+  Simulator::Schedule (Seconds (3.0), &TestDynamicThresholdDynamicChannelBonding::SendPacket, this, 2, 7, 20);
+  Simulator::Schedule (Seconds (3.0) + MicroSeconds (164) /* transmission time of previous packet sent by BSS 2 */ + MicroSeconds (20) /* < PIFS */, &TestDynamicThresholdDynamicChannelBonding::SendPacket, this, 1, mcs, interferenceAboveThreshold ? 20 : 40);
+
+  //CASE 4: both transmitters send at the same time when channel was previously idle, BSS 1 shall anyway transmit at 40 MHz since it shall already indicate the selected channel width in its PHY header
+  Simulator::Schedule (Seconds (4.0), &TestDynamicThresholdDynamicChannelBonding::SendPacket, this, 2, 7, 20);
+  Simulator::Schedule (Seconds (4.0), &TestDynamicThresholdDynamicChannelBonding::SendPacket, this, 1, mcs, 40);
+
+  //CASE 5: send when secondary channel is free for more than PIFS, so BSS 1 PHY shall select the full supported channel width of 40 MHz
+  Simulator::Schedule (Seconds (5.0), &TestDynamicThresholdDynamicChannelBonding::SendPacket, this, 3, 7, 40);
+  Simulator::Schedule (Seconds (5.0) + MicroSeconds (100) /* transmission time of previous packet sent by BSS 2 */ + MicroSeconds (50) /* > PIFS */, &TestDynamicThresholdDynamicChannelBonding::SendPacket, this, 1, mcs, 40);
+
+  //CASE 6: send when secondary channel is free for more than PIFS, so BSS 3 PHY shall select the full supported channel width of 40 MHz
+  Simulator::Schedule (Seconds (6.0), &TestDynamicThresholdDynamicChannelBonding::SendPacket, this, 1, 7, 40);
+  Simulator::Schedule (Seconds (6.0) + MicroSeconds (100) /* transmission time of previous packet sent by BSS 2 */ + MicroSeconds (50) /* > PIFS */, &TestDynamicThresholdDynamicChannelBonding::SendPacket, this, 3, mcs, 40);
+
+  //CASE 7: send when secondary channel is free for less than PIFS, so BSS 1 PHY shall limit its channel width to 20 MHz
+  Simulator::Schedule (Seconds (7.0), &TestDynamicThresholdDynamicChannelBonding::SendPacket, this, 3, 7, 40);
+  Simulator::Schedule (Seconds (7.0) + MicroSeconds (100) /* transmission time of previous packet sent by BSS 2 */ + MicroSeconds (20) /* < PIFS */, &TestDynamicThresholdDynamicChannelBonding::SendPacket, this, 1, mcs, 20);
+
+  //CASE 8: send when secondary channel is free for less than PIFS, so BSS 3 PHY shall limit its channel width to 20 MHz
+  Simulator::Schedule (Seconds (8.0), &TestDynamicThresholdDynamicChannelBonding::SendPacket, this, 1, 7, 40);
+  Simulator::Schedule (Seconds (8.0) + MicroSeconds (100) /* transmission time of previous packet sent by BSS 2 */ + MicroSeconds (20) /* < PIFS */, &TestDynamicThresholdDynamicChannelBonding::SendPacket, this, 3, mcs, 20);
+
+  Simulator::Run ();
+}
+
+void
+TestDynamicThresholdDynamicChannelBonding::DoRun (void)
+{
+  /* run test for MCS 7, where RX power > CCA threshold */
+  RunOne (7, true);
+
+  /* run test for MCS 0, where RX power < CCA threshold */
+  RunOne (0, false);
+
   Simulator::Destroy ();
 }
 
@@ -2305,7 +2548,8 @@ WifiChannelBondingTestSuite::WifiChannelBondingTestSuite ()
 {
   AddTestCase (new TestStaticChannelBondingSnr, TestCase::QUICK);
   AddTestCase (new TestStaticChannelBondingChannelAccess, TestCase::QUICK);
-  AddTestCase (new TestDynamicChannelBonding, TestCase::QUICK);
+  AddTestCase (new TestConstantThresholdDynamicChannelBonding, TestCase::QUICK);
+  AddTestCase (new TestDynamicThresholdDynamicChannelBonding, TestCase::QUICK);
   AddTestCase (new TestEffectiveSnrCalculations, TestCase::QUICK);
 }
 
