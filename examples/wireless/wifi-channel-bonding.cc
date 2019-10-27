@@ -56,31 +56,31 @@
 //
 // One can run a scenario where each network occupies its 20 MHz band, i.e. network A
 // uses channel 36 whereas network B is configured to use channel 40:
-//     ./waf --run "wifi-channel-bonding --channelBssA=36 --channelBssB=40 --useDynamicChannelBonding=false"
+//     ./waf --run "wifi-channel-bonding --channelBssA=36 --channelBssB=40"
 // The output gives:
 //     Throughput for BSS A: 59.5347 Mbit/s
 //     Throughput for BSS B: 59.5018 Mbit/s
 // The throughput per network is maximum and not affected by the presence of the other network,
 // since they are operating on different channels.
 //
-// One can run a scenario where a 40 MHz channel is used for network A, while keeping network B as previously:
-//     ./waf --run "wifi-channel-bonding --channelBssA=38 --channelBssB=40 --useDynamicChannelBonding=false"
+// One can run a scenario where a static 40 MHz channel is used for network A, while keeping network B as previously:
+//     ./waf --run "wifi-channel-bonding --channelBssA=38 --channelBssB=40 --channelBondingType=Static"
 // The output gives:
 //     Throughput for BSS A: 67.4753 Mbit/s
 //     Throughput for BSS B: 26.7774 Mbit/s
 // Since this makes use of static channel bonding, network A will have to share channel 40 together with network B.
 // But as network A makes use of 40 MHz channel when it transmits, it gets a higher throughput than network B that is not using channel bonding.
 //
-// One can run the previous scenario with dynamic channel bonding enabled:
-//     ./waf --run "wifi-channel-bonding --channelBssA=38 --channelBssB=40 --useDynamicChannelBonding=true"
+// One can run the previous scenario with constant threshold dynamic channel bonding:
+//     ./waf --run "wifi-channel-bonding --channelBssA=38 --channelBssB=40 --channelBondingType=ConstantThreshold"
 // The output gives:
 //     Throughput for BSS A: 59.629 Mbit/s
 //     Throughput for BSS B: 59.4217 Mbit/s
 // We can see the benefit of using a dynamic channel bonding. Since activity is detected on the secondary channel,
 // network A limits its channel width to 20 MHz and this gives a better share of the spectrum.
 //
-// One can run a scenario where both networks make use of channel bonding:
-//     ./waf --run "wifi-channel-bonding --channelBssA=38 --channelBssB=38 --useDynamicChannelBonding=false"
+// One can run a scenario where both networks make use of static channel bonding:
+//     ./waf --run "wifi-channel-bonding --channelBssA=38 --channelBssB=38 --channelBondingType=Static"
 //     Throughput for BSS A: 66.4072 Mbit/s
 //     Throughput for BSS B: 64.5855 Mbit/s
 // The channel is shared with the two networks as they operate on the same channel, but since they can use both
@@ -102,15 +102,15 @@ int main (int argc, char *argv[])
   double txMaskOuterBandMaximumRejection = -160.0; //dBr
   double loadBssA = 0.00002; //packets/s
   double loadBssB = 0.00002; //packets/s
-  bool useDynamicChannelBonding = true;
+  std::string channelBondingType = "ConstantThreshold";
   uint16_t channelBssA = 36;
   uint16_t channelBssB = 40;
   uint16_t primaryChannelBssA = 36;
   uint16_t primaryChannelBssB = 40;
   double ccaEdThresholdPrimaryBssA = -62.0;
-  double ccaEdThresholdSecondaryBssA = -72.0;
+  double constantCcaEdThresholdSecondaryBssA = -72.0;
   double ccaEdThresholdPrimaryBssB = -62.0;
-  double ccaEdThresholdSecondaryBssB = -72.0;
+  double constantCcaEdThresholdSecondaryBssB = -72.0;
   bool verifyResults = 0; //used for regression
   double minExpectedThroughputBssA = 0; //Mbit/s
   double maxExpectedThroughputBssA = 0; //Mbit/s
@@ -130,11 +130,11 @@ int main (int argc, char *argv[])
   cmd.AddValue ("channelBssB", "The selected channel for BSS B", channelBssB);
   cmd.AddValue ("primaryChannelBssA", "The primary 20 MHz channel for BSS A", primaryChannelBssA);
   cmd.AddValue ("primaryChannelBssB", "The primary 20 MHz channel for BSS B", primaryChannelBssB);
-  cmd.AddValue ("useDynamicChannelBonding", "Enable/disable use of dynamic channel bonding", useDynamicChannelBonding);
+  cmd.AddValue ("channelBondingType", "The channel bonding type: Static, ConstantThreshold or DynamicThreshold", channelBondingType);
   cmd.AddValue ("ccaEdThresholdPrimaryBssA", "The energy detection threshold on the primary channel for BSS A", ccaEdThresholdPrimaryBssA);
-  cmd.AddValue ("ccaEdThresholdSecondaryBssA", "The energy detection threshold on the secondary channel for BSS A", ccaEdThresholdSecondaryBssA);
+  cmd.AddValue ("constantCcaEdThresholdSecondaryBssA", "The energy detection threshold on the secondary channel for BSS A (only used by CT-DCB)", constantCcaEdThresholdSecondaryBssA);
   cmd.AddValue ("ccaEdThresholdPrimaryBssB", "The energy detection threshold on the primary channel for BSS B", ccaEdThresholdPrimaryBssB);
-  cmd.AddValue ("ccaEdThresholdSecondaryBssB", "The energy detection threshold on the secondary channel for BSS B", ccaEdThresholdSecondaryBssB);
+  cmd.AddValue ("constantCcaEdThresholdSecondaryBssB", "The energy detection threshold on the secondary channel for BSS B (only used by CT-DCB)", constantCcaEdThresholdSecondaryBssB);
   cmd.AddValue ("loadBssA", "The number of packets per second for BSS A", loadBssA);
   cmd.AddValue ("loadBssB", "The number of packets per second for BSS B", loadBssB);
   cmd.AddValue ("verifyResults", "Enable/disable results verification at the end of the simulation", verifyResults);
@@ -170,12 +170,7 @@ int main (int argc, char *argv[])
   std::ostringstream oss;
   oss << "VhtMcs" << mcs;
   wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode", StringValue (oss.str ()), "ControlMode", StringValue (oss.str ()));
-
-  if (useDynamicChannelBonding)
-    {
-      wifi.SetChannelBondingManager ("ns3::ConstantThresholdChannelBondingManager",
-                                     "CcaEdThresholdSecondary", DoubleValue (ccaEdThresholdSecondaryBssA));
-    }
+  wifi.SetChannelBondingManager ("ns3::" + channelBondingType + "ChannelBondingManager");
 
   NetDeviceContainer staDeviceA, staDeviceB, apDeviceA, apDeviceB;
   WifiMacHelper mac;
@@ -205,12 +200,6 @@ int main (int argc, char *argv[])
   wifiApDeviceAPtr->GetPhy ()->SetPrimaryChannelNumber (primaryChannelBssA);
   wifiApDeviceAPtr->GetPhy ()->SetCcaEdThreshold (ccaEdThresholdPrimaryBssA);
 
-  if (useDynamicChannelBonding)
-    {
-      wifi.SetChannelBondingManager ("ns3::ConstantThresholdChannelBondingManager",
-                                     "CcaEdThresholdSecondary", DoubleValue (ccaEdThresholdSecondaryBssB));
-    }
-
   // network B
   ssid = Ssid ("network-B");
 
@@ -229,6 +218,11 @@ int main (int argc, char *argv[])
                "Ssid", SsidValue (ssid),
                "EnableBeaconJitter", BooleanValue (false));
   apDeviceB = wifi.Install (phy, mac, wifiApNodes.Get (1));
+
+  Config::Set ("/NodeList/0/DeviceList/*/Phy/ChannelBondingManager/$ns3::ConstantThresholdChannelBondingManager/CcaEdThresholdSecondary", DoubleValue (constantCcaEdThresholdSecondaryBssA));
+  Config::Set ("/NodeList/2/DeviceList/*/Phy/ChannelBondingManager/$ns3::ConstantThresholdChannelBondingManager/CcaEdThresholdSecondary", DoubleValue (constantCcaEdThresholdSecondaryBssA));
+  Config::Set ("/NodeList/1/DeviceList/*/Phy/ChannelBondingManager/$ns3::ConstantThresholdChannelBondingManager/CcaEdThresholdSecondary", DoubleValue (constantCcaEdThresholdSecondaryBssB));
+  Config::Set ("/NodeList/3/DeviceList/*/Phy/ChannelBondingManager/$ns3::ConstantThresholdChannelBondingManager/CcaEdThresholdSecondary", DoubleValue (constantCcaEdThresholdSecondaryBssB));
 
   Ptr<NetDevice> apDeviceBPtr = apDeviceB.Get (0);
   Ptr<WifiNetDevice> wifiApDeviceBPtr = apDeviceBPtr->GetObject <WifiNetDevice> ();

@@ -337,6 +337,11 @@ WifiPhy::GetTypeId (void)
                    PointerValue (),
                    MakePointerAccessor (&WifiPhy::m_postReceptionErrorModel),
                    MakePointerChecker<ErrorModel> ())
+    .AddAttribute ("ChannelBondingManager",
+                   "Ptr to the channel bonding manager",
+                   PointerValue (),
+                   MakePointerAccessor (&WifiPhy::m_channelBondingManager),
+                   MakePointerChecker <ChannelBondingManager> ())
     .AddTraceSource ("PhyTxBegin",
                      "Trace source indicating a packet "
                      "has begun transmitting over the channel medium",
