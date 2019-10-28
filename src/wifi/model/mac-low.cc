@@ -21,8 +21,10 @@
  *          Stefano Avallone <stavallo@unina.it>
  */
 
+#include <numeric>
 #include "ns3/simulator.h"
 #include "ns3/log.h"
+#include "ns3/pointer.h"
 #include "mac-low.h"
 #include "qos-txop.h"
 #include "snr-tag.h"
@@ -44,6 +46,7 @@
 #include "sta-wifi-mac.h"
 #include <algorithm>
 #include "wifi-ack-policy-selector.h"
+#include "dynamic-threshold-channel-bonding-manager.h"
 
 #undef NS_LOG_APPEND_CONTEXT
 #define NS_LOG_APPEND_CONTEXT std::clog << "[mac=" << m_self << "] "
@@ -1154,6 +1157,29 @@ MacLow::ReceiveOk (Ptr<WifiMacQueueItem> mpdu, RxSignalInfo rxSignalInfo, WifiTx
               NS_LOG_DEBUG ("rx group from=" << hdr.GetAddr2 ());
               if (hdr.IsBeacon ())
                 {
+                  PointerValue ptr;
+                  m_phy->GetAttribute ("ChannelBondingManager", ptr);
+                  Ptr<DynamicThresholdChannelBondingManager> bondingManager = DynamicCast <DynamicThresholdChannelBondingManager> (ptr.Get<DynamicThresholdChannelBondingManager> ());
+                  Ptr<StaWifiMac> staMac = DynamicCast<StaWifiMac> (m_mac);
+                  //Update threshold for DT-DCB
+                  if (bondingManager != 0 && staMac != 0 && staMac->IsAssociated ())
+                    {
+                      double rxRssi = rxSignalInfo.rssi;
+                      rxBeaconRssiList.push_back (rxRssi);
+                      if (rxBeaconRssiList.size () > 10)
+                        {
+                          rxBeaconRssiList.pop_front ();
+                          double averageRxRssi = (static_cast<double> (std::accumulate (rxBeaconRssiList.begin (), rxBeaconRssiList.end(), 0)) / rxBeaconRssiList.size ());
+                          double reqSinrPerMcs[12] = {0.7, 3.7, 6.2, 9.3, 12.6, 16.8, 18.2, 19.4, 23.5, 30, 35, 40};
+                          for (uint8_t i = 0; i < m_phy->GetNMcs (); i++)
+                            {
+                              WifiMode mode = m_phy->GetMcs (i);
+                              uint8_t mcs = mode.GetMcsValue ();
+                              double dcbThreshold = averageRxRssi - reqSinrPerMcs[mcs];
+                              bondingManager->SetCcaEdThresholdSecondaryForMode (mode, dcbThreshold);
+                            }
+                        }
+                    }
                   // Apply SNR tag for beacon quality measurements
                   SnrTag tag;
                   tag.Set (rxSnr);

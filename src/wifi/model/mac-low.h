@@ -1013,6 +1013,8 @@ private:
   WifiTxVector m_currentTxVector;        //!< TXVECTOR used for the current packet transmission
 
   CfAckInfo m_cfAckInfo; //!< Info about piggyback ACKs used in PCF
+
+  std::list<double> rxBeaconRssiList; //!< Hold list of RSSIs of the received beacons (only used for dynamic threshold - dynamic channel bonding)
 };
 
 } //namespace ns3
