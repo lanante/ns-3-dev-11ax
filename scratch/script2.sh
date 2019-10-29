@@ -45,21 +45,9 @@ RngRun=2
 
 
 mcs=IdealWifi
-../waf
-
-  if [ -z "$1" ]; then
-    startRng=1
-else
-startRng=$1
-  fi
-  if [ -z "$2" ]; then
-    endRng=10
-else
-endRng=$2
-  fi
 
 
-for (( c=$startRng; c<=$endRng; c++ ))
+for c in 1 2 3 4 5 6 7 8 9 10;
 do
 RngRun=$c
 for constantCcaEdThresholdSecondaryBss in -82 -72 -62;

@@ -47,22 +47,9 @@ RngRun=2
 
 ../waf
 
-  if [ -z "$1" ]; then
-    export startRng=0
-else
-startRng=$1
-  fi
-  if [ -z "$2" ]; then
-    export endRng=0
-else
-endRng=$2
-  fi
-
-
-
-for (( c=$startRng; c<=$endRng; c++ ))
+for c in 1 2 3 4 5 6 7 8 9 10;
 do
-	RngRun=$c
+RngRun=$c
 	for temp1 in {-90..3..-50};
 		do
 		for temp2 in {1..3};
