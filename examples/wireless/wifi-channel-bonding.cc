@@ -58,31 +58,31 @@
 // uses channel 36 whereas network B is configured to use channel 40:
 //     ./waf --run "wifi-channel-bonding --channelBssA=36 --channelBssB=40"
 // The output gives:
-//     Throughput for BSS A: 59.5347 Mbit/s
-//     Throughput for BSS B: 59.5018 Mbit/s
+//     Throughput for BSS A: 59.4747 Mbit/s
+//     Throughput for BSS B: 59.5359 Mbit/s
 // The throughput per network is maximum and not affected by the presence of the other network,
 // since they are operating on different channels.
 //
 // One can run a scenario where a static 40 MHz channel is used for network A, while keeping network B as previously:
 //     ./waf --run "wifi-channel-bonding --channelBssA=38 --channelBssB=40 --channelBondingType=Static"
 // The output gives:
-//     Throughput for BSS A: 67.4753 Mbit/s
-//     Throughput for BSS B: 26.7774 Mbit/s
+//     Throughput for BSS A: 67.4129 Mbit/s
+//     Throughput for BSS B: 26.8057 Mbit/s
 // Since this makes use of static channel bonding, network A will have to share channel 40 together with network B.
 // But as network A makes use of 40 MHz channel when it transmits, it gets a higher throughput than network B that is not using channel bonding.
 //
 // One can run the previous scenario with constant threshold dynamic channel bonding:
 //     ./waf --run "wifi-channel-bonding --channelBssA=38 --channelBssB=40 --channelBondingType=ConstantThreshold"
 // The output gives:
-//     Throughput for BSS A: 59.629 Mbit/s
-//     Throughput for BSS B: 59.4217 Mbit/s
+//     Throughput for BSS A: 59.702 Mbit/s
+//     Throughput for BSS B: 59.298 Mbit/s
 // We can see the benefit of using a dynamic channel bonding. Since activity is detected on the secondary channel,
 // network A limits its channel width to 20 MHz and this gives a better share of the spectrum.
 //
 // One can run a scenario where both networks make use of static channel bonding:
 //     ./waf --run "wifi-channel-bonding --channelBssA=38 --channelBssB=38 --channelBondingType=Static"
-//     Throughput for BSS A: 66.2341 Mbit/s
-//     Throughput for BSS B: 64.1403 Mbit/s
+//     Throughput for BSS A: 64.3346 Mbit/s
+//     Throughput for BSS B: 65.1437 Mbit/s
 // The channel is shared with the two networks as they operate on the same channel, but since they can use both
 // a 40 MHz channel, the maximum throughput is almost doubled.
 
@@ -267,30 +267,30 @@ int main (int argc, char *argv[])
   // Setting applications
   uint16_t port = 9;
   UdpServerHelper serverA (port);
-  ApplicationContainer serverAppA = serverA.Install (wifiStaNodes.Get (0));
+  ApplicationContainer serverAppA = serverA.Install (wifiApNodes.Get (0));
   serverAppA.Start (Seconds (0.0));
   serverAppA.Stop (Seconds (simulationTime + 1));
 
-  UdpClientHelper clientA (StaInterfaceA.GetAddress (0), port);
+  UdpClientHelper clientA (ApInterfaceA.GetAddress (0), port);
   clientA.SetAttribute ("MaxPackets", UintegerValue (4294967295u));
   clientA.SetAttribute ("Interval", TimeValue (Time (Seconds (loadBssA)))); //packets/s
   clientA.SetAttribute ("PacketSize", UintegerValue (payloadSize));
 
-  ApplicationContainer clientAppA = clientA.Install (wifiApNodes.Get (0));
+  ApplicationContainer clientAppA = clientA.Install (wifiStaNodes.Get (0));
   clientAppA.Start (Seconds (1.0));
   clientAppA.Stop (Seconds (simulationTime + 1));
 
   UdpServerHelper serverB (port);
-  ApplicationContainer serverAppB = serverB.Install (wifiStaNodes.Get (1));
+  ApplicationContainer serverAppB = serverB.Install (wifiApNodes.Get (1));
   serverAppB.Start (Seconds (0.0));
   serverAppB.Stop (Seconds (simulationTime + 1));
 
-  UdpClientHelper clientB (StaInterfaceB.GetAddress (0), port);
+  UdpClientHelper clientB (ApInterfaceB.GetAddress (0), port);
   clientB.SetAttribute ("MaxPackets", UintegerValue (4294967295u));
   clientB.SetAttribute ("Interval", TimeValue (Time (Seconds (loadBssB)))); //packets/s
   clientB.SetAttribute ("PacketSize", UintegerValue (payloadSize));
 
-  ApplicationContainer clientAppB = clientB.Install (wifiApNodes.Get (1));
+  ApplicationContainer clientAppB = clientB.Install (wifiStaNodes.Get (1));
   clientAppB.Start (Seconds (1.0));
   clientAppB.Stop (Seconds (simulationTime + 1));
 

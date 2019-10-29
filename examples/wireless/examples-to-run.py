@@ -79,7 +79,7 @@ cpp_examples = [
     ("wifi-channel-bonding --channelBssA=36 --channelBssB=40 --verifyResults=1 --minExpectedThroughputBssA=59 --maxExpectedThroughputBssA=60 --minExpectedThroughputBssB=59 --maxExpectedThroughputBssB=60", "True", "False"),
     ("wifi-channel-bonding --channelBssA=38 --channelBssB=40 --channelBondingType=Static --verifyResults=1 --minExpectedThroughputBssA=67 --maxExpectedThroughputBssA=68 --minExpectedThroughputBssB=26 --maxExpectedThroughputBssB=27", "True", "False"),
     ("wifi-channel-bonding --channelBssA=38 --channelBssB=40 --channelBondingType=ConstantThreshold --verifyResults=1 --minExpectedThroughputBssA=59 --maxExpectedThroughputBssA=60 --minExpectedThroughputBssB=59 --maxExpectedThroughputBssB=60", "True", "False"),
-    ("wifi-channel-bonding --channelBssA=38 --channelBssB=38 --channelBondingType=Static --verifyResults=1 --minExpectedThroughputBssA=64 --maxExpectedThroughputBssA=67 --minExpectedThroughputBssB=64 --maxExpectedThroughputBssB=67", "True", "False"),
+    ("wifi-channel-bonding --channelBssA=38 --channelBssB=38 --channelBondingType=Static --verifyResults=1 --minExpectedThroughputBssA=64 --maxExpectedThroughputBssA=66 --minExpectedThroughputBssB=64 --maxExpectedThroughputBssB=66", "True", "False"),
 ]
 
 # A list of Python examples to run in order to ensure that they remain
