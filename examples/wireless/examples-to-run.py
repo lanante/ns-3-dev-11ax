@@ -80,6 +80,8 @@ cpp_examples = [
     ("wifi-channel-bonding --channelBssA=38 --channelBssB=40 --channelBondingType=Static --verifyResults=1 --minExpectedThroughputBssA=67 --maxExpectedThroughputBssA=68 --minExpectedThroughputBssB=26 --maxExpectedThroughputBssB=27", "True", "False"),
     ("wifi-channel-bonding --channelBssA=38 --channelBssB=40 --channelBondingType=ConstantThreshold --verifyResults=1 --minExpectedThroughputBssA=59 --maxExpectedThroughputBssA=60 --minExpectedThroughputBssB=59 --maxExpectedThroughputBssB=60", "True", "False"),
     ("wifi-channel-bonding --channelBssA=38 --channelBssB=38 --channelBondingType=Static --verifyResults=1 --minExpectedThroughputBssA=64 --maxExpectedThroughputBssA=66 --minExpectedThroughputBssB=64 --maxExpectedThroughputBssB=66", "True", "False"),
+    ("wifi-channel-bonding --interBssDistance=10  --mcs=0 --channelBssA=38 --channelBssB=40 --primaryChannelBssA=36 --primaryChannelBssB=40 --channelBondingType=ConstantThreshold --verifyResults=1 --minExpectedThroughputBssA=5 --maxExpectedThroughputBssA=6 --minExpectedThroughputBssB=5 --maxExpectedThroughputBssB=6", "True", "False"),
+    ("wifi-channel-bonding --interBssDistance=10  --mcs=0 --channelBssA=38 --channelBssB=40 --primaryChannelBssA=36 --primaryChannelBssB=40 --channelBondingType=DynamicThreshold --verifyResults=1 --minExpectedThroughputBssA=12 --maxExpectedThroughputBssA=13 --minExpectedThroughputBssB=5 --maxExpectedThroughputBssB=6", "True", "False"),
 ]
 
 # A list of Python examples to run in order to ensure that they remain

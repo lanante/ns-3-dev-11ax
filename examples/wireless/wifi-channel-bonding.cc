@@ -79,6 +79,20 @@
 // We can see the benefit of using a dynamic channel bonding. Since activity is detected on the secondary channel,
 // network A limits its channel width to 20 MHz and this gives a better share of the spectrum.
 //
+// One can compare performance when using constant threshold versus dynamic threshold.
+// In this case it makes use of MCS 0 and a distance of 10 meters between the two networks.
+// BSS A is using dynamic channel bonding (36 + 40) and BSS A is using channel 40:
+//     ./waf --run "wifi-channel-bonding --interBssDistance=10  --mcs=0 --channelBssA=38 --channelBssB=40 --primaryChannelBssA=36 --primaryChannelBssB=40 --channelBondingType=ConstantThreshold"
+// The output gives:
+//     Throughput for BSS A: 5.82441 Mbit/s
+//     Throughput for BSS B: 5.80675 Mbit/s
+//     ./waf --run "wifi-channel-bonding --interBssDistance=10  --mcs=0 --channelBssA=38 --channelBssB=40 --primaryChannelBssA=36 --primaryChannelBssB=40 --channelBondingType=DynamicThreshold"
+// The output gives:
+//     Throughput for BSS A: 12.0516 Mbit/s
+//     Throughput for BSS B: 5.75022 Mbit/s
+// Since we are using MCS 0, the SNR needed to decode the signal is quite low, so channel bonding can be used even if channel 40 is used
+// by another transmission (also using MCS 0).
+//
 // One can run a scenario where both networks make use of static channel bonding:
 //     ./waf --run "wifi-channel-bonding --channelBssA=38 --channelBssB=38 --channelBondingType=Static"
 //     Throughput for BSS A: 64.3346 Mbit/s
