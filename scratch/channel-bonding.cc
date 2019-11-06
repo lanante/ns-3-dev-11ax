@@ -425,6 +425,17 @@ std::stringstream stmp1;
 
   if (nBss > 1)
     {
+  if (mcs == "IdealWifi")
+    {
+      wifi.SetRemoteStationManager ("ns3::IdealWifiManager");
+    }
+  else
+    {
+      wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode", StringValue ("VhtMcs0"),
+                                    "ControlMode", StringValue ("VhtMcs0"));
+    }
+
+
       // network B
       ssid = Ssid ("network-B");
 

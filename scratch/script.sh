@@ -39,11 +39,11 @@ channelBondingType=ConstantThreshold
 interBssDistance=10
 distance=5;
 n=10
-nBss=1
+nBss=3
 RngRun=1
 mcs=VhtMcs8
 for RngRun in 1; do
-for interBssDistance in 40; do
+for interBssDistance in 10; do
 for constantCcaEdThresholdSecondaryBss in -57;
 do
 				Test=${nBss}_${n}_${interBssDistance}_${constantCcaEdThresholdSecondaryBss}_${mcs}_${RngRun}
