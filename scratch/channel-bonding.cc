@@ -1134,6 +1134,60 @@ std::stringstream stmp1;
           AddServer (uplinkServerApps, uplinkServerG, wifiApNodes.Get (6));
         }
     }
+  uint32_t maxAmpduSizeBss1 = 131071;
+  uint32_t maxAmpduSizeBss2 = 131071;
+  uint32_t maxAmpduSizeBss3 = 131071;
+  uint32_t maxAmpduSizeBss4 = 131071;
+  uint32_t maxAmpduSizeBss5 = 131071;
+  uint32_t maxAmpduSizeBss6 = 131071;
+  uint32_t maxAmpduSizeBss7 = 131071;
+ for (uint16_t i = 0; i < ((n + 1) * nBss); i++)
+    {
+      if (i < (n + 1)) // BSS 1
+        {
+          std::stringstream stmp;
+          stmp << "/NodeList/" << i << "/DeviceList/*/$ns3::WifiNetDevice/Mac/BE_MaxAmpduSize";
+          Config::Set (stmp.str(), UintegerValue (std::min(maxAmpduSizeBss1, 4194303u)));
+        }
+      else if (i < (2 * (n + 1))) // BSS 2
+        {
+          std::stringstream stmp;
+          stmp << "/NodeList/" << i << "/DeviceList/*/$ns3::WifiNetDevice/Mac/BE_MaxAmpduSize";
+          Config::Set (stmp.str(), UintegerValue (std::min(maxAmpduSizeBss2, 4194303u)));
+        }
+      else if (i < (3 * (n + 1))) // BSS 3
+        {
+          std::stringstream stmp;
+          stmp << "/NodeList/" << i << "/DeviceList/*/$ns3::WifiNetDevice/Mac/BE_MaxAmpduSize";
+          Config::Set (stmp.str(), UintegerValue (std::min(maxAmpduSizeBss3, 4194303u)));
+        }
+      else if (i < (4 * (n + 1))) // BSS 4
+        {
+          std::stringstream stmp;
+          stmp << "/NodeList/" << i << "/DeviceList/*/$ns3::WifiNetDevice/Mac/BE_MaxAmpduSize";
+          Config::Set (stmp.str(), UintegerValue (std::min(maxAmpduSizeBss4, 4194303u)));
+        }
+      else if (i < (5 * (n + 1))) // BSS 5
+        {
+          std::stringstream stmp;
+          stmp << "/NodeList/" << i << "/DeviceList/*/$ns3::WifiNetDevice/Mac/BE_MaxAmpduSize";
+          Config::Set (stmp.str(), UintegerValue (std::min(maxAmpduSizeBss5, 4194303u)));
+        }
+      else if (i < (6 * (n + 1))) // BSS 6
+        {
+          std::stringstream stmp;
+          stmp << "/NodeList/" << i << "/DeviceList/*/$ns3::WifiNetDevice/Mac/BE_MaxAmpduSize";
+          Config::Set (stmp.str(), UintegerValue (std::min(maxAmpduSizeBss6, 4194303u)));
+        }
+      else if (i < (7 * (n + 1))) // BSS 7
+        {
+          std::stringstream stmp;
+          stmp << "/NodeList/" << i << "/DeviceList/*/$ns3::WifiNetDevice/Mac/BE_MaxAmpduSize";
+          Config::Set (stmp.str(), UintegerValue (std::min(maxAmpduSizeBss7, 4194303u)));
+        }
+    }
+
+
 
   Config::Connect ("/NodeList/*/ApplicationList/*/$ns3::UdpServer/RxWithAddresses",
                    MakeCallback (&PacketRx));
