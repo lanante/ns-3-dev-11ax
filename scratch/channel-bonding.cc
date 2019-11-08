@@ -431,7 +431,7 @@ std::stringstream stmp1;
     }
   else
     {
-      wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode", StringValue ("VhtMcs0"),
+      wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode", StringValue (mcs),
                                     "ControlMode", StringValue ("VhtMcs0"));
     }
 
