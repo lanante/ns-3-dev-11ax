@@ -78,6 +78,14 @@ DynamicThresholdChannelBondingManager::SetCcaEdThresholdSecondaryForMode (WifiMo
     }
 }
 
+double
+DynamicThresholdChannelBondingManager::GetCcaEdThresholdSecondaryForMode (WifiMode mode)
+{
+  NS_LOG_FUNCTION (this << mode );
+  auto it = m_ccaEdThresholdsSecondaryDbm.find (mode);
+  return it->second;
+}
+
 void
 DynamicThresholdChannelBondingManager::SetPhy (const Ptr<WifiPhy> phy)
 {

@@ -56,7 +56,7 @@ public:
    * \return the selected channel width in MHz
    */
   virtual uint16_t GetUsableChannelWidth (WifiMode mode) = 0;
-
+  virtual double GetCcaEdThresholdSecondaryForMode (WifiMode mode)= 0;
 
 protected:
   virtual void DoDispose (void);

@@ -19,6 +19,7 @@
  */
 
 #include "ns3/log.h"
+#include "ns3/simulator.h"
 #include "ns3/double.h"
 #include "constant-threshold-channel-bonding-manager.h"
 #include "wifi-phy.h"
@@ -70,11 +71,18 @@ ConstantThresholdChannelBondingManager::SetPhy (const Ptr<WifiPhy> phy)
   ChannelBondingManager::SetPhy (phy);
 }
 
+double
+ConstantThresholdChannelBondingManager::GetCcaEdThresholdSecondaryForMode (WifiMode mode)
+{
+  NS_LOG_FUNCTION (this << mode );
+  return 0;
+}
 uint16_t
 ConstantThresholdChannelBondingManager::GetUsableChannelWidth (WifiMode mode)
 {
   if (m_phy->GetChannelWidth () < 40)
     {
+//std::cout<<Simulator::Now ().GetMicroSeconds ()<<" Returning usable channel(=20): "<<m_phy->GetChannelWidth ()<<std::endl;
       return m_phy->GetChannelWidth ();
     }
   uint16_t usableChannelWidth = 20;
@@ -87,6 +95,7 @@ ConstantThresholdChannelBondingManager::GetUsableChannelWidth (WifiMode mode)
         }
       width /= 2;
     }
+//std::cout<<Simulator::Now ().GetMicroSeconds ()<<" Returning usable channel(>20): "<<m_phy->GetChannelWidth ()<<std::endl;
   return usableChannelWidth;
 }
 

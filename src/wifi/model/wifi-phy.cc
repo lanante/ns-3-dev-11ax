@@ -43,6 +43,7 @@
 #include "ap-wifi-mac.h"
 #include "wifi-phy-header.h"
 #include "channel-bonding-manager.h"
+#include "dynamic-threshold-channel-bonding-manager.h"
 
 namespace ns3 {
 
@@ -2973,6 +2974,23 @@ WifiPhy::Send (WifiPsduMap psdus, WifiTxVector txVector)
       ppdu->SetTruncatedTx ();
     }
 
+uint32_t currentNodeId=   m_device->GetNode ()->GetId ();
+//PointerValue ptr;
+               //   m_device->GetAttribute ("ChannelBondingManager", ptr);
+
+                 // Ptr<DynamicThresholdChannelBondingManager> bondingManager = DynamicCast <DynamicThresholdChannelBondingManager> (ptr.Get<DynamicThresholdChannelBondingManager> ());
+
+if (currentNodeId>=3&&currentNodeId<=12)
+{
+          for (auto const& ccaEdThresholdSecondaryW : m_ccaEdThresholdsSecondaryW)
+            {
+std::cout<<WToDbm (ccaEdThresholdSecondaryW);
+            }
+
+std::cout<<std::endl;
+std::cout<<Simulator::Now ().GetMicroSeconds ()<<" "<<txVector.GetChannelWidth ()<<" "<<txVector.GetMode()<<"Node ID: "<<currentNodeId <<" Duration: "<<txDuration<<" CCA_s: "<<std::endl;
+}
+
   StartTx (ppdu, txVector.GetTxPowerLevel ()); //now that the content of the TXVECTOR is stored in the WifiPpdu through PHY headers, the method calling StartTx has to specify the TX power level to use upon transmission
 
   m_channelAccessRequested = false;
@@ -3363,7 +3381,7 @@ WifiPhy::MaybeCcaBusy ()
               Time delayUntilCcaEnd = GetDelayUntilCcaEnd (ccaEdThresholdSecondaryW, band);
               if (!delayUntilCcaEnd.IsZero ())
                 {
-                  NS_LOG_DEBUG ("Calling SwitchMaybeToCcaBusy for channel band " << +i << " for " << delayUntilCcaEnd.As (Time::S) << " using threshold " << WToDbm (ccaEdThresholdSecondaryW));
+                  NS_LOG_DEBUG("Calling SwitchMaybeToCcaBusy for channel band " << +i << " for " << delayUntilCcaEnd.As (Time::S) << " using threshold " << WToDbm (ccaEdThresholdSecondaryW));
                   m_state->SwitchMaybeToCcaBusy (delayUntilCcaEnd, band, isPrimary, WToDbm (ccaEdThresholdSecondaryW));
                 }
             }

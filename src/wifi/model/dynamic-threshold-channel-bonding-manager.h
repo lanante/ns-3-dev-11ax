@@ -63,7 +63,7 @@ public:
    * \param threshold the CCA threshold in dBm for the secondary channels
    */
   void SetCcaEdThresholdSecondaryForMode (WifiMode mode, double threshold);
-
+  double GetCcaEdThresholdSecondaryForMode (WifiMode mode) override;
   /**
    * Returns the selected channel width (in MHz).
    *

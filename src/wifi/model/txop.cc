@@ -315,6 +315,7 @@ Txop::Queue (Ptr<const Packet> packet, const WifiMacHeader &hdr)
   m_stationManager->PrepareForQueue (hdr.GetAddr1 (), &hdr, packetCopy);
   m_queue->Enqueue (Create<WifiMacQueueItem> (packetCopy, hdr));
   StartAccessIfNeeded ();
+//std::cout<<"Queue is starting"<<std::endl;
 }
 
 int64_t

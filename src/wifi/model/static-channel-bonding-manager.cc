@@ -44,7 +44,12 @@ StaticChannelBondingManager::GetTypeId (void)
   ;
   return tid;
 }
-
+double
+StaticChannelBondingManager::GetCcaEdThresholdSecondaryForMode (WifiMode mode)
+{
+  NS_LOG_FUNCTION (this << mode );
+  return 0;
+}
 uint16_t
 StaticChannelBondingManager::GetUsableChannelWidth (WifiMode mode)
 {

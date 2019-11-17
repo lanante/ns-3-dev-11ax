@@ -1166,17 +1166,18 @@ MacLow::ReceiveOk (Ptr<WifiMacQueueItem> mpdu, RxSignalInfo rxSignalInfo, WifiTx
                     {
                       double rxRssi = rxSignalInfo.rssi;
                       rxBeaconRssiList.push_back (rxRssi);
-                      if (rxBeaconRssiList.size () > 10)
+                      if (rxBeaconRssiList.size () > 0)
                         {
                           rxBeaconRssiList.pop_front ();
-                          double averageRxRssi = (static_cast<double> (std::accumulate (rxBeaconRssiList.begin (), rxBeaconRssiList.end(), 0)) / rxBeaconRssiList.size ());
+                       //   double averageRxRssi = (static_cast<double> (std::accumulate (rxBeaconRssiList.begin (), rxBeaconRssiList.end(), 0)) / rxBeaconRssiList.size ());
                           double reqSinrPerMcs[12] = {0.7, 3.7, 6.2, 9.3, 12.6, 16.8, 18.2, 19.4, 23.5, 30, 35, 40};
                           for (uint8_t i = 0; i < m_phy->GetNMcs (); i++)
                             {
                               WifiMode mode = m_phy->GetMcs (i);
                               uint8_t mcs = mode.GetMcsValue ();
-                              double dcbThreshold = averageRxRssi - reqSinrPerMcs[mcs];
+                              double dcbThreshold = rxRssi - reqSinrPerMcs[mcs];
                               bondingManager->SetCcaEdThresholdSecondaryForMode (mode, dcbThreshold);
+//std::cout<<+rxRssi<<" "<<reqSinrPerMcs[mcs]<<" "<<dcbThreshold<<std::endl;
                             }
                         }
                     }

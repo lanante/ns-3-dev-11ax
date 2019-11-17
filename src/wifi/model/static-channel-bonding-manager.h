@@ -47,6 +47,7 @@ public:
    * \return the selected channel width in MHz
    */
   uint16_t GetUsableChannelWidth (WifiMode mode) override;
+  double GetCcaEdThresholdSecondaryForMode (WifiMode mode) override;
 };
 
 } //namespace ns3
