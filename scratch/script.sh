@@ -35,7 +35,7 @@ simulationTime=5
 
 ccaEdThresholdPrimary=-62
 constantCcaEdThresholdSecondaryBss=-72
-channelBondingType=ConstantThreshold
+channelBondingType=Static
 interBssDistance=10
 distance=5
 n=10

@@ -36,7 +36,7 @@ simulationTime=5
 
 ccaEdThresholdPrimary=-62
 constantCcaEdThresholdSecondaryBss=-1000
-channelBondingType=ConstantThreshold
+channelBondingType=Static
 interBssDistance=10
 distance=10;
 n=10
@@ -49,7 +49,7 @@ mcs=IdealWifi
 
 for RngRun in 1 ;
 do
-	for constantCcaEdThresholdSecondaryBss in 50; do
+	for constantCcaEdThresholdSecondaryBss in -90 -50; do
 for interBssDistance in 10 40;
 do
 				Test=${nBss}_${n}_${interBssDistance}_${constantCcaEdThresholdSecondaryBss}_${mcs}_${RngRun}
