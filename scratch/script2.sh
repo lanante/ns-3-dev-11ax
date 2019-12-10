@@ -44,7 +44,7 @@ nBss=3
 RngRun=2
 
 
-mcs=IdealWifi
+mcs=VhtMcs8
 
 
 for c in 1;

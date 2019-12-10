@@ -353,11 +353,11 @@ IdealWifiManager::DoGetDataTxVector (WifiRemoteStation *st)
                     }
                   double threshold = GetSnrThreshold (txVector);
                   uint64_t dataRate = mode.GetDataRate (txVector.GetChannelWidth (), txVector.GetGuardInterval (), nss);
-                  NS_LOG_DEBUG ("Testing mode " << mode.GetUniqueName () <<
+                /*  std::cout<<"Testing mode " << mode.GetUniqueName () <<
                                 " data rate " << dataRate <<
                                 " threshold " << threshold  << " last snr observed " <<
                                 station->m_lastSnrObserved << " cached " <<
-                                station->m_lastSnrCached);
+                                station->m_lastSnrCached;*/
                   if (dataRate > bestRate && threshold < station->m_lastSnrObserved)
                     {
                       NS_LOG_DEBUG ("Candidate mode = " << mode.GetUniqueName () <<
@@ -412,7 +412,9 @@ IdealWifiManager::DoGetDataTxVector (WifiRemoteStation *st)
                           maxMode = mode;
                           selectedNss = nss;
                         }
+                   //   std::cout<<"Best Rate = " << bestRate<<std::endl;
                     }
+
                 }
               else //HE
                 {
@@ -506,6 +508,7 @@ IdealWifiManager::DoGetDataTxVector (WifiRemoteStation *st)
       NS_LOG_DEBUG ("New datarate: " << maxMode.GetDataRate (channelWidth, guardInterval, selectedNss));
       m_currentRate = maxMode.GetDataRate (channelWidth, guardInterval, selectedNss);
     }
+//std::cout<<"Actual Rate "<<m_currentRate<<" MaxMode "<<maxMode<<std::endl;
   return WifiTxVector (maxMode, GetDefaultTxPowerLevel (), GetPreambleForTransmission (maxMode.GetModulationClass (), GetShortPreambleEnabled (), UseGreenfieldForDestination (GetAddress (station))), guardInterval, GetNumberOfAntennas (), selectedNss, 0, GetChannelWidthForTransmission (maxMode, channelWidth), GetAggregation (station), false);
 }
 

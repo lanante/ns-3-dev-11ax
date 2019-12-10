@@ -59,7 +59,7 @@ QosTxop::GetTypeId (void)
     .AddConstructor<QosTxop> ()
     .AddAttribute ("UseExpliciteBarAfterMissedBlockAck",
                    "Specify whether explicit Block Ack Request should be sent upon missed Block Ack Response.",
-                   BooleanValue (true),
+                   BooleanValue (false),
                    MakeBooleanAccessor (&QosTxop::m_useExplicitBarAfterMissedBlockAck),
                    MakeBooleanChecker ())
     .AddAttribute ("AddBaResponseTimeout",
@@ -978,7 +978,7 @@ QosTxop::MissedBlockAck (uint8_t nMpdus)
     {
       m_stationManager->ReportAmpduTxStatus (m_currentHdr.GetAddr1 (), tid, 0, nMpdus, 0, 0);
     }
-  if (m_useExplicitBarAfterMissedBlockAck || m_currentHdr.IsBlockAckReq ())
+  /*if (m_useExplicitBarAfterMissedBlockAck || m_currentHdr.IsBlockAckReq ())
     {
       if (NeedBarRetransmission ())
         {
@@ -1006,12 +1006,13 @@ QosTxop::MissedBlockAck (uint8_t nMpdus)
           m_cwTrace = GetCw ();
         }
     }
-  else
+  else*/
+if (1)
     {
       // implicit BAR and do not use BAR after missed block ack, hence try to retransmit data frames
       if (!NeedDataRetransmission (m_currentPacket, m_currentHdr))
         {
-          NS_LOG_DEBUG ("Block Ack Fail");
+    //      std::cout<<"Block Ack Fail"<<std::endl;
           if (!m_txFailedCallback.IsNull ())
             {
               m_txFailedCallback (m_currentHdr);
@@ -1039,7 +1040,7 @@ QosTxop::MissedBlockAck (uint8_t nMpdus)
         }
       else
         {
-          NS_LOG_DEBUG ("Retransmit");
+   //       std::cout<<"Retransmit"<<std::endl;
           m_baManager->NotifyMissedBlockAck (m_currentHdr.GetAddr1 (), tid);
           m_currentPacket = 0;
           UpdateFailedCw ();

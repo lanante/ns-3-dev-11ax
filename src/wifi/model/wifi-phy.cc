@@ -2974,22 +2974,22 @@ WifiPhy::Send (WifiPsduMap psdus, WifiTxVector txVector)
       ppdu->SetTruncatedTx ();
     }
 
-uint32_t currentNodeId=   m_device->GetNode ()->GetId ();
+//uint32_t currentNodeId=   m_device->GetNode ()->GetId ();
 //PointerValue ptr;
                //   m_device->GetAttribute ("ChannelBondingManager", ptr);
 
                  // Ptr<DynamicThresholdChannelBondingManager> bondingManager = DynamicCast <DynamicThresholdChannelBondingManager> (ptr.Get<DynamicThresholdChannelBondingManager> ());
 
-if (currentNodeId>=3&&currentNodeId<=12)
-{
-          for (auto const& ccaEdThresholdSecondaryW : m_ccaEdThresholdsSecondaryW)
-            {
-std::cout<<WToDbm (ccaEdThresholdSecondaryW);
-            }
+//if (currentNodeId>=3&&currentNodeId<=12)
+//{
+ //         for (auto const& ccaEdThresholdSecondaryW : m_ccaEdThresholdsSecondaryW)
+   //         {
+//std::cout<<WToDbm (ccaEdThresholdSecondaryW);
+     //       }
 
-std::cout<<std::endl;
-std::cout<<Simulator::Now ().GetMicroSeconds ()<<" "<<txVector.GetChannelWidth ()<<" "<<txVector.GetMode()<<"Node ID: "<<currentNodeId <<" Duration: "<<txDuration<<" CCA_s: "<<std::endl;
-}
+//std::cout<<std::endl;
+//std::cout<<Simulator::Now ().GetMicroSeconds ()<<" nodeID "<<currentNodeId<< "txvector "<<txVector<<std::endl;
+//}
 
   StartTx (ppdu, txVector.GetTxPowerLevel ()); //now that the content of the TXVECTOR is stored in the WifiPpdu through PHY headers, the method calling StartTx has to specify the TX power level to use upon transmission
 
