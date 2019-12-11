@@ -1,36 +1,35 @@
 
-channelBssA=42
-channelBssB=40
-channelBssC=44
-channelBssD=42
-channelBssE=42
-channelBssF=42
-channelBssG=42
+channelBssA=36
+channelBssB=36
+channelBssC=36
+channelBssD=36
+channelBssE=36
+channelBssF=36
+channelBssG=36
 
 primaryChannelBssA=36
-primaryChannelBssB=40
-primaryChannelBssC=44
-primaryChannelBssD=48
+primaryChannelBssB=36
+primaryChannelBssC=36
+primaryChannelBssD=36
 primaryChannelBssE=36
-primaryChannelBssF=40
-primaryChannelBssG=44
+primaryChannelBssF=36
+primaryChannelBssG=36
 
+uplinkA=0
+uplinkB=0
+uplinkC=0
 
-uplinkA=100
-uplinkB=50
-uplinkC=50
-
-uplinkD=100
-uplinkE=100
-uplinkF=100
-uplinkG=100
-downlinkA=0
-downlinkB=0
-downlinkC=0
-downlinkD=0
-downlinkE=0
-downlinkF=0
-downlinkG=0
+uplinkD=0
+uplinkE=0
+uplinkF=0
+uplinkG=0
+downlinkA=10
+downlinkB=10
+downlinkC=10
+downlinkD=10
+downlinkE=10
+downlinkF=10
+downlinkG=10
 
 payloadSize=1472
 simulationTime=5
@@ -38,11 +37,11 @@ simulationTime=5
 
 ccaEdThresholdPrimary=-62
 constantCcaEdThresholdSecondaryBss=-1000
-channelBondingType=ConstantThreshold
-interBssDistance=10
+channelBondingType=DynamicThreshold
+interBssDistance=100
 distance=10;
-n=10
-nBss=3
+n=1
+nBss=7
 RngRun=1
 mcs=MaxMcs
 
@@ -54,7 +53,7 @@ for RngRun in 1 ;
 do
 
 	for constantCcaEdThresholdSecondaryBss in  -100; do
-for interBssDistance in 10;
+for interBssDistance in 100;
 do
 				Test=${nBss}_${n}_${interBssDistance}_${constantCcaEdThresholdSecondaryBss}_${mcs}_${RngRun}
 				echo "Starting $Test"
