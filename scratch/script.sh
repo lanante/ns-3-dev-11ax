@@ -1,18 +1,18 @@
-channelBssA=42
-channelBssB=40
-channelBssC=44
-channelBssD=42
-channelBssE=42
-channelBssF=42
-channelBssG=42
+channelBssA=36
+channelBssB=36
+channelBssC=36
+channelBssD=36
+channelBssE=36
+channelBssF=36
+channelBssG=36
 
 primaryChannelBssA=36
-primaryChannelBssB=40
-primaryChannelBssC=44
-primaryChannelBssD=48
+primaryChannelBssB=36
+primaryChannelBssC=36
+primaryChannelBssD=36
 primaryChannelBssE=36
-primaryChannelBssF=40
-primaryChannelBssG=44
+primaryChannelBssF=36
+primaryChannelBssG=36
 
 uplinkA=400
 uplinkB=100

@@ -17,26 +17,27 @@
  * Author: Sébastien Deronne <sebastien.deronne@gmail.com>
  */
 
+#include "ns3/boolean.h"
 #include "ns3/command-line.h"
 #include "ns3/config.h"
-#include "ns3/uinteger.h"
-#include "ns3/boolean.h"
-#include "ns3/string.h"
 #include "ns3/double.h"
 #include "ns3/enum.h"
-#include "ns3/log.h"
-#include "ns3/ssid.h"
-#include "ns3/spectrum-wifi-helper.h"
-#include "ns3/mobility-helper.h"
 #include "ns3/internet-stack-helper.h"
 #include "ns3/ipv4-address-helper.h"
-#include "ns3/udp-client-server-helper.h"
-#include "ns3/packet-sink-helper.h"
+#include "ns3/log.h"
+#include "ns3/mobility-helper.h"
 #include "ns3/multi-model-spectrum-channel.h"
+#include "ns3/packet-sink-helper.h"
 #include "ns3/propagation-loss-model.h"
+#include "ns3/spectrum-wifi-helper.h"
+#include "ns3/ssid.h"
+#include "ns3/string.h"
+#include "ns3/udp-client-server-helper.h"
+#include "ns3/uinteger.h"
 #include "ns3/wifi-net-device.h"
 
-// for tracking packets and bytes received. will be reallocated once we finalize number of nodes
+// for tracking packets and bytes received. will be reallocated once we finalize
+// number of nodes
 std::vector<uint64_t> packetsReceived (0);
 std::vector<uint64_t> bytesReceived (0);
 double expn = 3.5, Pref = -30, Pn = -94, TxP = 20;
@@ -106,13 +107,13 @@ PacketRx (std::string context, const Ptr<const Packet> p, const Address &srcAddr
 int
 main (int argc, char *argv[])
 {
-  uint32_t payloadSize = 1472; //bytes
-  double simulationTime = 20; //seconds
-  double distance = 10; //meters
-  double interBssDistance = 50; //meters
-  double txMaskInnerBandMinimumRejection = -40.0; //dBr
-  double txMaskOuterBandMinimumRejection = -56.0; //dBr
-  double txMaskOuterBandMaximumRejection = -80.0; //dBr
+  uint32_t payloadSize = 1472; // bytes
+  double simulationTime = 20; // seconds
+  double distance = 10; // meters
+  double interBssDistance = 50; // meters
+  double txMaskInnerBandMinimumRejection = -40.0; // dBr
+  double txMaskOuterBandMinimumRejection = -56.0; // dBr
+  double txMaskOuterBandMaximumRejection = -80.0; // dBr
 
   uint16_t channelBssA = 36;
   uint16_t channelBssB = 36;
@@ -175,14 +176,17 @@ main (int argc, char *argv[])
   cmd.AddValue ("distance", "Distance in meters between the station and the access point",
                 distance);
   cmd.AddValue ("interBssDistance", "Distance in meters between BSS A and BSS B", interBssDistance);
-  cmd.AddValue ("txMaskInnerBandMinimumRejection",
-                "Minimum rejection in dBr for the inner band of the transmit spectrum masks",
+  cmd.AddValue ("txMaskInnerBandMinimumRejection", "Minimum rejection in dBr "
+                                                   "for the inner band of the "
+                                                   "transmit spectrum masks",
                 txMaskInnerBandMinimumRejection);
-  cmd.AddValue ("txMaskOuterBandMinimumRejection",
-                "Minimum rejection in dBr for the outer band of the transmit spectrum mask",
+  cmd.AddValue ("txMaskOuterBandMinimumRejection", "Minimum rejection in dBr "
+                                                   "for the outer band of the "
+                                                   "transmit spectrum mask",
                 txMaskOuterBandMinimumRejection);
-  cmd.AddValue ("txMaskOuterBandMaximumRejection",
-                "Maximum rejection in dBr for the outer band of the transmit spectrum mask",
+  cmd.AddValue ("txMaskOuterBandMaximumRejection", "Maximum rejection in dBr "
+                                                   "for the outer band of the "
+                                                   "transmit spectrum mask",
                 txMaskOuterBandMaximumRejection);
   cmd.AddValue ("channelBssA", "The selected channel for BSS A", channelBssA);
   cmd.AddValue ("channelBssB", "The selected channel for BSS B", channelBssB);
@@ -369,49 +373,35 @@ main (int argc, char *argv[])
   mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
 
   // Set position for APs
-  positionAlloc->Add (Vector (0.0, 0.0, 0.0));
-  if (nBss > 1)
-    {
-      positionAlloc->Add (Vector (interBssDistance, 0.0, 0.0));
-    }
-  if (nBss > 2)
-    {
-      positionAlloc->Add (Vector (interBssDistance / 2, sqrt (3) / 2 * interBssDistance, 0.0));
-    }
-  if (nBss > 3)
-    {
-      positionAlloc->Add (Vector (-interBssDistance / 2, sqrt (3) / 2 * interBssDistance, 0.0));
-    }
-  if (nBss > 5)
-    {
-      positionAlloc->Add (Vector (-interBssDistance, 0.0, 0.0));
-    }
-  if (nBss > 6)
-    {
-      positionAlloc->Add (Vector (-interBssDistance / 2, -sqrt (3) / 2 * interBssDistance, 0.0));
-    }
-  if (nBss > 6)
-    {
-      positionAlloc->Add (Vector (interBssDistance / 2, -sqrt (3) / 2 * interBssDistance, 0.0));
-    }
+  double apPositionX[7] = {0,
+                           interBssDistance,
+                           interBssDistance / 2,
+                           -interBssDistance / 2,
+                           -interBssDistance,
+                           -interBssDistance / 2,
+                           interBssDistance / 2};
+  double apPositionY[7] = {0, sqrt (3) / 2 * interBssDistance,  sqrt (3) / 2 * interBssDistance,
+                           0, -sqrt (3) / 2 * interBssDistance, -sqrt (3) / 2 * interBssDistance};
   for (uint8_t i = 0; i < nBss; i++)
     {
+      positionAlloc->Add (Vector (apPositionX[i], apPositionY[i], 0.0));
       maxMcsNode[i] = 0;
     }
+
   // Set position for STAs
   int64_t streamNumber = 100;
   Ptr<UniformDiscPositionAllocator> unitDiscPositionAllocator1 =
       CreateObject<UniformDiscPositionAllocator> ();
   unitDiscPositionAllocator1->AssignStreams (streamNumber);
   // AP1 is at origin (x=x1, y=y1), with radius Rho=r
-  unitDiscPositionAllocator1->SetX (0);
-  unitDiscPositionAllocator1->SetY (0);
+  unitDiscPositionAllocator1->SetX (apPositionX[0]);
+  unitDiscPositionAllocator1->SetY (apPositionY[0]);
   unitDiscPositionAllocator1->SetRho (distance);
   for (uint32_t i = 0; i < n; i++)
     {
       Vector v = unitDiscPositionAllocator1->GetNext ();
       positionAlloc->Add (v);
-      maxMcsNode[i + nBss] = selectMCS (v);
+      maxMcsNode[i + nBss] = selectMCS (Vector (v.x - apPositionX[0], v.y - apPositionY[0], v.z));
     }
 
   if (nBss > 1)
@@ -420,14 +410,15 @@ main (int argc, char *argv[])
           CreateObject<UniformDiscPositionAllocator> ();
       unitDiscPositionAllocator2->AssignStreams (streamNumber + 1);
       // AP2 is at origin (x=x2, y=y2), with radius Rho=r
-      unitDiscPositionAllocator2->SetX (interBssDistance);
-      unitDiscPositionAllocator2->SetY (0);
+      unitDiscPositionAllocator2->SetX (apPositionX[1]);
+      unitDiscPositionAllocator2->SetY (apPositionY[1]);
       unitDiscPositionAllocator2->SetRho (distance);
       for (uint32_t i = 0; i < n; i++)
         {
           Vector v = unitDiscPositionAllocator2->GetNext ();
           positionAlloc->Add (v);
-          maxMcsNode[i + nBss + n * 1] = selectMCS (v);
+          maxMcsNode[i + nBss + n * 1] =
+              selectMCS (Vector (v.x - apPositionX[1], v.y - apPositionY[1], v.z));
         }
     }
 
@@ -437,14 +428,15 @@ main (int argc, char *argv[])
           CreateObject<UniformDiscPositionAllocator> ();
       unitDiscPositionAllocator3->AssignStreams (streamNumber + 2);
       // AP3 is at origin (x=x3, y=y3), with radius Rho=r
-      unitDiscPositionAllocator3->SetX (interBssDistance / 2);
-      unitDiscPositionAllocator3->SetY (sqrt (3) / 2 * interBssDistance);
+      unitDiscPositionAllocator3->SetX (apPositionX[2]);
+      unitDiscPositionAllocator3->SetY (apPositionY[2]);
       unitDiscPositionAllocator3->SetRho (distance);
       for (uint32_t i = 0; i < n; i++)
         {
           Vector v = unitDiscPositionAllocator3->GetNext ();
           positionAlloc->Add (v);
-          maxMcsNode[i + nBss + n * 2] = selectMCS (v);
+          maxMcsNode[i + nBss + n * 2] =
+              selectMCS (Vector (v.x - apPositionX[2], v.y - apPositionY[2], v.z));
         }
     }
 
@@ -454,14 +446,15 @@ main (int argc, char *argv[])
           CreateObject<UniformDiscPositionAllocator> ();
       unitDiscPositionAllocator4->AssignStreams (streamNumber + 3);
       // AP4 is at origin (x=x4, y=y4), with radius Rho=r
-      unitDiscPositionAllocator4->SetX (-interBssDistance / 2);
-      unitDiscPositionAllocator4->SetY (sqrt (3) / 2 * interBssDistance);
+      unitDiscPositionAllocator4->SetX (apPositionX[3]);
+      unitDiscPositionAllocator4->SetY (apPositionY[3]);
       unitDiscPositionAllocator4->SetRho (distance);
       for (uint32_t i = 0; i < n; i++)
         {
           Vector v = unitDiscPositionAllocator4->GetNext ();
           positionAlloc->Add (v);
-          maxMcsNode[i + nBss + n * 3] = selectMCS (v);
+          maxMcsNode[i + nBss + n * 3] =
+              selectMCS (Vector (v.x - apPositionX[3], v.y - apPositionY[3], v.z));
         }
     }
   if (nBss > 4)
@@ -470,14 +463,15 @@ main (int argc, char *argv[])
           CreateObject<UniformDiscPositionAllocator> ();
       unitDiscPositionAllocator5->AssignStreams (streamNumber + 4);
       // AP5 is at origin (x=x5, y=y5), with radius Rho=r
-      unitDiscPositionAllocator5->SetX (-interBssDistance);
-      unitDiscPositionAllocator5->SetY (0);
+      unitDiscPositionAllocator5->SetX (apPositionX[4]);
+      unitDiscPositionAllocator5->SetY (apPositionY[4]);
       unitDiscPositionAllocator5->SetRho (distance);
       for (uint32_t i = 0; i < n; i++)
         {
           Vector v = unitDiscPositionAllocator5->GetNext ();
           positionAlloc->Add (v);
-          maxMcsNode[i + nBss + n * 4] = selectMCS (v);
+          maxMcsNode[i + nBss + n * 4] =
+              selectMCS (Vector (v.x - apPositionX[4], v.y - apPositionY[4], v.z));
         }
     }
   if (nBss > 5)
@@ -486,14 +480,15 @@ main (int argc, char *argv[])
           CreateObject<UniformDiscPositionAllocator> ();
       unitDiscPositionAllocator6->AssignStreams (streamNumber + 5);
       // AP6 is at origin (x=x6, y=y6), with radius Rho=r
-      unitDiscPositionAllocator6->SetX (-interBssDistance / 2);
-      unitDiscPositionAllocator6->SetY (-sqrt (3) / 2 * interBssDistance);
+      unitDiscPositionAllocator6->SetX (apPositionX[5]);
+      unitDiscPositionAllocator6->SetY (apPositionY[5]);
       unitDiscPositionAllocator6->SetRho (distance);
       for (uint32_t i = 0; i < n; i++)
         {
           Vector v = unitDiscPositionAllocator6->GetNext ();
           positionAlloc->Add (v);
-          maxMcsNode[i + nBss + n * 5] = selectMCS (v);
+          maxMcsNode[i + nBss + n * 5] =
+              selectMCS (Vector (v.x - apPositionX[5], v.y - apPositionY[5], v.z));
         }
     }
   if (nBss > 6)
@@ -502,14 +497,15 @@ main (int argc, char *argv[])
           CreateObject<UniformDiscPositionAllocator> ();
       unitDiscPositionAllocator7->AssignStreams (streamNumber + 6);
       // AP7 is at origin (x=x7, y=y7), with radius Rho=r
-      unitDiscPositionAllocator7->SetX (interBssDistance / 2);
-      unitDiscPositionAllocator7->SetY (-sqrt (3) / 2 * interBssDistance);
+      unitDiscPositionAllocator7->SetX (apPositionX[6]);
+      unitDiscPositionAllocator7->SetY (apPositionY[6]);
       unitDiscPositionAllocator7->SetRho (distance);
       for (uint32_t i = 0; i < n; i++)
         {
           Vector v = unitDiscPositionAllocator7->GetNext ();
           positionAlloc->Add (v);
-          maxMcsNode[i + nBss + n * 6] = selectMCS (v);
+          maxMcsNode[i + nBss + n * 6] =
+              selectMCS (Vector (v.x - apPositionX[6], v.y - apPositionY[6], v.z));
         }
     }
 
@@ -557,9 +553,9 @@ main (int argc, char *argv[])
   WifiHelper wifi;
   wifi.SetStandard (WIFI_PHY_STANDARD_80211ac);
   std::ostringstream ossMcs;
-  //ossMcs << 0;
+  // ossMcs << 0;
   std::string dataRate;
-  //dataRate = "VhtMcs" + ossMcs.str ();
+  // dataRate = "VhtMcs" + ossMcs.str ();
 
   if (mcs == "IdealWifi")
     {
@@ -652,16 +648,16 @@ main (int argc, char *argv[])
   start_i = nBss + (bss_i - 1) * n;
   end_i = nBss + (bss_i) *n;
   double constantCcaEdThresholdSecondaryBss = constantCcaEdThresholdSecondaryBssA;
-  stmp << "/NodeList/" << bss_i - 1
-       << "/DeviceList/*/Phy/ChannelBondingManager/$ns3::ConstantThresholdChannelBondingManager/"
-          "CcaEdThresholdSecondary";
+  stmp << "/NodeList/" << bss_i - 1 << "/DeviceList/*/Phy/ChannelBondingManager/"
+                                       "$ns3::ConstantThresholdChannelBondingManager/"
+                                       "CcaEdThresholdSecondary";
   Config::Set (stmp.str (), DoubleValue (constantCcaEdThresholdSecondaryBss));
   for (uint16_t i = start_i; i < end_i; i++)
     {
       std::stringstream stmp1;
-      stmp1 << "/NodeList/" << i
-            << "/DeviceList/*/Phy/ChannelBondingManager/"
-               "$ns3::ConstantThresholdChannelBondingManager/CcaEdThresholdSecondary";
+      stmp1 << "/NodeList/" << i << "/DeviceList/*/Phy/ChannelBondingManager/"
+                                    "$ns3::ConstantThresholdChannelBondingManager/"
+                                    "CcaEdThresholdSecondary";
       Config::Set (stmp1.str (), DoubleValue (constantCcaEdThresholdSecondaryBss));
     }
 
@@ -723,16 +719,16 @@ main (int argc, char *argv[])
       start_i = nBss + (bss_i - 1) * n;
       end_i = nBss + (bss_i) *n;
       constantCcaEdThresholdSecondaryBss = constantCcaEdThresholdSecondaryBssB;
-      stmp << "/NodeList/" << bss_i - 1
-           << "/DeviceList/*/Phy/ChannelBondingManager/"
-              "$ns3::ConstantThresholdChannelBondingManager/CcaEdThresholdSecondary";
+      stmp << "/NodeList/" << bss_i - 1 << "/DeviceList/*/Phy/ChannelBondingManager/"
+                                           "$ns3::ConstantThresholdChannelBondingManager/"
+                                           "CcaEdThresholdSecondary";
       Config::Set (stmp.str (), DoubleValue (constantCcaEdThresholdSecondaryBss));
       for (uint16_t i = start_i; i < end_i; i++)
         {
           std::stringstream stmp1;
-          stmp1 << "/NodeList/" << i
-                << "/DeviceList/*/Phy/ChannelBondingManager/"
-                   "$ns3::ConstantThresholdChannelBondingManager/CcaEdThresholdSecondary";
+          stmp1 << "/NodeList/" << i << "/DeviceList/*/Phy/ChannelBondingManager/"
+                                        "$ns3::ConstantThresholdChannelBondingManager/"
+                                        "CcaEdThresholdSecondary";
           Config::Set (stmp1.str (), DoubleValue (constantCcaEdThresholdSecondaryBss));
         }
     }
@@ -792,16 +788,16 @@ main (int argc, char *argv[])
       start_i = nBss + (bss_i - 1) * n;
       end_i = nBss + (bss_i) *n;
       constantCcaEdThresholdSecondaryBss = constantCcaEdThresholdSecondaryBssC;
-      stmp << "/NodeList/" << bss_i - 1
-           << "/DeviceList/*/Phy/ChannelBondingManager/"
-              "$ns3::ConstantThresholdChannelBondingManager/CcaEdThresholdSecondary";
+      stmp << "/NodeList/" << bss_i - 1 << "/DeviceList/*/Phy/ChannelBondingManager/"
+                                           "$ns3::ConstantThresholdChannelBondingManager/"
+                                           "CcaEdThresholdSecondary";
       Config::Set (stmp.str (), DoubleValue (constantCcaEdThresholdSecondaryBss));
       for (uint16_t i = start_i; i < end_i; i++)
         {
           std::stringstream stmp1;
-          stmp1 << "/NodeList/" << i
-                << "/DeviceList/*/Phy/ChannelBondingManager/"
-                   "$ns3::ConstantThresholdChannelBondingManager/CcaEdThresholdSecondary";
+          stmp1 << "/NodeList/" << i << "/DeviceList/*/Phy/ChannelBondingManager/"
+                                        "$ns3::ConstantThresholdChannelBondingManager/"
+                                        "CcaEdThresholdSecondary";
           Config::Set (stmp1.str (), DoubleValue (constantCcaEdThresholdSecondaryBss));
         }
     }
@@ -861,16 +857,16 @@ main (int argc, char *argv[])
       start_i = nBss + (bss_i - 1) * n;
       end_i = nBss + (bss_i) *n;
       constantCcaEdThresholdSecondaryBss = constantCcaEdThresholdSecondaryBssD;
-      stmp << "/NodeList/" << bss_i - 1
-           << "/DeviceList/*/Phy/ChannelBondingManager/"
-              "$ns3::ConstantThresholdChannelBondingManager/CcaEdThresholdSecondary";
+      stmp << "/NodeList/" << bss_i - 1 << "/DeviceList/*/Phy/ChannelBondingManager/"
+                                           "$ns3::ConstantThresholdChannelBondingManager/"
+                                           "CcaEdThresholdSecondary";
       Config::Set (stmp.str (), DoubleValue (constantCcaEdThresholdSecondaryBss));
       for (uint16_t i = start_i; i < end_i; i++)
         {
           std::stringstream stmp1;
-          stmp1 << "/NodeList/" << i
-                << "/DeviceList/*/Phy/ChannelBondingManager/"
-                   "$ns3::ConstantThresholdChannelBondingManager/CcaEdThresholdSecondary";
+          stmp1 << "/NodeList/" << i << "/DeviceList/*/Phy/ChannelBondingManager/"
+                                        "$ns3::ConstantThresholdChannelBondingManager/"
+                                        "CcaEdThresholdSecondary";
           Config::Set (stmp1.str (), DoubleValue (constantCcaEdThresholdSecondaryBss));
         }
     }
@@ -930,16 +926,16 @@ main (int argc, char *argv[])
       start_i = nBss + (bss_i - 1) * n;
       end_i = nBss + (bss_i) *n;
       constantCcaEdThresholdSecondaryBss = constantCcaEdThresholdSecondaryBssE;
-      stmp << "/NodeList/" << bss_i - 1
-           << "/DeviceList/*/Phy/ChannelBondingManager/"
-              "$ns3::ConstantThresholdChannelBondingManager/CcaEdThresholdSecondary";
+      stmp << "/NodeList/" << bss_i - 1 << "/DeviceList/*/Phy/ChannelBondingManager/"
+                                           "$ns3::ConstantThresholdChannelBondingManager/"
+                                           "CcaEdThresholdSecondary";
       Config::Set (stmp.str (), DoubleValue (constantCcaEdThresholdSecondaryBss));
       for (uint16_t i = start_i; i < end_i; i++)
         {
           std::stringstream stmp1;
-          stmp1 << "/NodeList/" << i
-                << "/DeviceList/*/Phy/ChannelBondingManager/"
-                   "$ns3::ConstantThresholdChannelBondingManager/CcaEdThresholdSecondary";
+          stmp1 << "/NodeList/" << i << "/DeviceList/*/Phy/ChannelBondingManager/"
+                                        "$ns3::ConstantThresholdChannelBondingManager/"
+                                        "CcaEdThresholdSecondary";
           Config::Set (stmp1.str (), DoubleValue (constantCcaEdThresholdSecondaryBss));
         }
     }
@@ -999,16 +995,16 @@ main (int argc, char *argv[])
       start_i = nBss + (bss_i - 1) * n;
       end_i = nBss + (bss_i) *n;
       constantCcaEdThresholdSecondaryBss = constantCcaEdThresholdSecondaryBssF;
-      stmp << "/NodeList/" << bss_i - 1
-           << "/DeviceList/*/Phy/ChannelBondingManager/"
-              "$ns3::ConstantThresholdChannelBondingManager/CcaEdThresholdSecondary";
+      stmp << "/NodeList/" << bss_i - 1 << "/DeviceList/*/Phy/ChannelBondingManager/"
+                                           "$ns3::ConstantThresholdChannelBondingManager/"
+                                           "CcaEdThresholdSecondary";
       Config::Set (stmp.str (), DoubleValue (constantCcaEdThresholdSecondaryBss));
       for (uint16_t i = start_i; i < end_i; i++)
         {
           std::stringstream stmp1;
-          stmp1 << "/NodeList/" << i
-                << "/DeviceList/*/Phy/ChannelBondingManager/"
-                   "$ns3::ConstantThresholdChannelBondingManager/CcaEdThresholdSecondary";
+          stmp1 << "/NodeList/" << i << "/DeviceList/*/Phy/ChannelBondingManager/"
+                                        "$ns3::ConstantThresholdChannelBondingManager/"
+                                        "CcaEdThresholdSecondary";
           Config::Set (stmp1.str (), DoubleValue (constantCcaEdThresholdSecondaryBss));
         }
     }
@@ -1068,16 +1064,16 @@ main (int argc, char *argv[])
       start_i = nBss + (bss_i - 1) * n;
       end_i = nBss + (bss_i) *n;
       constantCcaEdThresholdSecondaryBss = constantCcaEdThresholdSecondaryBssG;
-      stmp << "/NodeList/" << bss_i - 1
-           << "/DeviceList/*/Phy/ChannelBondingManager/"
-              "$ns3::ConstantThresholdChannelBondingManager/CcaEdThresholdSecondary";
+      stmp << "/NodeList/" << bss_i - 1 << "/DeviceList/*/Phy/ChannelBondingManager/"
+                                           "$ns3::ConstantThresholdChannelBondingManager/"
+                                           "CcaEdThresholdSecondary";
       Config::Set (stmp.str (), DoubleValue (constantCcaEdThresholdSecondaryBss));
       for (uint16_t i = start_i; i < end_i; i++)
         {
           std::stringstream stmp1;
-          stmp1 << "/NodeList/" << i
-                << "/DeviceList/*/Phy/ChannelBondingManager/"
-                   "$ns3::ConstantThresholdChannelBondingManager/CcaEdThresholdSecondary";
+          stmp1 << "/NodeList/" << i << "/DeviceList/*/Phy/ChannelBondingManager/"
+                                        "$ns3::ConstantThresholdChannelBondingManager/"
+                                        "CcaEdThresholdSecondary";
           Config::Set (stmp1.str (), DoubleValue (constantCcaEdThresholdSecondaryBss));
         }
     }
@@ -1405,7 +1401,7 @@ main (int argc, char *argv[])
   Config::Connect ("/NodeList/*/ApplicationList/*/$ns3::UdpServer/RxWithAddresses",
                    MakeCallback (&PacketRx));
 
-  //phy.EnablePcap ("staA_pcap", staDeviceA);
+  // phy.EnablePcap ("staA_pcap", staDeviceA);
   phy.EnablePcap ("apA_pcap", apDeviceA);
   /*
 phy.EnablePcap ("staB_pcap", staDeviceB);

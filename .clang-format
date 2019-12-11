@@ -40,7 +40,6 @@ PointerAlignment: Right
 ReflowComments: false
 SortIncludes: false
 SpaceAfterCStyleCast: true
-SpaceAfterTemplateKeyword: true
 SpaceBeforeAssignmentOperators: true
 SpaceBeforeParens: Always
 SpaceInEmptyParentheses: false
