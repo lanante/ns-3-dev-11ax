@@ -40,7 +40,7 @@ channelBondingType=Static
 interBssDistance=10
 distance=10;
 n=10
-nBss=3
+nBss=7
 RngRun=1
 mcs=MaxMcs
 
