@@ -1166,7 +1166,7 @@ MacLow::ReceiveOk (Ptr<WifiMacQueueItem> mpdu, RxSignalInfo rxSignalInfo, WifiTx
                     {
                       double rxRssi = rxSignalInfo.rssi;
                       rxBeaconRssiList.push_back (rxRssi);
-                      if (rxBeaconRssiList.size () > 10)
+                      if (rxBeaconRssiList.size () > 0)
                         {
                           rxBeaconRssiList.pop_front ();
                           double averageRxRssi = (static_cast<double> (std::accumulate (rxBeaconRssiList.begin (), rxBeaconRssiList.end(), 0)) / rxBeaconRssiList.size ());
