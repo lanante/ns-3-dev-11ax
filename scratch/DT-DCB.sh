@@ -1,7 +1,7 @@
 
 channelBssA=42
 channelBssB=40
-channelBssC=46
+channelBssC=44
 channelBssD=42
 channelBssE=42
 channelBssF=42
@@ -9,7 +9,7 @@ channelBssG=42
 
 primaryChannelBssA=36
 primaryChannelBssB=40
-primaryChannelBssC=48
+primaryChannelBssC=44
 primaryChannelBssD=48
 primaryChannelBssE=36
 primaryChannelBssF=40
@@ -51,7 +51,7 @@ for RngRun in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 
 do
 for interBssDistance in 10 20 40;
 do
-	for constantCcaEdThresholdSecondaryBss in -88 -85 -82 -79 -76 -73 -70 -67 -64 -61 -58 -55 -52; 
+	for constantCcaEdThresholdSecondaryBss in -87 -82 -77 -72 -67 -62 -57; 
 
 do
 				Test=${nBss}_${n}_${interBssDistance}_${channelBondingType}_${constantCcaEdThresholdSecondaryBss}_${mcs}_${RngRun}
