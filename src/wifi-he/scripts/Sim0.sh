@@ -1,5 +1,6 @@
 #!/bin/bash
 source spatial-reuse-functions.sh
+rm results
 cd ../examples
 export AUTO_DELETE_SPATIAL_REUSE_OUTPUT_FILES=1
 
@@ -11,8 +12,8 @@ export standard=11ac
 obssPdLevel=-82
 #export NS_LOG=DynamicObssPdAlgorithm=logic
 
-for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20; do
-for j in 1 2 4 8; do
+for j in 1 2 4 8 16; do
+for i in 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40; do
 RngRunpar=${i}
 npar=${j}
 Res=Sim0
@@ -49,14 +50,15 @@ export powAp=20
 export txRange=102
 export ccaTrSta=-62
 export ccaTrAp=-62
-export d=30
+export d=20
 export sigma=3.5
 export bianchi=1
 export n=${npar}
 export enableObssPd=1
-export test=${Res}_${obssPdAlgorithm}_${obssPdThreshold}_${nBss}_${enableObssPd}_${MCS}_${powerBackoff}_${d}_${RngRun}
-run_one 
+export test=${Res}_${nBss}_${n}_${MCS}_${d}_${RngRun}
+run_one &
+sleep 1
+done
 
 wait
-done
 done

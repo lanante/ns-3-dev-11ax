@@ -12,10 +12,10 @@ obssPdLevel=-82
 #export NS_LOG=WifiPhy=logic
 
 for k in 1 2 3 4 5 6 7 8 9 10; do
-for i in 1 2 3 4 5 6 7 8 9 10; do
-for j in 2 3 4; do
+for i in 5 10 20; do
+for j in 2; do
 RngRunpar=$k
-nBsspar=$j
+nBsspar=2
 MCSpar=0
 npar=$i
 durpar=5
