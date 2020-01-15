@@ -270,7 +270,8 @@ std::vector<SignalArrival> g_arrivals;
 double g_arrivalsDurationCounter = 0;
 std::ofstream g_stateFile;
 std::ofstream g_TGaxCalibrationTimingsFile;
-
+std::ofstream cwTraceFile;
+std::ofstream backoffTraceFile;
 std::string
 StateToString (WifiPhyState state)
 {
@@ -549,6 +550,18 @@ StaAssocCb (std::string context, Mac48Address bssid)
         }
     }
 }
+void
+CwTrace (std::string context, uint32_t oldVal, uint32_t newVal)
+{
+  std::cout << Simulator::Now ().GetSeconds () << " " << ContextToNodeId (context) << " " << newVal << std::endl;
+}
+
+void
+BackoffTrace (std::string context, uint32_t newVal)
+{
+  std::cout << Simulator::Now ().GetSeconds () << " " << ContextToNodeId (context) << " " << newVal << std::endl;
+}
+
 
 void
 SignalCb (std::string context, bool wifi, uint32_t senderNodeId, double rxPowerDbm, Time rxDuration)
@@ -602,6 +615,7 @@ SaveSpectrumPhyStats (std::string filename, const std::vector<SignalArrival> &ar
     }
   outFile.close ();
 }
+
 
 void
 SchedulePhyLogConnect (void)
@@ -3070,6 +3084,8 @@ bytesTransmitted[nodeId] = 0;
       g_phyResetFile.setf (std::ios_base::fixed);
       g_phyResetFile << "Time, NodeId, BssColor, RssiDbm, TxPowerMaxDbmSiso, txPowerMaxDbmMimo" << std::endl;
     }
+      cwTraceFile.open ("CWfile.txt");
+      backoffTraceFile.open ("BOfile.txt");
 
   g_TGaxCalibrationTimingsFile.open (outputFilePrefix + "-tgax-calibration-timings-" + testname + ".dat", std::ofstream::out | std::ofstream::trunc);
   g_TGaxCalibrationTimingsFile.setf (std::ios_base::fixed);
@@ -3100,6 +3116,11 @@ bytesTransmitted[nodeId] = 0;
   ScheduleStateLogDisconnect ();
   ScheduleAddbaStateLogDisconnect ();
   ScheduleStaAssocLogDisconnect();
+      // Trace CW evolution
+      Config::Connect ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Mac/$ns3::RegularWifiMac/Txop", MakeCallback (&CwTrace));
+
+      // Trace backoff evolution
+      Config::Connect ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Mac/$ns3::RegularWifiMac/Txop", MakeCallback (&BackoffTrace));
   g_stateFile.flush ();
   g_stateFile.close ();
 
@@ -3131,6 +3152,10 @@ bytesTransmitted[nodeId] = 0;
   SaveUdpFlowMonitorStats (outputFilePrefix + "-operatorA-" + testname, "simulationParams", monitorA, flowmonHelperA, durationTime.GetSeconds ());
 
   Simulator::Destroy ();
+      cwTraceFile.flush ();
+      backoffTraceFile.flush ();
+      cwTraceFile.close ();
+      backoffTraceFile.close ();
   return 0;
 }
 

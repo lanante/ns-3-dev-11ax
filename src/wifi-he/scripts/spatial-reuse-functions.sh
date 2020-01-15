@@ -260,7 +260,7 @@ function run_one () {
         --powerBackoff=${powerBackoff}\
 	--ccaTrSta=${ccaTrSta}\
 	--ccaTrAp=${ccaTrAp}\
-	--obssPdAlgorithm=${obssPdAlgorithm}" > ${test}.txt
+	--obssPdAlgorithm=${obssPdAlgorithm}" 
 
   # copy results files
   cd ../scripts

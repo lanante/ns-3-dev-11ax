@@ -471,6 +471,7 @@ ChannelAccessManager::UpdateBackoff (void)
       if (backoffStart <= Simulator::Now ())
         {
           uint32_t nIntSlots = ((Simulator::Now () - backoffStart) / m_slot).GetHigh ();
+//std::cout<<"BO: "<<nIntSlots<<std::endl;
           /*
            * EDCA behaves slightly different to DCA. For EDCA we
            * decrement once at the slot boundary at the end of AIFS as
