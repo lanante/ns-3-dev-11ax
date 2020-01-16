@@ -270,8 +270,6 @@ std::vector<SignalArrival> g_arrivals;
 double g_arrivalsDurationCounter = 0;
 std::ofstream g_stateFile;
 std::ofstream g_TGaxCalibrationTimingsFile;
-std::ofstream cwTraceFile;
-std::ofstream backoffTraceFile;
 std::string
 StateToString (WifiPhyState state)
 {
@@ -365,6 +363,7 @@ void RxBlockAckCallback (std::string context, Ptr<const Packet> p, const WifiMac
   lastBlockAckDuration = blockAckDuration;
 
   lastRxBlockAckEnd = t_cp4;
+
 }
 
 void
@@ -472,6 +471,7 @@ AddbaStateCb (std::string context, Time t, Mac48Address recipient, uint8_t tid, 
           client->SetAttribute ("MaxPackets", UintegerValue (1));
         }
     }
+//std::cout<<"Addbacb"<<std::endl;
 }
 
 void
@@ -550,17 +550,7 @@ StaAssocCb (std::string context, Mac48Address bssid)
         }
     }
 }
-void
-CwTrace (std::string context, uint32_t oldVal, uint32_t newVal)
-{
-  std::cout << Simulator::Now ().GetSeconds () << " " << ContextToNodeId (context) << " " << newVal << std::endl;
-}
 
-void
-BackoffTrace (std::string context, uint32_t newVal)
-{
-  std::cout << Simulator::Now ().GetSeconds () << " " << ContextToNodeId (context) << " " << newVal << std::endl;
-}
 
 
 void
@@ -584,6 +574,7 @@ SignalCb (std::string context, bool wifi, uint32_t senderNodeId, double rxPowerD
 
   packetsReceivedPerNode[nodeId][senderNodeId] += 1;
   rssiPerNode[nodeId][senderNodeId] += rxPowerDbm;
+//std::cout<<"Side "<<std::endl;
 }
 
 void
@@ -616,6 +607,16 @@ SaveSpectrumPhyStats (std::string filename, const std::vector<SignalArrival> &ar
   outFile.close ();
 }
 
+void
+CwTrace (std::string context, uint32_t oldVal, uint32_t newVal)
+{
+std::cout <<"CW "<< Simulator::Now ().GetMicroSeconds () << " " << ContextToNodeId (context) << " " << newVal << std::endl;
+}
+void
+BackoffTrace (std::string context, uint32_t newVal)
+{
+  std::cout  <<"BO " <<Simulator::Now ().GetMicroSeconds () << " " << ContextToNodeId (context) << " " << newVal << std::endl;
+}
 
 void
 SchedulePhyLogConnect (void)
@@ -628,6 +629,7 @@ SchedulePhyLogDisconnect (void)
 {
   Config::Disconnect ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Phy/$ns3::SpectrumWifiPhy/SignalArrival", MakeCallback (&SignalCb));
 }
+
 
 void
 ScheduleStateLogConnect (void)
@@ -3070,6 +3072,10 @@ bytesTransmitted[nodeId] = 0;
   ScheduleAddbaStateLogConnect ();
   ScheduleStaAssocLogConnect();
 
+
+      // Trace backoff evolution
+Config::Connect ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Mac/$ns3::RegularWifiMac/BE_Txop/BackoffTrace", MakeCallback (&BackoffTrace));
+Config::Connect ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Mac/$ns3::RegularWifiMac/BE_Txop/CwTrace", MakeCallback (&CwTrace));
   g_rxSniffFile.open (outputFilePrefix + "-rx-sniff-" + testname + ".dat", std::ofstream::out | std::ofstream::trunc);
   g_rxSniffFile.setf (std::ios_base::fixed);
   g_rxSniffFile << "RxNodeId, DstNodeId, SrcNodeId, RxNodeAddr, DA, SA, Noise, Signal " << std::endl;
@@ -3084,8 +3090,6 @@ bytesTransmitted[nodeId] = 0;
       g_phyResetFile.setf (std::ios_base::fixed);
       g_phyResetFile << "Time, NodeId, BssColor, RssiDbm, TxPowerMaxDbmSiso, txPowerMaxDbmMimo" << std::endl;
     }
-      cwTraceFile.open ("CWfile.txt");
-      backoffTraceFile.open ("BOfile.txt");
 
   g_TGaxCalibrationTimingsFile.open (outputFilePrefix + "-tgax-calibration-timings-" + testname + ".dat", std::ofstream::out | std::ofstream::trunc);
   g_TGaxCalibrationTimingsFile.setf (std::ios_base::fixed);
@@ -3102,6 +3106,8 @@ bytesTransmitted[nodeId] = 0;
       spectrumPhy.EnablePcap ("STA_pcap", staDevicesA);
       spectrumPhy.EnablePcap ("AP_pcap", apDeviceA);
     }
+      // Trace CW evolution
+    
 
   if (disableArp)
     {
@@ -3116,11 +3122,8 @@ bytesTransmitted[nodeId] = 0;
   ScheduleStateLogDisconnect ();
   ScheduleAddbaStateLogDisconnect ();
   ScheduleStaAssocLogDisconnect();
-      // Trace CW evolution
-      Config::Connect ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Mac/$ns3::RegularWifiMac/Txop", MakeCallback (&CwTrace));
-
-      // Trace backoff evolution
-      Config::Connect ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Mac/$ns3::RegularWifiMac/Txop", MakeCallback (&BackoffTrace));
+Config::Disconnect ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Mac/$ns3::RegularWifiMac/BE_Txop/BackoffTrace", MakeCallback (&BackoffTrace));
+Config::Disconnect ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Mac/$ns3::RegularWifiMac/BE_Txop/CwTrace", MakeCallback (&CwTrace));
   g_stateFile.flush ();
   g_stateFile.close ();
 
@@ -3152,10 +3155,6 @@ bytesTransmitted[nodeId] = 0;
   SaveUdpFlowMonitorStats (outputFilePrefix + "-operatorA-" + testname, "simulationParams", monitorA, flowmonHelperA, durationTime.GetSeconds ());
 
   Simulator::Destroy ();
-      cwTraceFile.flush ();
-      backoffTraceFile.flush ();
-      cwTraceFile.close ();
-      backoffTraceFile.close ();
   return 0;
 }
 
