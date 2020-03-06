@@ -1,5 +1,4 @@
-/*
- * Copyright (c) 2019 University of Washington
+ /* Copyright (c) 2019 University of Washington
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -107,6 +106,8 @@ PacketRx (std::string context, const Ptr<const Packet> p, const Address &srcAddr
 int
 main (int argc, char *argv[])
 {
+
+
   uint32_t payloadSize = 1472; // bytes
   double simulationTime = 20; // seconds
   double distance = 10; // meters
@@ -159,7 +160,6 @@ uint16_t primaryChannelBss=36;
   double ccaEdThresholdPrimaryBssG = -62.0;
   double constantCcaEdThresholdSecondaryBssG = -62.0;
 
-  double aggregateDownlinkMbps = 0;
   double aggregateDownlinkAMbps = 0;
   double aggregateDownlinkBMbps = 0;
   double aggregateDownlinkCMbps = 0;
@@ -168,7 +168,7 @@ uint16_t primaryChannelBss=36;
   double aggregateDownlinkFMbps = 0;
   double aggregateDownlinkGMbps = 0;
 
-  double aggregateUplinkMbps = 0;
+
   double aggregateUplinkAMbps = 0;
   double aggregateUplinkBMbps = 0;
   double aggregateUplinkCMbps = 0;
@@ -311,7 +311,7 @@ uint16_t primaryChannelBss=36;
   uint8_t maxMcsNode[numNodes];
   NodeContainer wifiApNodes;
   wifiApNodes.Create (nBss);
-NoteContainer wifiApnode;
+
 NodeContainer wifiStaNodes;
   NodeContainer wifiStaNodesA;
   NodeContainer wifiStaNodesB;
@@ -320,6 +320,8 @@ NodeContainer wifiStaNodes;
   NodeContainer wifiStaNodesE;
   NodeContainer wifiStaNodesF;
   NodeContainer wifiStaNodesG;
+
+
 
   double perNodeUplinkAMbps = aggregateUplinkAMbps / n;
   double perNodeDownlinkAMbps = aggregateDownlinkAMbps / n;
@@ -595,8 +597,9 @@ NodeContainer wifiStaNodes;
                                     "ControlMode", StringValue ("VhtMcs0"));
     }
 */
+
   wifi.SetChannelBondingManager ("ns3::" + channelBondingType + "ChannelBondingManager");
-  NetDeviceContainer staDevice, apDevice;
+
   NetDeviceContainer staDeviceA, apDeviceA;
   NetDeviceContainer staDeviceB, apDeviceB;
   NetDeviceContainer staDeviceC, apDeviceC;
@@ -615,7 +618,7 @@ NodeContainer wifiStaNodes;
   ssid = Ssid ("network-A");
   bss_i = 1;
 mcs=mcs1;
-staDevice=staDeviceA;
+
 wifiStaNodes=wifiStaNodesA;
 primaryChannelBss=primaryChannelBssA;
 channelBss=channelBssA;
@@ -628,7 +631,7 @@ constantCcaEdThresholdSecondaryBss = constantCcaEdThresholdSecondaryBssA;
   if (mcs == "IdealWifi")
     {
       wifi.SetRemoteStationManager ("ns3::IdealWifiManager");
-          staDevice = wifi.Install (phy, mac, wifiStwifiStaNodesaNodesA);
+          staDeviceA = wifi.Install (phy, mac, wifiStaNodes);
     }
 
 else if (mcs == "MaxMcs")
@@ -642,21 +645,21 @@ else if (mcs == "MaxMcs")
           wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode",
                                         StringValue (dataRate), "ControlMode",
                                         StringValue ("VhtMcs0"));
-          staDevice.Add (wifi.Install (phy, mac, wifiStaNodes.Get (i)));
+          staDeviceA.Add (wifi.Install (phy, mac, wifiStaNodes.Get (i)));
         }
     }
   else
     {
      wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode", StringValue (mcs),
                                     "ControlMode", StringValue ("VhtMcs0"));
-          staDevice = wifi.Install (phy, mac, wifiStaNodes);
+          staDeviceA = wifi.Install (phy, mac, wifiStaNodes);
     }
 
   Ptr<NetDevice> staDevicePtr;
   for (uint16_t i = 0; i < n; i++)
     {
 
-      staDevicePtr = staDevice.Get (i);
+      staDevicePtr = staDeviceA.Get (i);
       Ptr<WifiNetDevice> wifiStaDevicePtr = staDevicePtr->GetObject<WifiNetDevice> ();
       wifiStaDevicePtr->GetPhy ()->SetChannelNumber (channelBss);
       wifiStaDevicePtr->GetPhy ()->SetPrimaryChannelNumber (primaryChannelBss);
@@ -684,9 +687,9 @@ else
                                     StringValue ("VhtMcs0"));
 }
 
-  apDevice = wifi.Install (phy, mac, wifiApNodes.Get (bss_i-1));
+  apDeviceA = wifi.Install (phy, mac, wifiApNodes.Get (bss_i-1));
 
-  Ptr<NetDevice> apDevicePtr = apDevice.Get (0);
+  Ptr<NetDevice> apDevicePtr = apDeviceA.Get (0);
   Ptr<WifiNetDevice> wifiApDevicePtr = apDevicePtr->GetObject<WifiNetDevice> ();
   wifiApDevicePtr->GetPhy ()->SetChannelNumber (channelBss);
   wifiApDevicePtr->GetPhy ()->SetPrimaryChannelNumber (primaryChannelBss);
@@ -715,7 +718,6 @@ else
 
     bss_i = 2;
 mcs=mcs2;
-staDevice=staDeviceB;
 wifiStaNodes=wifiStaNodesB;
 primaryChannelBss=primaryChannelBssB;
 channelBss=channelBssB;
@@ -728,7 +730,7 @@ constantCcaEdThresholdSecondaryBss = constantCcaEdThresholdSecondaryBssB;
   if (mcs == "IdealWifi")
     {
       wifi.SetRemoteStationManager ("ns3::IdealWifiManager");
-          staDevice = wifi.Install (phy, mac, wifiStwifiStaNodesaNodesA);
+          staDeviceB = wifi.Install (phy, mac, wifiStaNodes);
     }
 
 else if (mcs == "MaxMcs")
@@ -742,21 +744,21 @@ else if (mcs == "MaxMcs")
           wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode",
                                         StringValue (dataRate), "ControlMode",
                                         StringValue ("VhtMcs0"));
-          staDevice.Add (wifi.Install (phy, mac, wifiStaNodes.Get (i)));
+          staDeviceB.Add (wifi.Install (phy, mac, wifiStaNodes.Get (i)));
         }
     }
   else
     {
      wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode", StringValue (mcs),
                                     "ControlMode", StringValue ("VhtMcs0"));
-          staDevice = wifi.Install (phy, mac, wifiStaNodes);
+          staDeviceB = wifi.Install (phy, mac, wifiStaNodes);
     }
 
   Ptr<NetDevice> staDevicePtr;
   for (uint16_t i = 0; i < n; i++)
     {
 
-      staDevicePtr = staDevice.Get (i);
+      staDevicePtr = staDeviceB.Get (i);
       Ptr<WifiNetDevice> wifiStaDevicePtr = staDevicePtr->GetObject<WifiNetDevice> ();
       wifiStaDevicePtr->GetPhy ()->SetChannelNumber (channelBss);
       wifiStaDevicePtr->GetPhy ()->SetPrimaryChannelNumber (primaryChannelBss);
@@ -784,9 +786,9 @@ else
                                     StringValue ("VhtMcs0"));
 }
 
-  apDevice = wifi.Install (phy, mac, wifiApNodes.Get (bss_i-1));
+  apDeviceB = wifi.Install (phy, mac, wifiApNodes.Get (bss_i-1));
 
-  Ptr<NetDevice> apDevicePtr = apDevice.Get (0);
+  Ptr<NetDevice> apDevicePtr = apDeviceB.Get (0);
   Ptr<WifiNetDevice> wifiApDevicePtr = apDevicePtr->GetObject<WifiNetDevice> ();
   wifiApDevicePtr->GetPhy ()->SetChannelNumber (channelBss);
   wifiApDevicePtr->GetPhy ()->SetPrimaryChannelNumber (primaryChannelBss);
@@ -813,7 +815,6 @@ else
       ssid = Ssid ("network-C");
        bss_i = 3;
 mcs=mcs3;
-staDevice=staDeviceC;
 wifiStaNodes=wifiStaNodesC;
 primaryChannelBss=primaryChannelBssC;
 channelBss=channelBssC;
@@ -826,7 +827,7 @@ constantCcaEdThresholdSecondaryBss = constantCcaEdThresholdSecondaryBssC;
   if (mcs == "IdealWifi")
     {
       wifi.SetRemoteStationManager ("ns3::IdealWifiManager");
-          staDevice = wifi.Install (phy, mac, wifiStwifiStaNodesaNodesA);
+          staDeviceC = wifi.Install (phy, mac, wifiStaNodes);
     }
 
 else if (mcs == "MaxMcs")
@@ -840,21 +841,21 @@ else if (mcs == "MaxMcs")
           wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode",
                                         StringValue (dataRate), "ControlMode",
                                         StringValue ("VhtMcs0"));
-          staDevice.Add (wifi.Install (phy, mac, wifiStaNodes.Get (i)));
+          staDeviceC.Add (wifi.Install (phy, mac, wifiStaNodes.Get (i)));
         }
     }
   else
     {
      wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode", StringValue (mcs),
                                     "ControlMode", StringValue ("VhtMcs0"));
-          staDevice = wifi.Install (phy, mac, wifiStaNodes);
+          staDeviceC = wifi.Install (phy, mac, wifiStaNodes);
     }
 
   Ptr<NetDevice> staDevicePtr;
   for (uint16_t i = 0; i < n; i++)
     {
 
-      staDevicePtr = staDevice.Get (i);
+      staDevicePtr = staDeviceC.Get (i);
       Ptr<WifiNetDevice> wifiStaDevicePtr = staDevicePtr->GetObject<WifiNetDevice> ();
       wifiStaDevicePtr->GetPhy ()->SetChannelNumber (channelBss);
       wifiStaDevicePtr->GetPhy ()->SetPrimaryChannelNumber (primaryChannelBss);
@@ -882,9 +883,9 @@ else
                                     StringValue ("VhtMcs0"));
 }
 
-  apDevice = wifi.Install (phy, mac, wifiApNodes.Get (bss_i-1));
+  apDeviceC = wifi.Install (phy, mac, wifiApNodes.Get (bss_i-1));
 
-  Ptr<NetDevice> apDevicePtr = apDevice.Get (0);
+  Ptr<NetDevice> apDevicePtr = apDeviceC.Get (0);
   Ptr<WifiNetDevice> wifiApDevicePtr = apDevicePtr->GetObject<WifiNetDevice> ();
   wifiApDevicePtr->GetPhy ()->SetChannelNumber (channelBss);
   wifiApDevicePtr->GetPhy ()->SetPrimaryChannelNumber (primaryChannelBss);
@@ -911,7 +912,6 @@ else
       ssid = Ssid ("network-D");
        bss_i = 4;
 mcs=mcs4;
-staDevice=staDeviceD;
 wifiStaNodes=wifiStaNodesD;
 primaryChannelBss=primaryChannelBssD;
 channelBss=channelBssD;
@@ -924,7 +924,7 @@ constantCcaEdThresholdSecondaryBss = constantCcaEdThresholdSecondaryBssD;
   if (mcs == "IdealWifi")
     {
       wifi.SetRemoteStationManager ("ns3::IdealWifiManager");
-          staDevice = wifi.Install (phy, mac, wifiStwifiStaNodesaNodesA);
+          staDeviceD = wifi.Install (phy, mac, wifiStaNodes);
     }
 
 else if (mcs == "MaxMcs")
@@ -938,21 +938,21 @@ else if (mcs == "MaxMcs")
           wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode",
                                         StringValue (dataRate), "ControlMode",
                                         StringValue ("VhtMcs0"));
-          staDevice.Add (wifi.Install (phy, mac, wifiStaNodes.Get (i)));
+          staDeviceD.Add (wifi.Install (phy, mac, wifiStaNodes.Get (i)));
         }
     }
   else
     {
      wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode", StringValue (mcs),
                                     "ControlMode", StringValue ("VhtMcs0"));
-          staDevice = wifi.Install (phy, mac, wifiStaNodes);
+          staDeviceD = wifi.Install (phy, mac, wifiStaNodes);
     }
 
   Ptr<NetDevice> staDevicePtr;
   for (uint16_t i = 0; i < n; i++)
     {
 
-      staDevicePtr = staDevice.Get (i);
+      staDevicePtr = staDeviceD.Get (i);
       Ptr<WifiNetDevice> wifiStaDevicePtr = staDevicePtr->GetObject<WifiNetDevice> ();
       wifiStaDevicePtr->GetPhy ()->SetChannelNumber (channelBss);
       wifiStaDevicePtr->GetPhy ()->SetPrimaryChannelNumber (primaryChannelBss);
@@ -980,9 +980,9 @@ else
                                     StringValue ("VhtMcs0"));
 }
 
-  apDevice = wifi.Install (phy, mac, wifiApNodes.Get (bss_i-1));
+  apDeviceD = wifi.Install (phy, mac, wifiApNodes.Get (bss_i-1));
 
-  Ptr<NetDevice> apDevicePtr = apDevice.Get (0);
+  Ptr<NetDevice> apDevicePtr = apDeviceD.Get (0);
   Ptr<WifiNetDevice> wifiApDevicePtr = apDevicePtr->GetObject<WifiNetDevice> ();
   wifiApDevicePtr->GetPhy ()->SetChannelNumber (channelBss);
   wifiApDevicePtr->GetPhy ()->SetPrimaryChannelNumber (primaryChannelBss);
@@ -1008,7 +1008,6 @@ else
       // network E
        bss_i = 5;
 mcs=mcs5;
-staDevice=staDeviceE;
 wifiStaNodes=wifiStaNodesE;
 primaryChannelBss=primaryChannelBssE;
 channelBss=channelBssE;
@@ -1021,7 +1020,7 @@ constantCcaEdThresholdSecondaryBss = constantCcaEdThresholdSecondaryBssE;
   if (mcs == "IdealWifi")
     {
       wifi.SetRemoteStationManager ("ns3::IdealWifiManager");
-          staDevice = wifi.Install (phy, mac, wifiStwifiStaNodesaNodesA);
+          staDeviceE = wifi.Install (phy, mac, wifiStaNodes);
     }
 
 else if (mcs == "MaxMcs")
@@ -1035,21 +1034,21 @@ else if (mcs == "MaxMcs")
           wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode",
                                         StringValue (dataRate), "ControlMode",
                                         StringValue ("VhtMcs0"));
-          staDevice.Add (wifi.Install (phy, mac, wifiStaNodes.Get (i)));
+          staDeviceE.Add (wifi.Install (phy, mac, wifiStaNodes.Get (i)));
         }
     }
   else
     {
      wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode", StringValue (mcs),
                                     "ControlMode", StringValue ("VhtMcs0"));
-          staDevice = wifi.Install (phy, mac, wifiStaNodes);
+          staDeviceE = wifi.Install (phy, mac, wifiStaNodes);
     }
 
   Ptr<NetDevice> staDevicePtr;
   for (uint16_t i = 0; i < n; i++)
     {
 
-      staDevicePtr = staDevice.Get (i);
+      staDevicePtr = staDeviceE.Get (i);
       Ptr<WifiNetDevice> wifiStaDevicePtr = staDevicePtr->GetObject<WifiNetDevice> ();
       wifiStaDevicePtr->GetPhy ()->SetChannelNumber (channelBss);
       wifiStaDevicePtr->GetPhy ()->SetPrimaryChannelNumber (primaryChannelBss);
@@ -1077,9 +1076,9 @@ else
                                     StringValue ("VhtMcs0"));
 }
 
-  apDevice = wifi.Install (phy, mac, wifiApNodes.Get (bss_i-1));
+  apDeviceE = wifi.Install (phy, mac, wifiApNodes.Get (bss_i-1));
 
-  Ptr<NetDevice> apDevicePtr = apDevice.Get (0);
+  Ptr<NetDevice> apDevicePtr = apDeviceE.Get (0);
   Ptr<WifiNetDevice> wifiApDevicePtr = apDevicePtr->GetObject<WifiNetDevice> ();
   wifiApDevicePtr->GetPhy ()->SetChannelNumber (channelBss);
   wifiApDevicePtr->GetPhy ()->SetPrimaryChannelNumber (primaryChannelBss);
@@ -1106,7 +1105,6 @@ else
       ssid = Ssid ("network-F");
        bss_i = 6;
 mcs=mcs6;
-staDevice=staDeviceF;
 wifiStaNodes=wifiStaNodesF;
 primaryChannelBss=primaryChannelBssF;
 channelBss=channelBssF;
@@ -1119,7 +1117,7 @@ constantCcaEdThresholdSecondaryBss = constantCcaEdThresholdSecondaryBssF;
   if (mcs == "IdealWifi")
     {
       wifi.SetRemoteStationManager ("ns3::IdealWifiManager");
-          staDevice = wifi.Install (phy, mac, wifiStwifiStaNodesaNodesA);
+          staDeviceF = wifi.Install (phy, mac, wifiStaNodes);
     }
 
 else if (mcs == "MaxMcs")
@@ -1133,21 +1131,21 @@ else if (mcs == "MaxMcs")
           wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode",
                                         StringValue (dataRate), "ControlMode",
                                         StringValue ("VhtMcs0"));
-          staDevice.Add (wifi.Install (phy, mac, wifiStaNodes.Get (i)));
+          staDeviceF.Add (wifi.Install (phy, mac, wifiStaNodes.Get (i)));
         }
     }
   else
     {
      wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode", StringValue (mcs),
                                     "ControlMode", StringValue ("VhtMcs0"));
-          staDevice = wifi.Install (phy, mac, wifiStaNodes);
+          staDeviceF = wifi.Install (phy, mac, wifiStaNodes);
     }
 
   Ptr<NetDevice> staDevicePtr;
   for (uint16_t i = 0; i < n; i++)
     {
 
-      staDevicePtr = staDevice.Get (i);
+      staDevicePtr = staDeviceF.Get (i);
       Ptr<WifiNetDevice> wifiStaDevicePtr = staDevicePtr->GetObject<WifiNetDevice> ();
       wifiStaDevicePtr->GetPhy ()->SetChannelNumber (channelBss);
       wifiStaDevicePtr->GetPhy ()->SetPrimaryChannelNumber (primaryChannelBss);
@@ -1175,9 +1173,9 @@ else
                                     StringValue ("VhtMcs0"));
 }
 
-  apDevice = wifi.Install (phy, mac, wifiApNodes.Get (bss_i-1));
+  apDeviceF = wifi.Install (phy, mac, wifiApNodes.Get (bss_i-1));
 
-  Ptr<NetDevice> apDevicePtr = apDevice.Get (0);
+  Ptr<NetDevice> apDevicePtr = apDeviceF.Get (0);
   Ptr<WifiNetDevice> wifiApDevicePtr = apDevicePtr->GetObject<WifiNetDevice> ();
   wifiApDevicePtr->GetPhy ()->SetChannelNumber (channelBss);
   wifiApDevicePtr->GetPhy ()->SetPrimaryChannelNumber (primaryChannelBss);
@@ -1204,7 +1202,6 @@ else
       ssid = Ssid ("network-G");
        bss_i = 7;
 mcs=mcs7;
-staDevice=staDeviceG;
 wifiStaNodes=wifiStaNodesG;
 primaryChannelBss=primaryChannelBssG;
 channelBss=channelBssG;
@@ -1217,7 +1214,7 @@ constantCcaEdThresholdSecondaryBss = constantCcaEdThresholdSecondaryBssG;
   if (mcs == "IdealWifi")
     {
       wifi.SetRemoteStationManager ("ns3::IdealWifiManager");
-          staDevice = wifi.Install (phy, mac, wifiStwifiStaNodesaNodesA);
+          staDeviceG = wifi.Install (phy, mac, wifiStaNodes);
     }
 
 else if (mcs == "MaxMcs")
@@ -1231,21 +1228,21 @@ else if (mcs == "MaxMcs")
           wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode",
                                         StringValue (dataRate), "ControlMode",
                                         StringValue ("VhtMcs0"));
-          staDevice.Add (wifi.Install (phy, mac, wifiStaNodes.Get (i)));
+          staDeviceG.Add (wifi.Install (phy, mac, wifiStaNodes.Get (i)));
         }
     }
   else
     {
      wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode", StringValue (mcs),
                                     "ControlMode", StringValue ("VhtMcs0"));
-          staDevice = wifi.Install (phy, mac, wifiStaNodes);
+          staDeviceG = wifi.Install (phy, mac, wifiStaNodes);
     }
 
   Ptr<NetDevice> staDevicePtr;
   for (uint16_t i = 0; i < n; i++)
     {
 
-      staDevicePtr = staDevice.Get (i);
+      staDevicePtr = staDeviceG.Get (i);
       Ptr<WifiNetDevice> wifiStaDevicePtr = staDevicePtr->GetObject<WifiNetDevice> ();
       wifiStaDevicePtr->GetPhy ()->SetChannelNumber (channelBss);
       wifiStaDevicePtr->GetPhy ()->SetPrimaryChannelNumber (primaryChannelBss);
@@ -1273,9 +1270,9 @@ else
                                     StringValue ("VhtMcs0"));
 }
 
-  apDevice = wifi.Install (phy, mac, wifiApNodes.Get (bss_i-1));
+  apDeviceG = wifi.Install (phy, mac, wifiApNodes.Get (bss_i-1));
 
-  Ptr<NetDevice> apDevicePtr = apDevice.Get (0);
+  Ptr<NetDevice> apDevicePtr = apDeviceG.Get (0);
   Ptr<WifiNetDevice> wifiApDevicePtr = apDevicePtr->GetObject<WifiNetDevice> ();
   wifiApDevicePtr->GetPhy ()->SetChannelNumber (channelBss);
   wifiApDevicePtr->GetPhy ()->SetPrimaryChannelNumber (primaryChannelBss);
@@ -1382,15 +1379,18 @@ else
   uint16_t downlinkPortA = 10;
   UdpServerHelper uplinkServerA (uplinkPortA);
   UdpServerHelper downlinkServerA (downlinkPortA);
+
   for (uint32_t i = 0; i < n; i++)
     {
       if (aggregateUplinkAMbps > 0)
         {
           AddClient (uplinkClientApps, ApInterfaceA.GetAddress (0), wifiStaNodesA.Get (i),
                      uplinkPortA, intervalUplinkA, payloadSize);
+
         }
       if (aggregateDownlinkAMbps > 0)
         {
+
           AddClient (downlinkClientApps, StaInterfaceA.GetAddress (i), wifiApNodes.Get (0),
                      downlinkPortA, intervalDownlinkA, payloadSize);
           AddServer (downlinkServerApps, downlinkServerA, wifiStaNodesA.Get (i));
@@ -1400,6 +1400,7 @@ else
     {
       AddServer (uplinkServerApps, uplinkServerA, wifiApNodes.Get (0));
     }
+
   // BSS 2
   if (nBss > 1)
     {
@@ -1426,6 +1427,7 @@ else
           AddServer (uplinkServerApps, uplinkServerB, wifiApNodes.Get (1));
         }
     }
+
   // BSS 3
   if (nBss > 2)
     {
@@ -1564,6 +1566,7 @@ else
           AddServer (uplinkServerApps, uplinkServerG, wifiApNodes.Get (6));
         }
     }
+
   uint32_t maxAmpduSizeBss1 = 131071;
   uint32_t maxAmpduSizeBss2 = 131071;
   uint32_t maxAmpduSizeBss3 = 131071;
