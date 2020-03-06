@@ -115,6 +115,7 @@ main (int argc, char *argv[])
   double txMaskOuterBandMinimumRejection = -56.0; // dBr
   double txMaskOuterBandMaximumRejection = -80.0; // dBr
 
+  uint16_t channelBss=36;
   uint16_t channelBssA = 36;
   uint16_t channelBssB = 36;
   uint16_t channelBssC = 36;
@@ -123,6 +124,7 @@ main (int argc, char *argv[])
   uint16_t channelBssF = 36;
   uint16_t channelBssG = 36;
 
+uint16_t primaryChannelBss=36;
   uint16_t primaryChannelBssA = 36;
   uint16_t primaryChannelBssB = 36;
   uint16_t primaryChannelBssC = 36;
@@ -131,7 +133,17 @@ main (int argc, char *argv[])
   uint16_t primaryChannelBssF = 36;
   uint16_t primaryChannelBssG = 36;
 
-  std::string mcs = "IdealWifi";
+  std::string mcs ="IdealWifi";
+  std::string mcs1 = "IdealWifi";
+  std::string mcs2 = "IdealWifi";
+  std::string mcs3 = "IdealWifi";
+  std::string mcs4 = "IdealWifi";
+  std::string mcs5 = "IdealWifi";
+  std::string mcs6 = "IdealWifi";
+  std::string mcs7 = "IdealWifi";
+
+  double ccaEdThresholdPrimaryBss = -62.0;
+  double constantCcaEdThresholdSecondaryBss = -62.0;
   double ccaEdThresholdPrimaryBssA = -62.0;
   double constantCcaEdThresholdSecondaryBssA = -62.0;
   double ccaEdThresholdPrimaryBssB = -62.0;
@@ -147,6 +159,7 @@ main (int argc, char *argv[])
   double ccaEdThresholdPrimaryBssG = -62.0;
   double constantCcaEdThresholdSecondaryBssG = -62.0;
 
+  double aggregateDownlinkMbps = 0;
   double aggregateDownlinkAMbps = 0;
   double aggregateDownlinkBMbps = 0;
   double aggregateDownlinkCMbps = 0;
@@ -155,6 +168,7 @@ main (int argc, char *argv[])
   double aggregateDownlinkFMbps = 0;
   double aggregateDownlinkGMbps = 0;
 
+  double aggregateUplinkMbps = 0;
   double aggregateUplinkAMbps = 0;
   double aggregateUplinkBMbps = 0;
   double aggregateUplinkCMbps = 0;
@@ -267,7 +281,14 @@ main (int argc, char *argv[])
 
   cmd.AddValue ("nBss", "The number of BSS", nBss);
   cmd.AddValue ("n", "The number of STAs per BSS", n);
-  cmd.AddValue ("mcs", "MCS", mcs);
+  cmd.AddValue ("mcs1", "MCS1", mcs1);
+  cmd.AddValue ("mcs2", "MCS2", mcs2);
+  cmd.AddValue ("mcs3", "MCS3", mcs3);
+  cmd.AddValue ("mcs4", "MCS4", mcs4);
+  cmd.AddValue ("mcs5", "MCS5", mcs5);
+  cmd.AddValue ("mcs6", "MCS6", mcs6);
+  cmd.AddValue ("mcs7", "MCS7", mcs7);
+
 
   cmd.Parse (argc, argv);
 
@@ -290,7 +311,8 @@ main (int argc, char *argv[])
   uint8_t maxMcsNode[numNodes];
   NodeContainer wifiApNodes;
   wifiApNodes.Create (nBss);
-
+NoteContainer wifiApnode;
+NodeContainer wifiStaNodes;
   NodeContainer wifiStaNodesA;
   NodeContainer wifiStaNodesB;
   NodeContainer wifiStaNodesC;
@@ -556,7 +578,7 @@ main (int argc, char *argv[])
   // ossMcs << 0;
   std::string dataRate;
   // dataRate = "VhtMcs" + ossMcs.str ();
-
+/*
   if (mcs == "IdealWifi")
     {
       wifi.SetRemoteStationManager ("ns3::IdealWifiManager");
@@ -569,12 +591,12 @@ main (int argc, char *argv[])
     }
   else
     {
-      wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode", StringValue (mcs),
+      wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode", StringValue (mcs1),
                                     "ControlMode", StringValue ("VhtMcs0"));
     }
-
+*/
   wifi.SetChannelBondingManager ("ns3::" + channelBondingType + "ChannelBondingManager");
-
+  NetDeviceContainer staDevice, apDevice;
   NetDeviceContainer staDeviceA, apDeviceA;
   NetDeviceContainer staDeviceB, apDeviceB;
   NetDeviceContainer staDeviceC, apDeviceC;
@@ -585,13 +607,31 @@ main (int argc, char *argv[])
 
   WifiMacHelper mac;
   Ssid ssid;
-
+  uint16_t bss_i;
+  uint16_t start_i;
+  uint16_t end_i;
+  std::stringstream stmp;
   // network A
   ssid = Ssid ("network-A");
+  bss_i = 1;
+mcs=mcs1;
+staDevice=staDeviceA;
+wifiStaNodes=wifiStaNodesA;
+primaryChannelBss=primaryChannelBssA;
+channelBss=channelBssA;
+ccaEdThresholdPrimaryBss=ccaEdThresholdPrimaryBssA;
+constantCcaEdThresholdSecondaryBss = constantCcaEdThresholdSecondaryBssA;
+
 
   mac.SetType ("ns3::StaWifiMac", "MaxMissedBeacons", UintegerValue (maxMissedBeacons), "Ssid",
                SsidValue (ssid));
-  if (mcs == "MaxMcs")
+  if (mcs == "IdealWifi")
+    {
+      wifi.SetRemoteStationManager ("ns3::IdealWifiManager");
+          staDevice = wifi.Install (phy, mac, wifiStwifiStaNodesaNodesA);
+    }
+
+else if (mcs == "MaxMcs")
     {
 
       for (uint8_t i = 0; i < n; i++)
@@ -602,52 +642,58 @@ main (int argc, char *argv[])
           wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode",
                                         StringValue (dataRate), "ControlMode",
                                         StringValue ("VhtMcs0"));
-          staDeviceA.Add (wifi.Install (phy, mac, wifiStaNodesA.Get (i)));
+          staDevice.Add (wifi.Install (phy, mac, wifiStaNodes.Get (i)));
         }
     }
   else
     {
-      staDeviceA = wifi.Install (phy, mac, wifiStaNodesA);
+     wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode", StringValue (mcs),
+                                    "ControlMode", StringValue ("VhtMcs0"));
+          staDevice = wifi.Install (phy, mac, wifiStaNodes);
     }
 
-  Ptr<NetDevice> staDeviceAPtr;
+  Ptr<NetDevice> staDevicePtr;
   for (uint16_t i = 0; i < n; i++)
     {
 
-      staDeviceAPtr = staDeviceA.Get (i);
-      Ptr<WifiNetDevice> wifiStaDeviceAPtr = staDeviceAPtr->GetObject<WifiNetDevice> ();
-      wifiStaDeviceAPtr->GetPhy ()->SetChannelNumber (channelBssA);
-      wifiStaDeviceAPtr->GetPhy ()->SetPrimaryChannelNumber (primaryChannelBssA);
-      wifiStaDeviceAPtr->GetPhy ()->SetCcaEdThreshold (ccaEdThresholdPrimaryBssA);
+      staDevicePtr = staDevice.Get (i);
+      Ptr<WifiNetDevice> wifiStaDevicePtr = staDevicePtr->GetObject<WifiNetDevice> ();
+      wifiStaDevicePtr->GetPhy ()->SetChannelNumber (channelBss);
+      wifiStaDevicePtr->GetPhy ()->SetPrimaryChannelNumber (primaryChannelBss);
+      wifiStaDevicePtr->GetPhy ()->SetCcaEdThreshold (ccaEdThresholdPrimaryBss);
     }
 
   mac.SetType ("ns3::ApWifiMac", "Ssid", SsidValue (ssid), "EnableBeaconJitter",
                BooleanValue (true));
 
-  if (mcs == "MaxMcs")
+  if (mcs == "IdealWifi")
+    {
+      wifi.SetRemoteStationManager ("ns3::IdealWifiManager");
+    }
+
+ else if (mcs == "MaxMcs")
     {
       wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode",
                                     StringValue ("VhtMcs0"), "ControlMode",
                                     StringValue ("VhtMcs0"));
     }
+else
+{
+      wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode",
+                                    StringValue (mcs), "ControlMode",
+                                    StringValue ("VhtMcs0"));
+}
 
-  apDeviceA = wifi.Install (phy, mac, wifiApNodes.Get (0));
+  apDevice = wifi.Install (phy, mac, wifiApNodes.Get (bss_i-1));
 
-  Ptr<NetDevice> apDeviceAPtr = apDeviceA.Get (0);
-  Ptr<WifiNetDevice> wifiApDeviceAPtr = apDeviceAPtr->GetObject<WifiNetDevice> ();
-  wifiApDeviceAPtr->GetPhy ()->SetChannelNumber (channelBssA);
-  wifiApDeviceAPtr->GetPhy ()->SetPrimaryChannelNumber (primaryChannelBssA);
-  wifiApDeviceAPtr->GetPhy ()->SetCcaEdThreshold (ccaEdThresholdPrimaryBssA);
+  Ptr<NetDevice> apDevicePtr = apDevice.Get (0);
+  Ptr<WifiNetDevice> wifiApDevicePtr = apDevicePtr->GetObject<WifiNetDevice> ();
+  wifiApDevicePtr->GetPhy ()->SetChannelNumber (channelBss);
+  wifiApDevicePtr->GetPhy ()->SetPrimaryChannelNumber (primaryChannelBss);
+  wifiApDevicePtr->GetPhy ()->SetCcaEdThreshold (ccaEdThresholdPrimaryBss);
 
-  uint16_t bss_i;
-  uint16_t start_i;
-  uint16_t end_i;
-  std::stringstream stmp;
-
-  bss_i = 1;
   start_i = nBss + (bss_i - 1) * n;
   end_i = nBss + (bss_i) *n;
-  double constantCcaEdThresholdSecondaryBss = constantCcaEdThresholdSecondaryBssA;
   stmp << "/NodeList/" << bss_i - 1 << "/DeviceList/*/Phy/ChannelBondingManager/"
                                        "$ns3::ConstantThresholdChannelBondingManager/"
                                        "CcaEdThresholdSecondary";
@@ -667,415 +713,588 @@ main (int argc, char *argv[])
       // network B
       ssid = Ssid ("network-B");
 
-      mac.SetType ("ns3::StaWifiMac", "MaxMissedBeacons", UintegerValue (maxMissedBeacons), "Ssid",
-                   SsidValue (ssid));
-      if (mcs == "MaxMcs")
+    bss_i = 2;
+mcs=mcs2;
+staDevice=staDeviceB;
+wifiStaNodes=wifiStaNodesB;
+primaryChannelBss=primaryChannelBssB;
+channelBss=channelBssB;
+ccaEdThresholdPrimaryBss=ccaEdThresholdPrimaryBssB;
+constantCcaEdThresholdSecondaryBss = constantCcaEdThresholdSecondaryBssB;
+
+
+  mac.SetType ("ns3::StaWifiMac", "MaxMissedBeacons", UintegerValue (maxMissedBeacons), "Ssid",
+               SsidValue (ssid));
+  if (mcs == "IdealWifi")
+    {
+      wifi.SetRemoteStationManager ("ns3::IdealWifiManager");
+          staDevice = wifi.Install (phy, mac, wifiStwifiStaNodesaNodesA);
+    }
+
+else if (mcs == "MaxMcs")
+    {
+
+      for (uint8_t i = 0; i < n; i++)
         {
+          ossMcs.str (std::to_string (maxMcsNode[i + nBss]));
+          dataRate = "VhtMcs" + ossMcs.str ();
 
-          for (uint8_t i = 0; i < n; i++)
-            {
-              ossMcs.str (std::to_string (maxMcsNode[i + nBss + n * bss_i]));
-              dataRate = "VhtMcs" + ossMcs.str ();
-
-              wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode",
-                                            StringValue (dataRate), "ControlMode",
-                                            StringValue ("VhtMcs0"));
-              staDeviceB.Add (wifi.Install (phy, mac, wifiStaNodesB.Get (i)));
-            }
-        }
-      else
-        {
-          staDeviceB = wifi.Install (phy, mac, wifiStaNodesB);
-        }
-
-      Ptr<NetDevice> staDeviceBPtr;
-      for (uint16_t i = 0; i < n; i++)
-        {
-
-          staDeviceBPtr = staDeviceB.Get (i);
-          Ptr<WifiNetDevice> wifiStaDeviceBPtr = staDeviceBPtr->GetObject<WifiNetDevice> ();
-          wifiStaDeviceBPtr->GetPhy ()->SetChannelNumber (channelBssB);
-          wifiStaDeviceBPtr->GetPhy ()->SetPrimaryChannelNumber (primaryChannelBssB);
-          wifiStaDeviceBPtr->GetPhy ()->SetCcaEdThreshold (ccaEdThresholdPrimaryBssB);
-        }
-
-      mac.SetType ("ns3::ApWifiMac", "Ssid", SsidValue (ssid), "EnableBeaconJitter",
-                   BooleanValue (true));
-      if (mcs == "MaxMcs")
-        {
           wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode",
-                                        StringValue ("VhtMcs0"), "ControlMode",
+                                        StringValue (dataRate), "ControlMode",
                                         StringValue ("VhtMcs0"));
+          staDevice.Add (wifi.Install (phy, mac, wifiStaNodes.Get (i)));
         }
-      apDeviceB = wifi.Install (phy, mac, wifiApNodes.Get (1));
+    }
+  else
+    {
+     wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode", StringValue (mcs),
+                                    "ControlMode", StringValue ("VhtMcs0"));
+          staDevice = wifi.Install (phy, mac, wifiStaNodes);
+    }
 
-      Ptr<NetDevice> apDeviceBPtr = apDeviceB.Get (0);
-      Ptr<WifiNetDevice> wifiApDeviceBPtr = apDeviceBPtr->GetObject<WifiNetDevice> ();
-      wifiApDeviceBPtr->GetPhy ()->SetChannelNumber (channelBssB);
-      wifiApDeviceBPtr->GetPhy ()->SetPrimaryChannelNumber (primaryChannelBssB);
-      wifiApDeviceBPtr->GetPhy ()->SetCcaEdThreshold (ccaEdThresholdPrimaryBssB);
+  Ptr<NetDevice> staDevicePtr;
+  for (uint16_t i = 0; i < n; i++)
+    {
 
-      bss_i = 2;
-      start_i = nBss + (bss_i - 1) * n;
-      end_i = nBss + (bss_i) *n;
-      constantCcaEdThresholdSecondaryBss = constantCcaEdThresholdSecondaryBssB;
-      stmp << "/NodeList/" << bss_i - 1 << "/DeviceList/*/Phy/ChannelBondingManager/"
-                                           "$ns3::ConstantThresholdChannelBondingManager/"
-                                           "CcaEdThresholdSecondary";
-      Config::Set (stmp.str (), DoubleValue (constantCcaEdThresholdSecondaryBss));
-      for (uint16_t i = start_i; i < end_i; i++)
-        {
-          std::stringstream stmp1;
-          stmp1 << "/NodeList/" << i << "/DeviceList/*/Phy/ChannelBondingManager/"
-                                        "$ns3::ConstantThresholdChannelBondingManager/"
-                                        "CcaEdThresholdSecondary";
-          Config::Set (stmp1.str (), DoubleValue (constantCcaEdThresholdSecondaryBss));
-        }
+      staDevicePtr = staDevice.Get (i);
+      Ptr<WifiNetDevice> wifiStaDevicePtr = staDevicePtr->GetObject<WifiNetDevice> ();
+      wifiStaDevicePtr->GetPhy ()->SetChannelNumber (channelBss);
+      wifiStaDevicePtr->GetPhy ()->SetPrimaryChannelNumber (primaryChannelBss);
+      wifiStaDevicePtr->GetPhy ()->SetCcaEdThreshold (ccaEdThresholdPrimaryBss);
+    }
+
+  mac.SetType ("ns3::ApWifiMac", "Ssid", SsidValue (ssid), "EnableBeaconJitter",
+               BooleanValue (true));
+
+  if (mcs == "IdealWifi")
+    {
+      wifi.SetRemoteStationManager ("ns3::IdealWifiManager");
+    }
+
+ else if (mcs == "MaxMcs")
+    {
+      wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode",
+                                    StringValue ("VhtMcs0"), "ControlMode",
+                                    StringValue ("VhtMcs0"));
+    }
+else
+{
+      wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode",
+                                    StringValue (mcs), "ControlMode",
+                                    StringValue ("VhtMcs0"));
+}
+
+  apDevice = wifi.Install (phy, mac, wifiApNodes.Get (bss_i-1));
+
+  Ptr<NetDevice> apDevicePtr = apDevice.Get (0);
+  Ptr<WifiNetDevice> wifiApDevicePtr = apDevicePtr->GetObject<WifiNetDevice> ();
+  wifiApDevicePtr->GetPhy ()->SetChannelNumber (channelBss);
+  wifiApDevicePtr->GetPhy ()->SetPrimaryChannelNumber (primaryChannelBss);
+  wifiApDevicePtr->GetPhy ()->SetCcaEdThreshold (ccaEdThresholdPrimaryBss);
+
+  start_i = nBss + (bss_i - 1) * n;
+  end_i = nBss + (bss_i) *n;
+  stmp << "/NodeList/" << bss_i - 1 << "/DeviceList/*/Phy/ChannelBondingManager/"
+                                       "$ns3::ConstantThresholdChannelBondingManager/"
+                                       "CcaEdThresholdSecondary";
+  Config::Set (stmp.str (), DoubleValue (constantCcaEdThresholdSecondaryBss));
+  for (uint16_t i = start_i; i < end_i; i++)
+    {
+      std::stringstream stmp1;
+      stmp1 << "/NodeList/" << i << "/DeviceList/*/Phy/ChannelBondingManager/"
+                                    "$ns3::ConstantThresholdChannelBondingManager/"
+                                    "CcaEdThresholdSecondary";
+      Config::Set (stmp1.str (), DoubleValue (constantCcaEdThresholdSecondaryBss));
+    }
     }
   if (nBss > 2)
     {
       // network C
       ssid = Ssid ("network-C");
-      mac.SetType ("ns3::StaWifiMac", "MaxMissedBeacons", UintegerValue (maxMissedBeacons), "Ssid",
-                   SsidValue (ssid));
-      if (mcs == "MaxMcs")
+       bss_i = 3;
+mcs=mcs3;
+staDevice=staDeviceC;
+wifiStaNodes=wifiStaNodesC;
+primaryChannelBss=primaryChannelBssC;
+channelBss=channelBssC;
+ccaEdThresholdPrimaryBss=ccaEdThresholdPrimaryBssC;
+constantCcaEdThresholdSecondaryBss = constantCcaEdThresholdSecondaryBssC;
+
+
+  mac.SetType ("ns3::StaWifiMac", "MaxMissedBeacons", UintegerValue (maxMissedBeacons), "Ssid",
+               SsidValue (ssid));
+  if (mcs == "IdealWifi")
+    {
+      wifi.SetRemoteStationManager ("ns3::IdealWifiManager");
+          staDevice = wifi.Install (phy, mac, wifiStwifiStaNodesaNodesA);
+    }
+
+else if (mcs == "MaxMcs")
+    {
+
+      for (uint8_t i = 0; i < n; i++)
         {
+          ossMcs.str (std::to_string (maxMcsNode[i + nBss]));
+          dataRate = "VhtMcs" + ossMcs.str ();
 
-          for (uint8_t i = 0; i < n; i++)
-            {
-              ossMcs.str (std::to_string (maxMcsNode[i + nBss + n * bss_i]));
-              dataRate = "VhtMcs" + ossMcs.str ();
-
-              wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode",
-                                            StringValue (dataRate), "ControlMode",
-                                            StringValue ("VhtMcs0"));
-              staDeviceC.Add (wifi.Install (phy, mac, wifiStaNodesC.Get (i)));
-            }
-        }
-      else
-        {
-          staDeviceC = wifi.Install (phy, mac, wifiStaNodesC);
-        }
-
-      Ptr<NetDevice> staDeviceCPtr;
-      for (uint16_t i = 0; i < n; i++)
-        {
-
-          staDeviceCPtr = staDeviceC.Get (i);
-          Ptr<WifiNetDevice> wifiStaDeviceCPtr = staDeviceCPtr->GetObject<WifiNetDevice> ();
-          wifiStaDeviceCPtr->GetPhy ()->SetChannelNumber (channelBssC);
-          wifiStaDeviceCPtr->GetPhy ()->SetPrimaryChannelNumber (primaryChannelBssC);
-          wifiStaDeviceCPtr->GetPhy ()->SetCcaEdThreshold (ccaEdThresholdPrimaryBssC);
-        }
-
-      mac.SetType ("ns3::ApWifiMac", "Ssid", SsidValue (ssid), "EnableBeaconJitter",
-                   BooleanValue (true));
-      if (mcs == "MaxMcs")
-        {
           wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode",
-                                        StringValue ("VhtMcs0"), "ControlMode",
+                                        StringValue (dataRate), "ControlMode",
                                         StringValue ("VhtMcs0"));
+          staDevice.Add (wifi.Install (phy, mac, wifiStaNodes.Get (i)));
         }
-      apDeviceC = wifi.Install (phy, mac, wifiApNodes.Get (2));
+    }
+  else
+    {
+     wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode", StringValue (mcs),
+                                    "ControlMode", StringValue ("VhtMcs0"));
+          staDevice = wifi.Install (phy, mac, wifiStaNodes);
+    }
 
-      Ptr<NetDevice> apDeviceCPtr = apDeviceC.Get (0);
-      Ptr<WifiNetDevice> wifiApDeviceCPtr = apDeviceCPtr->GetObject<WifiNetDevice> ();
-      wifiApDeviceCPtr->GetPhy ()->SetChannelNumber (channelBssC);
-      wifiApDeviceCPtr->GetPhy ()->SetPrimaryChannelNumber (primaryChannelBssC);
-      wifiApDeviceCPtr->GetPhy ()->SetCcaEdThreshold (ccaEdThresholdPrimaryBssC);
+  Ptr<NetDevice> staDevicePtr;
+  for (uint16_t i = 0; i < n; i++)
+    {
 
-      bss_i = 3;
-      start_i = nBss + (bss_i - 1) * n;
-      end_i = nBss + (bss_i) *n;
-      constantCcaEdThresholdSecondaryBss = constantCcaEdThresholdSecondaryBssC;
-      stmp << "/NodeList/" << bss_i - 1 << "/DeviceList/*/Phy/ChannelBondingManager/"
-                                           "$ns3::ConstantThresholdChannelBondingManager/"
-                                           "CcaEdThresholdSecondary";
-      Config::Set (stmp.str (), DoubleValue (constantCcaEdThresholdSecondaryBss));
-      for (uint16_t i = start_i; i < end_i; i++)
-        {
-          std::stringstream stmp1;
-          stmp1 << "/NodeList/" << i << "/DeviceList/*/Phy/ChannelBondingManager/"
-                                        "$ns3::ConstantThresholdChannelBondingManager/"
-                                        "CcaEdThresholdSecondary";
-          Config::Set (stmp1.str (), DoubleValue (constantCcaEdThresholdSecondaryBss));
-        }
+      staDevicePtr = staDevice.Get (i);
+      Ptr<WifiNetDevice> wifiStaDevicePtr = staDevicePtr->GetObject<WifiNetDevice> ();
+      wifiStaDevicePtr->GetPhy ()->SetChannelNumber (channelBss);
+      wifiStaDevicePtr->GetPhy ()->SetPrimaryChannelNumber (primaryChannelBss);
+      wifiStaDevicePtr->GetPhy ()->SetCcaEdThreshold (ccaEdThresholdPrimaryBss);
+    }
+
+  mac.SetType ("ns3::ApWifiMac", "Ssid", SsidValue (ssid), "EnableBeaconJitter",
+               BooleanValue (true));
+
+  if (mcs == "IdealWifi")
+    {
+      wifi.SetRemoteStationManager ("ns3::IdealWifiManager");
+    }
+
+ else if (mcs == "MaxMcs")
+    {
+      wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode",
+                                    StringValue ("VhtMcs0"), "ControlMode",
+                                    StringValue ("VhtMcs0"));
+    }
+else
+{
+      wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode",
+                                    StringValue (mcs), "ControlMode",
+                                    StringValue ("VhtMcs0"));
+}
+
+  apDevice = wifi.Install (phy, mac, wifiApNodes.Get (bss_i-1));
+
+  Ptr<NetDevice> apDevicePtr = apDevice.Get (0);
+  Ptr<WifiNetDevice> wifiApDevicePtr = apDevicePtr->GetObject<WifiNetDevice> ();
+  wifiApDevicePtr->GetPhy ()->SetChannelNumber (channelBss);
+  wifiApDevicePtr->GetPhy ()->SetPrimaryChannelNumber (primaryChannelBss);
+  wifiApDevicePtr->GetPhy ()->SetCcaEdThreshold (ccaEdThresholdPrimaryBss);
+
+  start_i = nBss + (bss_i - 1) * n;
+  end_i = nBss + (bss_i) *n;
+  stmp << "/NodeList/" << bss_i - 1 << "/DeviceList/*/Phy/ChannelBondingManager/"
+                                       "$ns3::ConstantThresholdChannelBondingManager/"
+                                       "CcaEdThresholdSecondary";
+  Config::Set (stmp.str (), DoubleValue (constantCcaEdThresholdSecondaryBss));
+  for (uint16_t i = start_i; i < end_i; i++)
+    {
+      std::stringstream stmp1;
+      stmp1 << "/NodeList/" << i << "/DeviceList/*/Phy/ChannelBondingManager/"
+                                    "$ns3::ConstantThresholdChannelBondingManager/"
+                                    "CcaEdThresholdSecondary";
+      Config::Set (stmp1.str (), DoubleValue (constantCcaEdThresholdSecondaryBss));
+    }
     }
   if (nBss > 3)
     {
       // network D
       ssid = Ssid ("network-D");
-      mac.SetType ("ns3::StaWifiMac", "MaxMissedBeacons", UintegerValue (maxMissedBeacons), "Ssid",
-                   SsidValue (ssid));
-      if (mcs == "MaxMcs")
+       bss_i = 4;
+mcs=mcs4;
+staDevice=staDeviceD;
+wifiStaNodes=wifiStaNodesD;
+primaryChannelBss=primaryChannelBssD;
+channelBss=channelBssD;
+ccaEdThresholdPrimaryBss=ccaEdThresholdPrimaryBssD;
+constantCcaEdThresholdSecondaryBss = constantCcaEdThresholdSecondaryBssD;
+
+
+  mac.SetType ("ns3::StaWifiMac", "MaxMissedBeacons", UintegerValue (maxMissedBeacons), "Ssid",
+               SsidValue (ssid));
+  if (mcs == "IdealWifi")
+    {
+      wifi.SetRemoteStationManager ("ns3::IdealWifiManager");
+          staDevice = wifi.Install (phy, mac, wifiStwifiStaNodesaNodesA);
+    }
+
+else if (mcs == "MaxMcs")
+    {
+
+      for (uint8_t i = 0; i < n; i++)
         {
+          ossMcs.str (std::to_string (maxMcsNode[i + nBss]));
+          dataRate = "VhtMcs" + ossMcs.str ();
 
-          for (uint8_t i = 0; i < n; i++)
-            {
-              ossMcs.str (std::to_string (maxMcsNode[i + nBss + n * bss_i]));
-              dataRate = "VhtMcs" + ossMcs.str ();
-
-              wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode",
-                                            StringValue (dataRate), "ControlMode",
-                                            StringValue ("VhtMcs0"));
-              staDeviceD.Add (wifi.Install (phy, mac, wifiStaNodesD.Get (i)));
-            }
-        }
-      else
-        {
-          staDeviceD = wifi.Install (phy, mac, wifiStaNodesD);
-        }
-
-      Ptr<NetDevice> staDeviceDPtr;
-      for (uint16_t i = 0; i < n; i++)
-        {
-
-          staDeviceDPtr = staDeviceD.Get (i);
-          Ptr<WifiNetDevice> wifiStaDeviceDPtr = staDeviceDPtr->GetObject<WifiNetDevice> ();
-          wifiStaDeviceDPtr->GetPhy ()->SetChannelNumber (channelBssD);
-          wifiStaDeviceDPtr->GetPhy ()->SetPrimaryChannelNumber (primaryChannelBssD);
-          wifiStaDeviceDPtr->GetPhy ()->SetCcaEdThreshold (ccaEdThresholdPrimaryBssD);
-        }
-
-      mac.SetType ("ns3::ApWifiMac", "Ssid", SsidValue (ssid), "EnableBeaconJitter",
-                   BooleanValue (true));
-      if (mcs == "MaxMcs")
-        {
           wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode",
-                                        StringValue ("VhtMcs0"), "ControlMode",
+                                        StringValue (dataRate), "ControlMode",
                                         StringValue ("VhtMcs0"));
+          staDevice.Add (wifi.Install (phy, mac, wifiStaNodes.Get (i)));
         }
-      apDeviceD = wifi.Install (phy, mac, wifiApNodes.Get (3));
+    }
+  else
+    {
+     wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode", StringValue (mcs),
+                                    "ControlMode", StringValue ("VhtMcs0"));
+          staDevice = wifi.Install (phy, mac, wifiStaNodes);
+    }
 
-      Ptr<NetDevice> apDeviceDPtr = apDeviceD.Get (0);
-      Ptr<WifiNetDevice> wifiApDeviceDPtr = apDeviceDPtr->GetObject<WifiNetDevice> ();
-      wifiApDeviceDPtr->GetPhy ()->SetChannelNumber (channelBssD);
-      wifiApDeviceDPtr->GetPhy ()->SetPrimaryChannelNumber (primaryChannelBssD);
-      wifiApDeviceDPtr->GetPhy ()->SetCcaEdThreshold (ccaEdThresholdPrimaryBssD);
+  Ptr<NetDevice> staDevicePtr;
+  for (uint16_t i = 0; i < n; i++)
+    {
 
-      bss_i = 4;
-      start_i = nBss + (bss_i - 1) * n;
-      end_i = nBss + (bss_i) *n;
-      constantCcaEdThresholdSecondaryBss = constantCcaEdThresholdSecondaryBssD;
-      stmp << "/NodeList/" << bss_i - 1 << "/DeviceList/*/Phy/ChannelBondingManager/"
-                                           "$ns3::ConstantThresholdChannelBondingManager/"
-                                           "CcaEdThresholdSecondary";
-      Config::Set (stmp.str (), DoubleValue (constantCcaEdThresholdSecondaryBss));
-      for (uint16_t i = start_i; i < end_i; i++)
-        {
-          std::stringstream stmp1;
-          stmp1 << "/NodeList/" << i << "/DeviceList/*/Phy/ChannelBondingManager/"
-                                        "$ns3::ConstantThresholdChannelBondingManager/"
-                                        "CcaEdThresholdSecondary";
-          Config::Set (stmp1.str (), DoubleValue (constantCcaEdThresholdSecondaryBss));
-        }
+      staDevicePtr = staDevice.Get (i);
+      Ptr<WifiNetDevice> wifiStaDevicePtr = staDevicePtr->GetObject<WifiNetDevice> ();
+      wifiStaDevicePtr->GetPhy ()->SetChannelNumber (channelBss);
+      wifiStaDevicePtr->GetPhy ()->SetPrimaryChannelNumber (primaryChannelBss);
+      wifiStaDevicePtr->GetPhy ()->SetCcaEdThreshold (ccaEdThresholdPrimaryBss);
+    }
+
+  mac.SetType ("ns3::ApWifiMac", "Ssid", SsidValue (ssid), "EnableBeaconJitter",
+               BooleanValue (true));
+
+  if (mcs == "IdealWifi")
+    {
+      wifi.SetRemoteStationManager ("ns3::IdealWifiManager");
+    }
+
+ else if (mcs == "MaxMcs")
+    {
+      wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode",
+                                    StringValue ("VhtMcs0"), "ControlMode",
+                                    StringValue ("VhtMcs0"));
+    }
+else
+{
+      wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode",
+                                    StringValue (mcs), "ControlMode",
+                                    StringValue ("VhtMcs0"));
+}
+
+  apDevice = wifi.Install (phy, mac, wifiApNodes.Get (bss_i-1));
+
+  Ptr<NetDevice> apDevicePtr = apDevice.Get (0);
+  Ptr<WifiNetDevice> wifiApDevicePtr = apDevicePtr->GetObject<WifiNetDevice> ();
+  wifiApDevicePtr->GetPhy ()->SetChannelNumber (channelBss);
+  wifiApDevicePtr->GetPhy ()->SetPrimaryChannelNumber (primaryChannelBss);
+  wifiApDevicePtr->GetPhy ()->SetCcaEdThreshold (ccaEdThresholdPrimaryBss);
+
+  start_i = nBss + (bss_i - 1) * n;
+  end_i = nBss + (bss_i) *n;
+  stmp << "/NodeList/" << bss_i - 1 << "/DeviceList/*/Phy/ChannelBondingManager/"
+                                       "$ns3::ConstantThresholdChannelBondingManager/"
+                                       "CcaEdThresholdSecondary";
+  Config::Set (stmp.str (), DoubleValue (constantCcaEdThresholdSecondaryBss));
+  for (uint16_t i = start_i; i < end_i; i++)
+    {
+      std::stringstream stmp1;
+      stmp1 << "/NodeList/" << i << "/DeviceList/*/Phy/ChannelBondingManager/"
+                                    "$ns3::ConstantThresholdChannelBondingManager/"
+                                    "CcaEdThresholdSecondary";
+      Config::Set (stmp1.str (), DoubleValue (constantCcaEdThresholdSecondaryBss));
+    }
     }
   if (nBss > 4)
     {
       // network E
-      ssid = Ssid ("network-E");
-      mac.SetType ("ns3::StaWifiMac", "MaxMissedBeacons", UintegerValue (maxMissedBeacons), "Ssid",
-                   SsidValue (ssid));
-      if (mcs == "MaxMcs")
+       bss_i = 5;
+mcs=mcs5;
+staDevice=staDeviceE;
+wifiStaNodes=wifiStaNodesE;
+primaryChannelBss=primaryChannelBssE;
+channelBss=channelBssE;
+ccaEdThresholdPrimaryBss=ccaEdThresholdPrimaryBssE;
+constantCcaEdThresholdSecondaryBss = constantCcaEdThresholdSecondaryBssE;
+
+
+  mac.SetType ("ns3::StaWifiMac", "MaxMissedBeacons", UintegerValue (maxMissedBeacons), "Ssid",
+               SsidValue (ssid));
+  if (mcs == "IdealWifi")
+    {
+      wifi.SetRemoteStationManager ("ns3::IdealWifiManager");
+          staDevice = wifi.Install (phy, mac, wifiStwifiStaNodesaNodesA);
+    }
+
+else if (mcs == "MaxMcs")
+    {
+
+      for (uint8_t i = 0; i < n; i++)
         {
+          ossMcs.str (std::to_string (maxMcsNode[i + nBss]));
+          dataRate = "VhtMcs" + ossMcs.str ();
 
-          for (uint8_t i = 0; i < n; i++)
-            {
-              ossMcs.str (std::to_string (maxMcsNode[i + nBss + n * bss_i]));
-              dataRate = "VhtMcs" + ossMcs.str ();
-
-              wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode",
-                                            StringValue (dataRate), "ControlMode",
-                                            StringValue ("VhtMcs0"));
-              staDeviceE.Add (wifi.Install (phy, mac, wifiStaNodesE.Get (i)));
-            }
-        }
-      else
-        {
-          staDeviceE = wifi.Install (phy, mac, wifiStaNodesE);
-        }
-
-      Ptr<NetDevice> staDeviceEPtr;
-      for (uint16_t i = 0; i < n; i++)
-        {
-
-          staDeviceEPtr = staDeviceE.Get (i);
-          Ptr<WifiNetDevice> wifiStaDeviceEPtr = staDeviceEPtr->GetObject<WifiNetDevice> ();
-          wifiStaDeviceEPtr->GetPhy ()->SetChannelNumber (channelBssE);
-          wifiStaDeviceEPtr->GetPhy ()->SetPrimaryChannelNumber (primaryChannelBssE);
-          wifiStaDeviceEPtr->GetPhy ()->SetCcaEdThreshold (ccaEdThresholdPrimaryBssE);
-        }
-
-      mac.SetType ("ns3::ApWifiMac", "Ssid", SsidValue (ssid), "EnableBeaconJitter",
-                   BooleanValue (true));
-      if (mcs == "MaxMcs")
-        {
           wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode",
-                                        StringValue ("VhtMcs0"), "ControlMode",
+                                        StringValue (dataRate), "ControlMode",
                                         StringValue ("VhtMcs0"));
+          staDevice.Add (wifi.Install (phy, mac, wifiStaNodes.Get (i)));
         }
-      apDeviceE = wifi.Install (phy, mac, wifiApNodes.Get (4));
+    }
+  else
+    {
+     wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode", StringValue (mcs),
+                                    "ControlMode", StringValue ("VhtMcs0"));
+          staDevice = wifi.Install (phy, mac, wifiStaNodes);
+    }
 
-      Ptr<NetDevice> apDeviceEPtr = apDeviceE.Get (0);
-      Ptr<WifiNetDevice> wifiApDeviceEPtr = apDeviceEPtr->GetObject<WifiNetDevice> ();
-      wifiApDeviceEPtr->GetPhy ()->SetChannelNumber (channelBssE);
-      wifiApDeviceEPtr->GetPhy ()->SetPrimaryChannelNumber (primaryChannelBssE);
-      wifiApDeviceEPtr->GetPhy ()->SetCcaEdThreshold (ccaEdThresholdPrimaryBssE);
+  Ptr<NetDevice> staDevicePtr;
+  for (uint16_t i = 0; i < n; i++)
+    {
 
-      bss_i = 5;
-      start_i = nBss + (bss_i - 1) * n;
-      end_i = nBss + (bss_i) *n;
-      constantCcaEdThresholdSecondaryBss = constantCcaEdThresholdSecondaryBssE;
-      stmp << "/NodeList/" << bss_i - 1 << "/DeviceList/*/Phy/ChannelBondingManager/"
-                                           "$ns3::ConstantThresholdChannelBondingManager/"
-                                           "CcaEdThresholdSecondary";
-      Config::Set (stmp.str (), DoubleValue (constantCcaEdThresholdSecondaryBss));
-      for (uint16_t i = start_i; i < end_i; i++)
-        {
-          std::stringstream stmp1;
-          stmp1 << "/NodeList/" << i << "/DeviceList/*/Phy/ChannelBondingManager/"
-                                        "$ns3::ConstantThresholdChannelBondingManager/"
-                                        "CcaEdThresholdSecondary";
-          Config::Set (stmp1.str (), DoubleValue (constantCcaEdThresholdSecondaryBss));
-        }
+      staDevicePtr = staDevice.Get (i);
+      Ptr<WifiNetDevice> wifiStaDevicePtr = staDevicePtr->GetObject<WifiNetDevice> ();
+      wifiStaDevicePtr->GetPhy ()->SetChannelNumber (channelBss);
+      wifiStaDevicePtr->GetPhy ()->SetPrimaryChannelNumber (primaryChannelBss);
+      wifiStaDevicePtr->GetPhy ()->SetCcaEdThreshold (ccaEdThresholdPrimaryBss);
+    }
+
+  mac.SetType ("ns3::ApWifiMac", "Ssid", SsidValue (ssid), "EnableBeaconJitter",
+               BooleanValue (true));
+
+  if (mcs == "IdealWifi")
+    {
+      wifi.SetRemoteStationManager ("ns3::IdealWifiManager");
+    }
+
+ else if (mcs == "MaxMcs")
+    {
+      wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode",
+                                    StringValue ("VhtMcs0"), "ControlMode",
+                                    StringValue ("VhtMcs0"));
+    }
+else
+{
+      wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode",
+                                    StringValue (mcs), "ControlMode",
+                                    StringValue ("VhtMcs0"));
+}
+
+  apDevice = wifi.Install (phy, mac, wifiApNodes.Get (bss_i-1));
+
+  Ptr<NetDevice> apDevicePtr = apDevice.Get (0);
+  Ptr<WifiNetDevice> wifiApDevicePtr = apDevicePtr->GetObject<WifiNetDevice> ();
+  wifiApDevicePtr->GetPhy ()->SetChannelNumber (channelBss);
+  wifiApDevicePtr->GetPhy ()->SetPrimaryChannelNumber (primaryChannelBss);
+  wifiApDevicePtr->GetPhy ()->SetCcaEdThreshold (ccaEdThresholdPrimaryBss);
+
+  start_i = nBss + (bss_i - 1) * n;
+  end_i = nBss + (bss_i) *n;
+  stmp << "/NodeList/" << bss_i - 1 << "/DeviceList/*/Phy/ChannelBondingManager/"
+                                       "$ns3::ConstantThresholdChannelBondingManager/"
+                                       "CcaEdThresholdSecondary";
+  Config::Set (stmp.str (), DoubleValue (constantCcaEdThresholdSecondaryBss));
+  for (uint16_t i = start_i; i < end_i; i++)
+    {
+      std::stringstream stmp1;
+      stmp1 << "/NodeList/" << i << "/DeviceList/*/Phy/ChannelBondingManager/"
+                                    "$ns3::ConstantThresholdChannelBondingManager/"
+                                    "CcaEdThresholdSecondary";
+      Config::Set (stmp1.str (), DoubleValue (constantCcaEdThresholdSecondaryBss));
+    }
     }
   if (nBss > 5)
     {
       // network F
       ssid = Ssid ("network-F");
-      mac.SetType ("ns3::StaWifiMac", "MaxMissedBeacons", UintegerValue (maxMissedBeacons), "Ssid",
-                   SsidValue (ssid));
-      if (mcs == "MaxMcs")
+       bss_i = 6;
+mcs=mcs6;
+staDevice=staDeviceF;
+wifiStaNodes=wifiStaNodesF;
+primaryChannelBss=primaryChannelBssF;
+channelBss=channelBssF;
+ccaEdThresholdPrimaryBss=ccaEdThresholdPrimaryBssF;
+constantCcaEdThresholdSecondaryBss = constantCcaEdThresholdSecondaryBssF;
+
+
+  mac.SetType ("ns3::StaWifiMac", "MaxMissedBeacons", UintegerValue (maxMissedBeacons), "Ssid",
+               SsidValue (ssid));
+  if (mcs == "IdealWifi")
+    {
+      wifi.SetRemoteStationManager ("ns3::IdealWifiManager");
+          staDevice = wifi.Install (phy, mac, wifiStwifiStaNodesaNodesA);
+    }
+
+else if (mcs == "MaxMcs")
+    {
+
+      for (uint8_t i = 0; i < n; i++)
         {
+          ossMcs.str (std::to_string (maxMcsNode[i + nBss]));
+          dataRate = "VhtMcs" + ossMcs.str ();
 
-          for (uint8_t i = 0; i < n; i++)
-            {
-              ossMcs.str (std::to_string (maxMcsNode[i + nBss + n * bss_i]));
-              dataRate = "VhtMcs" + ossMcs.str ();
-
-              wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode",
-                                            StringValue (dataRate), "ControlMode",
-                                            StringValue ("VhtMcs0"));
-              staDeviceF.Add (wifi.Install (phy, mac, wifiStaNodesF.Get (i)));
-            }
-        }
-      else
-        {
-          staDeviceF = wifi.Install (phy, mac, wifiStaNodesF);
-        }
-
-      Ptr<NetDevice> staDeviceFPtr;
-      for (uint16_t i = 0; i < n; i++)
-        {
-
-          staDeviceFPtr = staDeviceF.Get (i);
-          Ptr<WifiNetDevice> wifiStaDeviceFPtr = staDeviceFPtr->GetObject<WifiNetDevice> ();
-          wifiStaDeviceFPtr->GetPhy ()->SetChannelNumber (channelBssF);
-          wifiStaDeviceFPtr->GetPhy ()->SetPrimaryChannelNumber (primaryChannelBssF);
-          wifiStaDeviceFPtr->GetPhy ()->SetCcaEdThreshold (ccaEdThresholdPrimaryBssF);
-        }
-
-      mac.SetType ("ns3::ApWifiMac", "Ssid", SsidValue (ssid), "EnableBeaconJitter",
-                   BooleanValue (true));
-      if (mcs == "MaxMcs")
-        {
           wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode",
-                                        StringValue ("VhtMcs0"), "ControlMode",
+                                        StringValue (dataRate), "ControlMode",
                                         StringValue ("VhtMcs0"));
+          staDevice.Add (wifi.Install (phy, mac, wifiStaNodes.Get (i)));
         }
-      apDeviceF = wifi.Install (phy, mac, wifiApNodes.Get (5));
+    }
+  else
+    {
+     wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode", StringValue (mcs),
+                                    "ControlMode", StringValue ("VhtMcs0"));
+          staDevice = wifi.Install (phy, mac, wifiStaNodes);
+    }
 
-      Ptr<NetDevice> apDeviceFPtr = apDeviceF.Get (0);
-      Ptr<WifiNetDevice> wifiApDeviceFPtr = apDeviceFPtr->GetObject<WifiNetDevice> ();
-      wifiApDeviceFPtr->GetPhy ()->SetChannelNumber (channelBssF);
-      wifiApDeviceFPtr->GetPhy ()->SetPrimaryChannelNumber (primaryChannelBssF);
-      wifiApDeviceFPtr->GetPhy ()->SetCcaEdThreshold (ccaEdThresholdPrimaryBssF);
+  Ptr<NetDevice> staDevicePtr;
+  for (uint16_t i = 0; i < n; i++)
+    {
 
-      bss_i = 6;
-      start_i = nBss + (bss_i - 1) * n;
-      end_i = nBss + (bss_i) *n;
-      constantCcaEdThresholdSecondaryBss = constantCcaEdThresholdSecondaryBssF;
-      stmp << "/NodeList/" << bss_i - 1 << "/DeviceList/*/Phy/ChannelBondingManager/"
-                                           "$ns3::ConstantThresholdChannelBondingManager/"
-                                           "CcaEdThresholdSecondary";
-      Config::Set (stmp.str (), DoubleValue (constantCcaEdThresholdSecondaryBss));
-      for (uint16_t i = start_i; i < end_i; i++)
-        {
-          std::stringstream stmp1;
-          stmp1 << "/NodeList/" << i << "/DeviceList/*/Phy/ChannelBondingManager/"
-                                        "$ns3::ConstantThresholdChannelBondingManager/"
-                                        "CcaEdThresholdSecondary";
-          Config::Set (stmp1.str (), DoubleValue (constantCcaEdThresholdSecondaryBss));
-        }
+      staDevicePtr = staDevice.Get (i);
+      Ptr<WifiNetDevice> wifiStaDevicePtr = staDevicePtr->GetObject<WifiNetDevice> ();
+      wifiStaDevicePtr->GetPhy ()->SetChannelNumber (channelBss);
+      wifiStaDevicePtr->GetPhy ()->SetPrimaryChannelNumber (primaryChannelBss);
+      wifiStaDevicePtr->GetPhy ()->SetCcaEdThreshold (ccaEdThresholdPrimaryBss);
+    }
+
+  mac.SetType ("ns3::ApWifiMac", "Ssid", SsidValue (ssid), "EnableBeaconJitter",
+               BooleanValue (true));
+
+  if (mcs == "IdealWifi")
+    {
+      wifi.SetRemoteStationManager ("ns3::IdealWifiManager");
+    }
+
+ else if (mcs == "MaxMcs")
+    {
+      wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode",
+                                    StringValue ("VhtMcs0"), "ControlMode",
+                                    StringValue ("VhtMcs0"));
+    }
+else
+{
+      wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode",
+                                    StringValue (mcs), "ControlMode",
+                                    StringValue ("VhtMcs0"));
+}
+
+  apDevice = wifi.Install (phy, mac, wifiApNodes.Get (bss_i-1));
+
+  Ptr<NetDevice> apDevicePtr = apDevice.Get (0);
+  Ptr<WifiNetDevice> wifiApDevicePtr = apDevicePtr->GetObject<WifiNetDevice> ();
+  wifiApDevicePtr->GetPhy ()->SetChannelNumber (channelBss);
+  wifiApDevicePtr->GetPhy ()->SetPrimaryChannelNumber (primaryChannelBss);
+  wifiApDevicePtr->GetPhy ()->SetCcaEdThreshold (ccaEdThresholdPrimaryBss);
+
+  start_i = nBss + (bss_i - 1) * n;
+  end_i = nBss + (bss_i) *n;
+  stmp << "/NodeList/" << bss_i - 1 << "/DeviceList/*/Phy/ChannelBondingManager/"
+                                       "$ns3::ConstantThresholdChannelBondingManager/"
+                                       "CcaEdThresholdSecondary";
+  Config::Set (stmp.str (), DoubleValue (constantCcaEdThresholdSecondaryBss));
+  for (uint16_t i = start_i; i < end_i; i++)
+    {
+      std::stringstream stmp1;
+      stmp1 << "/NodeList/" << i << "/DeviceList/*/Phy/ChannelBondingManager/"
+                                    "$ns3::ConstantThresholdChannelBondingManager/"
+                                    "CcaEdThresholdSecondary";
+      Config::Set (stmp1.str (), DoubleValue (constantCcaEdThresholdSecondaryBss));
+    }
     }
   if (nBss > 6)
     {
       // network G
       ssid = Ssid ("network-G");
-      mac.SetType ("ns3::StaWifiMac", "MaxMissedBeacons", UintegerValue (maxMissedBeacons), "Ssid",
-                   SsidValue (ssid));
-      if (mcs == "MaxMcs")
+       bss_i = 7;
+mcs=mcs7;
+staDevice=staDeviceG;
+wifiStaNodes=wifiStaNodesG;
+primaryChannelBss=primaryChannelBssG;
+channelBss=channelBssG;
+ccaEdThresholdPrimaryBss=ccaEdThresholdPrimaryBssG;
+constantCcaEdThresholdSecondaryBss = constantCcaEdThresholdSecondaryBssG;
+
+
+  mac.SetType ("ns3::StaWifiMac", "MaxMissedBeacons", UintegerValue (maxMissedBeacons), "Ssid",
+               SsidValue (ssid));
+  if (mcs == "IdealWifi")
+    {
+      wifi.SetRemoteStationManager ("ns3::IdealWifiManager");
+          staDevice = wifi.Install (phy, mac, wifiStwifiStaNodesaNodesA);
+    }
+
+else if (mcs == "MaxMcs")
+    {
+
+      for (uint8_t i = 0; i < n; i++)
         {
+          ossMcs.str (std::to_string (maxMcsNode[i + nBss]));
+          dataRate = "VhtMcs" + ossMcs.str ();
 
-          for (uint8_t i = 0; i < n; i++)
-            {
-              ossMcs.str (std::to_string (maxMcsNode[i + nBss + n * bss_i]));
-              dataRate = "VhtMcs" + ossMcs.str ();
-
-              wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode",
-                                            StringValue (dataRate), "ControlMode",
-                                            StringValue ("VhtMcs0"));
-              staDeviceG.Add (wifi.Install (phy, mac, wifiStaNodesG.Get (i)));
-            }
-        }
-      else
-        {
-          staDeviceG = wifi.Install (phy, mac, wifiStaNodesG);
-        }
-
-      Ptr<NetDevice> staDeviceGPtr;
-      for (uint16_t i = 0; i < n; i++)
-        {
-
-          staDeviceGPtr = staDeviceG.Get (i);
-          Ptr<WifiNetDevice> wifiStaDeviceGPtr = staDeviceGPtr->GetObject<WifiNetDevice> ();
-          wifiStaDeviceGPtr->GetPhy ()->SetChannelNumber (channelBssG);
-          wifiStaDeviceGPtr->GetPhy ()->SetPrimaryChannelNumber (primaryChannelBssG);
-          wifiStaDeviceGPtr->GetPhy ()->SetCcaEdThreshold (ccaEdThresholdPrimaryBssG);
-        }
-
-      mac.SetType ("ns3::ApWifiMac", "Ssid", SsidValue (ssid), "EnableBeaconJitter",
-                   BooleanValue (true));
-      if (mcs == "MaxMcs")
-        {
           wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode",
-                                        StringValue ("VhtMcs0"), "ControlMode",
+                                        StringValue (dataRate), "ControlMode",
                                         StringValue ("VhtMcs0"));
+          staDevice.Add (wifi.Install (phy, mac, wifiStaNodes.Get (i)));
         }
-      apDeviceG = wifi.Install (phy, mac, wifiApNodes.Get (6));
+    }
+  else
+    {
+     wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode", StringValue (mcs),
+                                    "ControlMode", StringValue ("VhtMcs0"));
+          staDevice = wifi.Install (phy, mac, wifiStaNodes);
+    }
 
-      Ptr<NetDevice> apDeviceGPtr = apDeviceG.Get (0);
-      Ptr<WifiNetDevice> wifiApDeviceGPtr = apDeviceGPtr->GetObject<WifiNetDevice> ();
-      wifiApDeviceGPtr->GetPhy ()->SetChannelNumber (channelBssG);
-      wifiApDeviceGPtr->GetPhy ()->SetPrimaryChannelNumber (primaryChannelBssG);
-      wifiApDeviceGPtr->GetPhy ()->SetCcaEdThreshold (ccaEdThresholdPrimaryBssG);
+  Ptr<NetDevice> staDevicePtr;
+  for (uint16_t i = 0; i < n; i++)
+    {
 
-      bss_i = 7;
-      start_i = nBss + (bss_i - 1) * n;
-      end_i = nBss + (bss_i) *n;
-      constantCcaEdThresholdSecondaryBss = constantCcaEdThresholdSecondaryBssG;
-      stmp << "/NodeList/" << bss_i - 1 << "/DeviceList/*/Phy/ChannelBondingManager/"
-                                           "$ns3::ConstantThresholdChannelBondingManager/"
-                                           "CcaEdThresholdSecondary";
-      Config::Set (stmp.str (), DoubleValue (constantCcaEdThresholdSecondaryBss));
-      for (uint16_t i = start_i; i < end_i; i++)
-        {
-          std::stringstream stmp1;
-          stmp1 << "/NodeList/" << i << "/DeviceList/*/Phy/ChannelBondingManager/"
-                                        "$ns3::ConstantThresholdChannelBondingManager/"
-                                        "CcaEdThresholdSecondary";
-          Config::Set (stmp1.str (), DoubleValue (constantCcaEdThresholdSecondaryBss));
-        }
+      staDevicePtr = staDevice.Get (i);
+      Ptr<WifiNetDevice> wifiStaDevicePtr = staDevicePtr->GetObject<WifiNetDevice> ();
+      wifiStaDevicePtr->GetPhy ()->SetChannelNumber (channelBss);
+      wifiStaDevicePtr->GetPhy ()->SetPrimaryChannelNumber (primaryChannelBss);
+      wifiStaDevicePtr->GetPhy ()->SetCcaEdThreshold (ccaEdThresholdPrimaryBss);
+    }
+
+  mac.SetType ("ns3::ApWifiMac", "Ssid", SsidValue (ssid), "EnableBeaconJitter",
+               BooleanValue (true));
+
+  if (mcs == "IdealWifi")
+    {
+      wifi.SetRemoteStationManager ("ns3::IdealWifiManager");
+    }
+
+ else if (mcs == "MaxMcs")
+    {
+      wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode",
+                                    StringValue ("VhtMcs0"), "ControlMode",
+                                    StringValue ("VhtMcs0"));
+    }
+else
+{
+      wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode",
+                                    StringValue (mcs), "ControlMode",
+                                    StringValue ("VhtMcs0"));
+}
+
+  apDevice = wifi.Install (phy, mac, wifiApNodes.Get (bss_i-1));
+
+  Ptr<NetDevice> apDevicePtr = apDevice.Get (0);
+  Ptr<WifiNetDevice> wifiApDevicePtr = apDevicePtr->GetObject<WifiNetDevice> ();
+  wifiApDevicePtr->GetPhy ()->SetChannelNumber (channelBss);
+  wifiApDevicePtr->GetPhy ()->SetPrimaryChannelNumber (primaryChannelBss);
+  wifiApDevicePtr->GetPhy ()->SetCcaEdThreshold (ccaEdThresholdPrimaryBss);
+
+  start_i = nBss + (bss_i - 1) * n;
+  end_i = nBss + (bss_i) *n;
+  stmp << "/NodeList/" << bss_i - 1 << "/DeviceList/*/Phy/ChannelBondingManager/"
+                                       "$ns3::ConstantThresholdChannelBondingManager/"
+                                       "CcaEdThresholdSecondary";
+  Config::Set (stmp.str (), DoubleValue (constantCcaEdThresholdSecondaryBss));
+  for (uint16_t i = start_i; i < end_i; i++)
+    {
+      std::stringstream stmp1;
+      stmp1 << "/NodeList/" << i << "/DeviceList/*/Phy/ChannelBondingManager/"
+                                    "$ns3::ConstantThresholdChannelBondingManager/"
+                                    "CcaEdThresholdSecondary";
+      Config::Set (stmp1.str (), DoubleValue (constantCcaEdThresholdSecondaryBss));
+    }
     }
 
   // Internet stack
