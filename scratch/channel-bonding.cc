@@ -1657,10 +1657,8 @@ phy.EnablePcap ("apC_pcap", apDeviceC);
       rxThroughputPerNode[k] = static_cast<double> (bitsReceived) / 1e6 / simulationTime;
       std::cout << "Node " << k << ", pkts " << packetsReceived[k] << ", bytes " << bytesReceived[k]
                 << ", throughput [MMb/s] " << rxThroughputPerNode[k] << std::endl;
-      if (k < nBss)
-        {
           TputFile << rxThroughputPerNode[k] << std::endl;
-        }
+
     }
 
   TputFile << std::endl;
