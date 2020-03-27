@@ -1255,7 +1255,7 @@ RegularWifiMac::FinishConfigureStandard (WifiPhyStandard standard)
         NS_ASSERT (htConfiguration);
         htConfiguration->SetRifsSupported (m_rifsSupported);
         SetQosSupported (true);
-        cwmin = 15;
+        cwmin = 31;
         cwmax = 1023;
         break;
       }

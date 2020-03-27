@@ -3,7 +3,7 @@ source spatial-reuse-functions.sh
 cd ../examples
 export AUTO_DELETE_SPATIAL_REUSE_OUTPUT_FILES=1
 
-export enablePcap=0
+export enablePcap=1
 export enableAscii=0
 export rxSensitivity=-82
 export standard=11ac
@@ -17,7 +17,7 @@ RngRunpar=${i}
 npar=${j}
 Res=Sim0
 
-
+export enableFrameCapture=true
 export powerBackoff=0
 export RngRun=${RngRunpar}
 export obssPdAlgorithm=ConstantObssPdAlgorithm
@@ -26,7 +26,7 @@ export maxAmpduSize=2000
 export MCS=0
 export downlink=0
 export uplink=10
-export duration=5
+export duration=10
 export enableRts=0
 export txStartOffset=50
 export enableObssPd=1
@@ -39,7 +39,7 @@ export performTgaxTimingChecks=0
 export nodePositionsFile=NONE
 export bw=20
 export scenario=logdistance
-export nBss=1
+export nBss=2
 export payloadSizeUplink=1500
 export payloadSizeDownlink=1500
 export useIdealWifiManager=0
@@ -49,7 +49,7 @@ export powAp=20
 export txRange=102
 export ccaTrSta=-62
 export ccaTrAp=-62
-export d=0.01
+export d=5
 export sigma=3.5
 export bianchi=1
 export n=${npar}
