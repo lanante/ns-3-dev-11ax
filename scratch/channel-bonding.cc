@@ -34,6 +34,7 @@
 #include "ns3/udp-client-server-helper.h"
 #include "ns3/uinteger.h"
 #include "ns3/wifi-net-device.h"
+#include "ns3/random-variable-stream.h"
 
 // for tracking packets and bytes received. will be reallocated once we finalize
 // number of nodes
@@ -397,16 +398,18 @@ NodeContainer wifiStaNodes;
   mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
 
   // Set position for APs
-  double apPositionX[7] = {0,
-                           interBssDistance,
-                           interBssDistance / 2,
-                           -interBssDistance / 2,
-                           -interBssDistance,
-                           -interBssDistance / 2,
-                           interBssDistance / 2};
-  double apPositionY[7] = {0, sqrt (3) / 2 * interBssDistance,  sqrt (3) / 2 * interBssDistance,
-                           0, -sqrt (3) / 2 * interBssDistance, -sqrt (3) / 2 * interBssDistance};
-  for (uint8_t i = 0; i < nBss; i++)
+//  double apPositionX[7] = {0,
+//                           interBssDistance,
+//                           interBssDistance / 2,
+//                           -interBssDistance / 2,
+//                           -interBssDistance,
+//                           -interBssDistance / 2,
+//                           interBssDistance / 2};
+ // double apPositionY[7] = {0, sqrt (3) / 2 * interBssDistance,  sqrt (3) / 2 * interBssDistance,
+  //                         0, -sqrt (3) / 2 * interBssDistance, -sqrt (3) / 2 * interBssDistance};
+ double apPositionX[7] = {0,interBssDistance,interBssDistance*2,interBssDistance*2,interBssDistance,-interBssDistance};
+ double apPositionY[7] = {0,0,0,interBssDistance,interBssDistance,interBssDistance,interBssDistance};
+ for (uint8_t i = 0; i < nBss; i++)
     {
       positionAlloc->Add (Vector (apPositionX[i], apPositionY[i], 0.0));
       maxMcsNode[i] = 0;
@@ -597,6 +600,54 @@ NodeContainer wifiStaNodes;
                                     "ControlMode", StringValue ("VhtMcs0"));
     }
 */
+double min = 0.0;
+double max = 3.0;
+Ptr<UniformRandomVariable> chRand = CreateObject<UniformRandomVariable> ();
+chRand->SetAttribute ("Min", DoubleValue (min));
+chRand->SetAttribute ("Max", DoubleValue (max));
+
+
+/*
+Ptr<UniformRandomVariable> chn = CreateObject<UniformRandomVariable> ();
+if (primaryChannelBssA==4)
+{
+primaryChannelBssA=chRand->GetInteger ()*4+36;
+std::cout<<primaryChannelBssA<<std::endl;
+}
+*/
+if (primaryChannelBssB==4)
+{
+primaryChannelBssB=chRand->GetInteger ()*4+36;
+//std::cout<<primaryChannelBssB<<std::endl;
+}
+if (primaryChannelBssC==4)
+{
+primaryChannelBssC=chRand->GetInteger ()*4+36;
+//std::cout<<primaryChannelBssC<<std::endl;
+}
+if (primaryChannelBssD==4)
+{
+primaryChannelBssD=chRand->GetInteger ()*4+36;
+//std::cout<<primaryChannelBssD<<std::endl;
+}
+if (primaryChannelBssE==4)
+{
+primaryChannelBssE=chRand->GetInteger ()*4+36;
+//std::cout<<primaryChannelBssE<<std::endl;
+}
+if (primaryChannelBssF==4)
+{
+primaryChannelBssF=chRand->GetInteger ()*4+36;
+//std::cout<<primaryChannelBssF<<std::endl;
+}
+
+if (primaryChannelBssG==4)
+{
+primaryChannelBssG=chRand->GetInteger ()*4+36;
+//std::cout<<primaryChannelBssG<<std::endl;
+}
+
+
 
   wifi.SetChannelBondingManager ("ns3::" + channelBondingType + "ChannelBondingManager");
 
@@ -1624,7 +1675,7 @@ else
                    MakeCallback (&PacketRx));
 
   // phy.EnablePcap ("staA_pcap", staDeviceA);
-  phy.EnablePcap ("apA_pcap", apDeviceA);
+ // phy.EnablePcap ("apA_pcap", apDeviceA);
   /*
 phy.EnablePcap ("staB_pcap", staDeviceB);
 phy.EnablePcap ("apB_pcap", apDeviceB);

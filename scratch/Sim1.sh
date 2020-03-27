@@ -19,9 +19,9 @@ simulationTime=5
 ccaEdThresholdPrimary=-62
 constantCcaEdThresholdSecondaryBss=-1000
 channelBondingType=ConstantThreshold
-interBssDistance=5
-distance=10;
-n=20
+interBssDistance=10
+distance=8;
+n=10
 nBss=2
 RngRun=1
 mcs1=VhtMcs8
@@ -29,7 +29,7 @@ mcs2=VhtMcs0
 
 ../waf
 
-
+for mcs in VhtMcs0 VhtMcs4 VhtMcs9; do
 for constantCcaEdThresholdSecondaryBss in -87 -85 -83 -81 -79 -77 -75 -73 -71 -69 -67 -65 -63 -61 -59 -57;
 do
 for RngRun in 1 2 3 4 5 6 7 8 9 10;
@@ -41,10 +41,10 @@ sleep 0.1
 	done
 wait
 done
+done
 
-
-constantCcaEdThresholdSecondaryBss=-72
-for mcs1 in VhtMcs0 VhtMcs1 VhtMcs2 VhtMcs3 VhtMcs4 VhtMcs5 VhtMcs6 VhtMcs7 VhtMcs8;
+for constantCcaEdThresholdSecondaryBss in -82 -72 -62; do
+for mcs1 in VhtMcs0 VhtMcs1 VhtMcs2 VhtMcs3 VhtMcs4 VhtMcs5 VhtMcs6 VhtMcs7 VhtMcs8 VhtMcs9;
 do
 for RngRun in 1 2 3 4 5 6 7 8 9 10;
 do
@@ -55,6 +55,6 @@ sleep 0.1
 	done
 wait
 done
-
+done
 
 
