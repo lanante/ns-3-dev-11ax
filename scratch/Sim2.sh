@@ -1,10 +1,10 @@
 
 channelBssA=42
-channelBssB=42
-channelBssC=42
-channelBssD=42
-channelBssE=42
-channelBssF=42
+channelBssB=4
+channelBssC=4
+channelBssD=4
+channelBssE=4
+channelBssF=4
 
 primaryChannelBssA=36
 primaryChannelBssB=4
@@ -21,12 +21,12 @@ uplinkE=0
 uplinkF=0
 
 
-downlinkA=400
-downlinkB=400
-downlinkC=400
-downlinkD=400
-downlinkE=400
-downlinkF=400
+downlinkA=250
+downlinkB=70
+downlinkC=70
+downlinkD=70
+downlinkE=70
+downlinkF=70
 
 payloadSize=1472
 simulationTime=5
@@ -35,7 +35,7 @@ simulationTime=5
 ccaEdThresholdPrimary=-62
 constantCcaEdThresholdSecondaryBss=-1000
 channelBondingType=ConstantThreshold
-interBssDistance=10
+interBssDistance=20
 distance=10;
 n=10
 nBss=6
@@ -75,12 +75,12 @@ done
 
 
 
-uplinkA=400
-uplinkB=400
-uplinkC=400
-uplinkD=400
-uplinkE=400
-uplinkF=400
+uplinkA=250
+uplinkB=70
+uplinkC=70
+uplinkD=70
+uplinkE=70
+uplinkF=70
 
 
 downlinkA=0

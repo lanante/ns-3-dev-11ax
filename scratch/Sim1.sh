@@ -9,7 +9,7 @@ primaryChannelBssB=40
 uplinkA=0
 uplinkB=0
 
-downlinkA=100
+downlinkA=140
 downlinkB=10
 
 payloadSize=1472
@@ -19,8 +19,8 @@ simulationTime=5
 ccaEdThresholdPrimary=-62
 constantCcaEdThresholdSecondaryBss=-1000
 channelBondingType=ConstantThreshold
-interBssDistance=10
-distance=8;
+interBssDistance=20
+distance=10;
 n=10
 nBss=2
 RngRun=1
@@ -29,7 +29,7 @@ mcs2=VhtMcs0
 
 ../waf
 
-for mcs1 in VhtMcs0 VhtMcs4 VhtMcs9; do
+for mcs1 in VhtMcs0 VhtMcs4 VhtMcs8; do
 for constantCcaEdThresholdSecondaryBss in -87 -85 -83 -81 -79 -77 -75 -73 -71 -69 -67 -65 -63 -61 -59 -57;
 do
 for RngRun in 1 2 3 4 5 6 7 8 9 10;
@@ -44,7 +44,7 @@ done
 done
 
 for constantCcaEdThresholdSecondaryBss in -82 -72 -62; do
-for mcs1 in VhtMcs0 VhtMcs1 VhtMcs2 VhtMcs3 VhtMcs4 VhtMcs5 VhtMcs6 VhtMcs7 VhtMcs8 VhtMcs9;
+for mcs1 in VhtMcs0 VhtMcs1 VhtMcs2 VhtMcs3 VhtMcs4 VhtMcs5 VhtMcs6 VhtMcs7 VhtMcs8;
 do
 for RngRun in 1 2 3 4 5 6 7 8 9 10;
 do

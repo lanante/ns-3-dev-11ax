@@ -618,32 +618,38 @@ std::cout<<primaryChannelBssA<<std::endl;
 if (primaryChannelBssB==4)
 {
 primaryChannelBssB=chRand->GetInteger ()*4+36;
+channelBssB=primaryChannelBssB;
 //std::cout<<primaryChannelBssB<<std::endl;
 }
 if (primaryChannelBssC==4)
 {
 primaryChannelBssC=chRand->GetInteger ()*4+36;
+channelBssC=primaryChannelBssC;
 //std::cout<<primaryChannelBssC<<std::endl;
 }
 if (primaryChannelBssD==4)
 {
 primaryChannelBssD=chRand->GetInteger ()*4+36;
+channelBssD=primaryChannelBssD;
 //std::cout<<primaryChannelBssD<<std::endl;
 }
 if (primaryChannelBssE==4)
 {
 primaryChannelBssE=chRand->GetInteger ()*4+36;
+channelBssE=primaryChannelBssE;
 //std::cout<<primaryChannelBssE<<std::endl;
 }
 if (primaryChannelBssF==4)
 {
 primaryChannelBssF=chRand->GetInteger ()*4+36;
+channelBssF=primaryChannelBssF;
 //std::cout<<primaryChannelBssF<<std::endl;
 }
 
 if (primaryChannelBssG==4)
 {
 primaryChannelBssG=chRand->GetInteger ()*4+36;
+channelBssG=primaryChannelBssG;
 //std::cout<<primaryChannelBssG<<std::endl;
 }
 
