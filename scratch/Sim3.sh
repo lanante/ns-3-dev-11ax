@@ -51,7 +51,7 @@ mcs6=VhtMcs0
 ../waf
 
 for mcs1 in proposedMcs MaxMcs;do 
-for RngRun_j in 0 20 30 40; do
+for RngRun_j in 0 10 20 30 40 50 60 70 80 90; do
 for RngRun_i in 1 2 3 4 5 6 7 8 9 10; do
 RngRun=$((RngRun_j+RngRun_i))
 
@@ -98,7 +98,7 @@ mcs6=VhtMcs0
 constantCcaEdThresholdSecondaryBss=0
 
 for mcs1 in VhtMcs0 VhtMcs4 VhtMcs8;do 
-for RngRun_j in 0 20 30 40; do
+for RngRun_j in 0 10 20 30 40 50 60 70 80 90; do
 for RngRun_i in 1 2 3 4 5 6 7 8 9 10; do
 RngRun=$((RngRun_j+RngRun_i))
 
