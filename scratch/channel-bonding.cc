@@ -35,6 +35,7 @@
 #include "ns3/uinteger.h"
 #include "ns3/wifi-net-device.h"
 #include "ns3/random-variable-stream.h"
+#include "ns3/wifi-utils.h"
 
 // for tracking packets and bytes received. will be reallocated once we finalize
 // number of nodes
@@ -67,13 +68,16 @@ AddClient (ApplicationContainer &clientApps, Ipv4Address address, Ptr<Node> node
   clientApps.Add (client.Install (node));
 }
 
+
+
 uint16_t
-selectMCS (Vector v)
+selectMCS (Vector v, double InterferenceVal)
 {
   double reqSinrPerMcs[12] = {0.7, 3.7, 6.2, 9.3, 12.6, 16.8, 18.2, 19.4, 23.5, 30, 35, 40};
   uint8_t i = 0;
-  double SNR = Pref - expn * 10 / 2 * log10 (v.x * v.x + v.y * v.y + v.z * v.z) - Pn - 10;
-
+  double SNR = Pref - expn * 10 / 2 * log10 (v.x * v.x + v.y * v.y + v.z * v.z) - WToDbm(DbmToW(InterferenceVal)+DbmToW(Pn)) - 10;
+//std::cout<<WToDbm(DbmToW(InterferenceVal)+DbmToW(Pn)) <<std::endl;
+//std::cout<<SNR<<std::endl;
   for (i = 0; i < 9; i++)
     {
       if (reqSinrPerMcs[i] > SNR)
@@ -85,7 +89,9 @@ selectMCS (Vector v)
     {
       i = i - 1;
     }
+//std::cout<<+i<<std::endl;
   return i;
+
 }
 
 void
@@ -415,6 +421,110 @@ NodeContainer wifiStaNodes;
       maxMcsNode[i] = 0;
     }
 
+
+double min = 0.0;
+double max = 3.0;
+Ptr<UniformRandomVariable> chRand = CreateObject<UniformRandomVariable> ();
+chRand->SetAttribute ("Min", DoubleValue (min));
+chRand->SetAttribute ("Max", DoubleValue (max));
+
+
+/*
+Ptr<UniformRandomVariable> chn = CreateObject<UniformRandomVariable> ();
+if (primaryChannelBssA==4)
+{
+primaryChannelBssA=chRand->GetInteger ()*4+36;
+std::cout<<primaryChannelBssA<<std::endl;
+}
+*/
+double distAP[nBss]={0,0,0,0,0,0};
+for (int i=0;i<nBss;i++)
+{
+distAP[i]=(apPositionX[i]-apPositionX[0])*(apPositionX[i]-apPositionX[0])+(apPositionY[i]-apPositionY[0])*(apPositionY[i]-apPositionY[0]);
+}
+
+
+
+double InterferenceVector[4]={0,0,0,0};
+if (primaryChannelBssB==4)
+{
+primaryChannelBssB=chRand->GetInteger ()*4+36;
+channelBssB=primaryChannelBssB;
+InterferenceVector[(channelBssB-36)/4]=InterferenceVector[(channelBssB-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP[1]));
+}
+if (primaryChannelBssC==4)
+{
+primaryChannelBssC=chRand->GetInteger ()*4+36;
+channelBssC=primaryChannelBssC;
+InterferenceVector[(channelBssC-36)/4]=InterferenceVector[(channelBssC-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP[2]));
+}
+if (primaryChannelBssD==4)
+{
+primaryChannelBssD=chRand->GetInteger ()*4+36;
+channelBssD=primaryChannelBssD;
+InterferenceVector[(channelBssD-36)/4]=InterferenceVector[(channelBssD-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP[3]));
+}
+if (primaryChannelBssE==4)
+{
+primaryChannelBssE=chRand->GetInteger ()*4+36;
+channelBssE=primaryChannelBssE;
+InterferenceVector[(channelBssE-36)/4]=InterferenceVector[(channelBssE-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP[4]));
+}
+if (primaryChannelBssF==4)
+{
+primaryChannelBssF=chRand->GetInteger ()*4+36;
+channelBssF=primaryChannelBssF;
+InterferenceVector[(channelBssF-36)/4]=InterferenceVector[(channelBssF-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP[5]));
+}
+
+if (primaryChannelBssG==4)
+{
+primaryChannelBssG=chRand->GetInteger ()*4+36;
+channelBssG=primaryChannelBssG;
+InterferenceVector[(channelBssG-36)/4]=InterferenceVector[(channelBssG-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP[6]));
+}
+
+double maxSecInterference=-200;
+int maxSecInterferenceIndex=1;
+double priInterference=WToDbm(InterferenceVector[0]);
+for (int i=1;i<4;i++){
+if (WToDbm(InterferenceVector[i])>=maxSecInterference)
+{
+maxSecInterference=WToDbm(InterferenceVector[i]);
+maxSecInterferenceIndex=i;
+}
+}
+
+double maxInterference=-200;
+int maxInterferenceIndex=0;
+for (int i=0;i<4;i++){
+if (WToDbm(InterferenceVector[i])>=maxInterference)
+{
+maxInterference=WToDbm(InterferenceVector[i]);
+maxInterferenceIndex=i;
+}
+}
+
+std::cout<<channelBssA<<" "<<channelBssB<<" "<<channelBssC<<" "<<channelBssD<<" "<<channelBssE<<" "<<channelBssF<<std::endl;
+std::cout<<primaryChannelBssA<<" "<<primaryChannelBssB<<" "<<primaryChannelBssC<<" "<<primaryChannelBssD<<" "<<primaryChannelBssE<<" "<<primaryChannelBssF<<std::endl;
+std::cout<<WToDbm(InterferenceVector[0])<<" "<<WToDbm(InterferenceVector[1])<<" "<<WToDbm(InterferenceVector[2])<<" "<<WToDbm(InterferenceVector[3])<<std::endl;
+std::cout<<maxSecInterference<<" "<<maxSecInterferenceIndex<<std::endl;
+std::cout<<maxInterference<<" "<<maxInterferenceIndex<<std::endl;
+std::cout<<priInterference<<" "<<"0"<<std::endl;
+
+double InterferenceVal1=WToDbm(0);
+double InterferenceVal2=WToDbm(0); 
+double InterferenceVal3=WToDbm(0); 
+double InterferenceVal4=WToDbm(0); 
+double InterferenceVal5=WToDbm(0);
+double InterferenceVal6=WToDbm(0);
+double InterferenceVal7=WToDbm(0);
+if (mcs1=="proposedMcs")
+{
+InterferenceVal1=maxInterference;
+}
+
+
   // Set position for STAs
   int64_t streamNumber = 100;
   Ptr<UniformDiscPositionAllocator> unitDiscPositionAllocator1 =
@@ -428,7 +538,7 @@ NodeContainer wifiStaNodes;
     {
       Vector v = unitDiscPositionAllocator1->GetNext ();
       positionAlloc->Add (v);
-      maxMcsNode[i + nBss] = selectMCS (Vector (v.x - apPositionX[0], v.y - apPositionY[0], v.z));
+      maxMcsNode[i + nBss] = selectMCS (Vector (v.x - apPositionX[0], v.y - apPositionY[0], v.z),InterferenceVal1);
     }
 
   if (nBss > 1)
@@ -445,7 +555,7 @@ NodeContainer wifiStaNodes;
           Vector v = unitDiscPositionAllocator2->GetNext ();
           positionAlloc->Add (v);
           maxMcsNode[i + nBss + n * 1] =
-              selectMCS (Vector (v.x - apPositionX[1], v.y - apPositionY[1], v.z));
+              selectMCS (Vector (v.x - apPositionX[1], v.y - apPositionY[1], v.z),InterferenceVal2);
         }
     }
 
@@ -463,7 +573,7 @@ NodeContainer wifiStaNodes;
           Vector v = unitDiscPositionAllocator3->GetNext ();
           positionAlloc->Add (v);
           maxMcsNode[i + nBss + n * 2] =
-              selectMCS (Vector (v.x - apPositionX[2], v.y - apPositionY[2], v.z));
+              selectMCS (Vector (v.x - apPositionX[2], v.y - apPositionY[2], v.z),InterferenceVal3);
         }
     }
 
@@ -481,7 +591,7 @@ NodeContainer wifiStaNodes;
           Vector v = unitDiscPositionAllocator4->GetNext ();
           positionAlloc->Add (v);
           maxMcsNode[i + nBss + n * 3] =
-              selectMCS (Vector (v.x - apPositionX[3], v.y - apPositionY[3], v.z));
+              selectMCS (Vector (v.x - apPositionX[3], v.y - apPositionY[3], v.z),InterferenceVal4);
         }
     }
   if (nBss > 4)
@@ -498,7 +608,7 @@ NodeContainer wifiStaNodes;
           Vector v = unitDiscPositionAllocator5->GetNext ();
           positionAlloc->Add (v);
           maxMcsNode[i + nBss + n * 4] =
-              selectMCS (Vector (v.x - apPositionX[4], v.y - apPositionY[4], v.z));
+              selectMCS (Vector (v.x - apPositionX[4], v.y - apPositionY[4], v.z),InterferenceVal5);
         }
     }
   if (nBss > 5)
@@ -515,7 +625,7 @@ NodeContainer wifiStaNodes;
           Vector v = unitDiscPositionAllocator6->GetNext ();
           positionAlloc->Add (v);
           maxMcsNode[i + nBss + n * 5] =
-              selectMCS (Vector (v.x - apPositionX[5], v.y - apPositionY[5], v.z));
+              selectMCS (Vector (v.x - apPositionX[5], v.y - apPositionY[5], v.z),InterferenceVal6);
         }
     }
   if (nBss > 6)
@@ -532,7 +642,7 @@ NodeContainer wifiStaNodes;
           Vector v = unitDiscPositionAllocator7->GetNext ();
           positionAlloc->Add (v);
           maxMcsNode[i + nBss + n * 6] =
-              selectMCS (Vector (v.x - apPositionX[6], v.y - apPositionY[6], v.z));
+              selectMCS (Vector (v.x - apPositionX[6], v.y - apPositionY[6], v.z),InterferenceVal7);
         }
     }
 
@@ -600,60 +710,13 @@ NodeContainer wifiStaNodes;
                                     "ControlMode", StringValue ("VhtMcs0"));
     }
 */
-double min = 0.0;
-double max = 3.0;
-Ptr<UniformRandomVariable> chRand = CreateObject<UniformRandomVariable> ();
-chRand->SetAttribute ("Min", DoubleValue (min));
-chRand->SetAttribute ("Max", DoubleValue (max));
 
+if (constantCcaEdThresholdSecondaryBssA==0)
+{
+std::cout<<"Changed CCAED threshold of A from "<<constantCcaEdThresholdSecondaryBssA<<" to "<<maxSecInterference-3<<std::endl;
+constantCcaEdThresholdSecondaryBssA=maxSecInterference-3;
 
-/*
-Ptr<UniformRandomVariable> chn = CreateObject<UniformRandomVariable> ();
-if (primaryChannelBssA==4)
-{
-primaryChannelBssA=chRand->GetInteger ()*4+36;
-std::cout<<primaryChannelBssA<<std::endl;
 }
-*/
-if (primaryChannelBssB==4)
-{
-primaryChannelBssB=chRand->GetInteger ()*4+36;
-channelBssB=primaryChannelBssB;
-//std::cout<<primaryChannelBssB<<std::endl;
-}
-if (primaryChannelBssC==4)
-{
-primaryChannelBssC=chRand->GetInteger ()*4+36;
-channelBssC=primaryChannelBssC;
-//std::cout<<primaryChannelBssC<<std::endl;
-}
-if (primaryChannelBssD==4)
-{
-primaryChannelBssD=chRand->GetInteger ()*4+36;
-channelBssD=primaryChannelBssD;
-//std::cout<<primaryChannelBssD<<std::endl;
-}
-if (primaryChannelBssE==4)
-{
-primaryChannelBssE=chRand->GetInteger ()*4+36;
-channelBssE=primaryChannelBssE;
-//std::cout<<primaryChannelBssE<<std::endl;
-}
-if (primaryChannelBssF==4)
-{
-primaryChannelBssF=chRand->GetInteger ()*4+36;
-channelBssF=primaryChannelBssF;
-//std::cout<<primaryChannelBssF<<std::endl;
-}
-
-if (primaryChannelBssG==4)
-{
-primaryChannelBssG=chRand->GetInteger ()*4+36;
-channelBssG=primaryChannelBssG;
-//std::cout<<primaryChannelBssG<<std::endl;
-}
-
-
 
   wifi.SetChannelBondingManager ("ns3::" + channelBondingType + "ChannelBondingManager");
 
@@ -691,7 +754,7 @@ constantCcaEdThresholdSecondaryBss = constantCcaEdThresholdSecondaryBssA;
           staDeviceA = wifi.Install (phy, mac, wifiStaNodes);
     }
 
-else if (mcs == "MaxMcs")
+else if (mcs == "MaxMcs"||mcs=="proposedMcs")
     {
 
       for (uint8_t i = 0; i < n; i++)
@@ -740,7 +803,7 @@ else if (mcs == "MaxMcs")
 else
 {
       wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode",
-                                    StringValue (mcs), "ControlMode",
+                                    StringValue ("VhtMcs0"), "ControlMode",
                                     StringValue ("VhtMcs0"));
 }
 
@@ -766,7 +829,7 @@ else
                                     "CcaEdThresholdSecondary";
       Config::Set (stmp1.str (), DoubleValue (constantCcaEdThresholdSecondaryBss));
     }
-
+std::cout<<"reached end "<<std::endl;
   if (nBss > 1)
     {
 

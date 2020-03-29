@@ -55,7 +55,7 @@ mcs6=VhtMcs0
 
 for mcs1 in VhtMcs0 VhtMcs4 VhtMcs8; do
 for constantCcaEdThresholdSecondaryBss in -82 -72 -62; do
-for RngRun in 1 2 3 4 5 6 7 8 9 10; do
+for RngRun in 11 12 13 14; do
 Test=${nBss}_${n}_${interBssDistance}_${channelBondingType}_${constantCcaEdThresholdSecondaryBss}_${mcs1}_${RngRun}
 ../waf --run "channel-bonding --Test=$Test 
 --channelBondingType=$channelBondingType  --n=$n --interBssDistance=$interBssDistance --distance=$distance 
@@ -96,7 +96,7 @@ downlinkF=0
 
 mcs1=MaxMcs
 constantCcaEdThresholdSecondaryBss=-72
-for RngRun in 1 2 3 4 5 6 7 8 9 10; do
+for RngRun in 11 12 13 14; do
 Test=${nBss}_${n}_${interBssDistance}_${channelBondingType}_${constantCcaEdThresholdSecondaryBss}_${mcs1}_${RngRun}
 ../waf --run "channel-bonding --Test=$Test 
 --channelBondingType=$channelBondingType  --n=$n --interBssDistance=$interBssDistance --distance=$distance 
