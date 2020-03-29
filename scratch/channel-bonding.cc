@@ -483,7 +483,7 @@ primaryChannelBssG=chRand->GetInteger ()*4+36;
 channelBssG=primaryChannelBssG;
 InterferenceVector[(channelBssG-36)/4]=InterferenceVector[(channelBssG-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP[6]));
 }
-
+/*
 double maxSecInterference=-200;
 int maxSecInterferenceIndex=1;
 double priInterference=WToDbm(InterferenceVector[0]);
@@ -494,23 +494,23 @@ maxSecInterference=WToDbm(InterferenceVector[i]);
 maxSecInterferenceIndex=i;
 }
 }
-
+*/
 double maxInterference=-200;
-int maxInterferenceIndex=0;
+//int maxInterferenceIndex=0;
 for (int i=0;i<4;i++){
 if (WToDbm(InterferenceVector[i])>=maxInterference)
 {
 maxInterference=WToDbm(InterferenceVector[i]);
-maxInterferenceIndex=i;
+//maxInterferenceIndex=i;
 }
 }
 
-std::cout<<channelBssA<<" "<<channelBssB<<" "<<channelBssC<<" "<<channelBssD<<" "<<channelBssE<<" "<<channelBssF<<std::endl;
-std::cout<<primaryChannelBssA<<" "<<primaryChannelBssB<<" "<<primaryChannelBssC<<" "<<primaryChannelBssD<<" "<<primaryChannelBssE<<" "<<primaryChannelBssF<<std::endl;
-std::cout<<WToDbm(InterferenceVector[0])<<" "<<WToDbm(InterferenceVector[1])<<" "<<WToDbm(InterferenceVector[2])<<" "<<WToDbm(InterferenceVector[3])<<std::endl;
-std::cout<<maxSecInterference<<" "<<maxSecInterferenceIndex<<std::endl;
-std::cout<<maxInterference<<" "<<maxInterferenceIndex<<std::endl;
-std::cout<<priInterference<<" "<<"0"<<std::endl;
+//std::cout<<channelBssA<<" "<<channelBssB<<" "<<channelBssC<<" "<<channelBssD<<" "<<channelBssE<<" "<<channelBssF<<std::endl;
+//std::cout<<primaryChannelBssA<<" "<<primaryChannelBssB<<" "<<primaryChannelBssC<<" "<<primaryChannelBssD<<" "<<primaryChannelBssE<<" "<<primaryChannelBssF<<std::endl;
+//std::cout<<WToDbm(InterferenceVector[0])<<" "<<WToDbm(InterferenceVector[1])<<" "<<WToDbm(InterferenceVector[2])<<" "<<WToDbm(InterferenceVector[3])<<std::endl;
+//std::cout<<maxSecInterference<<" "<<maxSecInterferenceIndex<<std::endl;
+//std::cout<<maxInterference<<" "<<maxInterferenceIndex<<std::endl;
+//std::cout<<priInterference<<" "<<"0"<<std::endl;
 
 double InterferenceVal1=WToDbm(0);
 double InterferenceVal2=WToDbm(0); 
@@ -713,8 +713,8 @@ InterferenceVal1=maxInterference;
 
 if (constantCcaEdThresholdSecondaryBssA==0)
 {
-std::cout<<"Changed CCAED threshold of A from "<<constantCcaEdThresholdSecondaryBssA<<" to "<<maxSecInterference-3<<std::endl;
-constantCcaEdThresholdSecondaryBssA=maxSecInterference-3;
+//std::cout<<"Changed CCAED threshold of A from "<<constantCcaEdThresholdSecondaryBssA<<" to "<<maxSecInterference-3<<std::endl;
+constantCcaEdThresholdSecondaryBssA=maxInterference-3;
 
 }
 
@@ -829,7 +829,7 @@ else
                                     "CcaEdThresholdSecondary";
       Config::Set (stmp1.str (), DoubleValue (constantCcaEdThresholdSecondaryBss));
     }
-std::cout<<"reached end "<<std::endl;
+//std::cout<<"reached end "<<std::endl;
   if (nBss > 1)
     {
 
