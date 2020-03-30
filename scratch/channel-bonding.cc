@@ -794,7 +794,7 @@ else if (mcs == "MaxMcs"||mcs=="proposedMcs")
       wifi.SetRemoteStationManager ("ns3::IdealWifiManager");
     }
 
- else if (mcs == "MaxMcs")
+else if (mcs == "MaxMcs"||mcs=="proposedMcs")
     {
       wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode",
                                     StringValue ("VhtMcs0"), "ControlMode",
@@ -803,7 +803,7 @@ else if (mcs == "MaxMcs"||mcs=="proposedMcs")
 else
 {
       wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode",
-                                    StringValue ("VhtMcs0"), "ControlMode",
+                                    StringValue (mcs), "ControlMode",
                                     StringValue ("VhtMcs0"));
 }
 
