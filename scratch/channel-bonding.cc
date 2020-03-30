@@ -437,7 +437,7 @@ primaryChannelBssA=chRand->GetInteger ()*4+36;
 std::cout<<primaryChannelBssA<<std::endl;
 }
 */
-double distAP[nBss]={0,0,0,0,0,0};
+double distAP[nBss];
 for (int i=0;i<nBss;i++)
 {
 distAP[i]=(apPositionX[i]-apPositionX[0])*(apPositionX[i]-apPositionX[0])+(apPositionY[i]-apPositionY[0])*(apPositionY[i]-apPositionY[0]);
