@@ -29,8 +29,8 @@ mcs2=VhtMcs0
 
 ../waf
 
-for mcs1 in VhtMcs0 VhtMcs4 VhtMcs8; do
-for constantCcaEdThresholdSecondaryBss in -87 -85 -83 -81 -79 -77 -75 -73 -71 -69 -67 -65 -63 -61 -59 -57;
+for mcs1 in VhtMcs0 VhtMcs4 VhtMcs8 ; do
+for constantCcaEdThresholdSecondaryBss in -87 -85 -83 -81 -79 -77 -75 -73 -71 -69 -67 -65 -63 -61 -59 -57 ;
 do
 for RngRun_j in 0 10 20 30 40 50 60 70 80 90; do
 for RngRun_i in 1 2 3 4 5 6 7 8 9 10; do
@@ -45,8 +45,9 @@ done
 done
 done
 
-for constantCcaEdThresholdSecondaryBss in -82 -72 -62; do
-for mcs1 in VhtMcs0 VhtMcs1 VhtMcs2 VhtMcs3 VhtMcs4 VhtMcs5 VhtMcs6 VhtMcs7 VhtMcs8;
+
+for mcs1 in VhtMcs0 VhtMcs1 VhtMcs2 VhtMcs3 VhtMcs4 VhtMcs5 VhtMcs6 VhtMcs7 VhtMcs8 ; do
+for constantCcaEdThresholdSecondaryBss in -82 -72 -62 ;
 do
 for RngRun_j in 0 10 20 30 40 50 60 70 80 90; do
 for RngRun_i in 1 2 3 4 5 6 7 8 9 10; do
@@ -60,4 +61,5 @@ wait
 done
 done
 done
+
 
