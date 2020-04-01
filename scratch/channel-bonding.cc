@@ -931,6 +931,36 @@ if (constantCcaEdThresholdSecondaryBssA==0)
 std::cout<<"Changed CCAED threshold of A from "<<constantCcaEdThresholdSecondaryBssA<<" to "<<maxSecInterference1-reqSinrPerMcs[(int)mcs1[6] - 48]+6<<std::endl;
 constantCcaEdThresholdSecondaryBssA=maxSecInterference1-reqSinrPerMcs[(int)mcs1[6] - 48]+6;
 }
+if (constantCcaEdThresholdSecondaryBssB==0)
+{
+std::cout<<"Changed CCAED threshold of B from "<<constantCcaEdThresholdSecondaryBssB<<" to "<<maxSecInterference1-reqSinrPerMcs[(int)mcs2[6] - 48]+6<<std::endl;
+constantCcaEdThresholdSecondaryBssB=maxSecInterference1-reqSinrPerMcs[(int)mcs2[6] - 48]+6;
+}
+if (constantCcaEdThresholdSecondaryBssC==0)
+{
+std::cout<<"Changed CCAED threshold of C from "<<constantCcaEdThresholdSecondaryBssA<<" to "<<maxSecInterference1-reqSinrPerMcs[(int)mcs3[6] - 48]+6<<std::endl;
+constantCcaEdThresholdSecondaryBssC=maxSecInterference1-reqSinrPerMcs[(int)mcs3[6] - 48]+6;
+}
+if (constantCcaEdThresholdSecondaryBssD==0)
+{
+std::cout<<"Changed CCAED threshold of D from "<<constantCcaEdThresholdSecondaryBssA<<" to "<<maxSecInterference1-reqSinrPerMcs[(int)mcs4[6] - 48]+6<<std::endl;
+constantCcaEdThresholdSecondaryBssD=maxSecInterference1-reqSinrPerMcs[(int)mcs4[6] - 48]+6;
+}
+if (constantCcaEdThresholdSecondaryBssE==0)
+{
+std::cout<<"Changed CCAED threshold of E from "<<constantCcaEdThresholdSecondaryBssA<<" to "<<maxSecInterference1-reqSinrPerMcs[(int)mcs5[6] - 48]+6<<std::endl;
+constantCcaEdThresholdSecondaryBssE=maxSecInterference1-reqSinrPerMcs[(int)mcs5[6] - 48]+6;
+}
+if (constantCcaEdThresholdSecondaryBssF==0)
+{
+std::cout<<"Changed CCAED threshold of F from "<<constantCcaEdThresholdSecondaryBssA<<" to "<<maxSecInterference1-reqSinrPerMcs[(int)mcs6[6] - 48]+6<<std::endl;
+constantCcaEdThresholdSecondaryBssF=maxSecInterference1-reqSinrPerMcs[(int)mcs6[6] - 48]+6;
+}
+if (constantCcaEdThresholdSecondaryBssG==0)
+{
+std::cout<<"Changed CCAED threshold of G from "<<constantCcaEdThresholdSecondaryBssA<<" to "<<maxSecInterference1-reqSinrPerMcs[(int)mcs7[6] - 48]+6<<std::endl;
+constantCcaEdThresholdSecondaryBssG=maxSecInterference1-reqSinrPerMcs[(int)mcs7[6] - 48]+6;
+}
 
   wifi.SetChannelBondingManager ("ns3::" + channelBondingType + "ChannelBondingManager");
 
@@ -1043,7 +1073,7 @@ else
                                     "CcaEdThresholdSecondary";
       Config::Set (stmp1.str (), DoubleValue (constantCcaEdThresholdSecondaryBss));
     }
-//std::cout<<"reached end "<<std::endl;
+//std::cout<<"reached end1 "<<std::endl;
   if (nBss > 1)
     {
 
@@ -1058,7 +1088,8 @@ channelBss=channelBssB;
 ccaEdThresholdPrimaryBss=ccaEdThresholdPrimaryBssB;
 constantCcaEdThresholdSecondaryBss = constantCcaEdThresholdSecondaryBssB;
 
-
+//std::cout<<"reached end2a "<<std::endl;
+//std::cout<<mcs<<std::endl;
   mac.SetType ("ns3::StaWifiMac", "MaxMissedBeacons", UintegerValue (maxMissedBeacons), "Ssid",
                SsidValue (ssid));
   if (mcs == "IdealWifi")
@@ -1078,7 +1109,7 @@ else if (mcs == "MaxMcs"||mcs=="proposedMcs")
           wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode",
                                         StringValue (dataRate), "ControlMode",
                                         StringValue ("VhtMcs0"));
-          staDeviceA.Add (wifi.Install (phy, mac, wifiStaNodes.Get (i)));
+          staDeviceB.Add (wifi.Install (phy, mac, wifiStaNodes.Get (i)));
         }
     }
   else
@@ -1098,7 +1129,7 @@ else if (mcs == "MaxMcs"||mcs=="proposedMcs")
       wifiStaDevicePtr->GetPhy ()->SetPrimaryChannelNumber (primaryChannelBss);
       wifiStaDevicePtr->GetPhy ()->SetCcaEdThreshold (ccaEdThresholdPrimaryBss);
     }
-
+//std::cout<<"reached end2b "<<std::endl;
   mac.SetType ("ns3::ApWifiMac", "Ssid", SsidValue (ssid), "EnableBeaconJitter",
                BooleanValue (true));
 
@@ -1142,7 +1173,9 @@ else
                                     "CcaEdThresholdSecondary";
       Config::Set (stmp1.str (), DoubleValue (constantCcaEdThresholdSecondaryBss));
     }
+//std::cout<<"reached end2c "<<std::endl;
     }
+
   if (nBss > 2)
     {
       // network C
@@ -1175,7 +1208,7 @@ else if (mcs == "MaxMcs"||mcs=="proposedMcs")
           wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode",
                                         StringValue (dataRate), "ControlMode",
                                         StringValue ("VhtMcs0"));
-          staDeviceA.Add (wifi.Install (phy, mac, wifiStaNodes.Get (i)));
+          staDeviceC.Add (wifi.Install (phy, mac, wifiStaNodes.Get (i)));
         }
     }
   else
@@ -1272,7 +1305,7 @@ else if (mcs == "MaxMcs"||mcs=="proposedMcs")
           wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode",
                                         StringValue (dataRate), "ControlMode",
                                         StringValue ("VhtMcs0"));
-          staDeviceA.Add (wifi.Install (phy, mac, wifiStaNodes.Get (i)));
+          staDeviceD.Add (wifi.Install (phy, mac, wifiStaNodes.Get (i)));
         }
     }
   else
@@ -1368,7 +1401,7 @@ else if (mcs == "MaxMcs"||mcs=="proposedMcs")
           wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode",
                                         StringValue (dataRate), "ControlMode",
                                         StringValue ("VhtMcs0"));
-          staDeviceA.Add (wifi.Install (phy, mac, wifiStaNodes.Get (i)));
+          staDeviceE.Add (wifi.Install (phy, mac, wifiStaNodes.Get (i)));
         }
     }
   else
@@ -1465,7 +1498,7 @@ else if (mcs == "MaxMcs"||mcs=="proposedMcs")
           wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode",
                                         StringValue (dataRate), "ControlMode",
                                         StringValue ("VhtMcs0"));
-          staDeviceA.Add (wifi.Install (phy, mac, wifiStaNodes.Get (i)));
+          staDeviceF.Add (wifi.Install (phy, mac, wifiStaNodes.Get (i)));
         }
     }
   else
@@ -1562,7 +1595,7 @@ else if (mcs == "MaxMcs"||mcs=="proposedMcs")
           wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode",
                                         StringValue (dataRate), "ControlMode",
                                         StringValue ("VhtMcs0"));
-          staDeviceA.Add (wifi.Install (phy, mac, wifiStaNodes.Get (i)));
+          staDeviceG.Add (wifi.Install (phy, mac, wifiStaNodes.Get (i)));
         }
     }
   else
@@ -1627,7 +1660,7 @@ else
       Config::Set (stmp1.str (), DoubleValue (constantCcaEdThresholdSecondaryBss));
     }
     }
-
+//std::cout<<"reached end3"<<std::endl;
   // Internet stack
   InternetStackHelper stack;
   stack.Install (allNodes);
