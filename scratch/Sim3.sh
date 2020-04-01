@@ -1,10 +1,10 @@
 
 channelBssA=42
-channelBssB=4
-channelBssC=4
-channelBssD=4
-channelBssE=4
-channelBssF=4
+channelBssB=1
+channelBssC=1
+channelBssD=1
+channelBssE=1
+channelBssF=1
 
 primaryChannelBssA=36
 primaryChannelBssB=4

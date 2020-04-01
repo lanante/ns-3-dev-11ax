@@ -437,79 +437,271 @@ primaryChannelBssA=chRand->GetInteger ()*4+36;
 std::cout<<primaryChannelBssA<<std::endl;
 }
 */
-double distAP[nBss];
+double distAP1[nBss],distAP2[nBss],distAP3[nBss],distAP4[nBss],distAP5[nBss],distAP6[nBss],distAP7[nBss];
 for (int i=0;i<nBss;i++)
 {
-distAP[i]=(apPositionX[i]-apPositionX[0])*(apPositionX[i]-apPositionX[0])+(apPositionY[i]-apPositionY[0])*(apPositionY[i]-apPositionY[0]);
+distAP1[i]=(apPositionX[i]-apPositionX[0])*(apPositionX[i]-apPositionX[0])+(apPositionY[i]-apPositionY[0])*(apPositionY[i]-apPositionY[0]);
+distAP2[i]=(apPositionX[i]-apPositionX[1])*(apPositionX[i]-apPositionX[1])+(apPositionY[i]-apPositionY[1])*(apPositionY[i]-apPositionY[1]);
+distAP3[i]=(apPositionX[i]-apPositionX[2])*(apPositionX[i]-apPositionX[2])+(apPositionY[i]-apPositionY[2])*(apPositionY[i]-apPositionY[2]);
+distAP4[i]=(apPositionX[i]-apPositionX[3])*(apPositionX[i]-apPositionX[3])+(apPositionY[i]-apPositionY[3])*(apPositionY[i]-apPositionY[3]);
+distAP5[i]=(apPositionX[i]-apPositionX[4])*(apPositionX[i]-apPositionX[4])+(apPositionY[i]-apPositionY[4])*(apPositionY[i]-apPositionY[4]);
+distAP6[i]=(apPositionX[i]-apPositionX[5])*(apPositionX[i]-apPositionX[5])+(apPositionY[i]-apPositionY[5])*(apPositionY[i]-apPositionY[5]);
+distAP7[i]=(apPositionX[i]-apPositionX[6])*(apPositionX[i]-apPositionX[6])+(apPositionY[i]-apPositionY[6])*(apPositionY[i]-apPositionY[6]);
 }
 
 
 
-double InterferenceVector[4]={0,0,0,0};
-if (primaryChannelBssB==4)
+double InterferenceVector1[4]={0,0,0,0};
+double InterferenceVector2[4]={0,0,0,0};
+double InterferenceVector3[4]={0,0,0,0};
+double InterferenceVector4[4]={0,0,0,0};
+double InterferenceVector5[4]={0,0,0,0};
+double InterferenceVector6[4]={0,0,0,0};
+double InterferenceVector7[4]={0,0,0,0};
+int priChannelX, ChannelX;
+int ind;
+priChannelX=primaryChannelBssA;
+ChannelX=channelBssA;
+if (priChannelX==4)
 {
-primaryChannelBssB=chRand->GetInteger ()*4+36;
-channelBssB=primaryChannelBssB;
-InterferenceVector[(channelBssB-36)/4]=InterferenceVector[(channelBssB-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP[1]));
+priChannelX=chRand->GetInteger ()*4+36;
+if (ChannelX==1)
+{ChannelX=priChannelX;}
 }
-if (primaryChannelBssC==4)
+primaryChannelBssA=priChannelX;
+channelBssA=ChannelX;
+ind=1;
+
+InterferenceVector1[(ChannelX-36)/4]=InterferenceVector1[(ChannelX-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP1[ind]));
+InterferenceVector2[(ChannelX-36)/4]=InterferenceVector2[(ChannelX-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP2[ind]));
+InterferenceVector3[(ChannelX-36)/4]=InterferenceVector3[(ChannelX-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP3[ind]));
+InterferenceVector4[(ChannelX-36)/4]=InterferenceVector4[(ChannelX-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP4[ind]));
+InterferenceVector5[(ChannelX-36)/4]=InterferenceVector5[(ChannelX-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP5[ind]));
+InterferenceVector6[(ChannelX-36)/4]=InterferenceVector6[(ChannelX-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP6[ind]));
+InterferenceVector7[(ChannelX-36)/4]=InterferenceVector7[(ChannelX-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP7[ind]));
+
+if (nBss>1){
+priChannelX=primaryChannelBssB;
+ChannelX=channelBssB;
+if (priChannelX==4)
 {
-primaryChannelBssC=chRand->GetInteger ()*4+36;
-channelBssC=primaryChannelBssC;
-InterferenceVector[(channelBssC-36)/4]=InterferenceVector[(channelBssC-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP[2]));
+priChannelX=chRand->GetInteger ()*4+36;
+if (ChannelX==1)
+{ChannelX=priChannelX;}
 }
-if (primaryChannelBssD==4)
-{
-primaryChannelBssD=chRand->GetInteger ()*4+36;
-channelBssD=primaryChannelBssD;
-InterferenceVector[(channelBssD-36)/4]=InterferenceVector[(channelBssD-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP[3]));
-}
-if (primaryChannelBssE==4)
-{
-primaryChannelBssE=chRand->GetInteger ()*4+36;
-channelBssE=primaryChannelBssE;
-InterferenceVector[(channelBssE-36)/4]=InterferenceVector[(channelBssE-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP[4]));
-}
-if (primaryChannelBssF==4)
-{
-primaryChannelBssF=chRand->GetInteger ()*4+36;
-channelBssF=primaryChannelBssF;
-InterferenceVector[(channelBssF-36)/4]=InterferenceVector[(channelBssF-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP[5]));
+primaryChannelBssB=priChannelX;
+channelBssB=ChannelX;
+ind=1;
+
+InterferenceVector1[(ChannelX-36)/4]=InterferenceVector1[(ChannelX-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP1[ind]));
+InterferenceVector2[(ChannelX-36)/4]=InterferenceVector2[(ChannelX-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP2[ind]));
+InterferenceVector3[(ChannelX-36)/4]=InterferenceVector3[(ChannelX-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP3[ind]));
+InterferenceVector4[(ChannelX-36)/4]=InterferenceVector4[(ChannelX-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP4[ind]));
+InterferenceVector5[(ChannelX-36)/4]=InterferenceVector5[(ChannelX-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP5[ind]));
+InterferenceVector6[(ChannelX-36)/4]=InterferenceVector6[(ChannelX-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP6[ind]));
+InterferenceVector7[(ChannelX-36)/4]=InterferenceVector7[(ChannelX-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP7[ind]));
 }
 
-if (primaryChannelBssG==4)
+if (nBss>2){
+priChannelX=primaryChannelBssC;
+ChannelX=channelBssC;
+if (priChannelX==4)
 {
-primaryChannelBssG=chRand->GetInteger ()*4+36;
-channelBssG=primaryChannelBssG;
-InterferenceVector[(channelBssG-36)/4]=InterferenceVector[(channelBssG-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP[6]));
+priChannelX=chRand->GetInteger ()*4+36;
+if (ChannelX==1)
+{ChannelX=priChannelX;}
+}
+primaryChannelBssC=priChannelX;
+channelBssC=ChannelX;
+ind=2;
+
+InterferenceVector1[(ChannelX-36)/4]=InterferenceVector1[(ChannelX-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP1[ind]));
+InterferenceVector2[(ChannelX-36)/4]=InterferenceVector2[(ChannelX-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP2[ind]));
+InterferenceVector3[(ChannelX-36)/4]=InterferenceVector3[(ChannelX-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP3[ind]));
+InterferenceVector4[(ChannelX-36)/4]=InterferenceVector4[(ChannelX-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP4[ind]));
+InterferenceVector5[(ChannelX-36)/4]=InterferenceVector5[(ChannelX-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP5[ind]));
+InterferenceVector6[(ChannelX-36)/4]=InterferenceVector6[(ChannelX-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP6[ind]));
+InterferenceVector7[(ChannelX-36)/4]=InterferenceVector7[(ChannelX-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP7[ind]));
 }
 
-double maxSecInterference=-200;
-//int maxSecInterferenceIndex=1;
-//double priInterference=WToDbm(InterferenceVector[0]);
+if (nBss>3){
+priChannelX=primaryChannelBssD;
+ChannelX=channelBssD;
+if (priChannelX==4)
+{
+priChannelX=chRand->GetInteger ()*4+36;
+if (ChannelX==1)
+{ChannelX=priChannelX;}
+}
+primaryChannelBssD=priChannelX;
+channelBssD=ChannelX;
+ind=3;
+
+InterferenceVector1[(ChannelX-36)/4]=InterferenceVector1[(ChannelX-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP1[ind]));
+InterferenceVector2[(ChannelX-36)/4]=InterferenceVector2[(ChannelX-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP2[ind]));
+InterferenceVector3[(ChannelX-36)/4]=InterferenceVector3[(ChannelX-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP3[ind]));
+InterferenceVector4[(ChannelX-36)/4]=InterferenceVector4[(ChannelX-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP4[ind]));
+InterferenceVector5[(ChannelX-36)/4]=InterferenceVector5[(ChannelX-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP5[ind]));
+InterferenceVector6[(ChannelX-36)/4]=InterferenceVector6[(ChannelX-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP6[ind]));
+InterferenceVector7[(ChannelX-36)/4]=InterferenceVector7[(ChannelX-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP7[ind]));
+}
+
+if (nBss>4){
+priChannelX=primaryChannelBssE;
+ChannelX=channelBssE;
+if (priChannelX==4)
+{
+priChannelX=chRand->GetInteger ()*4+36;
+if (ChannelX==1)
+{ChannelX=priChannelX;}
+}
+primaryChannelBssE=priChannelX;
+channelBssE=ChannelX;
+ind=4;
+
+InterferenceVector1[(ChannelX-36)/4]=InterferenceVector1[(ChannelX-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP1[ind]));
+InterferenceVector2[(ChannelX-36)/4]=InterferenceVector2[(ChannelX-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP2[ind]));
+InterferenceVector3[(ChannelX-36)/4]=InterferenceVector3[(ChannelX-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP3[ind]));
+InterferenceVector4[(ChannelX-36)/4]=InterferenceVector4[(ChannelX-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP4[ind]));
+InterferenceVector5[(ChannelX-36)/4]=InterferenceVector5[(ChannelX-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP5[ind]));
+InterferenceVector6[(ChannelX-36)/4]=InterferenceVector6[(ChannelX-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP6[ind]));
+InterferenceVector7[(ChannelX-36)/4]=InterferenceVector7[(ChannelX-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP7[ind]));
+}
+
+if (nBss>5){
+priChannelX=primaryChannelBssF;
+ChannelX=channelBssF;
+if (priChannelX==4)
+{
+priChannelX=chRand->GetInteger ()*4+36;
+if (ChannelX==1)
+{ChannelX=priChannelX;}
+}
+primaryChannelBssF=priChannelX;
+channelBssF=ChannelX;
+ind=5;
+
+InterferenceVector1[(ChannelX-36)/4]=InterferenceVector1[(ChannelX-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP1[ind]));
+InterferenceVector2[(ChannelX-36)/4]=InterferenceVector2[(ChannelX-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP2[ind]));
+InterferenceVector3[(ChannelX-36)/4]=InterferenceVector3[(ChannelX-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP3[ind]));
+InterferenceVector4[(ChannelX-36)/4]=InterferenceVector4[(ChannelX-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP4[ind]));
+InterferenceVector5[(ChannelX-36)/4]=InterferenceVector5[(ChannelX-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP5[ind]));
+InterferenceVector6[(ChannelX-36)/4]=InterferenceVector6[(ChannelX-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP6[ind]));
+InterferenceVector7[(ChannelX-36)/4]=InterferenceVector7[(ChannelX-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP7[ind]));
+}
+
+
+if (nBss>1){
+priChannelX=primaryChannelBssG;
+ChannelX=channelBssG;
+if (priChannelX==4)
+{
+priChannelX=chRand->GetInteger ()*4+36;
+if (ChannelX==1)
+{ChannelX=priChannelX;}
+}
+primaryChannelBssG=priChannelX;
+channelBssG=ChannelX;
+ind=6;
+
+InterferenceVector1[(ChannelX-36)/4]=InterferenceVector1[(ChannelX-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP1[ind]));
+InterferenceVector2[(ChannelX-36)/4]=InterferenceVector2[(ChannelX-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP2[ind]));
+InterferenceVector3[(ChannelX-36)/4]=InterferenceVector3[(ChannelX-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP3[ind]));
+InterferenceVector4[(ChannelX-36)/4]=InterferenceVector4[(ChannelX-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP4[ind]));
+InterferenceVector5[(ChannelX-36)/4]=InterferenceVector5[(ChannelX-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP5[ind]));
+InterferenceVector6[(ChannelX-36)/4]=InterferenceVector6[(ChannelX-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP6[ind]));
+InterferenceVector7[(ChannelX-36)/4]=InterferenceVector7[(ChannelX-36)/4]+DbmToW(Pref-expn * 10 / 2 * log10(distAP7[ind]));
+}
+
+
+
+double maxSecInterference1=-200;
+double maxSecInterference2=-200;
+double maxSecInterference3=-200;
+double maxSecInterference4=-200;
+double maxSecInterference5=-200;
+double maxSecInterference6=-200;
+double maxSecInterference7=-200;
+double maxSecInterferenceX;
+double *InterferenceVectorX;
+
+InterferenceVectorX=InterferenceVector1;
+maxSecInterferenceX=maxSecInterference1;
 for (int i=1;i<4;i++){
-if (WToDbm(InterferenceVector[i])>=maxSecInterference)
+if (WToDbm(InterferenceVectorX[i])>=maxSecInterferenceX)
 {
-maxSecInterference=WToDbm(InterferenceVector[i]);
-//maxSecInterferenceIndex=i;
+maxSecInterferenceX=WToDbm(InterferenceVectorX[i]);
 }
 }
+maxSecInterference1=maxSecInterferenceX;
 
-double maxInterference=-200;
-//int maxInterferenceIndex=0;
-for (int i=0;i<4;i++){
-if (WToDbm(InterferenceVector[i])>=maxInterference)
+InterferenceVectorX=InterferenceVector2;
+maxSecInterferenceX=maxSecInterference2;
+for (int i=1;i<4;i++){
+if (WToDbm(InterferenceVectorX[i])>=maxSecInterferenceX)
 {
-maxInterference=WToDbm(InterferenceVector[i]);
-//maxInterferenceIndex=i;
+maxSecInterferenceX=WToDbm(InterferenceVectorX[i]);
 }
 }
+maxSecInterference2=maxSecInterferenceX;
+
+InterferenceVectorX=InterferenceVector3;
+maxSecInterferenceX=maxSecInterference3;
+for (int i=1;i<4;i++){
+if (WToDbm(InterferenceVectorX[i])>=maxSecInterferenceX)
+{
+maxSecInterferenceX=WToDbm(InterferenceVectorX[i]);
+}
+}
+maxSecInterference3=maxSecInterferenceX;
+
+InterferenceVectorX=InterferenceVector4;
+maxSecInterferenceX=maxSecInterference4;
+for (int i=1;i<4;i++){
+if (WToDbm(InterferenceVectorX[i])>=maxSecInterferenceX)
+{
+maxSecInterferenceX=WToDbm(InterferenceVectorX[i]);
+}
+}
+maxSecInterference4=maxSecInterferenceX;
+
+InterferenceVectorX=InterferenceVector5;
+maxSecInterferenceX=maxSecInterference5;
+for (int i=1;i<4;i++){
+if (WToDbm(InterferenceVectorX[i])>=maxSecInterferenceX)
+{
+maxSecInterferenceX=WToDbm(InterferenceVectorX[i]);
+}
+}
+maxSecInterference5=maxSecInterferenceX;
+
+InterferenceVectorX=InterferenceVector6;
+maxSecInterferenceX=maxSecInterference6;
+for (int i=1;i<4;i++){
+if (WToDbm(InterferenceVectorX[i])>=maxSecInterferenceX)
+{
+maxSecInterferenceX=WToDbm(InterferenceVectorX[i]);
+}
+}
+maxSecInterference6=maxSecInterferenceX;
+
+InterferenceVectorX=InterferenceVector7;
+maxSecInterferenceX=maxSecInterference7;
+for (int i=1;i<4;i++){
+if (WToDbm(InterferenceVectorX[i])>=maxSecInterferenceX)
+{
+maxSecInterferenceX=WToDbm(InterferenceVectorX[i]);
+}
+}
+maxSecInterference7=maxSecInterferenceX;
+
+
 
 //std::cout<<channelBssA<<" "<<channelBssB<<" "<<channelBssC<<" "<<channelBssD<<" "<<channelBssE<<" "<<channelBssF<<std::endl;
 //std::cout<<primaryChannelBssA<<" "<<primaryChannelBssB<<" "<<primaryChannelBssC<<" "<<primaryChannelBssD<<" "<<primaryChannelBssE<<" "<<primaryChannelBssF<<std::endl;
 //std::cout<<WToDbm(InterferenceVector[0])<<" "<<WToDbm(InterferenceVector[1])<<" "<<WToDbm(InterferenceVector[2])<<" "<<WToDbm(InterferenceVector[3])<<std::endl;
-std::cout<<maxSecInterference<<" max secInterference"<<std::endl;
-std::cout<<maxInterference<<" max Interference"<<std::endl;
+//std::cout<<maxSecInterference1<<" max secInterference"<<std::endl;
+//std::cout<<maxInterference1<<" max Interference"<<std::endl;
 //std::cout<<priInterference<<" "<<"0"<<std::endl;
 
 double InterferenceVal1=WToDbm(0);
@@ -521,9 +713,32 @@ double InterferenceVal6=WToDbm(0);
 double InterferenceVal7=WToDbm(0);
 if (mcs1=="proposedMcs")
 {
-InterferenceVal1=maxInterference;
+InterferenceVal1=maxSecInterference1;
 }
-
+if (mcs2=="proposedMcs")
+{
+InterferenceVal2=maxSecInterference2;
+}
+if (mcs3=="proposedMcs")
+{
+InterferenceVal3=maxSecInterference3;
+}
+if (mcs4=="proposedMcs")
+{
+InterferenceVal4=maxSecInterference4;
+}
+if (mcs5=="proposedMcs")
+{
+InterferenceVal5=maxSecInterference5;
+}
+if (mcs6=="proposedMcs")
+{
+InterferenceVal6=maxSecInterference6;
+}
+if (mcs7=="proposedMcs")
+{
+InterferenceVal7=maxSecInterference7;
+}
 
   // Set position for STAs
   int64_t streamNumber = 100;
@@ -713,9 +928,8 @@ InterferenceVal1=maxInterference;
 
 if (constantCcaEdThresholdSecondaryBssA==0)
 {
-std::cout<<"Changed CCAED threshold of A from "<<constantCcaEdThresholdSecondaryBssA<<" to "<<maxSecInterference-reqSinrPerMcs[(int)mcs1[6] - 48]+6<<std::endl;
-constantCcaEdThresholdSecondaryBssA=maxSecInterference-reqSinrPerMcs[(int)mcs1[6] - 48]+6;
-
+std::cout<<"Changed CCAED threshold of A from "<<constantCcaEdThresholdSecondaryBssA<<" to "<<maxSecInterference1-reqSinrPerMcs[(int)mcs1[6] - 48]+6<<std::endl;
+constantCcaEdThresholdSecondaryBssA=maxSecInterference1-reqSinrPerMcs[(int)mcs1[6] - 48]+6;
 }
 
   wifi.SetChannelBondingManager ("ns3::" + channelBondingType + "ChannelBondingManager");
@@ -853,7 +1067,7 @@ constantCcaEdThresholdSecondaryBss = constantCcaEdThresholdSecondaryBssB;
           staDeviceB = wifi.Install (phy, mac, wifiStaNodes);
     }
 
-else if (mcs == "MaxMcs")
+else if (mcs == "MaxMcs"||mcs=="proposedMcs")
     {
 
       for (uint8_t i = 0; i < n; i++)
@@ -864,7 +1078,7 @@ else if (mcs == "MaxMcs")
           wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode",
                                         StringValue (dataRate), "ControlMode",
                                         StringValue ("VhtMcs0"));
-          staDeviceB.Add (wifi.Install (phy, mac, wifiStaNodes.Get (i)));
+          staDeviceA.Add (wifi.Install (phy, mac, wifiStaNodes.Get (i)));
         }
     }
   else
@@ -893,7 +1107,7 @@ else if (mcs == "MaxMcs")
       wifi.SetRemoteStationManager ("ns3::IdealWifiManager");
     }
 
- else if (mcs == "MaxMcs")
+ else if (mcs == "MaxMcs"||mcs=="proposedMcs")
     {
       wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode",
                                     StringValue ("VhtMcs0"), "ControlMode",
@@ -950,7 +1164,7 @@ constantCcaEdThresholdSecondaryBss = constantCcaEdThresholdSecondaryBssC;
           staDeviceC = wifi.Install (phy, mac, wifiStaNodes);
     }
 
-else if (mcs == "MaxMcs")
+else if (mcs == "MaxMcs"||mcs=="proposedMcs")
     {
 
       for (uint8_t i = 0; i < n; i++)
@@ -961,7 +1175,7 @@ else if (mcs == "MaxMcs")
           wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode",
                                         StringValue (dataRate), "ControlMode",
                                         StringValue ("VhtMcs0"));
-          staDeviceC.Add (wifi.Install (phy, mac, wifiStaNodes.Get (i)));
+          staDeviceA.Add (wifi.Install (phy, mac, wifiStaNodes.Get (i)));
         }
     }
   else
@@ -990,7 +1204,7 @@ else if (mcs == "MaxMcs")
       wifi.SetRemoteStationManager ("ns3::IdealWifiManager");
     }
 
- else if (mcs == "MaxMcs")
+ else if (mcs == "MaxMcs"||mcs=="proposedMcs")
     {
       wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode",
                                     StringValue ("VhtMcs0"), "ControlMode",
@@ -1047,7 +1261,7 @@ constantCcaEdThresholdSecondaryBss = constantCcaEdThresholdSecondaryBssD;
           staDeviceD = wifi.Install (phy, mac, wifiStaNodes);
     }
 
-else if (mcs == "MaxMcs")
+else if (mcs == "MaxMcs"||mcs=="proposedMcs")
     {
 
       for (uint8_t i = 0; i < n; i++)
@@ -1058,7 +1272,7 @@ else if (mcs == "MaxMcs")
           wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode",
                                         StringValue (dataRate), "ControlMode",
                                         StringValue ("VhtMcs0"));
-          staDeviceD.Add (wifi.Install (phy, mac, wifiStaNodes.Get (i)));
+          staDeviceA.Add (wifi.Install (phy, mac, wifiStaNodes.Get (i)));
         }
     }
   else
@@ -1087,7 +1301,7 @@ else if (mcs == "MaxMcs")
       wifi.SetRemoteStationManager ("ns3::IdealWifiManager");
     }
 
- else if (mcs == "MaxMcs")
+ else if (mcs == "MaxMcs"||mcs=="proposedMcs")
     {
       wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode",
                                     StringValue ("VhtMcs0"), "ControlMode",
@@ -1143,7 +1357,7 @@ constantCcaEdThresholdSecondaryBss = constantCcaEdThresholdSecondaryBssE;
           staDeviceE = wifi.Install (phy, mac, wifiStaNodes);
     }
 
-else if (mcs == "MaxMcs")
+else if (mcs == "MaxMcs"||mcs=="proposedMcs")
     {
 
       for (uint8_t i = 0; i < n; i++)
@@ -1154,7 +1368,7 @@ else if (mcs == "MaxMcs")
           wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode",
                                         StringValue (dataRate), "ControlMode",
                                         StringValue ("VhtMcs0"));
-          staDeviceE.Add (wifi.Install (phy, mac, wifiStaNodes.Get (i)));
+          staDeviceA.Add (wifi.Install (phy, mac, wifiStaNodes.Get (i)));
         }
     }
   else
@@ -1183,7 +1397,7 @@ else if (mcs == "MaxMcs")
       wifi.SetRemoteStationManager ("ns3::IdealWifiManager");
     }
 
- else if (mcs == "MaxMcs")
+ else if (mcs == "MaxMcs"||mcs=="proposedMcs")
     {
       wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode",
                                     StringValue ("VhtMcs0"), "ControlMode",
@@ -1240,7 +1454,7 @@ constantCcaEdThresholdSecondaryBss = constantCcaEdThresholdSecondaryBssF;
           staDeviceF = wifi.Install (phy, mac, wifiStaNodes);
     }
 
-else if (mcs == "MaxMcs")
+else if (mcs == "MaxMcs"||mcs=="proposedMcs")
     {
 
       for (uint8_t i = 0; i < n; i++)
@@ -1251,7 +1465,7 @@ else if (mcs == "MaxMcs")
           wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode",
                                         StringValue (dataRate), "ControlMode",
                                         StringValue ("VhtMcs0"));
-          staDeviceF.Add (wifi.Install (phy, mac, wifiStaNodes.Get (i)));
+          staDeviceA.Add (wifi.Install (phy, mac, wifiStaNodes.Get (i)));
         }
     }
   else
@@ -1280,7 +1494,7 @@ else if (mcs == "MaxMcs")
       wifi.SetRemoteStationManager ("ns3::IdealWifiManager");
     }
 
- else if (mcs == "MaxMcs")
+ else if (mcs == "MaxMcs"||mcs=="proposedMcs")
     {
       wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode",
                                     StringValue ("VhtMcs0"), "ControlMode",
@@ -1337,7 +1551,7 @@ constantCcaEdThresholdSecondaryBss = constantCcaEdThresholdSecondaryBssG;
           staDeviceG = wifi.Install (phy, mac, wifiStaNodes);
     }
 
-else if (mcs == "MaxMcs")
+else if (mcs == "MaxMcs"||mcs=="proposedMcs")
     {
 
       for (uint8_t i = 0; i < n; i++)
@@ -1348,7 +1562,7 @@ else if (mcs == "MaxMcs")
           wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode",
                                         StringValue (dataRate), "ControlMode",
                                         StringValue ("VhtMcs0"));
-          staDeviceG.Add (wifi.Install (phy, mac, wifiStaNodes.Get (i)));
+          staDeviceA.Add (wifi.Install (phy, mac, wifiStaNodes.Get (i)));
         }
     }
   else
@@ -1377,7 +1591,7 @@ else if (mcs == "MaxMcs")
       wifi.SetRemoteStationManager ("ns3::IdealWifiManager");
     }
 
- else if (mcs == "MaxMcs")
+ else if (mcs == "MaxMcs"||mcs=="proposedMcs")
     {
       wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode",
                                     StringValue ("VhtMcs0"), "ControlMode",
