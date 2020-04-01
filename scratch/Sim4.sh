@@ -51,7 +51,7 @@ for RngRun_j in 0 10 20 30 40 50 60 70 80 90; do
 for RngRun_i in 1 2 3 4 5 6 7 8 9; do
 RngRun=$((RngRun_j+RngRun_i))
 
-Test=${nBss}_${n}_${interBssDistance}_${channelBondingType}_${constantCcaEdThresholdSecondaryBss}_${mcs1}_${RngRun}_${all}
+Test=${nBss}_${n}_${interBssDistance}_${channelBondingType}_${constantCcaEdThresholdSecondaryBss}_${mcs}_${RngRun}_all
 echo $Test
 ../waf --run "channel-bonding --Test=$Test 
 --channelBondingType=$channelBondingType  --n=$n --interBssDistance=$interBssDistance --distance=$distance 
