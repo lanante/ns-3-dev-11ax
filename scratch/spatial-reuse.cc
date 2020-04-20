@@ -128,7 +128,7 @@ uint32_t nEstablishedAddaBa = 0;
 bool allAddBaEstablished = false;
 Time timeAllAddBaEstablished;
 Time timeLastPacketReceived;
-bool filterOutNonAddbaEstablished = false;
+bool filterOutNonAddbaEstablished = true;
 
 uint32_t nAssociatedStas = 0;
 bool allStasAssociated = false;
@@ -1108,8 +1108,8 @@ main (int argc, char *argv[])
   int maxSlrc = 7;
   bool enablePcap = false;
   bool enableAscii = false;
-  double powSta = 10.0; // dBm
-  double powAp = 21.0; // dBm
+  double powSta = 20.0; // dBm
+  double powAp = 20.0; // dBm
   double ccaTrSta = -62; // dBm
   double ccaTrAp = -62; // dBm
   double d = 100.0; // distance between AP1 and AP2, m
@@ -1171,11 +1171,11 @@ main (int argc, char *argv[])
   bool useIdealWifiManager = false;
   bool bianchi = false;
   double sigma = 5.0;
-  double rxSensitivity = -91.0;
+  double rxSensitivity = -90.0;
   uint32_t maxMissedBeacons = 10;
   bool useExplicitBarAfterMissedBlockAck = true;
   uint64_t maxQueueDelay = 500; // milliSeconds
-  bool enableFrameCapture = false;
+  bool enableFrameCapture = true;
   bool enableThresholdPreambleDetection = true;
   bool disableArp = true;
   uint16_t colorBss1 = 1;
