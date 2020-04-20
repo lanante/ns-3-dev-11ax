@@ -43,12 +43,10 @@ function run_one () {
   # before doing anything, ensure that the expected output files
   # do not exist.  if any exist, do not continue - make the user
   # move them, or explicitly delete them.
-  check_file "./results/spatial-reuse-positions-$test.csv"
   check_file "./results/spatial-reuse-SR-stats-$test.dat"
   check_file "./results/spatial-reuse-A-$test.flowmon"
   check_file "./results/spatial-reuse-operatorA-$test"
   check_file "./results/spatial-reuse-tgax-calibration-timings-${test}.dat"
-  check_file "./results/spatial-reuse-positions-${test}.png"
   check_file "./results/spatial-reuse-rx-sniff-$test-ap1-signal.png"
   check_file "./results/spatial-reuse-rx-sniff-$test-ap1-noise.png"
   check_file "./results/spatial-reuse-rx-sniff-$test-ap2-signal.png"
@@ -228,7 +226,6 @@ function run_one () {
         --maxAmpduSizeBss5=${maxAmpduSizeBss5} \
         --maxAmpduSizeBss6=${maxAmpduSizeBss6} \
         --maxAmpduSizeBss7=${maxAmpduSizeBss7} \
-        --nodePositionsFile=${nodePositionsFile} \
         --enablePcap=${enablePcap} \
         --enableAscii=${enableAscii} \
         --obssPdThresholdBss1=${obssPdThresholdBss1} \
@@ -265,7 +262,7 @@ function run_one () {
   # copy results files
   cd ../scripts
   mkdir -p results
-  cp "../../../spatial-reuse-positions-$test.csv" "results/spatial-reuse-positions-$test.csv"
+
   # to save on disk space, the rx-sniff and tx-power files is not copied to the results/ folder, as this
   # file can grow to be very large and is only used to create the noise, signal and snr cdf plots.
   # cp "../../../spatial-reuse-rx-sniff-$test.dat"  "results/spatial-reuse-rx-sniff-$test.dat"
@@ -280,11 +277,6 @@ function run_one () {
     cp "../../../spatial-reuse-tgax-calibration-timings-$test.dat"  "results/spatial-reuse-tgax-calibration-timings-${test}.dat"
   fi
 
-  # positions file
-  cd ../scripts
-  cp "../../../spatial-reuse-positions-$test.csv" "spatial-reuse-positions.csv"
-  gnuplot -c spatial-reuse-positions.plt "${nBss}"
-  cp spatial-reuse-positions.png "results/spatial-reuse-positions-${test}.png"
 
   # rx-sniff file
   cd ../scripts

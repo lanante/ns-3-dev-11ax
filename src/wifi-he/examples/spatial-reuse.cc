@@ -610,12 +610,12 @@ SaveSpectrumPhyStats (std::string filename, const std::vector<SignalArrival> &ar
 void
 CwTrace (std::string context, uint32_t oldVal, uint32_t newVal)
 {
-std::cout <<"CW "<< Simulator::Now ().GetMicroSeconds () << " " << ContextToNodeId (context) << " " << newVal << std::endl;
+//std::cout <<"CW "<< Simulator::Now ().GetMicroSeconds () << " " << ContextToNodeId (context) << " " << newVal << std::endl;
 }
 void
 BackoffTrace (std::string context, uint32_t newVal)
 {
-  std::cout  <<"BO " <<Simulator::Now ().GetMicroSeconds () << " " << ContextToNodeId (context) << " " << newVal << std::endl;
+//  std::cout  <<"BO " <<Simulator::Now ().GetMicroSeconds () << " " << ContextToNodeId (context) << " " << newVal << std::endl;
 }
 
 void
@@ -1169,7 +1169,7 @@ main (int argc, char *argv[])
   uint32_t maxAmpduSizeBss5 = 65535;
   uint32_t maxAmpduSizeBss6 = 65535;
   uint32_t maxAmpduSizeBss7 = 65535;
-  std::string nodePositionsFile ("");
+
   double applicationTxStart = 1.0; // brief delay (s) for the network to settle into a steady state before applications start sending packets
   bool useIdealWifiManager = false;
   bool bianchi = false;
@@ -1237,7 +1237,7 @@ main (int argc, char *argv[])
   cmd.AddValue ("maxAmpduSizeBss5", "The maximum A-MPDU size for BSS 5 (bytes).", maxAmpduSizeBss5);
   cmd.AddValue ("maxAmpduSizeBss6", "The maximum A-MPDU size for BSS 6 (bytes).", maxAmpduSizeBss6);
   cmd.AddValue ("maxAmpduSizeBss7", "The maximum A-MPDU size for BSS 7 (bytes).", maxAmpduSizeBss7);
-  cmd.AddValue ("nodePositionsFile", "Node positions file, ns-2 format for Ns2MobilityHelper.", nodePositionsFile);
+
   cmd.AddValue ("enablePcap", "Enable PCAP trace file generation.", enablePcap);
   cmd.AddValue ("enableAscii", "Enable ASCII trace file generation.", enableAscii);
   cmd.AddValue ("useIdealWifiManager", "Use IdealWifiManager instead of ConstantRateWifiManager", useIdealWifiManager);
@@ -2153,99 +2153,13 @@ bytesTransmitted[nodeId] = 0;
   MobilityHelper mobility;
   Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator> ();
 
-  // allocate in the order of AP_A, STAs_A, AP_B, STAs_B
-  std::string filename = outputFilePrefix + "-positions-" + testname + ".csv";
-  std::ofstream positionOutFile;
-  positionOutFile.open (filename.c_str (), std::ofstream::out | std::ofstream::trunc);
-  positionOutFile.setf (std::ios_base::fixed);
-  positionOutFile.flush ();
-
-  if (!positionOutFile.is_open ())
-    {
-      NS_LOG_ERROR ("Can't open file " << filename);
-      return 1;
-    }
-
-  // bounding box
-  if ((nBss != 7) || (scenario != "indoor"))
-    {
-      double boundingBoxExtension = 10.0;
-      double dx = d;
-      double dy = d;
-      if (nBss == 1)
-        {
-          dx = 0;
-          dy = 0;
-        }
-      else if (nBss == 2)
-        {
-          dy = 0;
-        }
-      positionOutFile << -(r + boundingBoxExtension) <<      ", " << -dy + -r - boundingBoxExtension << std::endl;
-      positionOutFile << (dx + r + boundingBoxExtension) << ", " << -dy + -r - boundingBoxExtension << std::endl;
-      positionOutFile << (dx + r + boundingBoxExtension) << ", " <<  r + boundingBoxExtension << std::endl;
-      positionOutFile << -(r + boundingBoxExtension) <<      ", " <<  r + boundingBoxExtension << std::endl;
-    }
-  else
-    {
-      // study1 and study 2 scenario bounding box
-      positionOutFile << -40.0 <<  ", " << -40.0 << std::endl;
-      positionOutFile <<  40.0 <<  ", " << -40.0 << std::endl;
-      positionOutFile <<  40.0 <<  ", " <<  40.0 << std::endl;
-      positionOutFile <<  40.0 <<  ", " << -40.0 << std::endl;
-    }
-  positionOutFile << std::endl;
-  positionOutFile << std::endl;
 
   // consistent stream to that positional layout is not perturbed by other configuration choices
   int64_t streamNumber = 100;
 
-  if ((nodePositionsFile != "") && (nodePositionsFile != "NONE"))
-    {
-      std::cout << "Loading node positions from file: " << nodePositionsFile << std::endl;
-      // Create Ns2MobilityHelper with the specified trace log file as parameter
-      Ns2MobilityHelper ns2 = Ns2MobilityHelper (nodePositionsFile);
-      ns2.Install (); // configure movements for each node, while reading trace file
 
-      uint32_t numNodes = nodesA.GetN ();
-      for (uint32_t nodeIdx = 0; nodeIdx < numNodes; nodeIdx++)
-        {
-          Ptr<Node> node = nodesA.Get (nodeIdx);
-          Ptr<MobilityModel> mob = node->GetObject<MobilityModel> ();
-          Vector position = mob->GetPosition ();
-          double x = position.x;
-          double y = position.y;
 
-          // nodeIdx == 0 is AP1
-          if (nodeIdx == 0)
-            {
-              // "A" - APs
-              positionOutFile << x << ", " << y << ", " << r << ", " << csr << std::endl;
-              positionOutFile << std::endl;
-              positionOutFile << std::endl;
 
-              // "B" - APs
-              // Position is not provided in Ns2Mobility file, but we have to output something
-              // here so that the plotting script works.
-              positionOutFile << 0.0 << ", " << 0.0 << ", " << r << ", " << csr << std::endl;
-              positionOutFile << std::endl;
-              positionOutFile << std::endl;
-            }
-          else
-            {
-              positionOutFile << x << ", " << y << std::endl;
-            }
-        }
-      // End of nodes for BSS1.  Output blank lines as section separator.
-      positionOutFile << std::endl;
-      positionOutFile << std::endl;
-
-      // need to output something here to represent the positions section for STAs B
-      // since the post-processnig script expects there to be something here.
-      positionOutFile << d << ", " << 0 << std::endl;
-    }
-  else if ((nBss == 7) && (scenario == "indoor")) //study 1 and 2
-    {
       double x1 = 0.0;
       double y1 = 0.0;
       double theta = 0.0;  // radians
@@ -2267,267 +2181,12 @@ bytesTransmitted[nodeId] = 0;
       double x7 = d * cos(theta);
       double y7 = d * sin(theta);
 
-      // "A" - APs
-      positionOutFile << x1 << ", " << y1 << ", " << r << ", " << csr << std::endl;
-      positionOutFile << std::endl;
-      positionOutFile << std::endl;
 
-      // "B" - APs
-      positionOutFile << x2 << ", " << y2 << ", " << r << ", " << csr << std::endl;
-      positionOutFile << std::endl;
-      positionOutFile << std::endl;
 
-      // "C" - APs
-      positionOutFile << x3 << ", " << y3 << ", " << r << ", " << csr << std::endl;
-      positionOutFile << std::endl;
-      positionOutFile << std::endl;
-
-      // "D" - APs
-      positionOutFile << x4 << ", " << y4 << ", " << r << ", " << csr << std::endl;
-      positionOutFile << std::endl;
-      positionOutFile << std::endl;
-
-      // "E" - APs
-      positionOutFile << x5 << ", " << y5 << ", " << r << ", " << csr << std::endl;
-      positionOutFile << std::endl;
-      positionOutFile << std::endl;
-
-      // "F" - APs
-      positionOutFile << x6 << ", " << y6 << ", " << r << ", " << csr << std::endl;
-      positionOutFile << std::endl;
-      positionOutFile << std::endl;
-
-      // "G" - APs
-      positionOutFile << x7 << ", " << y7 << ", " << r << ", " << csr << std::endl;
-      positionOutFile << std::endl;
-      positionOutFile << std::endl;
 
       // Network "A"
       // AP1
       positionAlloc->Add (Vector (x1, y1, 0.0));
-      // STAs for AP1
-      // STAs for each AP are allocated uwing a different instance of a UnitDiscPositionAllocation.  To
-      // ensure unique randomness of positions,  each allocator must be allocated a different stream number.
-      Ptr<UniformDiscPositionAllocator> unitDiscPositionAllocator1 = CreateObject<UniformDiscPositionAllocator> ();
-      unitDiscPositionAllocator1->AssignStreams (streamNumber);
-      // AP1 is at origin (x=x1, y=y1), with radius Rho=r
-      unitDiscPositionAllocator1->SetX (x1);
-      unitDiscPositionAllocator1->SetY (y1);
-      unitDiscPositionAllocator1->SetRho (r);
-      for (uint32_t i = 0; i < n; i++)
-        {
-          Vector v = unitDiscPositionAllocator1->GetNext ();
-          positionAlloc->Add (v);
-          positionOutFile << v.x << ", " << v.y << std::endl;
-        }
-      positionOutFile << std::endl;
-      positionOutFile << std::endl;
-
-      // Network "B"
-      // AP2
-      positionAlloc->Add (Vector (x2, y2, 0.0));
-      // STAs for AP2
-      // STAs for each AP are allocated uwing a different instance of a UnitDiscPositionAllocation.  To
-      // ensure unique randomness of positions,  each allocator must be allocated a different stream number.
-      Ptr<UniformDiscPositionAllocator> unitDiscPositionAllocator2 = CreateObject<UniformDiscPositionAllocator> ();
-      unitDiscPositionAllocator2->AssignStreams (streamNumber + 1);
-      // AP1 is at origin (x=x2, y=y2), with radius Rho=r
-      unitDiscPositionAllocator2->SetX (x2);
-      unitDiscPositionAllocator2->SetY (y2);
-      unitDiscPositionAllocator2->SetRho (r);
-      for (uint32_t i = 0; i < n; i++)
-        {
-          Vector v = unitDiscPositionAllocator2->GetNext ();
-          positionAlloc->Add (v);
-          positionOutFile << v.x << ", " << v.y << std::endl;
-        }
-      positionOutFile << std::endl;
-      positionOutFile << std::endl;
-
-      // Network "C"
-      // AP3
-      positionAlloc->Add (Vector (x3, y3, 0.0));
-      // STAs for AP3
-      // STAs for each AP are allocated uwing a different instance of a UnitDiscPositionAllocation.  To
-      // ensure unique randomness of positions,  each allocator must be allocated a different stream number.
-      Ptr<UniformDiscPositionAllocator> unitDiscPositionAllocator3 = CreateObject<UniformDiscPositionAllocator> ();
-      unitDiscPositionAllocator3->AssignStreams (streamNumber + 2);
-      // AP1 is at origin (x=x3, y=y3), with radius Rho=r
-      unitDiscPositionAllocator3->SetX (x3);
-      unitDiscPositionAllocator3->SetY (y3);
-      unitDiscPositionAllocator3->SetRho (r);
-      for (uint32_t i = 0; i < n; i++)
-        {
-          Vector v = unitDiscPositionAllocator3->GetNext ();
-          positionAlloc->Add (v);
-          positionOutFile << v.x << ", " << v.y << std::endl;
-        }
-      positionOutFile << std::endl;
-      positionOutFile << std::endl;
-
-      // Network "D"
-      // AP4
-      positionAlloc->Add (Vector (x4, y4, 0.0));
-      // STAs for AP4
-      // STAs for each AP are allocated uwing a different instance of a UnitDiscPositionAllocation.  To
-      // ensure unique randomness of positions,  each allocator must be allocated a different stream number.
-      Ptr<UniformDiscPositionAllocator> unitDiscPositionAllocator4 = CreateObject<UniformDiscPositionAllocator> ();
-      unitDiscPositionAllocator4->AssignStreams (streamNumber + 3);
-      // AP1 is at origin (x=x4, y=y4), with radius Rho=r
-      unitDiscPositionAllocator4->SetX (x4);
-      unitDiscPositionAllocator4->SetY (y4);
-      unitDiscPositionAllocator4->SetRho (r);
-      for (uint32_t i = 0; i < n; i++)
-        {
-          Vector v = unitDiscPositionAllocator4->GetNext ();
-          positionAlloc->Add (v);
-          positionOutFile << v.x << ", " << v.y << std::endl;
-        }
-      positionOutFile << std::endl;
-      positionOutFile << std::endl;
-
-      // Network "E"
-      // AP5
-      positionAlloc->Add (Vector (x5, y5, 0.0));
-      // STAs for AP5
-      // STAs for each AP are allocated uwing a different instance of a UnitDiscPositionAllocation.  To
-      // ensure unique randomness of positions,  each allocator must be allocated a different stream number.
-      Ptr<UniformDiscPositionAllocator> unitDiscPositionAllocator5 = CreateObject<UniformDiscPositionAllocator> ();
-      unitDiscPositionAllocator5->AssignStreams (streamNumber + 4);
-      // AP1 is at origin (x=x5, y=y5), with radius Rho=r
-      unitDiscPositionAllocator5->SetX (x5);
-      unitDiscPositionAllocator5->SetY (y5);
-      unitDiscPositionAllocator5->SetRho (r);
-      for (uint32_t i = 0; i < n; i++)
-        {
-          Vector v = unitDiscPositionAllocator5->GetNext ();
-          positionAlloc->Add (v);
-          positionOutFile << v.x << ", " << v.y << std::endl;
-        }
-      positionOutFile << std::endl;
-      positionOutFile << std::endl;
-
-      // Network "F"
-      // AP6
-      positionAlloc->Add (Vector (x6, y6, 0.0));
-      // STAs for AP6
-      // STAs for each AP are allocated uwing a different instance of a UnitDiscPositionAllocation.  To
-      // ensure unique randomness of positions,  each allocator must be allocated a different stream number.
-      Ptr<UniformDiscPositionAllocator> unitDiscPositionAllocator6 = CreateObject<UniformDiscPositionAllocator> ();
-      unitDiscPositionAllocator6->AssignStreams (streamNumber + 5);
-      // AP1 is at origin (x=x6, y=y6), with radius Rho=r
-      unitDiscPositionAllocator6->SetX (x6);
-      unitDiscPositionAllocator6->SetY (y6);
-      unitDiscPositionAllocator6->SetRho (r);
-      for (uint32_t i = 0; i < n; i++)
-        {
-          Vector v = unitDiscPositionAllocator6->GetNext ();
-          positionAlloc->Add (v);
-          positionOutFile << v.x << ", " << v.y << std::endl;
-        }
-      positionOutFile << std::endl;
-      positionOutFile << std::endl;
-
-      // Network "G"
-      // AP7
-      positionAlloc->Add (Vector (x7, y7, 0.0));
-      // STAs for AP7
-      // STAs for each AP are allocated uwing a different instance of a UnitDiscPositionAllocation.  To
-      // ensure unique randomness of positions,  each allocator must be allocated a different stream number.
-      Ptr<UniformDiscPositionAllocator> unitDiscPositionAllocator7 = CreateObject<UniformDiscPositionAllocator> ();
-      unitDiscPositionAllocator7->AssignStreams (streamNumber + 6);
-      // AP1 is at origin (x=x7, y=y7), with radius Rho=r
-      unitDiscPositionAllocator7->SetX (x7);
-      unitDiscPositionAllocator7->SetY (y7);
-      unitDiscPositionAllocator7->SetRho (r);
-      for (uint32_t i = 0; i < n; i++)
-        {
-          Vector v = unitDiscPositionAllocator7->GetNext ();
-          positionAlloc->Add (v);
-          positionOutFile << v.x << ", " << v.y << std::endl;
-        }
-      positionOutFile << std::endl;
-      positionOutFile << std::endl;
-
-      mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
-      mobility.SetPositionAllocator (positionAlloc);
-      mobility.Install (allNodes);
-    }
-  else
-    {
-
-      double x1 = 0.0;
-      double y1 = 0.0;
-      double theta = 0.0;  // radians
-      double x2 = d * cos(theta);
-      double y2 = d * sin(theta);
-      theta += 60.0 / 360.0 * 2.0 * M_PI;
-      double x3 = d * cos(theta);
-      double y3 = d * sin(theta);
-      theta += 60.0 / 360.0 * 2.0 * M_PI;
-      double x4 = d * cos(theta);
-      double y4 = d * sin(theta);
-      theta += 60.0 / 360.0 * 2.0 * M_PI;
-      double x5 = d * cos(theta);
-      double y5 = d * sin(theta);
-      theta += 60.0 / 360.0 * 2.0 * M_PI;
-      double x6 = d * cos(theta);
-      double y6 = d * sin(theta);
-      theta += 60.0 / 360.0 * 2.0 * M_PI;
-      double x7 = d * cos(theta);
-      double y7 = d * sin(theta);
-
-      // "A" - APs
-      positionOutFile << x1 << ", " << y1 << ", " << r << ", " << csr << std::endl;
-      positionOutFile << std::endl;
-      positionOutFile << std::endl;
-      if (nBss >= 2)
-        {
-      // "B" - APs
-      positionOutFile << x2 << ", " << y2 << ", " << r << ", " << csr << std::endl;
-      positionOutFile << std::endl;
-      positionOutFile << std::endl;
-        }
-      if (nBss >= 3)
-        {
-      // "C" - APs
-      positionOutFile << x3 << ", " << y3 << ", " << r << ", " << csr << std::endl;
-      positionOutFile << std::endl;
-      positionOutFile << std::endl;
-        }
-      if (nBss >= 4)
-        {
-      // "D" - APs
-      positionOutFile << x4 << ", " << y4 << ", " << r << ", " << csr << std::endl;
-      positionOutFile << std::endl;
-      positionOutFile << std::endl;
-        }
-      if (nBss >= 5)
-        {
-      // "E" - APs
-      positionOutFile << x5 << ", " << y5 << ", " << r << ", " << csr << std::endl;
-      positionOutFile << std::endl;
-      positionOutFile << std::endl;
-        }
-      if (nBss >= 6)
-        {
-      // "F" - APs
-      positionOutFile << x6 << ", " << y6 << ", " << r << ", " << csr << std::endl;
-      positionOutFile << std::endl;
-      positionOutFile << std::endl;
-        }
-      if (nBss >= 7)
-        {
-      // "G" - APs
-      positionOutFile << x7 << ", " << y7 << ", " << r << ", " << csr << std::endl;
-      positionOutFile << std::endl;
-      positionOutFile << std::endl;
-        }
-
-
-      // Network "A"
-      // AP1
-      positionAlloc->Add (Vector (0.0, 0.0, 0.0));
       // STAs for AP1
       // STAs for each AP are allocated uwing a different instance of a UnitDiscPositionAllocation.  To
       // ensure unique randomness of positions,  each allocator must be allocated a different stream number.
@@ -2541,10 +2200,8 @@ bytesTransmitted[nodeId] = 0;
         {
           Vector v = unitDiscPositionAllocator1->GetNext ();
           positionAlloc->Add (v);
-          positionOutFile << v.x << ", " << v.y << std::endl;
+
         }
-      positionOutFile << std::endl;
-      positionOutFile << std::endl;
       if(nBss>=2)
         {
                 // Network "B"
@@ -2563,17 +2220,9 @@ bytesTransmitted[nodeId] = 0;
                         {
                          Vector v = unitDiscPositionAllocator2->GetNext ();
                         positionAlloc->Add (v);
-                        positionOutFile << v.x << ", " << v.y << std::endl;
                         }
         }
-      else
-        {
-          // need to output something here to represent the positions section for STAs B
-          // since the post-processnig script expects there to be something here.
-          positionOutFile << d << ", " << 0 << std::endl;
-        }
-      positionOutFile << std::endl;
-      positionOutFile << std::endl;
+
 
       if(nBss>=3)
         {
@@ -2593,17 +2242,9 @@ bytesTransmitted[nodeId] = 0;
         {
           Vector v = unitDiscPositionAllocator3->GetNext ();
           positionAlloc->Add (v);
-          positionOutFile << v.x << ", " << v.y << std::endl;
         }
         }
-      else
-        {
-          // need to output something here to represent the positions section for STAs C
-          // since the post-processnig script expects there to be something here.
-          positionOutFile << d << ", " << 0 << std::endl;
-        }
-      positionOutFile << std::endl;
-      positionOutFile << std::endl;
+
 
       if(nBss>=4)
         {
@@ -2623,17 +2264,10 @@ bytesTransmitted[nodeId] = 0;
         {
           Vector v = unitDiscPositionAllocator4->GetNext ();
           positionAlloc->Add (v);
-          positionOutFile << v.x << ", " << v.y << std::endl;
+
         }
         }
-      else
-        {
-          // need to output something here to represent the positions section for STAs D
-          // since the post-processnig script expects there to be something here.
-          positionOutFile << d << ", " << 0 << std::endl;
-        }
-      positionOutFile << std::endl;
-      positionOutFile << std::endl;
+
 
 
       if(nBss>=5)
@@ -2654,17 +2288,10 @@ bytesTransmitted[nodeId] = 0;
         {
           Vector v = unitDiscPositionAllocator5->GetNext ();
           positionAlloc->Add (v);
-          positionOutFile << v.x << ", " << v.y << std::endl;
+
         }
         }
-      else
-        {
-          // need to output something here to represent the positions section for STAs E
-          // since the post-processnig script expects there to be something here.
-          positionOutFile << d << ", " << 0 << std::endl;
-        }
-      positionOutFile << std::endl;
-      positionOutFile << std::endl;
+
 
 
       if(nBss>=6)
@@ -2685,17 +2312,8 @@ bytesTransmitted[nodeId] = 0;
         {
           Vector v = unitDiscPositionAllocator6->GetNext ();
           positionAlloc->Add (v);
-          positionOutFile << v.x << ", " << v.y << std::endl;
         }
         }
-      else
-        {
-          // need to output something here to represent the positions section for STAs F
-          // since the post-processnig script expects there to be something here.
-          positionOutFile << d << ", " << 0 << std::endl;
-        }
-      positionOutFile << std::endl;
-      positionOutFile << std::endl;
 
 
       if(nBss>=7)
@@ -2716,26 +2334,17 @@ bytesTransmitted[nodeId] = 0;
         {
           Vector v = unitDiscPositionAllocator7->GetNext ();
           positionAlloc->Add (v);
-          positionOutFile << v.x << ", " << v.y << std::endl;
+
         }
         }
-      else
-        {
-          // need to output something here to represent the positions section for STAs G
-          // since the post-processnig script expects there to be something here.
-          positionOutFile << d << ", " << 0 << std::endl;
-        }
-      positionOutFile << std::endl;
-      positionOutFile << std::endl;
 
 
       mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
       mobility.SetPositionAllocator (positionAlloc);
       mobility.Install (allNodes);
-    }
 
-  positionOutFile << std::endl;
-  positionOutFile.close ();
+
+
 
   double perNodeUplinkMbps = aggregateUplinkMbps / n;
   double perNodeDownlinkMbps = aggregateDownlinkMbps / n;
