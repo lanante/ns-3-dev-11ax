@@ -47,9 +47,10 @@ mcs=proposedMcs
 ../waf
 
 for mcs in MaxMcs proposedMcs ;do 
-for RngRun_j in 0 10 20 30 40 50 60 70 80 90; do
-for RngRun_i in 1 2 3 4 5 6 7 8 9; do
-RngRun=$((RngRun_j+RngRun_i))
+for RngRun_k in {0..900..100}; do
+for RngRun_j in {0..90..10}; do
+for RngRun_i in 1 2 3 4 5 6 7 8 9 10; do
+RngRun=$((RngRun_j+RngRun_i+RngRun_k))
 
 Test=${nBss}_${n}_${interBssDistance}_${channelBondingType}_${constantCcaEdThresholdSecondaryBss}_${mcs}_${RngRun}_all
 echo $Test
@@ -66,6 +67,7 @@ echo $Test
 sleep 0.1
 done
 wait
+done
 done
 done
 
