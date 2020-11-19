@@ -29,29 +29,47 @@ mcs2=VhtMcs0
 
 ../waf
 
-for mcs1 in VhtMcs0 VhtMcs4 VhtMcs8 ; do
-for constantCcaEdThresholdSecondaryBss in {-87..-57..2} ; do
-for RngRun_k in {0..900..100}; do
-for RngRun_j in {10..90..10}; do
-for RngRun_i in {1..10}; do
+#for mcs1 in VhtMcs0 VhtMcs4 VhtMcs8 ; do
+#for constantCcaEdThresholdSecondaryBss in {-87..-57..2} ; do
+#for RngRun_k in {0..900..100}; do
+#for RngRun_j in {0..80..20}; do
+#for RngRun_i in {1..20}; do
 
-RngRun=$((${RngRun_k}+${RngRun_j}+${RngRun_i}))
-Test=${nBss}_${n}_${interBssDistance}_${channelBondingType}_${constantCcaEdThresholdSecondaryBss}_${mcs1}_${RngRun}
-				echo Starting $Test
-../waf --run "channel-bonding --Test=$Test --mcs1=$mcs1 --mcs2=$mcs2 --nBss=$nBss --simulationTime=$simulationTime --RngRun=$RngRun --uplinkA=$uplinkA --uplinkB=$uplinkB  --downlinkA=$downlinkA --downlinkB=$downlinkB --channelBondingType=$channelBondingType  --n=$n --interBssDistance=$interBssDistance --distance=$distance --ccaEdThresholdPrimaryBssA=$ccaEdThresholdPrimary --ccaEdThresholdPrimaryBssB=$ccaEdThresholdPrimary  --ccaEdThresholdSecondaryBssA=$constantCcaEdThresholdSecondaryBss --ccaEdThresholdSecondaryBssB=$constantCcaEdThresholdSecondaryBss   --channelBssA=$channelBssA --channelBssB=$channelBssB  --primaryChannelBssA=$primaryChannelBssA --primaryChannelBssB=$primaryChannelBssB" &
-sleep 0.1
-	done
-wait
-done
-done
-done
-done
+#RngRun=$((${RngRun_k}+${RngRun_j}+${RngRun_i}))
+#Test=${nBss}_${n}_${interBssDistance}_${channelBondingType}_${constantCcaEdThresholdSecondaryBss}_${mcs1}_${RngRun}
+#				echo Starting $Test
+#../waf --run "channel-bonding --Test=$Test --mcs1=$mcs1 --mcs2=$mcs2 --nBss=$nBss --simulationTime=$simulationTime --RngRun=$RngRun --uplinkA=$uplinkA --uplinkB=$uplinkB  --downlinkA=$downlinkA --downlinkB=$downlinkB --channelBondingType=$channelBondingType  --n=$n --interBssDistance=$interBssDistance --distance=$distance --ccaEdThresholdPrimaryBssA=$ccaEdThresholdPrimary --ccaEdThresholdPrimaryBssB=$ccaEdThresholdPrimary  --ccaEdThresholdSecondaryBssA=$constantCcaEdThresholdSecondaryBss --ccaEdThresholdSecondaryBssB=$constantCcaEdThresholdSecondaryBss   --channelBssA=$channelBssA --channelBssB=$channelBssB  --primaryChannelBssA=$primaryChannelBssA --primaryChannelBssB=$primaryChannelBssB" &
+#sleep 0.1
+#	done
+#wait
+#done
+#done
+#done
+#done
+
+#for mcs1 in VhtMcs0 VhtMcs1 VhtMcs2 VhtMcs3 VhtMcs4 VhtMcs5 VhtMcs6 VhtMcs7 VhtMcs8 ; do
+#for constantCcaEdThresholdSecondaryBss in -82 -72 -62 ; do
+#for RngRun_k in {0..900..100}; do
+#for RngRun_j in {0..80..20}; do
+#for RngRun_i in {1..20}; do
+#RngRun=$((${RngRun_k}+${RngRun_j}+${RngRun_i}))
+#Test=${nBss}_${n}_${interBssDistance}_${channelBondingType}_${constantCcaEdThresholdSecondaryBss}_${mcs1}_${RngRun}
+				echo Starting $Test 
+#../waf --run "channel-bonding --Test=$Test --mcs1=$mcs1 --mcs2=$mcs2 --nBss=$nBss --simulationTime=$simulationTime --RngRun=$RngRun --uplinkA=$uplinkA --uplinkB=$uplinkB  --downlinkA=$downlinkA --downlinkB=$downlinkB --channelBondingType=$channelBondingType  --n=$n --interBssDistance=$interBssDistance --distance=$distance --ccaEdThresholdPrimaryBssA=$ccaEdThresholdPrimary --ccaEdThresholdPrimaryBssB=$ccaEdThresholdPrimary  --ccaEdThresholdSecondaryBssA=$constantCcaEdThresholdSecondaryBss --ccaEdThresholdSecondaryBssB=$constantCcaEdThresholdSecondaryBss   --channelBssA=$channelBssA --channelBssB=$channelBssB  --primaryChannelBssA=$primaryChannelBssA --primaryChannelBssB=$primaryChannelBssB" &
+#sleep 0.1
+#	done
+#wait
+#done
+#done
+#done
+#done
+
 
 for mcs1 in VhtMcs0 VhtMcs1 VhtMcs2 VhtMcs3 VhtMcs4 VhtMcs5 VhtMcs6 VhtMcs7 VhtMcs8 ; do
-for constantCcaEdThresholdSecondaryBss in -82 -72 -62 ; do
+channelBondingType=DynamicThreshold
 for RngRun_k in {0..900..100}; do
-for RngRun_j in {0..90..10}; do
-for RngRun_i in {1..10}; do
+for RngRun_j in {0..80..20}; do
+for RngRun_i in {1..20}; do
 RngRun=$((${RngRun_k}+${RngRun_j}+${RngRun_i}))
 Test=${nBss}_${n}_${interBssDistance}_${channelBondingType}_${constantCcaEdThresholdSecondaryBss}_${mcs1}_${RngRun}
 				echo Starting $Test 
@@ -63,5 +81,4 @@ done
 done
 done
 done
-
 
