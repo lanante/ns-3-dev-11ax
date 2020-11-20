@@ -1,10 +1,10 @@
 
 channelBssA=42
-channelBssB=42
-channelBssC=42
-channelBssD=42
-channelBssE=42
-channelBssF=42
+channelBssB=1
+channelBssC=1
+channelBssD=1
+channelBssE=1
+channelBssF=1
 
 primaryChannelBssA=36
 primaryChannelBssB=4
@@ -29,14 +29,14 @@ downlinkE=70
 downlinkF=70
 
 payloadSize=1472
-simulationTime=5
+simulationTime=10
 
 
 ccaEdThresholdPrimary=-62
 constantCcaEdThresholdSecondaryBss=-1000
 channelBondingType=ConstantThreshold
 interBssDistance=20
-distance=10;
+distance=8
 n=10
 nBss=6
 RngRun=1
@@ -56,8 +56,8 @@ mcs6=VhtMcs0
 for mcs1 in VhtMcs0 VhtMcs4 VhtMcs8; do
 for constantCcaEdThresholdSecondaryBss in -82 -72 -62; do
 for RngRun_k in {0..000..100}; do
-for RngRun_j in {0..80..20}; do
-for RngRun_i in {1..20}; do
+for RngRun_j in {0..90..10}; do
+for RngRun_i in {1..10}; do
 RngRun=$((RngRun_j+RngRun_i+RngRun_k))
 Test=${nBss}_${n}_${interBssDistance}_${channelBondingType}_${constantCcaEdThresholdSecondaryBss}_${mcs1}_${RngRun}
 echo $Test
@@ -102,8 +102,8 @@ downlinkF=0
 mcs1=MaxMcs
 constantCcaEdThresholdSecondaryBss=-72
 for RngRun_k in {0..000..100}; do
-for RngRun_j in {0..80..20}; do
-for RngRun_i in {0..20}; do
+for RngRun_j in {0..90..10}; do
+for RngRun_i in {1..10}; do
 RngRun=$((RngRun_j+RngRun_i+RngRun_k))
 Test=${nBss}_${n}_${interBssDistance}_${channelBondingType}_${constantCcaEdThresholdSecondaryBss}_${mcs1}_${RngRun}
 echo $Test
