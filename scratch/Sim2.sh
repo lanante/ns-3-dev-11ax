@@ -1,10 +1,10 @@
 
 channelBssA=42
-channelBssB=42
-channelBssC=42
-channelBssD=42
-channelBssE=42
-channelBssF=42
+channelBssB=1
+channelBssC=1
+channelBssD=1
+channelBssE=1
+channelBssF=1
 
 primaryChannelBssA=36
 primaryChannelBssB=4
@@ -29,14 +29,14 @@ downlinkE=70
 downlinkF=70
 
 payloadSize=1472
-simulationTime=5
+simulationTime=50
 
 
 ccaEdThresholdPrimary=-62
 constantCcaEdThresholdSecondaryBss=-1000
 channelBondingType=ConstantThreshold
 interBssDistance=20
-distance=10;
+distance=8
 n=10
 nBss=6
 RngRun=1
@@ -51,11 +51,9 @@ mcs6=VhtMcs0
 ../waf
 
 
-
-
 for mcs1 in VhtMcs0 VhtMcs4 VhtMcs8; do
-for constantCcaEdThresholdSecondaryBss in -82 -72 -62; do
-for RngRun_k in {0..000..100}; do
+for constantCcaEdThresholdSecondaryBss in -82 -72 -62 0 ; do
+for RngRun_k in {0..100..100}; do
 for RngRun_j in {0..80..20}; do
 for RngRun_i in {1..20}; do
 RngRun=$((RngRun_j+RngRun_i+RngRun_k))
@@ -81,44 +79,6 @@ done
 
 
 
-uplinkA=250
-uplinkB=70
-uplinkC=70
-uplinkD=70
-uplinkE=70
-uplinkF=70
-
-
-downlinkA=0
-downlinkB=0
-downlinkC=0
-downlinkD=0
-downlinkE=0
-downlinkF=0
 
 
 
-
-mcs1=MaxMcs
-constantCcaEdThresholdSecondaryBss=-72
-for RngRun_k in {0..000..100}; do
-for RngRun_j in {0..80..20}; do
-for RngRun_i in {0..20}; do
-RngRun=$((RngRun_j+RngRun_i+RngRun_k))
-Test=${nBss}_${n}_${interBssDistance}_${channelBondingType}_${constantCcaEdThresholdSecondaryBss}_${mcs1}_${RngRun}
-echo $Test
-../waf --run "channel-bonding --Test=$Test 
---channelBondingType=$channelBondingType  --n=$n --interBssDistance=$interBssDistance --distance=$distance 
---nBss=$nBss --simulationTime=$simulationTime --RngRun=$RngRun 
---mcs1=$mcs1 --mcs2=$mcs2  --mcs3=$mcs3 --mcs4=$mcs4    --mcs5=$mcs5  --mcs6=$mcs6 
---uplinkA=$uplinkA --uplinkB=$uplinkB --uplinkC=$uplinkC --uplinkD=$uplinkD --uplinkE=$uplinkE --uplinkF=$uplinkF 
---downlinkA=$downlinkA --downlinkB=$downlinkB --downlinkC=$downlinkC --downlinkD=$downlinkD --downlinkE=$downlinkE --downlinkF=$downlinkF 
---ccaEdThresholdPrimaryBssA=$ccaEdThresholdPrimary --ccaEdThresholdPrimaryBssB=$ccaEdThresholdPrimary --ccaEdThresholdPrimaryBssC=$ccaEdThresholdPrimary --ccaEdThresholdPrimaryBssD=$ccaEdThresholdPrimary  --ccaEdThresholdPrimaryBssE=$ccaEdThresholdPrimary --ccaEdThresholdPrimaryBssF=$ccaEdThresholdPrimary 
---ccaEdThresholdSecondaryBssA=$constantCcaEdThresholdSecondaryBss --ccaEdThresholdSecondaryBssB=$constantCcaEdThresholdSecondaryBss -ccaEdThresholdSecondaryBssC=$constantCcaEdThresholdSecondaryBss --ccaEdThresholdSecondaryBssD=$constantCcaEdThresholdSecondaryBss   -ccaEdThresholdSecondaryBssE=$constantCcaEdThresholdSecondaryBss --ccaEdThresholdSecondaryBssF=$constantCcaEdThresholdSecondaryBss 
---channelBssA=$channelBssA --channelBssB=$channelBssB --channelBssC=$channelBssC --channelBssD=$channelBssD   --channelBssE=$channelBssE --channelBssF=$channelBssF  
---primaryChannelBssA=$primaryChannelBssA --primaryChannelBssB=$primaryChannelBssB --primaryChannelBssC=$primaryChannelBssC --primaryChannelBssD=$primaryChannelBssD  --primaryChannelBssE=$primaryChannelBssE --primaryChannelBssF=$primaryChannelBssF" &
-sleep 0.1
-done 
-wait
-done
-done
