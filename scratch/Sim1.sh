@@ -60,9 +60,9 @@ sleep 0.1
 	done
 wait
 done
-#done
-#done
-#done
+done
+done
+done
 
 
 for mcs1 in VhtMcs0 VhtMcs1 VhtMcs2 VhtMcs3 VhtMcs4 VhtMcs5 VhtMcs6 VhtMcs7 VhtMcs8 ; do
