@@ -51,7 +51,7 @@ mcs6=VhtMcs0
 ../waf
 
 
-for mcs1 in VhtMcs0 VhtMcs4 VhtMcs8; do
+for mcs1 in VhtMcs8; do
 for constantCcaEdThresholdSecondaryBss in -82 -72 -62 0 ; do
 for RngRun_k in {0..100..100}; do
 for RngRun_j in {0..80..20}; do

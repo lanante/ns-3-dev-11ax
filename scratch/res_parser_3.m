@@ -5,9 +5,9 @@ clc
 thresholdA=[-72 0];
 Tput=zeros(length(thresholdA),100);
 
-for ite=1:100
+for ite=1:200
             
-        filename=['Res_6_10_20_ConstantThreshold_-72_MaxMcs_' num2str(ite) '.csv'];
+        filename=['../Sim3_res/Res_6_10_20_ConstantThreshold_-72_MaxMcs_' num2str(ite) '.csv'];
 if isfile(filename)
         a=load(filename);
         b=a(1);
@@ -19,7 +19,7 @@ end
 
     
             
-        filename=['Res_6_10_20_ConstantThreshold_0_proposedMcs_' num2str(ite) '.csv'];
+        filename=['../Sim3_res/Res_6_10_20_ConstantThreshold_0_proposedMcs_' num2str(ite) '.csv'];
 if isfile(filename)
         a=load(filename);
         b=a(1);
@@ -41,5 +41,15 @@ b1=b.Values;
 b=histogram(a(2,:),'Normalization','cdf','BinEdges', edges);
 b2=b.Values;
 
-plot(edges(1:end-1),b1,'b',edges(1:end-1),b2,'r-.');
-% legend('
+plot(edges(1:end-1),b1,'r-o',edges(1:end-1),b2,'k-+');
+axis([0 120 0 1.2])
+xlabel('BSS-1 UL Throughput (Mbps)');
+ylabel('Cumulative Distribution');
+grid;
+legend('Sec. CCA Thresh. = -72','Proposed')
+annotation('doublearrow',[0.343859649122809 0.457894736842105],...
+    [0.439758293838866 0.438388625592417]);
+annotation('doublearrow',[0.587719298245614 0.664912280701754],...
+    [0.731227488151659 0.732227488151659]);
+text(82,0.9,'+15% Improvement');
+text(52,0.5,'+49% Improvement');
