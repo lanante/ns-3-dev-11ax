@@ -925,41 +925,41 @@ InterferenceVal7=maxSecInterference7;
                                     "ControlMode", StringValue ("VhtMcs0"));
     }
 */
-
+double offset=12;
 if (constantCcaEdThresholdSecondaryBssA==0)
 {
-std::cout<<"Changed CCAED threshold of A from "<<constantCcaEdThresholdSecondaryBssA<<" to "<<maxSecInterference1-reqSinrPerMcs[(int)mcs1[6] - 48]+6<<std::endl;
-constantCcaEdThresholdSecondaryBssA=maxSecInterference1-reqSinrPerMcs[(int)mcs1[6] - 48]+6;
+std::cout<<"Changed CCAED threshold of A from "<<constantCcaEdThresholdSecondaryBssA<<" to "<<maxSecInterference1-reqSinrPerMcs[(int)mcs1[6] - 48]+offset<<std::endl;
+constantCcaEdThresholdSecondaryBssA=maxSecInterference1-reqSinrPerMcs[(int)mcs1[6] - 48]+offset;
 }
 if (constantCcaEdThresholdSecondaryBssB==0)
 {
-std::cout<<"Changed CCAED threshold of B from "<<constantCcaEdThresholdSecondaryBssB<<" to "<<maxSecInterference1-reqSinrPerMcs[(int)mcs2[6] - 48]+6<<std::endl;
-constantCcaEdThresholdSecondaryBssB=maxSecInterference1-reqSinrPerMcs[(int)mcs2[6] - 48]+6;
+std::cout<<"Changed CCAED threshold of B from "<<constantCcaEdThresholdSecondaryBssB<<" to "<<maxSecInterference1-reqSinrPerMcs[(int)mcs2[6] - 48]+offset<<std::endl;
+constantCcaEdThresholdSecondaryBssB=maxSecInterference1-reqSinrPerMcs[(int)mcs2[6] - 48]+offset;
 }
 if (constantCcaEdThresholdSecondaryBssC==0)
 {
-std::cout<<"Changed CCAED threshold of C from "<<constantCcaEdThresholdSecondaryBssA<<" to "<<maxSecInterference1-reqSinrPerMcs[(int)mcs3[6] - 48]+6<<std::endl;
-constantCcaEdThresholdSecondaryBssC=maxSecInterference1-reqSinrPerMcs[(int)mcs3[6] - 48]+6;
+std::cout<<"Changed CCAED threshold of C from "<<constantCcaEdThresholdSecondaryBssA<<" to "<<maxSecInterference1-reqSinrPerMcs[(int)mcs3[6] - 48]+offset<<std::endl;
+constantCcaEdThresholdSecondaryBssC=maxSecInterference1-reqSinrPerMcs[(int)mcs3[6] - 48]+offset;
 }
 if (constantCcaEdThresholdSecondaryBssD==0)
 {
-std::cout<<"Changed CCAED threshold of D from "<<constantCcaEdThresholdSecondaryBssA<<" to "<<maxSecInterference1-reqSinrPerMcs[(int)mcs4[6] - 48]+6<<std::endl;
-constantCcaEdThresholdSecondaryBssD=maxSecInterference1-reqSinrPerMcs[(int)mcs4[6] - 48]+6;
+std::cout<<"Changed CCAED threshold of D from "<<constantCcaEdThresholdSecondaryBssA<<" to "<<maxSecInterference1-reqSinrPerMcs[(int)mcs4[6] - 48]+offset<<std::endl;
+constantCcaEdThresholdSecondaryBssD=maxSecInterference1-reqSinrPerMcs[(int)mcs4[6] - 48]+offset;
 }
 if (constantCcaEdThresholdSecondaryBssE==0)
 {
-std::cout<<"Changed CCAED threshold of E from "<<constantCcaEdThresholdSecondaryBssA<<" to "<<maxSecInterference1-reqSinrPerMcs[(int)mcs5[6] - 48]+6<<std::endl;
-constantCcaEdThresholdSecondaryBssE=maxSecInterference1-reqSinrPerMcs[(int)mcs5[6] - 48]+6;
+std::cout<<"Changed CCAED threshold of E from "<<constantCcaEdThresholdSecondaryBssA<<" to "<<maxSecInterference1-reqSinrPerMcs[(int)mcs5[6] - 48]+offset<<std::endl;
+constantCcaEdThresholdSecondaryBssE=maxSecInterference1-reqSinrPerMcs[(int)mcs5[6] - 48]+offset;
 }
 if (constantCcaEdThresholdSecondaryBssF==0)
 {
-std::cout<<"Changed CCAED threshold of F from "<<constantCcaEdThresholdSecondaryBssA<<" to "<<maxSecInterference1-reqSinrPerMcs[(int)mcs6[6] - 48]+6<<std::endl;
-constantCcaEdThresholdSecondaryBssF=maxSecInterference1-reqSinrPerMcs[(int)mcs6[6] - 48]+6;
+std::cout<<"Changed CCAED threshold of F from "<<constantCcaEdThresholdSecondaryBssA<<" to "<<maxSecInterference1-reqSinrPerMcs[(int)mcs6[6] - 48]+offset<<std::endl;
+constantCcaEdThresholdSecondaryBssF=maxSecInterference1-reqSinrPerMcs[(int)mcs6[6] - 48]+offset;
 }
 if (constantCcaEdThresholdSecondaryBssG==0)
 {
-std::cout<<"Changed CCAED threshold of G from "<<constantCcaEdThresholdSecondaryBssA<<" to "<<maxSecInterference1-reqSinrPerMcs[(int)mcs7[6] - 48]+6<<std::endl;
-constantCcaEdThresholdSecondaryBssG=maxSecInterference1-reqSinrPerMcs[(int)mcs7[6] - 48]+6;
+std::cout<<"Changed CCAED threshold of G from "<<constantCcaEdThresholdSecondaryBssA<<" to "<<maxSecInterference1-reqSinrPerMcs[(int)mcs7[6] - 48]+offset<<std::endl;
+constantCcaEdThresholdSecondaryBssG=maxSecInterference1-reqSinrPerMcs[(int)mcs7[6] - 48]+offset;
 }
 
   wifi.SetChannelBondingManager ("ns3::" + channelBondingType + "ChannelBondingManager");

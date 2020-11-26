@@ -1,6 +1,6 @@
 clear
 clc
-
+close all
 %fig8
 thresholdA=[-82 -72 -62 0];
 MCSA=[0 4 8];
