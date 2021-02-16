@@ -1110,8 +1110,8 @@ main (int argc, char *argv[])
   bool enableAscii = false;
   double powSta = 20.0; // dBm
   double powAp = 20.0; // dBm
-  double ccaTrSta = -62; // dBm
-  double ccaTrAp = -62; // dBm
+  double ccaTrSta = -62, ccaTrStaObss=-62; // dBm
+  double ccaTrAp = -62, ccaTrApObss=-62; // dBm
   double d = 100.0; // distance between AP1 and AP2, m
   double r = 50.0; // radius of circle around each AP in which to scatter the STAs
   bool enableRts = 0;
@@ -1156,7 +1156,7 @@ main (int argc, char *argv[])
   std::string outputFilePrefix = "spatial-reuse";
   uint32_t payloadSizeUplink = 1500; // bytes
   uint32_t payloadSizeDownlink = 300; // bytes
-  uint16_t mcs = 0; // MCS value (if constant rate)
+  uint16_t mcs = 0,obssMCS=0; // MCS value (if constant rate)
   Time interval = MicroSeconds (1000);
   bool enableObssPd = false;
   uint32_t maxAmpduSizeBss1 = 65535;
@@ -1199,6 +1199,10 @@ bool fixedPosition=false;
   cmd.AddValue ("maxSupportedRxSpatialStreams", "The maximum number of supported Rx spatial streams.", maxSupportedRxSpatialStreams);
   cmd.AddValue ("ccaTrSta", "CCA Threshold of STA (dBm)", ccaTrSta);
   cmd.AddValue ("ccaTrAp", "CCA Threshold of AP (dBm)", ccaTrAp);
+    cmd.AddValue ("ccaTrStaObss", "CCA Threshold of STA (dBm)", ccaTrStaObss);
+  cmd.AddValue ("ccaTrApObss", "CCA Threshold of AP (dBm)", ccaTrApObss);
+  
+  
   cmd.AddValue ("rxSensitivity", "Receiver Sensitivity (dBm)", rxSensitivity);
   cmd.AddValue ("d", "Distance between AP1 and AP2 (m)", d);
   cmd.AddValue ("n", "Number of STAs to scatter around each AP", n);
@@ -1215,6 +1219,7 @@ bool fixedPosition=false;
   cmd.AddValue ("payloadSizeUplink", "Payload size of 1 uplink packet [bytes]", payloadSizeUplink);
   cmd.AddValue ("payloadSizeDownlink", "Payload size of 1 downlink packet [bytes]", payloadSizeDownlink);
   cmd.AddValue ("MCS", "Modulation and Coding Scheme (MCS) index (default=0)", mcs);
+    cmd.AddValue ("obssMCS", "Modulation and Coding Scheme (MCS) index (default=0)", obssMCS);
   cmd.AddValue ("txStartOffset", "N(0, mu) offset for each node's start of packet transmission.  Default mu=5 [ns]", txStartOffset);
   cmd.AddValue ("obssPdThresholdBss1", "Energy threshold (dBm) for BSS 1 of received signal below which the PHY layer can avoid declaring CCA BUSY for inter-BSS frames.", obssPdThresholdBss1);
   cmd.AddValue ("obssPdThresholdBss2", "Energy threshold (dBm) for BSS 2 of received signal below which the PHY layer can avoid declaring CCA BUSY for inter-BSS frames.", obssPdThresholdBss2);
@@ -1322,9 +1327,9 @@ bool fixedPosition=false;
 
   Config::SetDefault ("ns3::WifiMacQueue::MaxDelay", TimeValue (MilliSeconds (maxQueueDelay)));
 
-  std::ostringstream ossMcs;
+  std::ostringstream ossMcs, ossObssMcs;
   ossMcs << mcs;
-
+ossObssMcs<<obssMCS;
   // carrier sense range (csr) is a calculated value that is used for displaying the
   // estimated range in which an AP can successfully receive from STAs.
   // first, let us calculate the max distance, txRange, that a transmitting STA's signal
@@ -1360,12 +1365,13 @@ bool fixedPosition=false;
   csr = txRange * pow (s0, 1.0 / gamma);
 
   WifiHelper wifi;
-  std::string dataRate;
+  std::string dataRate,obssDataRate;
   int freq;
   if (standard == "11a")
     {
       wifi.SetStandard (WIFI_PHY_STANDARD_80211a);
       dataRate = "OfdmRate6Mbps";
+            obssDataRate = "OfdmRate6Mbps";
       freq = 5180;
       if (bw != 20)
         {
@@ -1377,6 +1383,7 @@ bool fixedPosition=false;
     {
       wifi.SetStandard (WIFI_PHY_STANDARD_80211_10MHZ);
       dataRate = "OfdmRate3MbpsBW10MHz";
+      obssDataRate="OfdmRate3MbpsBW10MHz";
       freq = 5860;
       if (bw != 10)
         {
@@ -1388,6 +1395,7 @@ bool fixedPosition=false;
     {
       wifi.SetStandard (WIFI_PHY_STANDARD_80211_5MHZ);
       dataRate = "OfdmRate1_5MbpsBW5MHz";
+      obssDataRate="OfdmRate1_5MbpsBW5MHz";
       freq = 5860;
       if (bw != 5)
         {
@@ -1399,6 +1407,7 @@ bool fixedPosition=false;
     {
       wifi.SetStandard (WIFI_PHY_STANDARD_80211n_2_4GHZ);
       dataRate = "HtMcs" + ossMcs.str ();
+      obssDataRate="HtMcs" + ossObssMcs.str ();
       freq = 2402 + (bw / 2); //so as to have 2412/2422 for 20/40
       if (bw != 20 && bw != 40)
         {
@@ -1410,6 +1419,7 @@ bool fixedPosition=false;
     {
       wifi.SetStandard (WIFI_PHY_STANDARD_80211n_5GHZ);
       dataRate = "HtMcs" + ossMcs.str ();
+            obssDataRate="HtMcs" + ossObssMcs.str ();
       freq = 5170 + (bw / 2); //so as to have 5180/5190 for 20/40
       if (bw != 20 && bw != 40)
         {
@@ -1421,6 +1431,7 @@ bool fixedPosition=false;
     {
       wifi.SetStandard (WIFI_PHY_STANDARD_80211ac);
       dataRate = "VhtMcs" + ossMcs.str ();
+            obssDataRate="VhtMcs" + ossObssMcs.str ();
       freq = 5170 + (bw / 2); //so as to have 5180/5190/5210/5250 for 20/40/80/160
       if (bw != 20 && bw != 40 && bw != 80 && bw != 160)
         {
@@ -1432,6 +1443,7 @@ bool fixedPosition=false;
     {
       wifi.SetStandard (WIFI_PHY_STANDARD_80211ax_2_4GHZ);
       dataRate = "HeMcs" + ossMcs.str ();
+            obssDataRate="HeMcs" + ossObssMcs.str ();
       freq = 2402 + (bw / 2); //so as to have 2412/2422/2442 for 20/40/80
       if (bw != 20 && bw != 40 && bw != 80)
         {
@@ -1443,6 +1455,7 @@ bool fixedPosition=false;
     {
       wifi.SetStandard (WIFI_PHY_STANDARD_80211ax_5GHZ);
       dataRate = "HeMcs" + ossMcs.str ();
+            obssDataRate="HeMcs" + ossObssMcs.str ();
       freq = 5170 + (bw / 2); //so as to have 5180/5190/5210/5250 for 20/40/80/160
       if (bw != 20 && bw != 40 && bw != 80 && bw != 160)
         {
@@ -1656,10 +1669,10 @@ bytesTransmitted[nodeId] = 0;
 
   // WiFi setup / helpers
   WifiMacHelper mac;
-
+      StringValue ctrlRate,obssCtrlRate;
   if (useIdealWifiManager == false)
     {
-      StringValue ctrlRate;
+
       if ((standard == "11n_2_4GHZ") || (standard == "11ax_2_4GHZ"))
         {
           if (mcs == 0)
@@ -1673,6 +1686,18 @@ bytesTransmitted[nodeId] = 0;
           else
             {
               ctrlRate = StringValue ("ErpOfdmRate24Mbps");
+            }
+          if (obssMCS == 0)
+            {
+              obssCtrlRate = StringValue ("ErpOfdmRate6Mbps");
+            }
+          else if (obssMCS < 3)
+            {
+              obssCtrlRate = StringValue ("ErpOfdmRate12Mbps");
+            }
+          else
+            {
+              obssCtrlRate = StringValue ("ErpOfdmRate24Mbps");
             }
         }
       else
@@ -1688,6 +1713,18 @@ bytesTransmitted[nodeId] = 0;
           else
             {
               ctrlRate = StringValue ("OfdmRate24Mbps");
+            }
+          if (obssMCS == 0)
+            {
+              obssCtrlRate = StringValue ("OfdmRate6Mbps");
+            }
+          else if (obssMCS < 3)
+            {
+              obssCtrlRate = StringValue ("OfdmRate12Mbps");
+            }
+          else
+            {
+              obssCtrlRate = StringValue ("OfdmRate24Mbps");
             }
         }
       wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager","DataMode", StringValue (dataRate),
@@ -1758,6 +1795,9 @@ bytesTransmitted[nodeId] = 0;
       heConfiguration->SetAttribute ("BssColor", UintegerValue (colorBss1));
     }
 
+          wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager","DataMode", StringValue (obssDataRate),
+                                    "ControlMode", obssCtrlRate);
+
   if (nBss >= 2)
     {
       // Set PHY power and CCA threshold for STAs
@@ -1768,7 +1808,7 @@ bytesTransmitted[nodeId] = 0;
       spectrumPhy.Set ("Antennas", UintegerValue (antennas));
       spectrumPhy.Set ("MaxSupportedTxSpatialStreams", UintegerValue (maxSupportedTxSpatialStreams));
       spectrumPhy.Set ("MaxSupportedRxSpatialStreams", UintegerValue (maxSupportedRxSpatialStreams));
-      spectrumPhy.Set ("CcaEdThreshold", DoubleValue (ccaTrSta));
+      spectrumPhy.Set ("CcaEdThreshold", DoubleValue (ccaTrStaObss));
       spectrumPhy.Set ("RxSensitivity", DoubleValue (rxSensitivity));
 
       // Network "B"
@@ -1781,7 +1821,7 @@ bytesTransmitted[nodeId] = 0;
                                    "ObssPdLevel", DoubleValue (obssPdThresholdBss2),
                                "d",DoubleValue (d),
                                  "r",DoubleValue (r),
-                                "mcs",UintegerValue(mcs));
+                                "mcs",UintegerValue(obssMCS));
         }
 
       mac.SetType ("ns3::StaWifiMac",
@@ -1799,7 +1839,7 @@ bytesTransmitted[nodeId] = 0;
       spectrumPhy.Set ("Antennas", UintegerValue (antennas));
       spectrumPhy.Set ("MaxSupportedTxSpatialStreams", UintegerValue (maxSupportedTxSpatialStreams));
       spectrumPhy.Set ("MaxSupportedRxSpatialStreams", UintegerValue (maxSupportedRxSpatialStreams));
-      spectrumPhy.Set ("CcaEdThreshold", DoubleValue (ccaTrAp));
+      spectrumPhy.Set ("CcaEdThreshold", DoubleValue (ccaTrApObss));
       spectrumPhy.Set ("RxSensitivity", DoubleValue (rxSensitivity));
 
       mac.SetType ("ns3::ApWifiMac",
